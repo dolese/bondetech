@@ -2,6 +2,8 @@
 // BACKEND VALIDATION MIDDLEWARE
 // ═══════════════════════════════════════════════════════════════════════════════
 
+const ALLOWED_FORMS = ["Form I", "Form II", "Form III", "Form IV"];
+
 // Validate student data
 function validateStudent(data) {
   const errors = {};
@@ -79,6 +81,8 @@ function validateClass(data) {
   if (data.form !== undefined) {
     if (!data.form || typeof data.form !== "string" || !data.form.trim()) {
       errors.form = "Form is required";
+    } else if (!ALLOWED_FORMS.includes(data.form.trim())) {
+      errors.form = "Form must be one of: Form I, Form II, Form III, Form IV";
     }
   }
 
@@ -159,6 +163,7 @@ function sanitizeScores(scores) {
 }
 
 module.exports = {
+  ALLOWED_FORMS,
   validateStudent,
   validateClass,
   validateSchoolInfo,

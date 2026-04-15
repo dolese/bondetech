@@ -6,6 +6,7 @@ const {
   validateClassMiddleware,
   sanitizeScores,
   sanitizeText,
+  ALLOWED_FORMS,
 } = require("../validation");
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -119,6 +120,15 @@ router.post("/", validateClassMiddleware, async (req, res) => {
       form = "Form I",
     } = req.body;
 
+    const dupSnap = await db.collection("classes")
+      .where("year", "==", year)
+      .where("form", "==", form)
+      .limit(1)
+      .get();
+    if (!dupSnap.empty) {
+      return res.status(409).json({ error: `A class for ${form} ${year} already exists` });
+    }
+
     const docRef = await db.collection("classes").add({
       name: name.trim() || "New Class",
       school_info: schoolInfo,
@@ -154,6 +164,23 @@ router.put("/:id", async (req, res) => {
     if (Array.isArray(subjects)) updates.subjects = subjects;
     if (year) updates.year = year;
     if (form) updates.form = form;
+
+    // If year or form changed, ensure no duplicate (year, form) combination
+    const newYear = updates.year || data.year;
+    const newForm = updates.form || data.form;
+    if ((updates.year && updates.year !== data.year) || (updates.form && updates.form !== data.form)) {
+      if (!ALLOWED_FORMS.includes(newForm)) {
+        return res.status(400).json({ error: "Form must be one of: Form I, Form II, Form III, Form IV" });
+      }
+      const dupSnap = await db.collection("classes")
+        .where("year", "==", newYear)
+        .where("form", "==", newForm)
+        .limit(1)
+        .get();
+      if (!dupSnap.empty && dupSnap.docs[0].id !== req.params.id) {
+        return res.status(409).json({ error: `A class for ${newForm} ${newYear} already exists` });
+      }
+    }
 
     // Remap student scores if subjects changed
     if (Array.isArray(subjects)) {
