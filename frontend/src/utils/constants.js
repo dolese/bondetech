@@ -25,7 +25,7 @@ export const DEFAULT_SCHOOL = {
   form: "Form I",
   term: "I",
   exam: "Mid-Term Exam",
-  year: "2026",
+  year: String(new Date().getFullYear()),
 };
 
 // Grade colors & backgrounds

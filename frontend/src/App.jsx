@@ -87,8 +87,9 @@ export default function App() {
         if (normalized.length) {
           setActiveId(normalized[0].id);
         }
-        // Expand all years that have classes
+        // Expand all years that have classes, and always expand the current year
         const years = new Set(normalized.map(c => c.year).filter(Boolean));
+        years.add(String(new Date().getFullYear()));
         setExpandedYears(years);
         setLoading(false);
       })
@@ -133,7 +134,9 @@ export default function App() {
     return withPositions(activeClass.students ?? [], activeClass.subjects ?? DEFAULT_SUBJECTS);
   }, [activeClass]);
 
-  // Group classes by year (sorted descending), skipping classes with no year
+  // Group classes by year (sorted descending).
+  // Auto-include all years from 2026 up to the current year so year rows and
+  // their Form I–IV slots are visible even before any class is created.
   const classesByYear = useMemo(() => {
     const map = {};
     classes.forEach(cl => {
@@ -141,6 +144,11 @@ export default function App() {
       if (!map[cl.year]) map[cl.year] = [];
       map[cl.year].push(cl);
     });
+    const currentYear = new Date().getFullYear();
+    for (let y = 2026; y <= currentYear; y++) {
+      const key = String(y);
+      if (!map[key]) map[key] = [];
+    }
     return Object.entries(map).sort(([a], [b]) => Number(b) - Number(a));
   }, [classes]);
 
