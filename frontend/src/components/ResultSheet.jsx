@@ -8,7 +8,9 @@ import { createRoot } from "react-dom/client";
 import { ReportCardPrint } from "./ReportCardPrint";
 
 export function ResultSheet({ classData, computed, onOpenReportCard }) {
-  const present = (computed ?? []).filter(s => s.total !== null);
+  const present = (computed ?? [])
+    .filter(s => s.total !== null)
+    .sort((a, b) => (a.posn ?? Infinity) - (b.posn ?? Infinity));
   const sheetRef = useRef(null);
   const { isMobile } = useViewport();
   const [exportingZip, setExportingZip] = useState(false);
@@ -329,6 +331,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                 <thead>
                   <tr>
                     {[
+                      "Pos",
                       "CNO",
                       "Name",
                       "Stream",
@@ -348,6 +351,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                 <tbody>
                   {present.map((s) => (
                     <tr key={s.id}>
+                      <td style={{ ...styles.td, fontWeight: 800 }}>{s.posn ?? "–"}</td>
                       <td style={styles.td}>{s.index_no}</td>
                       <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
                       <td style={{ ...styles.td, textAlign: "left" }}>{s.stream ?? "–"}</td>

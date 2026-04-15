@@ -37,6 +37,7 @@ export function Dashboard({ allComputed, onOpenClass }) {
 
   const allStudents = filtered.flatMap(c => c.computed ?? []);
   const present = allStudents.filter(s => s.total !== null);
+  const complete = present.filter(s => s.div !== null);
   
   const divCounts = { I: 0, II: 0, III: 0, IV: 0, "0": 0 };
   present.forEach(s => {
@@ -44,8 +45,8 @@ export function Dashboard({ allComputed, onOpenClass }) {
   });
   
   const top10 = [...present].sort((a, b) => b.total - a.total).slice(0, 10);
-  const passRate = present.length
-    ? Math.round(present.filter(s => s.div !== "0").length / present.length * 100)
+  const passRate = complete.length
+    ? Math.round(complete.filter(s => s.div !== "0").length / complete.length * 100)
     : 0;
 
   const subjPerf = {};
@@ -67,7 +68,12 @@ export function Dashboard({ allComputed, onOpenClass }) {
     .map(([k, v]) => ({ subj: k, avg: Number((v.total / v.count).toFixed(1)) }))
     .sort((a, b) => b.avg - a.avg);
 
-  const classMap = Object.fromEntries(allComputed.map(cl => [cl.id, cl.name]));
+  const studentClassMap = {};
+  allComputed.forEach(cl => {
+    (cl.computed ?? []).forEach(s => {
+      studentClassMap[s.id] = cl.name;
+    });
+  });
 
   const styles = {
     panel: {
@@ -280,6 +286,7 @@ export function Dashboard({ allComputed, onOpenClass }) {
                     "Div II",
                     "Div III",
                     "Div IV",
+                    "Div 0",
                     "Pass%",
                     "Top Student",
                     "",
@@ -305,9 +312,10 @@ export function Dashboard({ allComputed, onOpenClass }) {
                     s => s.total !== null
                   );
                   const d = dv => pres.filter(s => s.div === dv).length;
-                  const pass = pres.length
+                  const clComplete = pres.filter(s => s.div !== null);
+                  const pass = clComplete.length
                     ? Math.round(
-                        (pres.filter(s => s.div && s.div !== "0").length / pres.length) *
+                        (clComplete.filter(s => s.div !== "0").length / clComplete.length) *
                           100
                       )
                     : 0;
@@ -349,7 +357,7 @@ export function Dashboard({ allComputed, onOpenClass }) {
                       >
                         {pres.length}
                       </td>
-                      {["I", "II", "III", "IV"].map(dv => (
+                      {["I", "II", "III", "IV", "0"].map(dv => (
                         <td
                           key={dv}
                           style={{
@@ -414,7 +422,7 @@ export function Dashboard({ allComputed, onOpenClass }) {
                 {!filtered.length && (
                   <tr>
                     <td
-                      colSpan={10}
+                      colSpan={11}
                       style={{
                         padding: 20,
                         textAlign: "center",
@@ -590,7 +598,7 @@ export function Dashboard({ allComputed, onOpenClass }) {
                       {s.name}
                     </td>
                     <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3", color: "#003366" }}>
-                      {classMap[allComputed.find(c => (c.computed ?? []).some(x => x.id === s.id))?.id] ?? ""}
+                      {studentClassMap[s.id] ?? ""}
                     </td>
                     <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3" }}>{s.sex}</td>
                     <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3", fontWeight: 800 }}>
