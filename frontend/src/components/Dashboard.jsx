@@ -10,7 +10,7 @@ import { exportElementToPdf } from "../utils/pdfExport";
 
 export function Dashboard({ allComputed, onOpenClass }) {
   const { isMobile, isTablet } = useViewport();
-  const [filterYear, setFilterYear] = useState("all");
+  const [filterYear, setFilterYear] = useState(String(new Date().getFullYear()));
   const [filterForm, setFilterForm] = useState("all");
   const summaryRef = useRef(null);
 
