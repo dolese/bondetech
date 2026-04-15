@@ -22,6 +22,12 @@
       ::-webkit-scrollbar-thumb { background: #b0c4e8; border-radius: 3px; }
       ::-webkit-scrollbar-thumb:hover { background: #7a9fd0; }
 
+      /* Mobile: ensure buttons and inputs are at least 44px tall for touch targets */
+      @media (max-width: 720px) {
+        button { min-height: 36px; }
+        input, select, textarea { min-height: 36px; font-size: 16px !important; }
+      }
+
       /* Input focus */
       input:focus, select:focus, textarea:focus {
         outline: 2px solid #4a90e2 !important;

@@ -215,7 +215,7 @@ export function AnalysisPanel({ classData, computed }) {
         </div>
 
         {/* Subject Performance */}
-        <div style={{ ...styles.card, gridColumn: "span 2" }}>
+        <div style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}>
           <h3 style={styles.cardTitle}>📚 Subject Performance</h3>
           <div style={{ overflowX: "auto" }}>
             <table
@@ -322,8 +322,9 @@ export function AnalysisPanel({ classData, computed }) {
         </div>
 
         {/* Score Distribution */}
-        <div style={{ ...styles.card, gridColumn: "span 2" }}>
+        <div style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}>
           <h3 style={styles.cardTitle}>📈 Score Distribution</h3>
+          <div style={{ overflowX: "auto" }}>
           <div
             style={{
               display: "flex",
@@ -332,6 +333,7 @@ export function AnalysisPanel({ classData, computed }) {
               height: 140,
               justifyContent: "space-around",
               marginTop: 12,
+              minWidth: 280,
             }}
           >
             {Object.entries(scoreRanges).map(([range, count]) => {
@@ -381,6 +383,7 @@ export function AnalysisPanel({ classData, computed }) {
                 </div>
               );
             })}
+          </div>
           </div>
         </div>
       </div>

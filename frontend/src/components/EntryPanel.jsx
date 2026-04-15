@@ -394,14 +394,16 @@ export function EntryPanel({
       borderRadius: 6,
       border: "1px solid #d0dcf8",
       height: 30,
-      minWidth: 120,
+      minWidth: isMobile ? 0 : 120,
+      width: isMobile ? "100%" : "auto",
     },
     metaSelect: {
       padding: "6px 8px",
       borderRadius: 6,
       border: "1px solid #d0dcf8",
       height: 30,
-      minWidth: 120,
+      minWidth: isMobile ? 0 : 120,
+      width: isMobile ? "100%" : "auto",
     },
     metaBtn: {
       padding: "6px 12px",
@@ -416,7 +418,7 @@ export function EntryPanel({
   };
 
   return (
-    <div style={{ ...styles.panel, padding: 14 }}>
+    <div style={styles.panel}>
       <div>
         <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 800 }}>
           📝 Student Entry

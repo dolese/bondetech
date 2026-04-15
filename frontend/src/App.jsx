@@ -347,7 +347,10 @@ export default function App() {
           </div>
 
           <button
-            onClick={() => setPage("dashboard")}
+            onClick={() => {
+              setPage("dashboard");
+              if (isMobile) setSideOpen(false);
+            }}
             style={{ ...S.dashBtn, ...(page === "dashboard" ? S.dashBtnOn : {}) }}
           >
             📊 Dashboard
@@ -375,13 +378,14 @@ export default function App() {
                     onClick={() => {
                       setActiveId(cl.id);
                       setPage("class");
+                      if (isMobile) setSideOpen(false);
                     }}
                   >
                     📋 {cl.name}
                     <span style={S.clBadge}>{cl.studentCount ?? cl.students?.length ?? 0}</span>
                   </span>
                 )}
-                <div style={S.clActs}>
+                <div style={{ ...S.clActs, ...(isMobile ? { opacity: 1 } : {}) }}>
                   <button style={S.iBtn} title="Rename" onClick={() => { setRenamingId(cl.id); setRenameVal(cl.name); }}>✏️</button>
                   <button style={S.iBtn} title="Delete" onClick={() => setConfirmDel(cl.id)}>🗑️</button>
                 </div>
