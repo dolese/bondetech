@@ -7,6 +7,7 @@ import { Dashboard } from "./components/Dashboard";
 import { ClassWorkspace } from "./components/ClassWorkspace";
 import { ReportCardModal } from "./components/ReportCardModal";
 import { CSVImportModal } from "./components/CSVImportModal";
+import { JSONImportModal } from "./components/JSONImportModal";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 
@@ -22,6 +23,7 @@ const normalizeStudent = (student) => ({
   ...student,
   index_no: student.index_no ?? student.indexNo ?? "",
   stream: student.stream ?? "",
+  remarks: student.remarks ?? "",
   scores: Array.isArray(student.scores) ? student.scores : [],
 });
 
@@ -38,6 +40,7 @@ const toApiStudent = (student) => ({
   stream: student.stream ?? "",
   sex: student.sex ?? "M",
   status: student.status ?? "present",
+  remarks: student.remarks ?? "",
   scores: Array.isArray(student.scores)
     ? student.scores
     : (student.grades ?? []).map(g => g?.score ?? ""),
@@ -469,6 +472,15 @@ export default function App() {
 
       {modalType === "csv-import" && activeClass && (
         <CSVImportModal
+          classId={activeClass.id}
+          subjects={activeClass.subjects ?? []}
+          onImport={onBulkImport}
+          onClose={onCloseModal}
+        />
+      )}
+
+      {modalType === "json-import" && activeClass && (
+        <JSONImportModal
           classId={activeClass.id}
           subjects={activeClass.subjects ?? []}
           onImport={onBulkImport}

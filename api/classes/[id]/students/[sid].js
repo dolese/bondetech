@@ -13,6 +13,7 @@ const parseStudent = (doc, classId) => {
     sex: data.sex || "M",
     status: data.status || "present",
     scores: Array.isArray(data.scores) ? data.scores : [],
+    remarks: data.remarks || "",
     createdAt: data.created_at || null,
   };
 };
@@ -49,6 +50,7 @@ module.exports = async (req, res) => {
         updates.status = ["present", "absent", "incomplete"].includes(body.status) ? body.status : studentSnap.data().status;
       }
       if (Array.isArray(body.scores)) updates.scores = sanitizeScores(body.scores, subjects.length);
+      if (typeof body.remarks === "string") updates.remarks = sanitizeText(body.remarks);
 
       await studentRef.update(updates);
       const updated = await studentRef.get();

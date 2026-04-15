@@ -513,6 +513,23 @@ export function EntryPanel({
               ⬇ Export CSV
             </button>
             <button
+              onClick={() => onShowModal("json-import")}
+              title="Import students from JSON"
+              style={{
+                padding: "6px 12px",
+                background: "#5a2d82",
+                color: "#fff",
+                border: "none",
+                borderRadius: 5,
+                cursor: "pointer",
+                fontWeight: 700,
+                height: 30,
+                width: isMobile ? "100%" : "auto",
+              }}
+            >
+              📥 Import JSON
+            </button>
+            <button
               onClick={exportJson}
               title="Export students as JSON"
               style={{
@@ -1071,6 +1088,17 @@ export function EntryPanel({
               <th
                 style={{
                   padding: "5px 6px",
+                  textAlign: "left",
+                  fontWeight: 700,
+                  border: "1px solid #224488",
+                  minWidth: 80,
+                }}
+              >
+                Remarks
+              </th>
+              <th
+                style={{
+                  padding: "5px 6px",
                   textAlign: "center",
                   fontWeight: 700,
                   border: "1px solid #224488",
@@ -1307,6 +1335,48 @@ export function EntryPanel({
                     }}
                   >
                     {s.div ?? "–"}
+                  </td>
+                  <td
+                    style={{
+                      padding: "4px 6px",
+                      textAlign: "left",
+                      border: "1px solid #d2def5",
+                      maxWidth: isMobile ? 140 : 200,
+                    }}
+                  >
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editData.remarks ?? ""}
+                        onChange={e =>
+                          setEditData({ ...editData, remarks: e.target.value })
+                        }
+                        placeholder="Optional remark"
+                        style={{
+                          width: "100%",
+                          padding: "3px 4px",
+                          borderRadius: 3,
+                          border: "1px solid #d0dcf8",
+                          fontSize: 10,
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    ) : (
+                      <span
+                        title={s.remarks || ""}
+                        style={{
+                          display: "block",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          maxWidth: isMobile ? 140 : 200,
+                          fontSize: 10,
+                          color: s.remarks ? "#333" : "#bbb",
+                        }}
+                      >
+                        {s.remarks || "–"}
+                      </span>
+                    )}
                   </td>
                   <td
                     style={{

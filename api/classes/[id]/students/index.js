@@ -13,6 +13,7 @@ const parseStudent = (doc, classId) => {
     sex: data.sex || "M",
     status: data.status || "present",
     scores: Array.isArray(data.scores) ? data.scores : [],
+    remarks: data.remarks || "",
     createdAt: data.created_at || null,
   };
 };
@@ -56,6 +57,7 @@ module.exports = async (req, res) => {
       }
 
       const scores = sanitizeScores(body.scores, subjects.length);
+      const remarks = sanitizeText(body.remarks ?? "");
 
       const created_at = new Date().toISOString();
       const studentRef = await classRef.collection("students").add({
@@ -65,6 +67,7 @@ module.exports = async (req, res) => {
         sex,
         status,
         scores,
+        remarks,
         created_at,
       });
 
