@@ -98,10 +98,13 @@ export function AnalysisPanel({ classData, computed }) {
     panel: {
       flex: 1,
       overflowY: "auto",
+      overflowX: "hidden",
       padding: isMobile ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 12,
+      minHeight: 0,
+      minWidth: 0,
     },
     card: {
       background: "#fff",
@@ -217,7 +220,7 @@ export function AnalysisPanel({ classData, computed }) {
         {/* Subject Performance */}
         <div style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}>
           <h3 style={styles.cardTitle}>📚 Subject Performance</h3>
-          <div style={{ overflowX: "auto" }}>
+          <div style={{ overflowX: "auto", minWidth: 0 }}>
             <table
               style={{
                 borderCollapse: "collapse",
@@ -324,7 +327,7 @@ export function AnalysisPanel({ classData, computed }) {
         {/* Score Distribution */}
         <div style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}>
           <h3 style={styles.cardTitle}>📈 Score Distribution</h3>
-          <div style={{ overflowX: "auto" }}>
+          <div style={{ overflowX: "auto", minWidth: 0 }}>
           <div
             style={{
               display: "flex",
