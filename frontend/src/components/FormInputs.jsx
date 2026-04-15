@@ -11,7 +11,7 @@ export function TextInput({
   placeholder,
   error,
   disabled = false,
-  width = "200px",
+  width = "100%",
   required = false,
 }) {
   const styles = {
@@ -152,7 +152,7 @@ export function SelectInput({
   options,
   error,
   disabled = false,
-  width = "150px",
+  width = "100%",
   required = false,
 }) {
   const styles = {
