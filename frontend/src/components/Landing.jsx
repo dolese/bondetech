@@ -108,7 +108,7 @@ export function Landing({ onLogin }) {
     },
     featureRow: {
       display: "grid",
-      gridTemplateColumns: isMobile ? "repeat(3, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))",
+      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
       gap: isMobile ? 8 : 12,
       marginTop: isMobile ? 8 : 12,
       maxWidth: isMobile ? "none" : 520,
