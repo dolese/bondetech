@@ -8,6 +8,7 @@ import { createRoot } from "react-dom/client";
 import { ReportCardPrint } from "./ReportCardPrint";
 
 export function ResultSheet({ classData, computed, onOpenReportCard }) {
+  const subjects = classData.subjects ?? [];
   const present = (computed ?? [])
     .filter(s => s.total !== null)
     .sort((a, b) => (a.posn ?? Infinity) - (b.posn ?? Infinity));
@@ -106,8 +107,8 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       flex: 1,
     },
     logo: {
-      width: isMobile ? 34 : 40,
-      height: isMobile ? 34 : 40,
+      width: isMobile ? 60 : 80,
+      height: isMobile ? 60 : 80,
       borderRadius: 6,
       background: "#fff",
       objectFit: "contain",
@@ -245,7 +246,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
           onClick={() => {
             const date = new Date().toISOString().slice(0, 10);
             const name = `${classData.name || "class"}-results-${date}.pdf`;
-            exportElementToPdf(sheetRef.current, name);
+            exportElementToPdf(sheetRef.current, name, "landscape");
           }}
           style={{
             ...styles.tabBtn,
@@ -336,6 +337,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                       "Name",
                       "Stream",
                       "Sex",
+                      ...subjects,
                       "Total",
                       "Avg",
                       "Grade",
@@ -356,6 +358,11 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                       <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
                       <td style={{ ...styles.td, textAlign: "left" }}>{s.stream ?? "–"}</td>
                       <td style={styles.td}>{s.sex}</td>
+                      {subjects.map((_, i) => {
+                        const g = s.grades?.[i];
+                        const display = g?.raw === "ABS" ? "ABS" : (g?.score ?? "–");
+                        return <td key={i} style={styles.td}>{display}</td>;
+                      })}
                       <td style={styles.td}>{s.total ?? "–"}</td>
                       <td style={styles.td}>{s.avg ?? "–"}</td>
                       <td style={{ ...styles.td, color: GRADE_COLORS[s.agrd] }}>{s.agrd ?? "–"}</td>
