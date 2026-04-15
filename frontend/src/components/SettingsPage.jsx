@@ -104,6 +104,16 @@ export function SettingsPage({
     setUpdatingSubjects(false);
   };
 
+  const handleMoveSubject = async (index, direction) => {
+    const swapIdx = index + direction;
+    if (swapIdx < 0 || swapIdx >= subjects.length) return;
+    const next = [...subjects];
+    [next[index], next[swapIdx]] = [next[swapIdx], next[index]];
+    setUpdatingSubjects(true);
+    await onUpdateSubjects?.(next);
+    setUpdatingSubjects(false);
+  };
+
   const styles = {
     panel: {
       flex: 1,
@@ -193,6 +203,16 @@ export function SettingsPage({
       padding: "2px 6px",
       fontSize: 9,
       cursor: "pointer",
+    },
+    subjectArrow: {
+      background: "transparent",
+      color: "#003366",
+      border: "1px solid #d0dcf8",
+      borderRadius: 4,
+      padding: "1px 4px",
+      fontSize: 9,
+      cursor: "pointer",
+      lineHeight: 1,
     },
     subjectInput: {
       padding: "6px 8px",
@@ -372,9 +392,25 @@ export function SettingsPage({
           {subjects.length === 0 && (
             <div style={{ fontSize: 10, color: "#999" }}>No subjects yet.</div>
           )}
-          {subjects.map((subj) => (
+          {subjects.map((subj, idx) => (
             <span key={subj} style={styles.subjectChip}>
+              <button
+                style={styles.subjectArrow}
+                onClick={() => handleMoveSubject(idx, -1)}
+                disabled={updatingSubjects || idx === 0}
+                title="Move up"
+              >
+                ▲
+              </button>
               {subj}
+              <button
+                style={styles.subjectArrow}
+                onClick={() => handleMoveSubject(idx, 1)}
+                disabled={updatingSubjects || idx === subjects.length - 1}
+                title="Move down"
+              >
+                ▼
+              </button>
               <button
                 style={styles.subjectRemove}
                 onClick={() => handleRemoveSubject(subj)}

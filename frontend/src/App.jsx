@@ -367,6 +367,7 @@ export default function App() {
   const closeSide = () => { if (isMobile) setSideOpen(false); };
 
   const NAV_ITEMS = [
+    { key: "students", icon: "👥", label: "Students" },
     { key: "results",  icon: "📋", label: "Results"  },
     { key: "reports",  icon: "📄", label: "Reports"  },
     { key: "settings", icon: "⚙️",  label: "Settings" },
