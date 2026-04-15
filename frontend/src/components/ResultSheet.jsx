@@ -62,9 +62,9 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         if (blob) {
           zip.file(`${safeName}-report.pdf`, blob);
         }
-        root.unmount();
       }
 
+      root.unmount();
       document.body.removeChild(container);
       const zipBlob = await zip.generateAsync({ type: "blob" });
       saveAs(zipBlob, `${safeClass}-reports.zip`);

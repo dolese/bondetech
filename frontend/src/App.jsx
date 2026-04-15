@@ -391,7 +391,7 @@ export default function App() {
 
           <button onClick={addClass} style={S.addClBtn}>+ New Class</button>
           <div style={S.sideFooter}>
-            <span style={{ color: "#5dbb6b", fontSize: 10, fontWeight: 700 }}>🗄️ SQLite Database</span>
+            <span style={{ color: "#5dbb6b", fontSize: 10, fontWeight: 700 }}>🗄️ Firebase / Firestore</span>
             <br />
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 9 }}>Data persists on server</span>
           </div>
