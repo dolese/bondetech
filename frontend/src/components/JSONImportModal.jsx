@@ -66,15 +66,28 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
 
     const validRows = [];
     const errs = [];
+    const coercionWarnings = [];
 
     students.forEach((s, i) => {
       const rawScores = Array.isArray(s.scores) ? s.scores : [];
+
+      const sexVal = s.sex === "F" ? "F" : "M";
+      if (s.sex !== undefined && s.sex !== "M" && s.sex !== "F") {
+        coercionWarnings.push(`Row ${i + 1}: sex "${s.sex}" is not M or F — defaulted to M`);
+      }
+
+      const validStatuses = ["present", "absent", "incomplete"];
+      const statusVal = validStatuses.includes(s.status) ? s.status : "present";
+      if (s.status !== undefined && !validStatuses.includes(s.status)) {
+        coercionWarnings.push(`Row ${i + 1}: status "${s.status}" is not valid — defaulted to present`);
+      }
+
       const mapped = {
         indexNo: String(s.indexNo ?? s.index_no ?? "").trim(),
         name: String(s.name ?? "").trim(),
         stream: String(s.stream ?? "").trim(),
-        sex: s.sex === "F" ? "F" : "M",
-        status: ["present", "absent", "incomplete"].includes(s.status) ? s.status : "present",
+        sex: sexVal,
+        status: statusVal,
         scores: mapScores(rawScores, importedSubjects),
       };
       const validation = validateStudent(mapped);
@@ -85,11 +98,15 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
       }
     });
 
-    setParsed({ students: validRows, importedSubjects });
+    setParsed({ students: validRows, importedSubjects, coercionWarnings });
     setPreview(validRows.slice(0, 5));
 
     if (errs.length > 0) {
-      setErrors(errs.slice(0, 5));
+      const shown = errs.slice(0, 5);
+      if (errs.length > 5) {
+        shown.push({ msg: `…and ${errs.length - 5} more invalid row(s) skipped.` });
+      }
+      setErrors(shown);
     }
   };
 
@@ -347,6 +364,21 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
                   {Array.isArray(e.errors) ? e.errors.join(", ") : e.msg}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Coercion warnings */}
+          {parsed && parsed.coercionWarnings && parsed.coercionWarnings.length > 0 && (
+            <div style={styles.warnBox}>
+              ⚠️ Some field values were adjusted during import:
+              <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
+                {parsed.coercionWarnings.slice(0, 5).map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+                {parsed.coercionWarnings.length > 5 && (
+                  <li>…and {parsed.coercionWarnings.length - 5} more.</li>
+                )}
+              </ul>
             </div>
           )}
 

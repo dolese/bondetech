@@ -1341,7 +1341,7 @@ export function EntryPanel({
                       padding: "4px 6px",
                       textAlign: "left",
                       border: "1px solid #d2def5",
-                      maxWidth: 120,
+                      maxWidth: isMobile ? 140 : 200,
                     }}
                   >
                     {isEditing ? (
@@ -1369,7 +1369,7 @@ export function EntryPanel({
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
-                          maxWidth: 120,
+                          maxWidth: isMobile ? 140 : 200,
                           fontSize: 10,
                           color: s.remarks ? "#333" : "#bbb",
                         }}
