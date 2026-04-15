@@ -223,6 +223,15 @@ export function EntryPanel({
     setUpdatingSchool(false);
   };
 
+  const handleBulkScoreChange = (studentId, subjectIdx, value) => {
+    setBulkScores(prev => ({
+      ...prev,
+      [studentId]: (prev[studentId] ?? subjects.map(() => "")).map((v, i) =>
+        i === subjectIdx ? value : v
+      ),
+    }));
+  };
+
   const handleBulkSave = async () => {
     if (bulkSaving) return;
     setBulkSaving(true);

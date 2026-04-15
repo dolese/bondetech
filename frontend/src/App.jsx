@@ -245,6 +245,17 @@ export default function App() {
     }
   };
 
+  const onUpdateClassMeta = async ({ year, form }) => {
+    if (!activeClass) return;
+    try {
+      await API.updateClass(activeClass.id, { year, form });
+      await refreshClass(activeClass.id);
+      showToast("Class info updated");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
   const onShowModal = (type, studentId = null) => {
     setModalType(type);
     if (studentId) {
@@ -443,6 +454,7 @@ export default function App() {
               onAddStudent={onAddStudent}
               onUpdateSchool={onUpdateSchool}
               onUpdateSubjects={onUpdateSubjects}
+              onUpdateClassMeta={onUpdateClassMeta}
               onOpenReportCard={onOpenReportCard}
             />
           ) : (

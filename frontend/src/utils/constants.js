@@ -68,9 +68,9 @@ export const API_BASE = "/api";
 
 // Status options
 export const STATUS_OPTIONS = [
-  { label: "Present", value: "PRES" },
-  { label: "Absent", value: "ABS" },
-  { label: "Incomplete", value: "INC" },
+  { label: "Present", value: "present" },
+  { label: "Absent", value: "absent" },
+  { label: "Incomplete", value: "incomplete" },
 ];
 
 // Sex options
