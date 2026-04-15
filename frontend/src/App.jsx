@@ -4,7 +4,10 @@ import { useViewport } from "./utils/useViewport";
 
 // Import extracted components
 import { Dashboard } from "./components/Dashboard";
-import { ClassWorkspace } from "./components/ClassWorkspace";
+import { StudentsPage } from "./components/StudentsPage";
+import { ResultsPage } from "./components/ResultsPage";
+import { ReportsPage } from "./components/ReportsPage";
+import { SettingsPage } from "./components/SettingsPage";
 import { ReportCardModal } from "./components/ReportCardModal";
 import { CSVImportModal } from "./components/CSVImportModal";
 import { JSONImportModal } from "./components/JSONImportModal";
@@ -14,6 +17,12 @@ import { Landing } from "./components/Landing";
 // Import utilities
 import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL } from "./utils/constants";
 import { withPositions } from "./utils/grading";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FORMS = ["Form I", "Form II", "Form III", "Form IV"];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROOT APP
@@ -54,8 +63,7 @@ export default function App() {
   const [sideOpen, setSideOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [renamingId, setRenamingId] = useState(null);
-  const [renameVal, setRenameVal] = useState("");
+  const [expandedYears, setExpandedYears] = useState(new Set());
   const [confirmDel, setConfirmDel] = useState(null);
   const [toast, setToast] = useState(null);
   const [modalType, setModalType] = useState(null);
@@ -79,6 +87,9 @@ export default function App() {
         if (normalized.length) {
           setActiveId(normalized[0].id);
         }
+        // Expand all years that have classes
+        const years = new Set(normalized.map(c => c.year).filter(Boolean));
+        setExpandedYears(years);
         setLoading(false);
       })
       .catch(() => {
@@ -122,20 +133,52 @@ export default function App() {
     return withPositions(activeClass.students ?? [], activeClass.subjects ?? DEFAULT_SUBJECTS);
   }, [activeClass]);
 
+  // Group classes by year (sorted descending), skipping classes with no year
+  const classesByYear = useMemo(() => {
+    const map = {};
+    classes.forEach(cl => {
+      if (!cl.year) return;
+      if (!map[cl.year]) map[cl.year] = [];
+      map[cl.year].push(cl);
+    });
+    return Object.entries(map).sort(([a], [b]) => Number(b) - Number(a));
+  }, [classes]);
+
+  // Classes that have no year set (unorganized)
+  const unorganizedClasses = useMemo(
+    () => classes.filter(c => !c.year),
+    [classes]
+  );
+
+  const toggleYear = (year) => {
+    setExpandedYears(prev => {
+      const next = new Set(prev);
+      if (next.has(year)) next.delete(year);
+      else next.add(year);
+      return next;
+    });
+  };
+
   // ── Class CRUD ──────────────────────────────────────────────────────────────
-  const addClass = async () => {
+  const addClass = async (opts = {}) => {
     try {
+      const year = opts.year || DEFAULT_SCHOOL.year;
+      const form = opts.form || "Form I";
       const c = await API.createClass({
-        name: `Class ${classes.length + 1}`,
+        name: opts.year && opts.form
+          ? `${opts.form} ${opts.year}`
+          : `Class ${classes.length + 1}`,
         schoolInfo: DEFAULT_SCHOOL,
         subjects: DEFAULT_SUBJECTS,
+        year,
+        form,
       });
       const normalized = normalizeClass({ ...c, students: [] });
       setClasses(prev => [...prev, normalized]);
       setActiveId(c.id);
-      setPage("class");
-      setRenamingId(c.id);
-      setRenameVal(c.name);
+      setPage("students");
+      // Ensure the new class's year is expanded in the sidebar
+      setExpandedYears(prev => new Set([...prev, year]));
     } catch (err) {
       showToast(err.message, "error");
     }
@@ -146,29 +189,12 @@ export default function App() {
       await API.deleteClass(id);
       setClasses(prev => prev.filter(c => c.id !== id));
       if (activeId === id) {
-        setActiveId(classes.find(c => c.id !== id)?.id ?? null);
+        const remaining = classes.find(c => c.id !== id);
+        setActiveId(remaining?.id ?? null);
+        setPage(remaining ? "students" : "dashboard");
       }
       setConfirmDel(null);
       showToast("Class deleted");
-    } catch (err) {
-      showToast(err.message, "error");
-    }
-  };
-
-  const confirmRename = async () => {
-    if (!renameVal.trim()) {
-      setRenamingId(null);
-      return;
-    }
-
-    try {
-      await API.updateClass(renamingId, { name: renameVal.trim() });
-      setClasses(prev =>
-        prev.map(c =>
-          c.id === renamingId ? { ...c, name: renameVal.trim() } : c
-        )
-      );
-      setRenamingId(null);
     } catch (err) {
       showToast(err.message, "error");
     }
@@ -248,11 +274,23 @@ export default function App() {
     }
   };
 
-  const onUpdateClassMeta = async ({ year, form }) => {
+  const onUpdateClassMeta = async ({ year, form, name }) => {
     if (!activeClass) return;
     try {
-      await API.updateClass(activeClass.id, { year, form });
+      const updates = {};
+      if (year !== undefined) updates.year = year;
+      if (form !== undefined) updates.form = form;
+      if (name !== undefined) updates.name = name.trim();
+      await API.updateClass(activeClass.id, updates);
+      // Update local state immediately so sidebar reflects the rename
+      setClasses(prev =>
+        prev.map(c => (c.id === activeClass.id ? { ...c, ...updates } : c))
+      );
       await refreshClass(activeClass.id);
+      // Expand the new year in the sidebar if it changed
+      if (year) {
+        setExpandedYears(prev => new Set([...prev, year]));
+      }
       showToast("Class info updated");
     } catch (err) {
       showToast(err.message, "error");
@@ -294,7 +332,26 @@ export default function App() {
   if (loading) return <Splash text="Loading data..." />;
   if (error) return <Splash text={error} isError />;
 
-  const sidebarWidth = 232;
+  const sidebarWidth = 240;
+  const isClassPage = ["students", "results", "reports", "settings"].includes(page);
+
+  // Top bar label
+  const topBarLabel = (() => {
+    if (page === "dashboard") return "📊 Dashboard";
+    if (!activeClass) return "";
+    const parts = [];
+    if (activeClass.form) parts.push(activeClass.form);
+    if (activeClass.year) parts.push(activeClass.year);
+    return parts.join(" — ");
+  })();
+
+  const closeSide = () => { if (isMobile) setSideOpen(false); };
+
+  const NAV_ITEMS = [
+    { key: "results",  icon: "📋", label: "Results"  },
+    { key: "reports",  icon: "📄", label: "Reports"  },
+    { key: "settings", icon: "⚙️",  label: "Settings" },
+  ];
 
   return (
     <div style={{ ...S.root, ...(isMobile ? { overflow: "hidden" } : {}) }}>
@@ -314,18 +371,15 @@ export default function App() {
         </div>
       )}
 
-      {/* SIDEBAR */}
+      {/* SIDEBAR OVERLAY (mobile) */}
       {isMobile && sideOpen && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.35)",
-            zIndex: 19,
-          }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 19 }}
           onClick={() => setSideOpen(false)}
         />
       )}
+
+      {/* SIDEBAR */}
       <div
         style={{
           ...S.sidebar,
@@ -341,6 +395,7 @@ export default function App() {
         }}
       >
         <div style={S.sideInner}>
+          {/* Logo */}
           <div style={S.sideLogo}>
             <span style={{ fontSize: 24 }}>🎓</span>
             <div>
@@ -349,54 +404,117 @@ export default function App() {
             </div>
           </div>
 
+          {/* Dashboard */}
           <button
-            onClick={() => {
-              setPage("dashboard");
-              if (isMobile) setSideOpen(false);
-            }}
-            style={{ ...S.dashBtn, ...(page === "dashboard" ? S.dashBtnOn : {}) }}
+            onClick={() => { setPage("dashboard"); closeSide(); }}
+            style={{ ...S.navBtn, ...(page === "dashboard" ? S.navBtnOn : {}) }}
           >
             📊 Dashboard
           </button>
 
-          <div style={S.sideSection}>CLASSES</div>
+          {/* Students — year → form hierarchy */}
+          <div style={S.sideSection}>STUDENTS</div>
           <div style={S.classList}>
-            {classes.map(cl => (
-              <div key={cl.id} style={{ ...S.clItem, ...(cl.id === activeId && page === "class" ? S.clItemOn : {}) }}>
-                {renamingId === cl.id ? (
-                  <input
-                    autoFocus
-                    value={renameVal}
-                    style={S.renInp}
-                    onChange={e => setRenameVal(e.target.value)}
-                    onBlur={confirmRename}
-                    onKeyDown={e => {
-                      if (e.key === "Enter") confirmRename();
-                      if (e.key === "Escape") setRenamingId(null);
-                    }}
-                  />
-                ) : (
-                  <span
-                    style={S.clName}
-                    onClick={() => {
-                      setActiveId(cl.id);
-                      setPage("class");
-                      if (isMobile) setSideOpen(false);
+            {classesByYear.map(([year, yearClasses]) => (
+              <div key={year}>
+                {/* Year header row */}
+                <div style={S.yearRow} onClick={() => toggleYear(year)}>
+                  <span style={S.yearLabel}>
+                    {expandedYears.has(year) ? "▾" : "▸"} {year}
+                  </span>
+                  <button
+                    style={S.addYearBtn}
+                    title={`Add new class for ${year}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addClass({ year });
                     }}
                   >
-                    📋 {cl.name}
-                    <span style={S.clBadge}>{cl.studentCount ?? cl.students?.length ?? 0}</span>
-                  </span>
-                )}
-                <div style={{ ...S.clActs, ...(isMobile ? { opacity: 1 } : {}) }}>
-                  <button style={S.iBtn} title="Rename" onClick={() => { setRenamingId(cl.id); setRenameVal(cl.name); }}>✏️</button>
-                  <button style={S.iBtn} title="Delete" onClick={() => setConfirmDel(cl.id)}>🗑️</button>
+                    +
+                  </button>
                 </div>
+
+                {/* Form slots */}
+                {expandedYears.has(year) && FORMS.map(form => {
+                  const cls = yearClasses.find(c => c.form === form);
+                  const isActive = cls && cls.id === activeId && isClassPage;
+                  return (
+                    <div
+                      key={form}
+                      style={{
+                        ...S.formItem,
+                        ...(isActive ? S.formItemOn : {}),
+                        ...(cls ? {} : S.formItemEmpty),
+                      }}
+                      onClick={() => {
+                        if (cls) {
+                          setActiveId(cls.id);
+                          setPage("students");
+                          closeSide();
+                        } else {
+                          addClass({ year, form });
+                        }
+                      }}
+                      title={cls ? cls.name : `Create ${form} ${year}`}
+                    >
+                      <span style={S.formLabel}>{form}</span>
+                      {cls ? (
+                        <span style={S.clBadge}>
+                          {cls.studentCount ?? cls.students?.length ?? 0}
+                        </span>
+                      ) : (
+                        <span style={S.addSlotBtn}>+</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ))}
+
+            {/* Unorganized classes (no year set) */}
+            {unorganizedClasses.length > 0 && (
+              <div>
+                <div style={{ ...S.yearRow, cursor: "default" }}>
+                  <span style={{ ...S.yearLabel, color: "rgba(255,255,255,0.3)" }}>Unorganized</span>
+                </div>
+                {unorganizedClasses.map(cl => (
+                  <div
+                    key={cl.id}
+                    style={{
+                      ...S.formItem,
+                      ...(cl.id === activeId && isClassPage ? S.formItemOn : {}),
+                    }}
+                    onClick={() => { setActiveId(cl.id); setPage("students"); closeSide(); }}
+                    title={cl.name}
+                  >
+                    <span style={{ ...S.formLabel, color: "#c8d8f0" }}>📋 {cl.name}</span>
+                    <span style={S.clBadge}>
+                      {cl.studentCount ?? cl.students?.length ?? 0}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <button onClick={addClass} style={S.addClBtn}>+ New Class</button>
+          {/* Per-class nav items */}
+          <div style={S.sideSection}>CLASS</div>
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.key}
+              onClick={() => { if (activeClass) { setPage(item.key); closeSide(); } }}
+              disabled={!activeClass}
+              style={{
+                ...S.navBtn,
+                ...(page === item.key ? S.navBtnOn : {}),
+                ...(!activeClass ? S.navBtnDisabled : {}),
+              }}
+            >
+              {item.icon} {item.label}
+            </button>
+          ))}
+
+          <button onClick={() => addClass()} style={S.addClBtn}>+ New Class</button>
           <div style={S.sideFooter}>
             <span style={{ color: "#5dbb6b", fontSize: 10, fontWeight: 700 }}>🗄️ Firebase / Firestore</span>
             <br />
@@ -407,11 +525,12 @@ export default function App() {
 
       {/* MAIN */}
       <div style={S.main}>
+        {/* Top bar */}
         <div style={{ ...S.topBar, height: topBarHeight, padding: isMobile ? "0 10px" : "0 16px" }}>
           <button style={S.menuBtn} onClick={() => setSideOpen(p => !p)}>☰</button>
           {!isMobile && <span style={S.topBrand}>🎓 BONDE SEC SCHOOL — RESULT SYSTEM</span>}
           <span style={{ ...S.topCls, ...(isMobile ? { fontSize: 10, padding: "3px 8px" } : {}) }}>
-            {page === "dashboard" ? "📊 Dashboard" : activeClass?.name ?? ""}
+            {topBarLabel}
           </span>
           <button
             style={{ ...S.logoutBtn, ...(isMobile ? { padding: "5px 8px", fontSize: 10 } : {}) }}
@@ -442,34 +561,74 @@ export default function App() {
           </div>
         )}
 
+        {/* Page content */}
         <div style={S.content}>
-          {page === "dashboard" ? (
+          {page === "dashboard" && (
             <Dashboard
               allComputed={allComputed}
               onOpenClass={(id) => {
                 setActiveId(id);
-                setPage("class");
+                setPage("students");
               }}
             />
-          ) : activeClass ? (
-            <ClassWorkspace
-              classData={activeClass}
-              computed={activeComputed}
-              onShowModal={onShowModal}
-              onUpdateStudent={onUpdateStudent}
-              onDeleteStudent={onDeleteStudent}
-              onAddStudent={onAddStudent}
-              onUpdateSchool={onUpdateSchool}
-              onUpdateSubjects={onUpdateSubjects}
-              onUpdateClassMeta={onUpdateClassMeta}
-              onOpenReportCard={onOpenReportCard}
-            />
-          ) : (
-            <Splash text="Select a class from the sidebar" />
+          )}
+
+          {page === "students" && (
+            activeClass ? (
+              <StudentsPage
+                classData={activeClass}
+                computed={activeComputed}
+                onShowModal={onShowModal}
+                onUpdateStudent={onUpdateStudent}
+                onDeleteStudent={onDeleteStudent}
+                onAddStudent={onAddStudent}
+              />
+            ) : (
+              <Splash text="Select a class from the sidebar" />
+            )
+          )}
+
+          {page === "results" && (
+            activeClass ? (
+              <ResultsPage
+                classData={activeClass}
+                computed={activeComputed}
+                onOpenReportCard={onOpenReportCard}
+              />
+            ) : (
+              <Splash text="Select a class from the sidebar" />
+            )
+          )}
+
+          {page === "reports" && (
+            activeClass ? (
+              <ReportsPage
+                classData={activeClass}
+                computed={activeComputed}
+                onOpenReportCard={onOpenReportCard}
+              />
+            ) : (
+              <Splash text="Select a class from the sidebar" />
+            )
+          )}
+
+          {page === "settings" && (
+            activeClass ? (
+              <SettingsPage
+                classData={activeClass}
+                onUpdateClassMeta={onUpdateClassMeta}
+                onUpdateSchool={onUpdateSchool}
+                onUpdateSubjects={onUpdateSubjects}
+                onDeleteClass={() => setConfirmDel(activeClass.id)}
+              />
+            ) : (
+              <Splash text="Select a class from the sidebar" />
+            )
           )}
         </div>
       </div>
 
+      {/* Modals */}
       {modalType === "csv-import" && activeClass && (
         <CSVImportModal
           classId={activeClass.id}
@@ -517,25 +676,34 @@ const S = {
   toast: { position: "fixed", top: 16, right: 16, zIndex: 9999, color: "#fff", padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 700, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" },
 
   sidebar: { background: "#001a3d", flexShrink: 0 },
-  sideInner: { width: 232, height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" },
+  sideInner: { width: 240, height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" },
   sideLogo: { padding: "14px 14px 10px", display: "flex", gap: 10, alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)" },
   sideTitle: { color: "#fff", fontWeight: 900, fontSize: 14, lineHeight: 1.2 },
   sideSub: { color: "#7ab3ff", fontSize: 9, fontWeight: 600, letterSpacing: 1 },
-  dashBtn: { margin: "10px 10px 4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#c8d8f0", borderRadius: 8, padding: "9px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, textAlign: "left" },
-  dashBtnOn: { background: "rgba(100,160,255,0.22)", border: "1px solid rgba(100,160,255,0.4)", color: "#fff" },
+
+  // Top-level nav buttons (Dashboard + Results/Reports/Settings)
+  navBtn: { margin: "4px 10px 0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#c8d8f0", borderRadius: 8, padding: "9px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, textAlign: "left", width: "calc(100% - 20px)" },
+  navBtnOn: { background: "rgba(100,160,255,0.22)", border: "1px solid rgba(100,160,255,0.4)", color: "#fff" },
+  navBtnDisabled: { opacity: 0.35, cursor: "not-allowed" },
+
   sideSection: { padding: "10px 14px 4px", fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.28)", letterSpacing: 2, textTransform: "uppercase" },
   classList: { flex: 1, overflowY: "auto", padding: "4px 8px" },
-  clItem: { display: "flex", alignItems: "center", borderRadius: 7, marginBottom: 3, padding: "5px 7px", transition: "background 0.15s", gap: 3 },
-  clItemOn: { background: "rgba(100,160,255,0.2)", outline: "1.5px solid rgba(100,160,255,0.4)" },
-  clName: { flex: 1, color: "#c8d8f0", fontSize: 11, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, cursor: "pointer" },
+
+  // Year row
+  yearRow: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 8px 4px", cursor: "pointer", borderRadius: 6, marginBottom: 1 },
+  yearLabel: { color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" },
+  addYearBtn: { background: "rgba(100,160,255,0.15)", border: "1px solid rgba(100,160,255,0.3)", color: "#7ab3ff", borderRadius: 4, padding: "0 5px", fontSize: 13, cursor: "pointer", lineHeight: "16px" },
+
+  // Form slot items under a year
+  formItem: { display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: 6, marginBottom: 2, padding: "5px 10px 5px 18px", cursor: "pointer", transition: "background 0.15s" },
+  formItemOn: { background: "rgba(100,160,255,0.2)", outline: "1.5px solid rgba(100,160,255,0.4)" },
+  formItemEmpty: { opacity: 0.45 },
+  formLabel: { color: "#c8d8f0", fontSize: 11, fontWeight: 600 },
+  addSlotBtn: { color: "#7ab3ff", fontSize: 13, fontWeight: 700, paddingRight: 2 },
   clBadge: { background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "1px 6px", fontSize: 9, fontWeight: 700, color: "#7ab3ff", flexShrink: 0 },
-  clMeta: { color: "rgba(255,255,255,0.55)", fontSize: 9, fontWeight: 700, paddingRight: 4 },
-  clActs: { display: "flex", gap: 1, opacity: 0.5 },
-  iBtn: { background: "none", border: "none", cursor: "pointer", fontSize: 11, padding: "1px", lineHeight: 1 },
-  renInp: { flex: 1, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(100,160,255,0.5)", borderRadius: 4, color: "#fff", padding: "2px 6px", fontSize: 11, outline: "none" },
+
   addClBtn: { margin: "6px 10px", background: "rgba(100,160,255,0.12)", border: "1.5px dashed rgba(100,160,255,0.4)", color: "#7ab3ff", borderRadius: 7, padding: "7px", fontSize: 11, cursor: "pointer", fontWeight: 700 },
   sideFooter: { padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.07)" },
-  yearHeader: { padding: "8px 8px 4px", fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.35)", letterSpacing: 1.5, textTransform: "uppercase" },
 
   main: { flex: 1, display: "flex", flexDirection: "column" },
   topBar: { background: "rgba(0,51,102,0.88)", padding: "0 16px", display: "flex", alignItems: "center", gap: 12, height: 46, flexShrink: 0, boxShadow: "0 6px 20px rgba(0,0,0,0.25)", position: "sticky", top: 0, zIndex: 20, backdropFilter: "blur(10px)", borderBottom: "1px solid rgba(255,255,255,0.12)" },
