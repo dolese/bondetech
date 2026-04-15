@@ -239,7 +239,7 @@ export function SettingsPage({
         <div>
           <div style={styles.sectionTitle}>Class Identity</div>
           <div style={styles.sectionSub}>
-            Name, year, and form used to organise classes in the sidebar.
+            Name, year, and form used to organize classes in the sidebar.
           </div>
         </div>
         <div style={{ ...styles.grid2, gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr" }}>

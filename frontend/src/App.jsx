@@ -144,8 +144,8 @@ export default function App() {
     return Object.entries(map).sort(([a], [b]) => Number(b) - Number(a));
   }, [classes]);
 
-  // Classes that have no year set (unorganised)
-  const unorganisedClasses = useMemo(
+  // Classes that have no year set (unorganized)
+  const unorganizedClasses = useMemo(
     () => classes.filter(c => !c.year),
     [classes]
   );
@@ -471,13 +471,13 @@ export default function App() {
               </div>
             ))}
 
-            {/* Unorganised classes (no year set) */}
-            {unorganisedClasses.length > 0 && (
+            {/* Unorganized classes (no year set) */}
+            {unorganizedClasses.length > 0 && (
               <div>
                 <div style={{ ...S.yearRow, cursor: "default" }}>
-                  <span style={{ ...S.yearLabel, color: "rgba(255,255,255,0.3)" }}>Unorganised</span>
+                  <span style={{ ...S.yearLabel, color: "rgba(255,255,255,0.3)" }}>Unorganized</span>
                 </div>
-                {unorganisedClasses.map(cl => (
+                {unorganizedClasses.map(cl => (
                   <div
                     key={cl.id}
                     style={{
