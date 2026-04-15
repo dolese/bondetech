@@ -75,6 +75,40 @@ export function Dashboard({ allComputed, onOpenClass }) {
     });
   });
 
+  // Class ranking by pass rate (for chart)
+  const classRankings = useMemo(() => {
+    return filtered
+      .map(cl => {
+        const pres = (cl.computed ?? []).filter(s => s.total !== null);
+        const complete = pres.filter(s => s.div !== null);
+        const pass = complete.length
+          ? Math.round(complete.filter(s => s.div !== "0").length / complete.length * 100)
+          : 0;
+        const avg = pres.length
+          ? Number((pres.reduce((s, st) => s + (st.total || 0), 0) / pres.length).toFixed(1))
+          : 0;
+        return { name: cl.name, passRate: pass, avg, studentCount: pres.length };
+      })
+      .filter(c => c.studentCount > 0)
+      .sort((a, b) => b.passRate - a.passRate);
+  }, [filtered]);
+
+  // School-wide JSON backup export
+  const exportAllData = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      classes: allComputed.map(({ computed: _computed, ...rest }) => rest),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const date = new Date().toISOString().slice(0, 10);
+    a.download = `school-backup-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const styles = {
     panel: {
       flex: 1,
@@ -199,6 +233,14 @@ export function Dashboard({ allComputed, onOpenClass }) {
           }}
         >
           📄 Export Summary
+        </button>
+        <button
+          style={{ ...styles.miniBtn, background: "#0b6b3a", borderColor: "#0b6b3a", ...(isMobile ? { width: "100%" } : {}) }}
+          onClick={exportAllData}
+          title="Download a full JSON backup of all classes and student data"
+          disabled={!allComputed.length}
+        >
+          💾 Export All Data
         </button>
       </div>
 
@@ -646,6 +688,91 @@ export function Dashboard({ allComputed, onOpenClass }) {
             </table>
           </div>
         </div>
+
+        {/* Class Rankings by Pass Rate */}
+        {classRankings.length > 0 && (
+          <div style={{ ...styles.card, gridColumn: isTablet ? "span 1" : "span 2" }}>
+            <h3 style={styles.cardT}>🏫 Class Rankings by Pass Rate</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+              {classRankings.map(({ name, passRate: rate, avg, studentCount }, i) => {
+                const col = rate >= 75 ? "#0b6b3a" : rate >= 50 ? "#0077aa" : rate >= 30 ? "#8b2500" : "#6b0000";
+                return (
+                  <div key={name} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 800,
+                        color: i < 3 ? "#b8860b" : "#555",
+                        width: 18,
+                        flexShrink: 0,
+                        textAlign: "center",
+                      }}
+                    >
+                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: "#003366",
+                        width: isMobile ? 80 : 110,
+                        flexShrink: 0,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                      title={name}
+                    >
+                      {name}
+                    </span>
+                    <div
+                      style={{
+                        flex: 1,
+                        background: "#e8edf5",
+                        borderRadius: 4,
+                        height: 14,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${rate}%`,
+                          height: "100%",
+                          background: col,
+                          borderRadius: 4,
+                          transition: "width 0.5s",
+                        }}
+                      />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: col,
+                        width: 34,
+                        flexShrink: 0,
+                        textAlign: "right",
+                      }}
+                    >
+                      {rate}%
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        color: "#888",
+                        width: isMobile ? 0 : 60,
+                        flexShrink: 0,
+                        display: isMobile ? "none" : "block",
+                      }}
+                    >
+                      avg {avg} · {studentCount} stu.
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
