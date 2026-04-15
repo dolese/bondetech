@@ -113,10 +113,13 @@ export function Dashboard({ allComputed, onOpenClass }) {
     panel: {
       flex: 1,
       overflowY: "auto",
+      overflowX: "hidden",
       padding: isMobile ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 12,
+      minHeight: 0,
+      minWidth: 0,
     },
     pageTitle: {
       fontSize: isMobile ? 16 : 18,
@@ -309,7 +312,7 @@ export function Dashboard({ allComputed, onOpenClass }) {
         {/* Classes Overview Table */}
         <div style={{ ...styles.card, gridColumn: isTablet ? "span 1" : "span 2" }}>
           <h3 style={styles.cardT}>🏫 Classes Overview ({summaryLabel})</h3>
-          <div style={{ overflowX: "auto" }}>
+          <div style={{ overflowX: "auto", minWidth: 0 }}>
             <table
               style={{
                 borderCollapse: "collapse",
@@ -589,7 +592,7 @@ export function Dashboard({ allComputed, onOpenClass }) {
         {/* Top 10 Students */}
         <div style={{ ...styles.card, gridColumn: "span 2" }}>
           <h3 style={styles.cardT}>🏆 Top 10 Students</h3>
-          <div style={{ overflowX: "auto" }}>
+          <div style={{ overflowX: "auto", minWidth: 0 }}>
             <table
               style={{
                 borderCollapse: "collapse",

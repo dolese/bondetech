@@ -263,11 +263,13 @@ export function EntryPanel({
     panel: {
       flex: 1,
       overflowY: "auto",
+      overflowX: "hidden",
       padding: isMobile ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 12,
       minHeight: 0,
+      minWidth: 0,
     },
     tlbx: {
       display: "flex",
@@ -898,7 +900,7 @@ export function EntryPanel({
             </div>
           </div>
 
-          <div style={{ overflowX: "auto" }}>
+          <div style={{ overflowX: "auto", minWidth: 0 }}>
             <table style={styles.bulkTable}>
               <thead>
                 <tr style={{ background: "#003366", color: "#fff" }}>
@@ -973,7 +975,7 @@ export function EntryPanel({
           </div>
         </div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
+        <div style={{ overflowX: "auto", minWidth: 0 }}>
           <table
             style={{
               borderCollapse: "collapse",

@@ -80,10 +80,13 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     panel: {
       flex: 1,
       overflowY: "auto",
+      overflowX: "hidden",
       padding: isMobile ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 12,
+      minHeight: 0,
+      minWidth: 0,
     },
     sheet: {
       background: "#fff",
@@ -327,7 +330,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
               ))}
             </div>
 
-            <div style={{ overflowX: "auto" }}>
+            <div style={{ overflowX: "auto", minWidth: 0 }}>
               <table style={styles.table}>
                 <thead>
                   <tr>
@@ -397,7 +400,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
             >
               Grade Distribution
             </h3>
-            <div style={{ overflowX: "auto" }}>
+            <div style={{ overflowX: "auto", minWidth: 0 }}>
               <table style={styles.table}>
                 <thead>
                   <tr>
@@ -437,7 +440,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
             >
               Division Distribution
             </h3>
-            <div style={{ overflowX: "auto" }}>
+            <div style={{ overflowX: "auto", minWidth: 0 }}>
               <table style={styles.table}>
                 <thead>
                   <tr>
