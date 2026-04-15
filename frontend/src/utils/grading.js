@@ -182,15 +182,15 @@ export const getDivisionStats = (students) => {
 
 // Get pass/fail rates
 export const getPassRates = (students) => {
-  const present = students.filter(s => s.status === "present" && s.total !== null);
+  const complete = students.filter(s => s.total !== null && s.div !== null);
   
-  if (present.length === 0) {
+  if (complete.length === 0) {
     return { passCount: 0, failCount: 0, passRate: 0 };
   }
 
-  const passCount = present.filter(s => s.div !== "0").length;
-  const failCount = present.length - passCount;
-  const passRate = Math.round((passCount / present.length) * 100);
+  const passCount = complete.filter(s => s.div !== "0").length;
+  const failCount = complete.length - passCount;
+  const passRate = Math.round((passCount / complete.length) * 100);
 
   return { passCount, failCount, passRate };
 };
