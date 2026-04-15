@@ -35,6 +35,10 @@
       "destination": "/api/:path*"
     },
     {
+      "source": "/asset/:path*",
+      "destination": "/frontend/asset/:path*"
+    },
+    {
       "source": "/static/:path*",
       "destination": "/frontend/static/:path*"
     },
