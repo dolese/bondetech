@@ -79,15 +79,15 @@ export function Dashboard({ allComputed, onOpenClass }) {
   const classRankings = useMemo(() => {
     return filtered
       .map(cl => {
-        const pres = (cl.computed ?? []).filter(s => s.total !== null);
-        const complete = pres.filter(s => s.div !== null);
+        const scoredStudents = (cl.computed ?? []).filter(s => s.total !== null);
+        const complete = scoredStudents.filter(s => s.div !== null);
         const pass = complete.length
           ? Math.round(complete.filter(s => s.div !== "0").length / complete.length * 100)
           : 0;
-        const avg = pres.length
-          ? Number((pres.reduce((s, st) => s + (st.total || 0), 0) / pres.length).toFixed(1))
+        const avg = scoredStudents.length
+          ? Number((scoredStudents.reduce((s, st) => s + (st.total || 0), 0) / scoredStudents.length).toFixed(1))
           : 0;
-        return { name: cl.name, passRate: pass, avg, studentCount: pres.length };
+        return { name: cl.name, passRate: pass, avg, studentCount: scoredStudents.length };
       })
       .filter(c => c.studentCount > 0)
       .sort((a, b) => b.passRate - a.passRate);
@@ -765,7 +765,7 @@ export function Dashboard({ allComputed, onOpenClass }) {
                         display: isMobile ? "none" : "block",
                       }}
                     >
-                      avg {avg} · {studentCount} stu.
+                      avg {avg} · {studentCount} students
                     </span>
                   </div>
                 );
