@@ -1,0 +1,135 @@
+const { getDb } = require("../../_lib/firebaseAdmin");
+const { readJsonBody, sendJson } = require("../../_lib/http");
+
+const parseClass = (doc) => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    name: data.name,
+    schoolInfo: data.school_info || {},
+    subjects: data.subjects || [],
+    year: data.year || "",
+    form: data.form || "",
+    createdAt: data.created_at || null,
+    studentCount: data.student_count || 0,
+  };
+};
+
+const parseStudent = (doc, classId) => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    classId,
+    indexNo: data.index_no || "",
+    name: data.name || "",
+    stream: data.stream || "",
+    sex: data.sex || "M",
+    status: data.status || "present",
+    scores: Array.isArray(data.scores) ? data.scores : [],
+    createdAt: data.created_at || null,
+  };
+};
+
+const remapScores = (oldSubjects, newSubjects, scores) => {
+  return newSubjects.map((subj) => {
+    const idx = oldSubjects.indexOf(subj);
+    return idx >= 0 ? (scores[idx] ?? "") : "";
+  });
+};
+
+const updateStudentsInBatches = async (db, students, updater) => {
+  const chunks = [];
+  for (let i = 0; i < students.length; i += 400) {
+    chunks.push(students.slice(i, i + 400));
+  }
+
+  for (const chunk of chunks) {
+    const batch = db.batch();
+    chunk.forEach((doc) => {
+      const updates = updater(doc);
+      if (updates) {
+        batch.update(doc.ref, updates);
+      }
+    });
+    await batch.commit();
+  }
+};
+
+module.exports = async (req, res) => {
+  const db = getDb();
+  const classId = req.query.id;
+
+  const classRef = db.collection("classes").doc(classId);
+  const classSnap = await classRef.get();
+  if (!classSnap.exists) {
+    return sendJson(res, 404, { error: "Class not found" });
+  }
+
+  if (req.method === "GET") {
+    try {
+      const studentsSnap = await classRef.collection("students").orderBy("index_no", "asc").get();
+      const students = studentsSnap.docs.map((doc) => parseStudent(doc, classId));
+      return sendJson(res, 200, {
+        ...parseClass(classSnap),
+        students,
+      });
+    } catch (err) {
+      return sendJson(res, 500, { error: err.message });
+    }
+  }
+
+  if (req.method === "PUT") {
+    try {
+      const body = await readJsonBody(req);
+      const data = classSnap.data();
+      const updates = {};
+
+      if (typeof body.name === "string") updates.name = body.name.trim() || data.name;
+      if (body.schoolInfo) updates.school_info = body.schoolInfo;
+      if (Array.isArray(body.subjects)) updates.subjects = body.subjects;
+      if (body.year) updates.year = body.year;
+      if (body.form) updates.form = body.form;
+
+      if (Array.isArray(body.subjects)) {
+        const oldSubjects = Array.isArray(data.subjects) ? data.subjects : [];
+        const newSubjects = body.subjects;
+        if (JSON.stringify(oldSubjects) !== JSON.stringify(newSubjects)) {
+          const studentsSnap = await classRef.collection("students").get();
+          await updateStudentsInBatches(db, studentsSnap.docs, (doc) => {
+            const scores = doc.data().scores || [];
+            return { scores: remapScores(oldSubjects, newSubjects, scores) };
+          });
+        }
+      }
+
+      await classRef.update(updates);
+      const updated = await classRef.get();
+      return sendJson(res, 200, parseClass(updated));
+    } catch (err) {
+      return sendJson(res, 500, { error: err.message });
+    }
+  }
+
+  if (req.method === "DELETE") {
+    try {
+      const studentsSnap = await classRef.collection("students").get();
+      const chunks = [];
+      for (let i = 0; i < studentsSnap.docs.length; i += 400) {
+        chunks.push(studentsSnap.docs.slice(i, i + 400));
+      }
+
+      for (const chunk of chunks) {
+        const batch = db.batch();
+        chunk.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+      }
+
+      await classRef.delete();
+      return sendJson(res, 200, { success: true });
+    } catch (err) {
+      return sendJson(res, 500, { error: err.message });
+    }
+  }
+
+  return sendJson(res, 405, { error: "Method not allowed" });
+};

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BONDE SEC SCHOOL — Result System</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #e8edf5; }
+      #root { height: 100vh; display: flex; flex-direction: column; }
+
+      /* Print styles */
+      @media print {
+        .no-print { display: none !important; }
+        body { background: white; }
+        #root { height: auto; }
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: #f0f4ff; }
+      ::-webkit-scrollbar-thumb { background: #b0c4e8; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #7a9fd0; }
+
+      /* Input focus */
+      input:focus, select:focus, textarea:focus {
+        outline: 2px solid #4a90e2 !important;
+        outline-offset: 1px;
+      }
+
+      /* Number input — hide arrows */
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+      input[type=number] { -moz-appearance: textfield; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
