@@ -171,11 +171,14 @@ export default function App() {
   const addClass = async (opts = {}) => {
     try {
       const year = opts.year || DEFAULT_SCHOOL.year;
-      const form = opts.form || "Form I";
+      const form = opts.form || FORMS[0];
+      // Prevent duplicate (year, form) combinations
+      if (classes.some(c => c.year === year && c.form === form)) {
+        showToast(`${form} ${year} already exists`, "error");
+        return;
+      }
       const c = await API.createClass({
-        name: opts.year && opts.form
-          ? `${opts.form} ${opts.year}`
-          : `Class ${classes.length + 1}`,
+        name: `${form} ${year}`,
         schoolInfo: DEFAULT_SCHOOL,
         subjects: DEFAULT_SUBJECTS,
         year,
@@ -289,6 +292,14 @@ export default function App() {
       if (year !== undefined) updates.year = year;
       if (form !== undefined) updates.form = form;
       if (name !== undefined) updates.name = name.trim();
+      // Prevent duplicate (year, form) combinations on other classes
+      const newYear = updates.year ?? activeClass.year;
+      const newForm = updates.form ?? activeClass.form;
+      if ((updates.year !== undefined || updates.form !== undefined) &&
+          classes.some(c => c.id !== activeClass.id && c.year === newYear && c.form === newForm)) {
+        showToast(`${newForm} ${newYear} already exists`, "error");
+        return;
+      }
       await API.updateClass(activeClass.id, updates);
       // Update local state immediately so sidebar reflects the rename
       setClasses(prev =>
@@ -430,16 +441,19 @@ export default function App() {
                   <span style={S.yearLabel}>
                     {expandedYears.has(year) ? "▾" : "▸"} {year}
                   </span>
-                  <button
-                    style={S.addYearBtn}
-                    title={`Add new class for ${year}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addClass({ year });
-                    }}
-                  >
-                    +
-                  </button>
+                  {yearClasses.length < FORMS.length && (
+                    <button
+                      style={S.addYearBtn}
+                      title={`Add new class for ${year}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const nextForm = FORMS.find(f => !yearClasses.some(c => c.form === f));
+                        if (nextForm) addClass({ year, form: nextForm });
+                      }}
+                    >
+                      +
+                    </button>
+                  )}
                 </div>
 
                 {/* Form slots */}
@@ -522,7 +536,6 @@ export default function App() {
             </button>
           ))}
 
-          <button onClick={() => addClass()} style={S.addClBtn}>+ New Class</button>
           <div style={S.sideFooter}>
             <span style={{ color: "#5dbb6b", fontSize: 10, fontWeight: 700 }}>🗄️ Firebase / Firestore</span>
             <br />
