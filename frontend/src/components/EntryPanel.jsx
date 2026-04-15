@@ -16,6 +16,7 @@ export function EntryPanel({
   onUpdateSchool,
   onUpdateSubjects,
   onUpdateClassMeta,
+  hideSettings = false,
 }) {
   const subjects = classData.subjects ?? [];
   const [search, setSearch] = useState("");
@@ -587,6 +588,7 @@ export function EntryPanel({
         </div>
       </div>
 
+      {!hideSettings && (
       <div style={styles.schoolPanel}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
@@ -658,7 +660,9 @@ export function EntryPanel({
           </button>
         </div>
       </div>
+      )}
 
+      {!hideSettings && (
       <div style={styles.metaPanel}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
@@ -701,7 +705,9 @@ export function EntryPanel({
           )}
         </div>
       </div>
+      )}
 
+      {!hideSettings && (
       <div style={styles.subjectPanel}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
@@ -755,6 +761,7 @@ export function EntryPanel({
           )}
         </div>
       </div>
+      )}
 
       {addingNew && (
         <div
