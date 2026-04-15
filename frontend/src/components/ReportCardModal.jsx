@@ -5,9 +5,21 @@ import { useViewport } from "../utils/useViewport";
 import { exportElementToPdf } from "../utils/pdfExport";
 
 export function ReportCardModal({ student, classData, onClose, autoExport = false, silent = false }) {
-  if (!student) return null;
   const { isMobile } = useViewport();
   const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (!autoExport || !student) return;
+    const name = (student?.name || "student").replace(/[^a-z0-9-_ ]/gi, "");
+    const date = new Date().toISOString().slice(0, 10);
+    const raf = requestAnimationFrame(() => {
+      exportElementToPdf(cardRef.current, `${name}-report-${date}.pdf`);
+      if (onClose) setTimeout(onClose, 0);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [autoExport, onClose, student?.name]);
+
+  if (!student) return null;
 
   const subjects = classData.subjects ?? [];
   const grades = student.grades ?? [];
@@ -235,17 +247,6 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
   const numericGrades = grades.filter(g => g?.score !== null && g?.score !== undefined);
   const totalScore = numericGrades.reduce((sum, g) => sum + (g?.score || 0), 0);
   const avgScore = numericGrades.length > 0 ? (totalScore / numericGrades.length).toFixed(1) : 0;
-
-  useEffect(() => {
-    if (!autoExport) return;
-    const name = (student.name || "student").replace(/[^a-z0-9-_ ]/gi, "");
-    const date = new Date().toISOString().slice(0, 10);
-    const raf = requestAnimationFrame(() => {
-      exportElementToPdf(cardRef.current, `${name}-report-${date}.pdf`);
-      if (onClose) setTimeout(onClose, 0);
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [autoExport, onClose, student.name]);
 
   const overlayStyle = silent
     ? { ...styles.overlay, background: "transparent", pointerEvents: "none" }
