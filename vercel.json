@@ -15,6 +15,22 @@
   ],
   "rewrites": [
     {
+      "source": "/api/classes/:id/students/bulk",
+      "destination": "/api/classes/[id]/students/bulk.js?id=:id"
+    },
+    {
+      "source": "/api/classes/:id/students/:sid",
+      "destination": "/api/classes/[id]/students/[sid].js?id=:id&sid=:sid"
+    },
+    {
+      "source": "/api/classes/:id/students",
+      "destination": "/api/classes/[id]/students/index.js?id=:id"
+    },
+    {
+      "source": "/api/classes/:id",
+      "destination": "/api/classes/[id]/index.js?id=:id"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },
@@ -41,6 +57,10 @@
     {
       "source": "/logo512.png",
       "destination": "/frontend/logo512.png"
+    },
+    {
+      "source": "/",
+      "destination": "/frontend/index.html"
     },
     {
       "source": "/(.*)",
