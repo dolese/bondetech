@@ -77,6 +77,7 @@ const parseStudent = (row) => ({
   sex: row.sex,
   status: row.status,
   scores: JSON.parse(row.scores),
+  remarks: row.remarks ?? "",
   createdAt: row.created_at,
 });
 
@@ -230,14 +231,14 @@ router.post("/:id/students", validateStudentMiddleware, (req, res) => {
     
     const cls = rowToObj(clsResult.values[0], clsResult.columns);
     const subjects = JSON.parse(cls.subjects);
-    const { indexNo = "", name = "", stream = "", sex = "M", status = "present", scores } = req.body;
+    const { indexNo = "", name = "", stream = "", sex = "M", status = "present", scores, remarks = "" } = req.body;
     const finalIndex = indexNo && String(indexNo).trim() ? String(indexNo).trim() : formatCno(getNextCno(req.params.id));
     const finalScores = scores ? sanitizeScores(scores) : Array(subjects.length).fill("");
 
     runQuery(`
-      INSERT INTO students (class_id, index_no, name, stream, sex, status, scores)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [req.params.id, finalIndex, name, stream, sex, status, JSON.stringify(finalScores)]);
+      INSERT INTO students (class_id, index_no, name, stream, sex, status, scores, remarks)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `, [req.params.id, finalIndex, name, stream, sex, status, JSON.stringify(finalScores), String(remarks).trim()]);
 
     const result = execQuery("SELECT * FROM students ORDER BY rowid DESC LIMIT 1");
     const student = rowToObj(result.values[0], result.columns);
@@ -274,8 +275,8 @@ router.post("/:id/students/bulk", (req, res) => {
         const providedIndex = s.indexNo ?? "";
         const finalIndex = String(providedIndex).trim() ? String(providedIndex).trim() : formatCno(nextCno++);
         runQuery(
-          `INSERT INTO students (class_id, index_no, name, stream, sex, status, scores)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO students (class_id, index_no, name, stream, sex, status, scores, remarks)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             req.params.id,
             finalIndex,
@@ -283,7 +284,8 @@ router.post("/:id/students/bulk", (req, res) => {
             s.stream ?? "",
             s.sex ?? "M",
             s.status ?? "present",
-            JSON.stringify(sanitizeScores(s.scores ?? []))
+            JSON.stringify(sanitizeScores(s.scores ?? [])),
+            String(s.remarks ?? "").trim(),
           ]
         );
         validCount++;
@@ -317,7 +319,7 @@ router.put("/:id/students/:sid", validateStudentMiddleware, (req, res) => {
     const stResult = execQuery("SELECT * FROM students WHERE id = ? AND class_id = ?", [req.params.sid, req.params.id]);
     if (stResult.values.length === 0) return res.status(404).json({ error: "Student not found" });
 
-    const { indexNo, name, stream, sex, status, scores } = req.body;
+    const { indexNo, name, stream, sex, status, scores, remarks } = req.body;
     runQuery(`
       UPDATE students SET
         index_no = COALESCE(?, index_no),
@@ -325,7 +327,8 @@ router.put("/:id/students/:sid", validateStudentMiddleware, (req, res) => {
         stream   = COALESCE(?, stream),
         sex      = COALESCE(?, sex),
         status   = COALESCE(?, status),
-        scores   = COALESCE(?, scores)
+        scores   = COALESCE(?, scores),
+        remarks  = COALESCE(?, remarks)
       WHERE id = ?
     `, [
       indexNo ?? null,
@@ -334,6 +337,7 @@ router.put("/:id/students/:sid", validateStudentMiddleware, (req, res) => {
       sex ?? null,
       status ?? null,
       scores ? JSON.stringify(sanitizeScores(scores)) : null,
+      remarks !== undefined ? String(remarks).trim() : null,
       req.params.sid
     ]);
 

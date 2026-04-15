@@ -268,7 +268,9 @@ export function ReportCardPrint({ student, classData }) {
       <div style={styles.remarks}>
         <div style={styles.sectionTitle}>REMARKS</div>
         <div style={styles.remarksBox}>
-          {student.resultStatus === "ABSENT"
+          {student.remarks && student.remarks.trim()
+            ? student.remarks.trim()
+            : student.resultStatus === "ABSENT"
             ? "Absent for this exam."
             : student.resultStatus === "INCOMPLETE"
             ? "Marks incomplete; unable to determine overall performance."

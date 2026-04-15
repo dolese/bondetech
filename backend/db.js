@@ -42,6 +42,7 @@ async function initDb() {
       sex        TEXT    NOT NULL DEFAULT 'M',
       status     TEXT    NOT NULL DEFAULT 'present',
       scores     TEXT    NOT NULL DEFAULT '[]',
+      remarks    TEXT    NOT NULL DEFAULT '',
       created_at TEXT   NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -59,6 +60,7 @@ async function initDb() {
   ensureColumn("classes", "year", "TEXT NOT NULL DEFAULT '2026'");
   ensureColumn("classes", "form", "TEXT NOT NULL DEFAULT 'Form I'");
   ensureColumn("students", "stream", "TEXT NOT NULL DEFAULT ''");
+  ensureColumn("students", "remarks", "TEXT NOT NULL DEFAULT ''");
 
   const classInfo = db.exec("SELECT id, school_info, year, form FROM classes");
   if (classInfo.length) {

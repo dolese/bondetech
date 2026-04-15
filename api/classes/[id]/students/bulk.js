@@ -56,6 +56,7 @@ module.exports = async (req, res) => {
           sex: raw.sex === "F" ? "F" : "M",
           status: ["present", "absent", "incomplete"].includes(raw.status) ? raw.status : "present",
           scores: sanitizeScores(raw.scores, subjects.length),
+          remarks: sanitizeText(raw.remarks ?? ""),
           created_at,
         });
         created += 1;
