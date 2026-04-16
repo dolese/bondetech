@@ -52,7 +52,6 @@ module.exports = async (req, res) => {
 
     for (const raw of validStudents) {
       const name = sanitizeText(raw.name || "");
-      if (!name) continue;
 
       const incomingIndexNo = sanitizeText(raw.indexNo || "");
       const existing = incomingIndexNo ? existingByIndexNo[incomingIndexNo] : null;
@@ -71,7 +70,7 @@ module.exports = async (req, res) => {
       if (existing) {
         const ed = existing.data;
         const existingExamScores = (ed.exam_scores && typeof ed.exam_scores === "object") ? ed.exam_scores : {};
-        const existingExamScoreForType = existingExamScores[examType] ?? ed.scores ?? [];
+        const existingExamScoreForType = existingExamScores[examType] ?? [];
         const changed =
           name !== (ed.name || "") ||
           newStream !== (ed.stream || "") ||
