@@ -255,9 +255,14 @@ export default function App() {
     if (!activeClass) return;
     try {
       const payload = rows.map(toApiStudent);
-      await API.bulkImport(activeClass.id, payload);
+      const result = await API.bulkImport(activeClass.id, payload);
       await refreshClass(activeClass.id);
-      showToast(`Imported ${rows.length} students`);
+      const { created = 0, updated = 0, skipped = 0 } = result ?? {};
+      const parts = [];
+      if (created > 0) parts.push(`${created} new`);
+      if (updated > 0) parts.push(`${updated} updated`);
+      if (skipped > 0) parts.push(`${skipped} unchanged`);
+      showToast(parts.length ? `Import done: ${parts.join(", ")}` : "Nothing to import");
     } catch (err) {
       showToast(err.message, "error");
     }

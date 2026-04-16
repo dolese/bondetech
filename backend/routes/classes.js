@@ -290,7 +290,11 @@ router.post("/:id/students", validateStudentMiddleware, async (req, res) => {
   }
 });
 
-// ── POST /api/classes/:id/students/bulk ── Bulk import students ───────────────
+// ── POST /api/classes/:id/students/bulk ── Bulk upsert students ──────────────
+// Matching logic: if an incoming row carries an indexNo that matches an existing
+// student's index_no the student is updated (when data changed) or skipped
+// (when nothing changed).  Rows without an indexNo or with an indexNo that does
+// not yet exist are created as new students.
 router.post("/:id/students/bulk", async (req, res) => {
   try {
     const db = getDb();
@@ -306,50 +310,111 @@ router.post("/:id/students/bulk", async (req, res) => {
     const data = classSnap.data();
     const subjects = Array.isArray(data.subjects) ? data.subjects : [];
 
+    // Build an index_no → { ref, data } map from existing students.
+    const existingSnap = await classRef.collection("students").get();
+    const existingByIndexNo = {};
+    existingSnap.docs.forEach((doc) => {
+      const iNo = (doc.data().index_no || "").trim();
+      if (iNo) existingByIndexNo[iNo] = { ref: doc.ref, data: doc.data() };
+    });
+
     const validStudents = students.filter((s) => sanitizeText(s.name || ""));
-    const missingCount = validStudents.filter((s) => !sanitizeText(s.indexNo || "")).length;
-    let cursor = missingCount > 0 ? await reserveCnoRange(db, classRef, missingCount) : 0;
+
+    // Separate rows that need a new CNO (new students with no indexNo that
+    // also don't already exist in the class).
+    const needsCno = validStudents.filter((s) => {
+      const iNo = sanitizeText(s.indexNo || "");
+      return !iNo && !existingByIndexNo[iNo];
+    });
+    let cursor =
+      needsCno.length > 0
+        ? await reserveCnoRange(db, classRef, needsCno.length)
+        : 0;
 
     const created_at = new Date().toISOString();
-    let created = 0;
+    const toCreate = [];
+    const toUpdate = [];
+    let skipped = 0;
 
-    for (let i = 0; i < validStudents.length; i += 400) {
-      const batch = db.batch();
-      validStudents.slice(i, i + 400).forEach((raw) => {
-        const name = sanitizeText(raw.name || "");
-        if (!name) return;
+    for (const raw of validStudents) {
+      const name = sanitizeText(raw.name || "");
+      if (!name) continue;
 
-        let indexNo = sanitizeText(raw.indexNo || "");
-        if (!indexNo) {
-          indexNo = formatCno(cursor);
-          cursor += 1;
+      const incomingIndexNo = sanitizeText(raw.indexNo || "");
+      const existing = incomingIndexNo ? existingByIndexNo[incomingIndexNo] : null;
+
+      const newStream = sanitizeText(raw.stream || "");
+      const newSex = raw.sex === "F" ? "F" : "M";
+      const newStatus = ["present", "absent", "incomplete"].includes(raw.status)
+        ? raw.status
+        : "present";
+      const newRemarks = sanitizeText(raw.remarks || "");
+      const newScores = sanitizeScores(
+        Array.isArray(raw.scores) ? raw.scores : Array(subjects.length).fill("")
+      );
+
+      if (existing) {
+        const ed = existing.data;
+        const changed =
+          name !== (ed.name || "") ||
+          newStream !== (ed.stream || "") ||
+          newSex !== (ed.sex || "M") ||
+          newStatus !== (ed.status || "present") ||
+          newRemarks !== (ed.remarks || "") ||
+          JSON.stringify(newScores) !== JSON.stringify(ed.scores || []);
+
+        if (changed) {
+          toUpdate.push({
+            ref: existing.ref,
+            updates: { name, stream: newStream, sex: newSex, status: newStatus, remarks: newRemarks, scores: newScores },
+          });
+        } else {
+          skipped += 1;
         }
-
-        const studentRef = classRef.collection("students").doc();
-        batch.set(studentRef, {
-          index_no: indexNo,
+      } else {
+        // New student — assign a CNO if none provided.
+        let finalIndexNo = incomingIndexNo || formatCno(cursor++);
+        toCreate.push({
+          index_no: finalIndexNo,
           name,
-          stream: sanitizeText(raw.stream || ""),
-          sex: raw.sex === "F" ? "F" : "M",
-          status: ["present", "absent", "incomplete"].includes(raw.status)
-            ? raw.status
-            : "present",
-          scores: sanitizeScores(
-            Array.isArray(raw.scores) ? raw.scores : Array(subjects.length).fill("")
-          ),
-          remarks: sanitizeText(raw.remarks || ""),
+          stream: newStream,
+          sex: newSex,
+          status: newStatus,
+          scores: newScores,
+          remarks: newRemarks,
           created_at,
         });
-        created += 1;
+      }
+    }
+
+    // Commit updates in batches.
+    for (let i = 0; i < toUpdate.length; i += 400) {
+      const batch = db.batch();
+      toUpdate.slice(i, i + 400).forEach(({ ref, updates }) => batch.update(ref, updates));
+      await batch.commit();
+    }
+
+    // Commit creates in batches.
+    for (let i = 0; i < toCreate.length; i += 400) {
+      const batch = db.batch();
+      toCreate.slice(i, i + 400).forEach((doc) => {
+        batch.set(classRef.collection("students").doc(), doc);
       });
       await batch.commit();
     }
 
-    if (created > 0) {
-      await classRef.update({ student_count: Number(data.student_count || 0) + created });
+    if (toCreate.length > 0) {
+      await classRef.update({
+        student_count: Number(data.student_count || 0) + toCreate.length,
+      });
     }
 
-    res.status(201).json({ success: true, count: created });
+    res.status(201).json({
+      success: true,
+      created: toCreate.length,
+      updated: toUpdate.length,
+      skipped,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

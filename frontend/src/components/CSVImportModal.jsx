@@ -2,12 +2,16 @@ import React, { useState } from "react";
 import Papa from "papaparse";
 import { validateStudent } from "../utils/validation";
 import { useViewport } from "../utils/useViewport";
+import { API } from "../api";
 
 export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
   const [csvText, setCsvText] = useState("");
   const [preview, setPreview] = useState([]);
   const [errors, setErrors] = useState([]);
   const [importing, setImporting] = useState(false);
+  const [syncUrl, setSyncUrl] = useState("");
+  const [fetchingUrl, setFetchingUrl] = useState(false);
+  const [fetchError, setFetchError] = useState("");
   const { isMobile } = useViewport();
   const CNO_PREFIX = "S6509";
 
@@ -130,12 +134,36 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
       return;
     }
     setImporting(true);
-    await onImport(preview);
-    setImporting(false);
+    try {
+      await onImport(preview);
+    } finally {
+      setImporting(false);
+    }
     setCsvText("");
     setPreview([]);
     setErrors([]);
     onClose();
+  };
+
+  const handleFetchUrl = async () => {
+    const url = syncUrl.trim();
+    if (!url) return;
+    setFetchingUrl(true);
+    setFetchError("");
+    try {
+      const result = await API.fetchCsvFromUrl(url);
+      const text = result?.csv ?? "";
+      if (!text.trim()) {
+        setFetchError("No CSV data found at that URL.");
+        return;
+      }
+      setCsvText(text);
+      parseCSV(text);
+    } catch (err) {
+      setFetchError(err.message || "Failed to fetch URL.");
+    } finally {
+      setFetchingUrl(false);
+    }
   };
 
   const styles = {
@@ -277,9 +305,56 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
         </div>
 
         <div style={styles.content}>
+          {/* Sync from URL Section */}
+          <div style={styles.section}>
+            <label style={styles.label}>🔗 Sync from Online Spreadsheet</label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input
+                type="url"
+                value={syncUrl}
+                onChange={e => { setSyncUrl(e.target.value); setFetchError(""); }}
+                onKeyDown={e => e.key === "Enter" && handleFetchUrl()}
+                placeholder="Paste Google Sheets or CSV link here…"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  padding: "8px 10px",
+                  borderRadius: 6,
+                  border: "1px solid #d0dcf8",
+                  fontSize: 12,
+                }}
+              />
+              <button
+                onClick={handleFetchUrl}
+                disabled={!syncUrl.trim() || fetchingUrl}
+                style={{
+                  padding: "8px 14px",
+                  background: !syncUrl.trim() || fetchingUrl ? "#ccc" : "#0077aa",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  cursor: !syncUrl.trim() || fetchingUrl ? "not-allowed" : "pointer",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {fetchingUrl ? "Fetching…" : "⬇ Fetch & Preview"}
+              </button>
+            </div>
+            {fetchError && (
+              <div style={{ fontSize: 11, color: "#c00", marginTop: 4 }}>⚠ {fetchError}</div>
+            )}
+            <div style={{ ...styles.helpText, marginTop: 0 }}>
+              Google Sheets: share the sheet publicly, paste its link above and click Fetch.
+              The sheet must be <strong>publicly accessible</strong> (anyone with the link can view).
+              Plain <code>.csv</code> links also work.
+            </div>
+          </div>
+
           {/* CSV Input Section */}
           <div style={styles.section}>
-            <label style={styles.label}>Paste CSV</label>
+            <label style={styles.label}>Or Paste CSV</label>
             <textarea
               value={csvText}
               onChange={e => {
