@@ -29,14 +29,24 @@ const FORMS = ["Form I", "Form II", "Form III", "Form IV"];
 // ROOT APP
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const normalizeStudent = (student) => ({
-  ...student,
-  index_no: student.index_no ?? student.indexNo ?? "",
-  stream: student.stream ?? "",
-  remarks: student.remarks ?? "",
-  scores: Array.isArray(student.scores) ? student.scores : [],
-  examScores: (student.examScores && typeof student.examScores === "object") ? student.examScores : {},
-});
+const normalizeStudent = (student) => {
+  const scores = Array.isArray(student.scores) ? student.scores : [];
+  const rawExamScores = (student.examScores && typeof student.examScores === "object") ? student.examScores : {};
+  // Legacy migration: students created before per-exam storage only have a top-level
+  // `scores` field.  Map those scores to the default exam so they remain visible.
+  const examScores =
+    Object.keys(rawExamScores).length === 0 && scores.length > 0
+      ? { [DEFAULT_EXAM_TYPE]: scores }
+      : rawExamScores;
+  return {
+    ...student,
+    index_no: student.index_no ?? student.indexNo ?? "",
+    stream: student.stream ?? "",
+    remarks: student.remarks ?? "",
+    scores,
+    examScores,
+  };
+};
 
 const normalizeClass = (cls) => ({
   ...cls,
@@ -135,7 +145,11 @@ export default function App() {
   // Helper: resolve a student's scores for a given exam type.
   const resolveExamScores = useCallback((student, examType) => {
     const examScores = student.examScores ?? {};
-    return examScores[examType] ?? student.scores ?? [];
+    // Only return scores that were explicitly saved for this exam.
+    // Do NOT fall back to the generic `scores` field — that field always holds
+    // the most-recently-saved exam's data and would cause marks from one exam
+    // to bleed into every other exam.
+    return examScores[examType] ?? [];
   }, []);
 
   const allComputed = useMemo(() => {
