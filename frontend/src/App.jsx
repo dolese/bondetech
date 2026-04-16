@@ -353,8 +353,8 @@ export default function App() {
   const saveExamForClass = useCallback(async (classObj, exam) => {
     if (!classObj) return;
     try {
-      const schoolInfo = { ...(classObj.school_info ?? DEFAULT_SCHOOL), exam };
-      await API.updateClass(classObj.id, { schoolInfo });
+      const updated_school_info = { ...(classObj.school_info ?? DEFAULT_SCHOOL), exam };
+      await API.updateClass(classObj.id, { schoolInfo: updated_school_info });
       // Update local state immediately without a full refresh to avoid flicker
       setClasses(prev =>
         prev.map(c =>

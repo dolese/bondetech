@@ -1,16 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { EXAM_TYPES } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
 
 const EXAM_META = {
-  "March Exam":    { icon: "🌱", color: "#0b6b3a", bg: "#e6f9ee", border: "#7dd3a8" },
-  "Terminal Exam": { icon: "📘", color: "#0b4f9e", bg: "#e4eeff", border: "#7aabf7" },
-  "September Exam":{ icon: "🍂", color: "#7a5800", bg: "#fff8e1", border: "#f7d47a" },
-  "Annual Exam":   { icon: "🏆", color: "#6b0055", bg: "#fce8f7", border: "#e89de0" },
+  "March Exam":     { icon: "🌱", color: "#0b6b3a", bg: "#e6f9ee", border: "#7dd3a8" },
+  "Terminal Exam":  { icon: "📘", color: "#0b4f9e", bg: "#e4eeff", border: "#7aabf7" },
+  "September Exam": { icon: "🍂", color: "#7a5800", bg: "#fff8e1", border: "#f7d47a" },
+  "Annual Exam":    { icon: "🏆", color: "#6b0055", bg: "#fce8f7", border: "#e89de0" },
 };
 
 export function ExamPickerScreen({ classData, onPick, onCancel }) {
   const { isMobile } = useViewport();
+  const [hoveredExam, setHoveredExam] = useState(null);
 
   const styles = {
     overlay: {
@@ -81,6 +82,8 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
               <button
                 key={et.value}
                 onClick={() => onPick(et.value)}
+                onMouseEnter={() => setHoveredExam(et.value)}
+                onMouseLeave={() => setHoveredExam(null)}
                 style={{
                   background: meta.bg,
                   border: `2px solid ${isActive ? meta.color : meta.border}`,
@@ -92,11 +95,12 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
                   alignItems: "center",
                   gap: 6,
                   transition: "transform 0.12s, box-shadow 0.12s",
-                  boxShadow: isActive ? `0 0 0 3px ${meta.color}44` : "0 1px 4px rgba(0,0,0,0.07)",
+                  transform: hoveredExam === et.value ? "translateY(-2px)" : "",
+                  boxShadow: hoveredExam === et.value
+                    ? `0 4px 14px ${meta.color}44`
+                    : isActive ? `0 0 0 3px ${meta.color}44` : "0 1px 4px rgba(0,0,0,0.07)",
                   outline: "none",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 4px 14px ${meta.color}44`; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = isActive ? `0 0 0 3px ${meta.color}44` : "0 1px 4px rgba(0,0,0,0.07)"; }}
               >
                 <span style={{ fontSize: 28 }}>{meta.icon}</span>
                 <span style={{ fontSize: 11, fontWeight: 800, color: meta.color, textAlign: "center", lineHeight: 1.3 }}>
