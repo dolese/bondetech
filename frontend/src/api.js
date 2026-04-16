@@ -31,7 +31,7 @@ export const API = {
 
   // Students
   addStudent:     (cid, data) => post(`/classes/${cid}/students`, data),
-  bulkImport:     (cid, students) => post(`/classes/${cid}/students/bulk`, { students }),
+  bulkImport:     (cid, students, examType) => post(`/classes/${cid}/students/bulk`, { students, examType }),
   updateStudent:  (cid, sid, data) => put(`/classes/${cid}/students/${sid}`, data),
   deleteStudent:  (cid, sid)  => del(`/classes/${cid}/students/${sid}`),
 

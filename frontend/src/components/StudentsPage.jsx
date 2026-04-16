@@ -8,6 +8,8 @@ export function StudentsPage({
   onUpdateStudent,
   onDeleteStudent,
   onAddStudent,
+  activeExam,
+  onChangeExam,
 }) {
   return (
     <EntryPanel
@@ -19,6 +21,8 @@ export function StudentsPage({
       onDeleteStudent={onDeleteStudent}
       onAddStudent={onAddStudent}
       hideSettings
+      activeExam={activeExam}
+      onChangeExam={onChangeExam}
     />
   );
 }

@@ -17,8 +17,12 @@ export function EntryPanel({
   onUpdateSubjects,
   onUpdateClassMeta,
   hideSettings = false,
+  activeExam,
+  onChangeExam,
 }) {
   const subjects = classData.subjects ?? [];
+  // Determine the effective active exam: prefer the prop, fall back to schoolInfo
+  const effectiveExam = activeExam || classData.school_info?.exam || "March Exam";
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("index");
   const [sortAsc, setSortAsc] = useState(true);
@@ -102,6 +106,7 @@ export function EntryPanel({
     await onUpdateStudent({
       ...editData,
       scores,
+      examType: effectiveExam,
     });
     setEditId(null);
     setEditData(null);
@@ -118,6 +123,7 @@ export function EntryPanel({
     await onAddStudent({
       ...newStudent,
       scores,
+      examType: effectiveExam,
     });
     setNewStudent({ index_no: "", name: "", stream: "", sex: "M", status: "present" });
     setAddingNew(false);
@@ -246,7 +252,7 @@ export function EntryPanel({
           const n = Number(v);
           return Number.isFinite(n) ? n : null;
         });
-        const result = await onUpdateStudent({ ...s, scores }, { silent: true });
+        const result = await onUpdateStudent({ ...s, scores, examType: effectiveExam }, { silent: true });
         if (!result?.ok) failures += 1;
       }
       setBulkNotice(
@@ -430,6 +436,33 @@ export function EntryPanel({
           Add, edit, and score students for this class.
         </div>
         <div style={styles.tlbx}>
+          {/* Exam selector – always visible */}
+          <div style={{ ...styles.tlbGroup, alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#003366", whiteSpace: "nowrap" }}>
+              📋 Exam:
+            </span>
+            <select
+              value={effectiveExam}
+              onChange={e => onChangeExam && onChangeExam(e.target.value)}
+              style={{
+                padding: "6px 8px",
+                borderRadius: 5,
+                border: "2px solid #003366",
+                height: 30,
+                fontWeight: 700,
+                fontSize: 11,
+                background: "#f0f5ff",
+                color: "#003366",
+                cursor: "pointer",
+                width: isMobile ? "100%" : "auto",
+              }}
+            >
+              {EXAM_TYPES.map(et => (
+                <option key={et.value} value={et.value}>{et.label}</option>
+              ))}
+            </select>
+          </div>
+          <div style={styles.tlbDivider} />
           <div style={styles.tlbGroup}>
             <input
               type="text"
