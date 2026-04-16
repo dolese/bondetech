@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL } from "../utils/constants";
+import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL, EXAM_TYPES } from "../utils/constants";
 import { getGrade, getDivision, computeStudent } from "../utils/grading";
 import { validateStudent, validateSchoolInfo } from "../utils/validation";
 import { TextInput, NumberInput, SelectInput } from "./FormInputs";
@@ -643,10 +643,11 @@ export function EntryPanel({
             onChange={(v) => setSchoolInfo({ ...schoolInfo, term: v })}
             error={schoolErrors.term}
           />
-          <TextInput
+          <SelectInput
             label="Exam"
             value={schoolInfo.exam}
             onChange={(v) => setSchoolInfo({ ...schoolInfo, exam: v })}
+            options={EXAM_TYPES}
             error={schoolErrors.exam}
           />
           <TextInput

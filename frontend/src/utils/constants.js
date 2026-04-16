@@ -17,6 +17,13 @@ export const DEFAULT_SUBJECTS = [
   "BS",
 ];
 
+export const EXAM_TYPES = [
+  { label: "March Exam", value: "March Exam" },
+  { label: "Terminal Exam", value: "Terminal Exam" },
+  { label: "September Exam", value: "September Exam" },
+  { label: "Annual Exam", value: "Annual Exam" },
+];
+
 export const DEFAULT_SCHOOL = {
   name: "BONDE SECONDARY SCHOOL",
   authority: "PRIME MINISTER'S OFFICE",
@@ -24,7 +31,7 @@ export const DEFAULT_SCHOOL = {
   district: "MUHEZA DC",
   form: "Form I",
   term: "I",
-  exam: "Mid-Term Exam",
+  exam: "March Exam",
   year: String(new Date().getFullYear()),
 };
 
