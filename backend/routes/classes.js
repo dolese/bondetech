@@ -320,10 +320,12 @@ router.post("/:id/students/bulk", async (req, res) => {
 
     const validStudents = students.filter((s) => sanitizeText(s.name || ""));
 
-    // Separate rows that need a new CNO (new students with no indexNo).
-    const needsCno = validStudents.filter(
-      (s) => !sanitizeText(s.indexNo || "") && !existingByIndexNo[sanitizeText(s.indexNo || "")]
-    );
+    // Separate rows that need a new CNO (new students with no indexNo that
+    // also don't already exist in the class).
+    const needsCno = validStudents.filter((s) => {
+      const iNo = sanitizeText(s.indexNo || "");
+      return !iNo && !existingByIndexNo[iNo];
+    });
     let cursor =
       needsCno.length > 0
         ? await reserveCnoRange(db, classRef, needsCno.length)

@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const dns = require("node:dns").promises;
 const { initDb, getDb } = require("./db");
 
 const app = express();
@@ -48,6 +49,30 @@ app.use(express.json({ limit: "5mb" }));
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use("/api/classes", require("./routes/classes"));
 
+// ── SSRF guard helpers ────────────────────────────────────────────────────────
+const PRIVATE_IP_RE = [
+  /^127\./,                           // loopback
+  /^10\./,                            // 10.0.0.0/8
+  /^192\.168\./,                      // 192.168.0.0/16
+  /^172\.(1[6-9]|2\d|3[01])\./,      // 172.16.0.0/12
+  /^169\.254\./,                      // link-local
+  /^0\./,                             // 0.0.0.0/8
+  /^::1$/,                            // IPv6 loopback
+  /^fc00:/i,                          // IPv6 unique local
+  /^fd[0-9a-f]{2}:/i,                 // IPv6 unique local
+  /^fe80:/i,                          // IPv6 link-local
+];
+const isPrivateIp = (ip) => PRIVATE_IP_RE.some((r) => r.test(ip));
+
+async function hostnameResolvesToPrivate(hostname) {
+  try {
+    const addrs = await dns.resolve(hostname);
+    return addrs.some(isPrivateIp);
+  } catch {
+    return false; // leave network error to the actual fetch
+  }
+}
+
 // ── POST /api/proxy-csv ── Fetch a CSV from a remote URL (avoids CORS) ────────
 // Supports Google Sheets share links (converts to CSV export URL automatically).
 app.post("/api/proxy-csv", async (req, res) => {
@@ -59,13 +84,24 @@ app.post("/api/proxy-csv", async (req, res) => {
     url = url.trim();
 
     // Only allow http / https to prevent SSRF via file:// etc.
-    if (!/^https?:\/\//i.test(url)) {
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return res.status(400).json({ error: "Invalid URL" });
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
       return res.status(400).json({ error: "Only http/https URLs are allowed" });
+    }
+
+    // Block requests to private / internal IP ranges (SSRF protection).
+    if (await hostnameResolvesToPrivate(parsed.hostname)) {
+      return res.status(400).json({ error: "Access to private or internal addresses is not allowed" });
     }
 
     // Convert a Google Sheets edit/view URL to a CSV export URL.
     const gsMatch = url.match(
-      /^https:\/\/docs\.google\.com\/spreadsheets\/d\/([^/]+)/i
+      /^https:\/\/docs\.google\.com\/spreadsheets\/d\/([^/?#]+)/i
     );
     if (gsMatch) {
       const sheetId = gsMatch[1];
