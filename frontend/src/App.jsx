@@ -13,6 +13,7 @@ import { CSVImportModal } from "./components/CSVImportModal";
 import { JSONImportModal } from "./components/JSONImportModal";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
+import { ExamPickerScreen } from "./components/ExamPickerScreen";
 
 // Import utilities
 import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE } from "./utils/constants";
@@ -71,6 +72,7 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [modalType, setModalType] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [examPickerClass, setExamPickerClass] = useState(null); // class object shown in exam picker
   const { isMobile } = useViewport();
   const topBarHeight = isMobile ? 52 : 46;
 
@@ -346,6 +348,26 @@ export default function App() {
     }
   };
 
+  // Silently persist the active exam to a class's school_info so it is
+  // remembered per-form across sessions.
+  const saveExamForClass = useCallback(async (classObj, exam) => {
+    if (!classObj) return;
+    try {
+      const schoolInfo = { ...(classObj.school_info ?? DEFAULT_SCHOOL), exam };
+      await API.updateClass(classObj.id, { schoolInfo });
+      // Update local state immediately without a full refresh to avoid flicker
+      setClasses(prev =>
+        prev.map(c =>
+          c.id === classObj.id
+            ? { ...c, school_info: { ...(c.school_info ?? {}), exam } }
+            : c
+        )
+      );
+    } catch (_err) {
+      // Silent – exam persistence is best-effort
+    }
+  }, []);
+
   const onShowModal = (type, studentId = null) => {
     setModalType(type);
     if (studentId) {
@@ -365,6 +387,25 @@ export default function App() {
     setSelectedStudent(found);
     setModalType("report-card");
   };
+
+  // Called when the user changes the exam in the workspace toolbar.
+  // Updates local state immediately and silently persists the choice to the class.
+  const onChangeExam = useCallback((exam) => {
+    setActiveExam(exam);
+    saveExamForClass(activeClass, exam);
+  }, [activeClass, saveExamForClass]);
+
+  // Called when the user picks an exam in the ExamPickerScreen.
+  const handleExamPickerSelect = useCallback((exam) => {
+    const cls = examPickerClass;
+    setExamPickerClass(null);
+    if (!cls) return;
+    setActiveId(cls.id);
+    setActiveExam(exam);
+    saveExamForClass(cls, exam);
+    setPage("students");
+    if (isMobile) setSideOpen(false);
+  }, [examPickerClass, saveExamForClass, isMobile]);
 
 
   if (!loggedIn) {
@@ -501,9 +542,7 @@ export default function App() {
                       }}
                       onClick={() => {
                         if (cls) {
-                          setActiveId(cls.id);
-                          setPage("students");
-                          closeSide();
+                          setExamPickerClass(cls);
                         } else {
                           addClass({ year, form });
                         }
@@ -537,7 +576,7 @@ export default function App() {
                       ...S.formItem,
                       ...(cl.id === activeId && isClassPage ? S.formItemOn : {}),
                     }}
-                    onClick={() => { setActiveId(cl.id); setPage("students"); closeSide(); }}
+                    onClick={() => { setExamPickerClass(cl); }}
                     title={cl.name}
                   >
                     <span style={{ ...S.formLabel, color: "#c8d8f0" }}>📋 {cl.name}</span>
@@ -635,7 +674,7 @@ export default function App() {
                 onDeleteStudent={onDeleteStudent}
                 onAddStudent={onAddStudent}
                 activeExam={activeExam}
-                onChangeExam={setActiveExam}
+                onChangeExam={onChangeExam}
               />
             ) : (
               <Splash text="Select a class from the sidebar" />
@@ -716,6 +755,15 @@ export default function App() {
           onClose={onCloseModal}
           autoExport
           silent
+        />
+      )}
+
+      {/* Exam picker — shown when user clicks a Form in the sidebar */}
+      {examPickerClass && (
+        <ExamPickerScreen
+          classData={examPickerClass}
+          onPick={handleExamPickerSelect}
+          onCancel={() => setExamPickerClass(null)}
         />
       )}
     </div>
