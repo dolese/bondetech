@@ -13,6 +13,7 @@ const parseStudent = (doc, classId) => {
     sex: data.sex || "M",
     status: data.status || "present",
     scores: Array.isArray(data.scores) ? data.scores : [],
+    examScores: (data.exam_scores && typeof data.exam_scores === "object") ? data.exam_scores : {},
     remarks: data.remarks || "",
     createdAt: data.created_at || null,
   };
@@ -49,7 +50,15 @@ module.exports = async (req, res) => {
       if (body.status) {
         updates.status = ["present", "absent", "incomplete"].includes(body.status) ? body.status : studentSnap.data().status;
       }
-      if (Array.isArray(body.scores)) updates.scores = sanitizeScores(body.scores, subjects.length);
+      if (Array.isArray(body.scores)) {
+        const newScores = sanitizeScores(body.scores, subjects.length);
+        updates.scores = newScores;
+        const examType = sanitizeText(body.examType || "March Exam");
+        const existingExamScores = (studentSnap.data().exam_scores && typeof studentSnap.data().exam_scores === "object")
+          ? studentSnap.data().exam_scores
+          : {};
+        updates.exam_scores = { ...existingExamScores, [examType]: newScores };
+      }
       if (typeof body.remarks === "string") updates.remarks = sanitizeText(body.remarks);
 
       await studentRef.update(updates);

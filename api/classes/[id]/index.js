@@ -26,6 +26,7 @@ const parseStudent = (doc, classId) => {
     sex: data.sex || "M",
     status: data.status || "present",
     scores: Array.isArray(data.scores) ? data.scores : [],
+    examScores: (data.exam_scores && typeof data.exam_scores === "object") ? data.exam_scores : {},
     createdAt: data.created_at || null,
   };
 };
@@ -96,8 +97,14 @@ module.exports = async (req, res) => {
         if (JSON.stringify(oldSubjects) !== JSON.stringify(newSubjects)) {
           const studentsSnap = await classRef.collection("students").get();
           await updateStudentsInBatches(db, studentsSnap.docs, (doc) => {
-            const scores = doc.data().scores || [];
-            return { scores: remapScores(oldSubjects, newSubjects, scores) };
+            const d = doc.data();
+            const remappedScores = remapScores(oldSubjects, newSubjects, d.scores || []);
+            const existingExamScores = (d.exam_scores && typeof d.exam_scores === "object") ? d.exam_scores : {};
+            const remappedExamScores = {};
+            for (const [exam, sc] of Object.entries(existingExamScores)) {
+              remappedExamScores[exam] = remapScores(oldSubjects, newSubjects, Array.isArray(sc) ? sc : []);
+            }
+            return { scores: remappedScores, exam_scores: remappedExamScores };
           });
         }
       }
