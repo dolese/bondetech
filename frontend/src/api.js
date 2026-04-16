@@ -35,6 +35,9 @@ export const API = {
   updateStudent:  (cid, sid, data) => put(`/classes/${cid}/students/${sid}`, data),
   deleteStudent:  (cid, sid)  => del(`/classes/${cid}/students/${sid}`),
 
+  // Utilities
+  fetchCsvFromUrl: (url) => post("/proxy-csv", { url }),
+
   // Health
   health:         ()          => get("/health"),
 };

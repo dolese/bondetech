@@ -48,6 +48,51 @@ app.use(express.json({ limit: "5mb" }));
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use("/api/classes", require("./routes/classes"));
 
+// ── POST /api/proxy-csv ── Fetch a CSV from a remote URL (avoids CORS) ────────
+// Supports Google Sheets share links (converts to CSV export URL automatically).
+app.post("/api/proxy-csv", async (req, res) => {
+  try {
+    let { url } = req.body || {};
+    if (typeof url !== "string" || !url.trim()) {
+      return res.status(400).json({ error: "url is required" });
+    }
+    url = url.trim();
+
+    // Only allow http / https to prevent SSRF via file:// etc.
+    if (!/^https?:\/\//i.test(url)) {
+      return res.status(400).json({ error: "Only http/https URLs are allowed" });
+    }
+
+    // Convert a Google Sheets edit/view URL to a CSV export URL.
+    const gsMatch = url.match(
+      /^https:\/\/docs\.google\.com\/spreadsheets\/d\/([^/]+)/i
+    );
+    if (gsMatch) {
+      const sheetId = gsMatch[1];
+      const gidMatch = url.match(/[?&]gid=(\d+)/);
+      const gid = gidMatch ? gidMatch[1] : "0";
+      url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+    }
+
+    const response = await fetch(url, {
+      headers: { "User-Agent": "BondeTech-CSV-Proxy/1.0" },
+      redirect: "follow",
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!response.ok) {
+      return res
+        .status(502)
+        .json({ error: `Remote URL returned HTTP ${response.status}` });
+    }
+
+    const text = await response.text();
+    res.json({ csv: text });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString(), app: "BONDE Result System" });
