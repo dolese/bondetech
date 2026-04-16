@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { DEFAULT_SCHOOL } from "../utils/constants";
+import { DEFAULT_SCHOOL, EXAM_TYPES } from "../utils/constants";
 import { validateSchoolInfo } from "../utils/validation";
-import { TextInput } from "./FormInputs";
+import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 
 export function SettingsPage({
@@ -357,10 +357,11 @@ export function SettingsPage({
             onChange={(v) => setSchoolInfo({ ...schoolInfo, term: v })}
             error={schoolErrors.term}
           />
-          <TextInput
+          <SelectInput
             label="Exam"
             value={schoolInfo.exam}
             onChange={(v) => setSchoolInfo({ ...schoolInfo, exam: v })}
+            options={EXAM_TYPES}
             error={schoolErrors.exam}
           />
           <TextInput
