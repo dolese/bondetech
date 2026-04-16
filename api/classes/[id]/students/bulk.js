@@ -2,6 +2,8 @@ const { getDb } = require("../../../_lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../_lib/http");
 const { formatCno, sanitizeScores, sanitizeText, reserveCnoRange } = require("../../../_lib/students");
 
+const DEFAULT_EXAM_TYPE = "March Exam";
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     return sendJson(res, 405, { error: "Method not allowed" });
@@ -22,55 +24,121 @@ module.exports = async (req, res) => {
       return sendJson(res, 400, { error: "students must be a non-empty array" });
     }
 
+    const examType = sanitizeText(body.examType || DEFAULT_EXAM_TYPE);
     const data = classSnap.data();
     const subjects = Array.isArray(data.subjects) ? data.subjects : [];
 
-    const missingCount = students.filter((s) => !sanitizeText(s.indexNo)).length;
-    const start = missingCount > 0 ? await reserveCnoRange(db, classRef, missingCount) : null;
-    let cursor = start || 0;
+    // Build an index_no → { ref, data } map from existing students.
+    const existingSnap = await classRef.collection("students").get();
+    const existingByIndexNo = {};
+    existingSnap.docs.forEach((doc) => {
+      const iNo = (doc.data().index_no || "").trim();
+      if (iNo) existingByIndexNo[iNo] = { ref: doc.ref, data: doc.data() };
+    });
+
+    const validStudents = students.filter((s) => sanitizeText(s.name || ""));
+
+    // Rows that need a new CNO (new students with no indexNo).
+    const needsCno = validStudents.filter((s) => !sanitizeText(s.indexNo || ""));
+    let cursor =
+      needsCno.length > 0
+        ? await reserveCnoRange(db, classRef, needsCno.length)
+        : 0;
 
     const created_at = new Date().toISOString();
-    const batches = [];
-    for (let i = 0; i < students.length; i += 400) {
-      batches.push(students.slice(i, i + 400));
-    }
+    const toCreate = [];
+    const toUpdate = [];
+    let skipped = 0;
 
-    let created = 0;
-    for (const chunk of batches) {
-      const batch = db.batch();
-      chunk.forEach((raw) => {
-        const name = sanitizeText(raw.name);
-        if (!name) return;
+    for (const raw of validStudents) {
+      const name = sanitizeText(raw.name || "");
 
-        let indexNo = sanitizeText(raw.indexNo);
-        if (!indexNo) {
-          indexNo = formatCno(cursor);
-          cursor += 1;
+      const incomingIndexNo = sanitizeText(raw.indexNo || "");
+      const existing = incomingIndexNo ? existingByIndexNo[incomingIndexNo] : null;
+
+      const newStream = sanitizeText(raw.stream || "");
+      const newSex = raw.sex === "F" ? "F" : "M";
+      const newStatus = ["present", "absent", "incomplete"].includes(raw.status)
+        ? raw.status
+        : "present";
+      const newRemarks = sanitizeText(raw.remarks || "");
+      const newScores = sanitizeScores(
+        Array.isArray(raw.scores) ? raw.scores : Array(subjects.length).fill(""),
+        subjects.length
+      );
+
+      if (existing) {
+        const ed = existing.data;
+        const existingExamScores = (ed.exam_scores && typeof ed.exam_scores === "object") ? ed.exam_scores : {};
+        const existingExamScoreForType = existingExamScores[examType] ?? [];
+        const changed =
+          name !== (ed.name || "") ||
+          newStream !== (ed.stream || "") ||
+          newSex !== (ed.sex || "M") ||
+          newStatus !== (ed.status || "present") ||
+          newRemarks !== (ed.remarks || "") ||
+          JSON.stringify(newScores) !== JSON.stringify(existingExamScoreForType);
+
+        if (changed) {
+          toUpdate.push({
+            ref: existing.ref,
+            updates: {
+              name,
+              stream: newStream,
+              sex: newSex,
+              status: newStatus,
+              remarks: newRemarks,
+              scores: newScores,
+              exam_scores: { ...existingExamScores, [examType]: newScores },
+            },
+          });
+        } else {
+          skipped += 1;
         }
-
-        const studentRef = classRef.collection("students").doc();
-        batch.set(studentRef, {
-          index_no: indexNo,
+      } else {
+        const finalIndexNo = incomingIndexNo || formatCno(cursor++);
+        toCreate.push({
+          index_no: finalIndexNo,
           name,
-          stream: sanitizeText(raw.stream),
-          sex: raw.sex === "F" ? "F" : "M",
-          status: ["present", "absent", "incomplete"].includes(raw.status) ? raw.status : "present",
-          scores: sanitizeScores(raw.scores, subjects.length),
-          remarks: sanitizeText(raw.remarks ?? ""),
+          stream: newStream,
+          sex: newSex,
+          status: newStatus,
+          scores: newScores,
+          exam_scores: { [examType]: newScores },
+          remarks: newRemarks,
           created_at,
         });
-        created += 1;
+      }
+    }
+
+    // Commit updates in batches.
+    for (let i = 0; i < toUpdate.length; i += 400) {
+      const batch = db.batch();
+      toUpdate.slice(i, i + 400).forEach(({ ref, updates }) => batch.update(ref, updates));
+      await batch.commit();
+    }
+
+    // Commit creates in batches.
+    for (let i = 0; i < toCreate.length; i += 400) {
+      const batch = db.batch();
+      toCreate.slice(i, i + 400).forEach((doc) => {
+        batch.set(classRef.collection("students").doc(), doc);
       });
       await batch.commit();
     }
 
-    if (created > 0) {
+    if (toCreate.length > 0) {
       await classRef.update({
-        student_count: Number(data.student_count || 0) + created,
+        student_count: Number(data.student_count || 0) + toCreate.length,
       });
     }
 
-    return sendJson(res, 200, { success: true, count: created });
+    return sendJson(res, 200, {
+      success: true,
+      created: toCreate.length,
+      updated: toUpdate.length,
+      skipped,
+    });
   } catch (err) {
     return sendJson(res, 500, { error: err.message });
   }
