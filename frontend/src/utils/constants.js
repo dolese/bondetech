@@ -24,6 +24,8 @@ export const EXAM_TYPES = [
   { label: "Annual Exam", value: "Annual Exam" },
 ];
 
+export const DEFAULT_EXAM_TYPE = EXAM_TYPES[0].value;
+
 export const DEFAULT_SCHOOL = {
   name: "BONDE SECONDARY SCHOOL",
   authority: "PRIME MINISTER'S OFFICE",

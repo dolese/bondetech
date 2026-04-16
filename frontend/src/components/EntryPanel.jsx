@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL, EXAM_TYPES } from "../utils/constants";
+import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL, EXAM_TYPES, DEFAULT_EXAM_TYPE } from "../utils/constants";
 import { getGrade, getDivision, computeStudent } from "../utils/grading";
 import { validateStudent, validateSchoolInfo } from "../utils/validation";
 import { TextInput, NumberInput, SelectInput } from "./FormInputs";
@@ -22,7 +22,7 @@ export function EntryPanel({
 }) {
   const subjects = classData.subjects ?? [];
   // Determine the effective active exam: prefer the prop, fall back to schoolInfo
-  const effectiveExam = activeExam || classData.school_info?.exam || "March Exam";
+  const effectiveExam = activeExam || classData.school_info?.exam || DEFAULT_EXAM_TYPE;
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("index");
   const [sortAsc, setSortAsc] = useState(true);

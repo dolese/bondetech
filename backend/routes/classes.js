@@ -11,6 +11,7 @@ const {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CNO_PREFIX = "S6509";
+const DEFAULT_EXAM_TYPE = "March Exam";
 
 const formatCno = (num) => `${CNO_PREFIX}/${String(num).padStart(4, "0")}`;
 
@@ -278,7 +279,7 @@ router.post("/:id/students", validateStudentMiddleware, async (req, res) => {
       Array.isArray(req.body.scores) ? req.body.scores : Array(subjects.length).fill("")
     );
 
-    const examType = sanitizeText(req.body.examType || "March Exam");
+    const examType = sanitizeText(req.body.examType || DEFAULT_EXAM_TYPE);
     const examScores = { [examType]: scores };
 
     const studentRef = await classRef.collection("students").add({
@@ -318,7 +319,7 @@ router.post("/:id/students/bulk", async (req, res) => {
     if (!Array.isArray(students)) {
       return res.status(400).json({ error: "students must be an array" });
     }
-    const examType = sanitizeText(rawExamType || "March Exam");
+    const examType = sanitizeText(rawExamType || DEFAULT_EXAM_TYPE);
 
     const data = classSnap.data();
     const subjects = Array.isArray(data.subjects) ? data.subjects : [];
@@ -475,7 +476,7 @@ router.put("/:id/students/:sid", validateStudentMiddleware, async (req, res) => 
     if (Array.isArray(req.body.scores)) {
       const newScores = sanitizeScores(req.body.scores.slice(0, subjects.length));
       updates.scores = newScores;
-      const examType = sanitizeText(req.body.examType || "March Exam");
+      const examType = sanitizeText(req.body.examType || DEFAULT_EXAM_TYPE);
       const existingExamScores = (existing.exam_scores && typeof existing.exam_scores === "object")
         ? existing.exam_scores
         : {};

@@ -15,7 +15,7 @@ import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 
 // Import utilities
-import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL } from "./utils/constants";
+import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE } from "./utils/constants";
 import { withPositions } from "./utils/grading";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -60,7 +60,7 @@ const toApiStudent = (student) => ({
 export default function App() {
   const [classes, setClasses] = useState([]);
   const [activeId, setActiveId] = useState(null);
-  const [activeExam, setActiveExam] = useState("March Exam");
+  const [activeExam, setActiveExam] = useState(DEFAULT_EXAM_TYPE);
   const [page, setPage] = useState("dashboard");
   const [loggedIn, setLoggedIn] = useState(false);
   const [sideOpen, setSideOpen] = useState(true);
@@ -127,7 +127,7 @@ export default function App() {
 
   // Sync activeExam to the selected class's saved exam whenever the active class changes.
   useEffect(() => {
-    setActiveExam(activeClass?.school_info?.exam || "March Exam");
+    setActiveExam(activeClass?.school_info?.exam || DEFAULT_EXAM_TYPE);
   }, [activeClass?.id]); // only re-run when the selected class changes
 
   // Helper: resolve a student's scores for a given exam type.
@@ -138,7 +138,7 @@ export default function App() {
 
   const allComputed = useMemo(() => {
     return classes.map(c => {
-      const examType = c.school_info?.exam || "March Exam";
+      const examType = c.school_info?.exam || DEFAULT_EXAM_TYPE;
       const studentsWithExamScores = (c.students ?? []).map(s => ({
         ...s,
         scores: resolveExamScores(s, examType),
