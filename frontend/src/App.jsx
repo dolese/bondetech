@@ -15,7 +15,7 @@ import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 
 // Import utilities
-import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL } from "./utils/constants";
+import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE } from "./utils/constants";
 import { withPositions } from "./utils/grading";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -34,6 +34,7 @@ const normalizeStudent = (student) => ({
   stream: student.stream ?? "",
   remarks: student.remarks ?? "",
   scores: Array.isArray(student.scores) ? student.scores : [],
+  examScores: (student.examScores && typeof student.examScores === "object") ? student.examScores : {},
 });
 
 const normalizeClass = (cls) => ({
@@ -53,11 +54,13 @@ const toApiStudent = (student) => ({
   scores: Array.isArray(student.scores)
     ? student.scores
     : (student.grades ?? []).map(g => g?.score ?? ""),
+  examType: student.examType,
 });
 
 export default function App() {
   const [classes, setClasses] = useState([]);
   const [activeId, setActiveId] = useState(null);
+  const [activeExam, setActiveExam] = useState(DEFAULT_EXAM_TYPE);
   const [page, setPage] = useState("dashboard");
   const [loggedIn, setLoggedIn] = useState(false);
   const [sideOpen, setSideOpen] = useState(true);
@@ -122,17 +125,39 @@ export default function App() {
 
   const activeClass = classes.find(c => c.id === activeId) ?? classes[0];
 
+  // Sync activeExam to the selected class's saved exam whenever the active class changes.
+  useEffect(() => {
+    setActiveExam(activeClass?.school_info?.exam || DEFAULT_EXAM_TYPE);
+  }, [activeClass?.id]); // only re-run when the selected class changes
+
+  // Helper: resolve a student's scores for a given exam type.
+  const resolveExamScores = useCallback((student, examType) => {
+    const examScores = student.examScores ?? {};
+    return examScores[examType] ?? student.scores ?? [];
+  }, []);
+
   const allComputed = useMemo(() => {
-    return classes.map(c => ({
-      ...c,
-      computed: withPositions(c.students ?? [], c.subjects ?? DEFAULT_SUBJECTS),
-    }));
-  }, [classes]);
+    return classes.map(c => {
+      const examType = c.school_info?.exam || DEFAULT_EXAM_TYPE;
+      const studentsWithExamScores = (c.students ?? []).map(s => ({
+        ...s,
+        scores: resolveExamScores(s, examType),
+      }));
+      return {
+        ...c,
+        computed: withPositions(studentsWithExamScores, c.subjects ?? DEFAULT_SUBJECTS),
+      };
+    });
+  }, [classes, resolveExamScores]);
 
   const activeComputed = useMemo(() => {
     if (!activeClass) return [];
-    return withPositions(activeClass.students ?? [], activeClass.subjects ?? DEFAULT_SUBJECTS);
-  }, [activeClass]);
+    const studentsWithExamScores = (activeClass.students ?? []).map(s => ({
+      ...s,
+      scores: resolveExamScores(s, activeExam),
+    }));
+    return withPositions(studentsWithExamScores, activeClass.subjects ?? DEFAULT_SUBJECTS);
+  }, [activeClass, activeExam, resolveExamScores]);
 
   // Group classes by year (sorted descending).
   // Auto-include all years from 2026 up to the current year so year rows and
@@ -215,7 +240,7 @@ export default function App() {
   const onAddStudent = async (studentData) => {
     if (!activeClass) return;
     try {
-      await API.addStudent(activeClass.id, toApiStudent(studentData));
+      await API.addStudent(activeClass.id, toApiStudent({ ...studentData, examType: activeExam }));
       await refreshClass(activeClass.id);
       showToast("Student added");
     } catch (err) {
@@ -226,7 +251,7 @@ export default function App() {
   const onUpdateStudent = async (studentData, opts = {}) => {
     if (!activeClass) return;
     try {
-      await API.updateStudent(activeClass.id, studentData.id, toApiStudent(studentData));
+      await API.updateStudent(activeClass.id, studentData.id, toApiStudent({ ...studentData, examType: studentData.examType ?? activeExam }));
       await refreshClass(activeClass.id);
       if (!opts.silent) {
         showToast("Student updated");
@@ -254,8 +279,8 @@ export default function App() {
   const onBulkImport = async (rows) => {
     if (!activeClass) return;
     try {
-      const payload = rows.map(toApiStudent);
-      const result = await API.bulkImport(activeClass.id, payload);
+      const payload = rows.map(r => toApiStudent({ ...r, examType: activeExam }));
+      const result = await API.bulkImport(activeClass.id, payload, activeExam);
       await refreshClass(activeClass.id);
       const { created = 0, updated = 0, skipped = 0 } = result ?? {};
       const parts = [];
@@ -609,6 +634,8 @@ export default function App() {
                 onUpdateStudent={onUpdateStudent}
                 onDeleteStudent={onDeleteStudent}
                 onAddStudent={onAddStudent}
+                activeExam={activeExam}
+                onChangeExam={setActiveExam}
               />
             ) : (
               <Splash text="Select a class from the sidebar" />
@@ -618,7 +645,7 @@ export default function App() {
           {page === "results" && (
             activeClass ? (
               <ResultsPage
-                classData={activeClass}
+                classData={{ ...activeClass, school_info: { ...(activeClass.school_info ?? {}), exam: activeExam } }}
                 computed={activeComputed}
                 onOpenReportCard={onOpenReportCard}
               />
@@ -630,7 +657,7 @@ export default function App() {
           {page === "reports" && (
             activeClass ? (
               <ReportsPage
-                classData={activeClass}
+                classData={{ ...activeClass, school_info: { ...(activeClass.school_info ?? {}), exam: activeExam } }}
                 computed={activeComputed}
                 onOpenReportCard={onOpenReportCard}
               />
@@ -677,7 +704,7 @@ export default function App() {
       {modalType === "report-card" && activeClass && (
         <ReportCardModal
           student={selectedStudent}
-          classData={activeClass}
+          classData={{ ...activeClass, school_info: { ...(activeClass.school_info ?? {}), exam: activeExam } }}
           onClose={onCloseModal}
         />
       )}
@@ -685,7 +712,7 @@ export default function App() {
       {modalType === "report-card-export" && activeClass && (
         <ReportCardModal
           student={selectedStudent}
-          classData={activeClass}
+          classData={{ ...activeClass, school_info: { ...(activeClass.school_info ?? {}), exam: activeExam } }}
           onClose={onCloseModal}
           autoExport
           silent
