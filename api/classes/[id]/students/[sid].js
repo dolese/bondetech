@@ -41,27 +41,52 @@ module.exports = async (req, res) => {
       const body = await readJsonBody(req);
       const data = classSnap.data();
       const subjects = Array.isArray(data.subjects) ? data.subjects : [];
+      const prevData = studentSnap.data();
 
       const updates = {};
-      if (typeof body.indexNo === "string") updates.index_no = sanitizeText(body.indexNo, studentSnap.data().index_no);
-      if (typeof body.name === "string") updates.name = sanitizeText(body.name, studentSnap.data().name);
-      if (typeof body.stream === "string") updates.stream = sanitizeText(body.stream, studentSnap.data().stream);
+      if (typeof body.indexNo === "string") updates.index_no = sanitizeText(body.indexNo, prevData.index_no);
+      if (typeof body.name === "string") updates.name = sanitizeText(body.name, prevData.name);
+      if (typeof body.stream === "string") updates.stream = sanitizeText(body.stream, prevData.stream);
       if (body.sex) updates.sex = body.sex === "F" ? "F" : "M";
       if (body.status) {
-        updates.status = ["present", "absent", "incomplete"].includes(body.status) ? body.status : studentSnap.data().status;
+        updates.status = ["present", "absent", "incomplete"].includes(body.status) ? body.status : prevData.status;
       }
       if (Array.isArray(body.scores)) {
         const newScores = sanitizeScores(body.scores, subjects.length);
         updates.scores = newScores;
         const examType = sanitizeText(body.examType || "March Exam");
-        const existingExamScores = (studentSnap.data().exam_scores && typeof studentSnap.data().exam_scores === "object")
-          ? studentSnap.data().exam_scores
+        const existingExamScores = (prevData.exam_scores && typeof prevData.exam_scores === "object")
+          ? prevData.exam_scores
           : {};
         updates.exam_scores = { ...existingExamScores, [examType]: newScores };
       }
       if (typeof body.remarks === "string") updates.remarks = sanitizeText(body.remarks);
 
       await studentRef.update(updates);
+
+      // Write audit log entry
+      try {
+        const updatedBy = sanitizeText(body._updatedBy || "");
+        const db2 = studentRef.firestore;
+        const auditEntry = {
+          classId,
+          studentId,
+          studentName: updates.name || prevData.name || "",
+          action: "update",
+          changes: Object.keys(updates).reduce((acc, key) => {
+            if (key !== "exam_scores") {
+              acc[key] = { from: prevData[key] ?? null, to: updates[key] };
+            }
+            return acc;
+          }, {}),
+          updatedBy,
+          updatedAt: new Date().toISOString(),
+        };
+        await db2.collection("audit_logs").add(auditEntry);
+      } catch {
+        // Audit log writes are best-effort — never fail the main request
+      }
+
       const updated = await studentRef.get();
       return sendJson(res, 200, parseStudent(updated, classId));
     } catch (err) {

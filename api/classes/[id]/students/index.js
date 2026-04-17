@@ -31,8 +31,43 @@ module.exports = async (req, res) => {
 
   if (req.method === "GET") {
     try {
-      const snap = await classRef.collection("students").orderBy("index_no", "asc").get();
-      return sendJson(res, 200, snap.docs.map((doc) => parseStudent(doc, classId)));
+      const search = (req.query.search || "").trim();
+      const page = Math.max(1, parseInt(req.query.page || "1", 10));
+      const limit = Math.min(parseInt(req.query.limit || "200", 10) || 200, 500);
+
+      if (search) {
+        // Client-side search — load all students and filter
+        const snap = await classRef.collection("students").orderBy("index_no", "asc").get();
+        const qLower = search.toLowerCase();
+        const all = snap.docs.map((doc) => parseStudent(doc, classId));
+        const filtered = all.filter(
+          (s) =>
+            s.name.toLowerCase().includes(qLower) ||
+            s.indexNo.toLowerCase().includes(qLower)
+        );
+        const offset = (page - 1) * limit;
+        return sendJson(res, 200, {
+          students: filtered.slice(offset, offset + limit),
+          total: filtered.length,
+          page,
+          limit,
+        });
+      }
+
+      // Cursor-based pagination using index_no ordering
+      let query = classRef.collection("students").orderBy("index_no", "asc").limit(limit);
+      if (req.query.cursor) {
+        // cursor is the last index_no from the previous page
+        const cursorVal = req.query.cursor;
+        query = query.startAfter(cursorVal);
+      }
+
+      const snap = await query.get();
+      const students = snap.docs.map((doc) => parseStudent(doc, classId));
+      const nextCursor =
+        students.length === limit ? students[students.length - 1].indexNo : null;
+
+      return sendJson(res, 200, { students, nextCursor, page, limit });
     } catch (err) {
       return sendJson(res, 500, { error: err.message });
     }

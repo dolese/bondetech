@@ -14,6 +14,7 @@ import { JSONImportModal } from "./components/JSONImportModal";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 import { ExamPickerScreen } from "./components/ExamPickerScreen";
+import { StudentProfilePage } from "./components/StudentProfilePage";
 
 // Import utilities
 import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE } from "./utils/constants";
@@ -53,6 +54,9 @@ const normalizeClass = (cls) => ({
   school_info: cls.school_info ?? cls.schoolInfo ?? DEFAULT_SCHOOL,
   subjects: cls.subjects ?? DEFAULT_SUBJECTS,
   students: (cls.students ?? []).map(normalizeStudent),
+  archived: cls.archived ?? false,
+  published: cls.published ?? false,
+  publishedAt: cls.publishedAt ?? cls.published_at ?? null,
 });
 
 const toApiStudent = (student) => ({
@@ -83,6 +87,8 @@ export default function App() {
   const [modalType, setModalType] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [examPickerClass, setExamPickerClass] = useState(null); // class object shown in exam picker
+  const [auditLogs, setAuditLogs] = useState(null);
+  const [searchProfileIndexNo, setSearchProfileIndexNo] = useState(null);
   const { isMobile } = useViewport();
   const topBarHeight = isMobile ? 52 : 46;
 
@@ -127,6 +133,8 @@ export default function App() {
     if (loggedIn && activeId) {
       refreshClass(activeId);
     }
+    // Reset audit log cache when switching classes
+    setAuditLogs(null);
   }, [activeId, refreshClass, loggedIn]);
 
   useEffect(() => {
@@ -381,6 +389,96 @@ export default function App() {
       // Silent – exam persistence is best-effort
     }
   }, []);
+
+  const onArchiveClass = async () => {
+    if (!activeClass) return;
+    try {
+      await API.deleteClass(activeClass.id); // soft delete
+      setClasses(prev => prev.map(c => c.id === activeClass.id ? { ...c, archived: true } : c));
+      showToast("Class archived");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
+  const onRestoreClass = async () => {
+    if (!activeClass) return;
+    try {
+      const updated = normalizeClass(await API.restoreClass(activeClass.id));
+      setClasses(prev => prev.map(c => c.id === activeClass.id ? { ...updated, students: c.students } : c));
+      showToast("Class restored");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
+  const onPublishClass = async () => {
+    if (!activeClass) return;
+    try {
+      const result = await API.publishClass(activeClass.id);
+      setClasses(prev => prev.map(c => c.id === activeClass.id
+        ? { ...c, published: result.published, publishedAt: result.published_at }
+        : c));
+      showToast("Results published");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
+  const onUnpublishClass = async () => {
+    if (!activeClass) return;
+    try {
+      await API.unpublishClass(activeClass.id);
+      setClasses(prev => prev.map(c => c.id === activeClass.id
+        ? { ...c, published: false, publishedAt: null }
+        : c));
+      showToast("Results unpublished");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
+  const onExportBackup = async () => {
+    try {
+      const data = await API.backup();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `school-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Backup exported");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
+  const onImportBackup = async (parsed) => {
+    try {
+      if (!parsed || !Array.isArray(parsed.classes)) {
+        showToast("Invalid backup file", "error");
+        return;
+      }
+      const result = await API.restore(parsed);
+      showToast(`Restore: ${result.created} created, ${result.skipped} skipped`);
+      // Reload classes
+      const data = await API.getClasses();
+      setClasses(data.map(normalizeClass));
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
+  const onLoadAuditLog = async () => {
+    if (!activeClass) return;
+    try {
+      const logs = await API.getAuditLog(activeClass.id);
+      setAuditLogs(logs);
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
 
   const onShowModal = (type, studentId = null) => {
     setModalType(type);
@@ -675,6 +773,10 @@ export default function App() {
                 setActiveId(id);
                 setPage("students");
               }}
+              onViewProfile={(indexNo) => {
+                setSearchProfileIndexNo(indexNo);
+                setPage("profile");
+              }}
             />
           )}
 
@@ -727,10 +829,25 @@ export default function App() {
                 onUpdateSchool={onUpdateSchool}
                 onUpdateSubjects={onUpdateSubjects}
                 onDeleteClass={() => setConfirmDel(activeClass.id)}
+                onArchiveClass={onArchiveClass}
+                onRestoreClass={onRestoreClass}
+                onPublishClass={onPublishClass}
+                onUnpublishClass={onUnpublishClass}
+                onExportBackup={onExportBackup}
+                onImportBackup={onImportBackup}
+                auditLogs={auditLogs}
+                onLoadAuditLog={onLoadAuditLog}
               />
             ) : (
               <Splash text="Select a class from the sidebar" />
             )
+          )}
+
+          {page === "profile" && searchProfileIndexNo && (
+            <StudentProfilePage
+              indexNo={searchProfileIndexNo}
+              onBack={() => setPage("dashboard")}
+            />
           )}
         </div>
       </div>

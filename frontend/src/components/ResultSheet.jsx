@@ -212,6 +212,8 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     },
   };
 
+  const hasRemarks = present.some(s => s.remarks && s.remarks.trim());
+
   return (
     <div style={styles.panel}>
       <style>{`
@@ -346,6 +348,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                       "Grade",
                       "Division",
                       "Points",
+                      ...(hasRemarks ? ["Remarks"] : []),
                     ].map(h => (
                       <th key={h} style={styles.th}>
                         {h}
@@ -371,6 +374,11 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                       <td style={{ ...styles.td, color: GRADE_COLORS[s.agrd] }}>{s.agrd ?? "–"}</td>
                       <td style={{ ...styles.td, color: DIVISION_COLORS[s.div] }}>{s.div ?? "–"}</td>
                       <td style={styles.td}>{s.points ?? "–"}</td>
+                      {hasRemarks && (
+                        <td style={{ ...styles.td, textAlign: "left", maxWidth: 120, whiteSpace: "normal" }}>
+                          {s.remarks ? s.remarks.trim() : ""}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

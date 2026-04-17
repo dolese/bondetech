@@ -1,0 +1,20 @@
+{
+  "short_name": "Bonde Results",
+  "name": "BONDE SEC SCHOOL — Result System",
+  "description": "Student result management system for Bonde Secondary School",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#001a3d",
+  "theme_color": "#003366",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "asset/bonde.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "en-TZ"
+}

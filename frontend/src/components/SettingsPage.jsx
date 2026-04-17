@@ -10,6 +10,14 @@ export function SettingsPage({
   onUpdateSchool,
   onUpdateSubjects,
   onDeleteClass,
+  onArchiveClass,
+  onRestoreClass,
+  onPublishClass,
+  onUnpublishClass,
+  onExportBackup,
+  onImportBackup,
+  auditLogs,
+  onLoadAuditLog,
 }) {
   const { isMobile } = useViewport();
   const subjects = classData.subjects ?? [];
@@ -33,6 +41,12 @@ export function SettingsPage({
   const [subjectInput, setSubjectInput] = useState("");
   const [subjectError, setSubjectError] = useState("");
   const [updatingSubjects, setUpdatingSubjects] = useState(false);
+
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [loadingAudit, setLoadingAudit] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [importingBackup, setImportingBackup] = useState(false);
 
   // Sync state when classData changes (e.g. switching active class)
   useEffect(() => {
@@ -445,15 +459,197 @@ export function SettingsPage({
         </div>
       </div>
 
+      {/* Publish / Unpublish */}
+      <div style={styles.section}>
+        <div>
+          <div style={styles.sectionTitle}>📢 Result Publishing</div>
+          <div style={styles.sectionSub}>
+            Mark this class's results as published so students and parents can view them.
+            {classData.publishedAt && (
+              <span style={{ marginLeft: 6, color: "#0b6b3a" }}>
+                Published on {new Date(classData.publishedAt).toLocaleDateString()}.
+              </span>
+            )}
+          </div>
+        </div>
+        <div style={styles.row}>
+          {classData.published ? (
+            <button
+              style={{ ...styles.saveBtn, background: "#8b2500" }}
+              disabled={publishing}
+              onClick={async () => {
+                setPublishing(true);
+                await onUnpublishClass?.();
+                setPublishing(false);
+              }}
+            >
+              {publishing ? "Updating…" : "🔒 Unpublish"}
+            </button>
+          ) : (
+            <button
+              style={{ ...styles.saveBtn, background: "#0b6b3a" }}
+              disabled={publishing}
+              onClick={async () => {
+                setPublishing(true);
+                await onPublishClass?.();
+                setPublishing(false);
+              }}
+            >
+              {publishing ? "Publishing…" : "📢 Publish Results"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Backup & Restore */}
+      <div style={styles.section}>
+        <div>
+          <div style={styles.sectionTitle}>💾 Backup & Restore</div>
+          <div style={styles.sectionSub}>
+            Export all school data to a JSON file, or re-import a previous backup.
+          </div>
+        </div>
+        <div style={styles.row}>
+          <button
+            style={{ ...styles.saveBtn, background: "#003366" }}
+            onClick={() => onExportBackup?.()}
+          >
+            ⬇ Export All Data
+          </button>
+          <label
+            style={{
+              ...styles.saveBtn,
+              background: importingBackup ? "#999" : "#0077aa",
+              cursor: importingBackup ? "not-allowed" : "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            {importingBackup ? "Importing…" : "⬆ Import Backup"}
+            <input
+              type="file"
+              accept=".json"
+              style={{ display: "none" }}
+              disabled={importingBackup}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setImportingBackup(true);
+                try {
+                  const text = await file.text();
+                  const parsed = JSON.parse(text);
+                  await onImportBackup?.(parsed);
+                } catch (err) {
+                  // Error handled by parent
+                } finally {
+                  setImportingBackup(false);
+                  e.target.value = "";
+                }
+              }}
+            />
+          </label>
+        </div>
+      </div>
+
+      {/* Audit Log */}
+      <div style={styles.section}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
+             onClick={async () => {
+               const next = !auditOpen;
+               setAuditOpen(next);
+               if (next && !auditLogs) {
+                 setLoadingAudit(true);
+                 await onLoadAuditLog?.();
+                 setLoadingAudit(false);
+               }
+             }}
+        >
+          <div>
+            <div style={styles.sectionTitle}>📋 Audit Log</div>
+            <div style={styles.sectionSub}>View who updated scores and when.</div>
+          </div>
+          <span style={{ fontSize: 12, color: "#003366" }}>{auditOpen ? "▲ Hide" : "▼ Show"}</span>
+        </div>
+        {auditOpen && (
+          loadingAudit ? (
+            <div style={{ fontSize: 11, color: "#888" }}>Loading…</div>
+          ) : !auditLogs || auditLogs.length === 0 ? (
+            <div style={{ fontSize: 11, color: "#888" }}>No audit records yet.</div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
+                <thead>
+                  <tr>
+                    {["When", "Student", "By", "Changes"].map(h => (
+                      <th key={h} style={{ padding: "5px 6px", background: "#003366", color: "#fff", textAlign: "left", fontWeight: 700 }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditLogs.map((log, i) => (
+                    <tr key={log.id || i} style={{ background: i % 2 === 0 ? "#fff" : "#f7f9ff" }}>
+                      <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8", whiteSpace: "nowrap" }}>
+                        {log.updatedAt ? new Date(log.updatedAt).toLocaleString() : "–"}
+                      </td>
+                      <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8" }}>
+                        {log.studentName || log.studentId || "–"}
+                      </td>
+                      <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8" }}>
+                        {log.updatedBy || "–"}
+                      </td>
+                      <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {log.changes
+                          ? Object.entries(log.changes)
+                              .map(([k, v]) => `${k}: ${JSON.stringify(v.from)} → ${JSON.stringify(v.to)}`)
+                              .join("; ")
+                          : log.action || "–"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+      </div>
+
       {/* Danger zone */}
       <div style={{ ...styles.section, borderColor: "#f5c6c6" }}>
         <div>
           <div style={{ ...styles.sectionTitle, color: "#8b2500" }}>Danger Zone</div>
           <div style={styles.sectionSub}>
-            Permanently delete this class and all its student data. This cannot be undone.
+            Archive or permanently delete this class.
           </div>
         </div>
-        <div>
+        <div style={styles.row}>
+          {classData.archived ? (
+            <button
+              style={{ ...styles.saveBtn, background: "#0b6b3a" }}
+              disabled={archiving}
+              onClick={async () => {
+                setArchiving(true);
+                await onRestoreClass?.();
+                setArchiving(false);
+              }}
+            >
+              {archiving ? "Restoring…" : "♻️ Restore Class"}
+            </button>
+          ) : (
+            <button
+              style={{ ...styles.deleteBtn, background: "#7a5800" }}
+              disabled={archiving}
+              onClick={async () => {
+                if (!window.confirm(`Archive "${classData.name}"? It will be hidden but data is preserved.`)) return;
+                setArchiving(true);
+                await onArchiveClass?.();
+                setArchiving(false);
+              }}
+            >
+              {archiving ? "Archiving…" : "📦 Archive Class"}
+            </button>
+          )}
           <button style={styles.deleteBtn} onClick={onDeleteClass}>
             🗑️ Delete Class
           </button>
