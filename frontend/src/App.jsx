@@ -644,7 +644,7 @@ export default function App() {
             <span style={{ fontSize: 24 }}>🎓</span>
             <div>
               <div style={S.sideTitle}>BONDE SEC</div>
-              <div style={S.sideSub}>{isMobile ? "Select a Class" : "Result System"}</div>
+              <div style={S.sideSub}>{isMobile ? "Select a class" : "Result System"}</div>
             </div>
           </div>
 
