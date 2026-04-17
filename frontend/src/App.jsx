@@ -25,6 +25,7 @@ import { withPositions } from "./utils/grading";
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const FORMS = ["Form I", "Form II", "Form III", "Form IV"];
+const MOBILE_NAV_HEIGHT = 56;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROOT APP
@@ -765,7 +766,7 @@ export default function App() {
         )}
 
         {/* Page content */}
-        <div style={{ ...S.content, ...(isMobile ? { paddingBottom: 56 } : {}) }}>
+        <div style={{ ...S.content, ...(isMobile ? { paddingBottom: MOBILE_NAV_HEIGHT } : {}) }}>
           {page === "dashboard" && (
             <Dashboard
               allComputed={allComputed}
@@ -983,7 +984,7 @@ const S = {
   btnGray: { background: "#eee", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
   btnRed: { background: "#cc2222", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
 
-  bottomNav: { position: "fixed", bottom: 0, left: 0, right: 0, height: 56, background: "#001a3d", display: "flex", alignItems: "stretch", zIndex: 30, borderTop: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 -4px 16px rgba(0,0,0,0.25)" },
+  bottomNav: { position: "fixed", bottom: 0, left: 0, right: 0, height: MOBILE_NAV_HEIGHT, background: "#001a3d", display: "flex", alignItems: "stretch", zIndex: 30, borderTop: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 -4px 16px rgba(0,0,0,0.25)" },
   tabBtn: { flex: 1, background: "none", border: "none", color: "rgba(200,216,240,0.55)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "4px 0", transition: "background 0.15s, color 0.15s" },
   tabBtnOn: { color: "#7ab3ff", background: "rgba(100,160,255,0.15)" },
   tabBtnDisabled: { opacity: 0.28, cursor: "not-allowed" },
