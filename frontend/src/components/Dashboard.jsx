@@ -1,18 +1,41 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useCallback } from "react";
 import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL } from "../utils/constants";
 import { getGradePoints } from "../utils/grading";
 import { useViewport } from "../utils/useViewport";
 import { exportElementToPdf } from "../utils/pdfExport";
+import { API } from "../api";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DASHBOARD COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function Dashboard({ allComputed, onOpenClass }) {
+export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
   const { isMobile, isTablet } = useViewport();
   const [filterYear, setFilterYear] = useState(String(new Date().getFullYear()));
   const [filterForm, setFilterForm] = useState("all");
   const summaryRef = useRef(null);
+
+  // Global student search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+
+  const handleSearch = useCallback(async (q) => {
+    const trimmed = q.trim();
+    if (!trimmed) { setSearchResults(null); return; }
+    setSearching(true);
+    setSearchError(null);
+    try {
+      const results = await API.searchStudents(trimmed, { limit: 30 });
+      setSearchResults(results);
+    } catch (e) {
+      setSearchError(e.message);
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  }, []);
 
   const normalize = (val) => (val ?? "").toString().trim();
   const yearOptions = useMemo(() => {
@@ -205,6 +228,125 @@ export function Dashboard({ allComputed, onOpenClass }) {
         Overview across selected classes and subjects.
       </div>
 
+      {/* Global student search */}
+      <div style={{
+        background: "#fff",
+        borderRadius: 10,
+        padding: isMobile ? 10 : 14,
+        boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+      }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>🔍 Search Students</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <input
+            type="text"
+            placeholder="Name or index number…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSearch(searchQuery); }}
+            style={{
+              flex: 1,
+              minWidth: 160,
+              padding: "7px 10px",
+              borderRadius: 7,
+              border: "1px solid #d0dcf8",
+              fontSize: 12,
+            }}
+          />
+          <button
+            onClick={() => handleSearch(searchQuery)}
+            disabled={searching || !searchQuery.trim()}
+            style={{
+              padding: "7px 16px",
+              borderRadius: 7,
+              border: "none",
+              background: searching ? "#999" : "#003366",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: 12,
+              cursor: searching ? "not-allowed" : "pointer",
+            }}
+          >
+            {searching ? "Searching…" : "Search"}
+          </button>
+          {searchResults !== null && (
+            <button
+              onClick={() => { setSearchResults(null); setSearchQuery(""); setSearchError(null); }}
+              style={{
+                padding: "7px 12px",
+                borderRadius: 7,
+                border: "1px solid #d0dcf8",
+                background: "#fff",
+                fontSize: 12,
+                cursor: "pointer",
+                color: "#666",
+              }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        {searchError && <div style={{ fontSize: 11, color: "#8b2500" }}>{searchError}</div>}
+        {searchResults !== null && (
+          searchResults.length === 0 ? (
+            <div style={{ fontSize: 11, color: "#888" }}>No students found.</div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+                <thead>
+                  <tr>
+                    {["CNO", "Name", "Sex", "Class", "Form", "Year", "Stream", ""].map(h => (
+                      <th key={h} style={{
+                        padding: "5px 8px",
+                        background: "#003366",
+                        color: "#fff",
+                        fontWeight: 700,
+                        textAlign: "left",
+                        whiteSpace: "nowrap",
+                      }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {searchResults.map((s, i) => (
+                    <tr key={`${s.classId}-${s.studentId}`} style={{ background: i % 2 === 0 ? "#fff" : "#f7f9ff" }}>
+                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8", fontFamily: "monospace" }}>{s.indexNo}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8", fontWeight: 600 }}>{s.name}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.sex}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.className}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.form}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.year}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.stream || "–"}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>
+                        {onViewProfile && s.indexNo && (
+                          <button
+                            onClick={() => onViewProfile(s.indexNo)}
+                            style={{
+                              padding: "3px 10px",
+                              borderRadius: 5,
+                              border: "none",
+                              background: "#003366",
+                              color: "#fff",
+                              fontSize: 10,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Profile
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+      </div>
+
       <div style={{ ...styles.filterRow, ...(isMobile ? { alignItems: "stretch" } : {}) }}>
         <span style={{ fontSize: 11, fontWeight: 800, color: "#003366" }}>Filter:</span>
         <select
@@ -383,6 +525,20 @@ export function Dashboard({ allComputed, onOpenClass }) {
                         }}
                       >
                         {cl.name}
+                        {cl.published && (
+                          <span style={{
+                            marginLeft: 5,
+                            fontSize: 8,
+                            padding: "1px 5px",
+                            borderRadius: 999,
+                            background: "#0b6b3a",
+                            color: "#fff",
+                            fontWeight: 700,
+                            verticalAlign: "middle",
+                          }}>
+                            Published
+                          </span>
+                        )}
                       </td>
                       <td
                         style={{

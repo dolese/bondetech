@@ -27,8 +27,36 @@
       "destination": "/api/classes/[id]/students/index.js?id=:id"
     },
     {
+      "source": "/api/classes/:id/publish",
+      "destination": "/api/classes/[id]/publish/index.js?id=:id"
+    },
+    {
+      "source": "/api/classes/:id/audit",
+      "destination": "/api/classes/[id]/audit/index.js?id=:id"
+    },
+    {
       "source": "/api/classes/:id",
       "destination": "/api/classes/[id]/index.js?id=:id"
+    },
+    {
+      "source": "/api/students/search",
+      "destination": "/api/students/search.js"
+    },
+    {
+      "source": "/api/students/:indexNo/profile",
+      "destination": "/api/students/[indexNo].js?indexNo=:indexNo"
+    },
+    {
+      "source": "/api/proxy-csv",
+      "destination": "/api/proxy-csv/index.js"
+    },
+    {
+      "source": "/api/backup",
+      "destination": "/api/backup/index.js"
+    },
+    {
+      "source": "/api/restore",
+      "destination": "/api/restore/index.js"
     },
     {
       "source": "/api/:path*",

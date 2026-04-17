@@ -12,6 +12,9 @@ const parseClass = (doc) => {
     form: data.form || "",
     createdAt: data.created_at || null,
     studentCount: data.student_count || 0,
+    archived: data.archived || false,
+    published: data.published || false,
+    publishedAt: data.published_at || null,
   };
 };
 
@@ -119,20 +122,35 @@ module.exports = async (req, res) => {
 
   if (req.method === "DELETE") {
     try {
-      const studentsSnap = await classRef.collection("students").get();
-      const chunks = [];
-      for (let i = 0; i < studentsSnap.docs.length; i += 400) {
-        chunks.push(studentsSnap.docs.slice(i, i + 400));
+      // Soft-delete: mark as archived instead of permanently deleting.
+      // Pass ?permanent=true to perform a hard delete (admin use only).
+      if (req.query.permanent === "true") {
+        const studentsSnap = await classRef.collection("students").get();
+        const chunks = [];
+        for (let i = 0; i < studentsSnap.docs.length; i += 400) {
+          chunks.push(studentsSnap.docs.slice(i, i + 400));
+        }
+        for (const chunk of chunks) {
+          const batch = db.batch();
+          chunk.forEach((doc) => batch.delete(doc.ref));
+          await batch.commit();
+        }
+        await classRef.delete();
+      } else {
+        await classRef.update({ archived: true, archived_at: new Date().toISOString() });
       }
-
-      for (const chunk of chunks) {
-        const batch = db.batch();
-        chunk.forEach((doc) => batch.delete(doc.ref));
-        await batch.commit();
-      }
-
-      await classRef.delete();
       return sendJson(res, 200, { success: true });
+    } catch (err) {
+      return sendJson(res, 500, { error: err.message });
+    }
+  }
+
+  // PATCH used for restore (un-archive)
+  if (req.method === "PATCH") {
+    try {
+      await classRef.update({ archived: false, archived_at: null });
+      const updated = await classRef.get();
+      return sendJson(res, 200, parseClass(updated));
     } catch (err) {
       return sendJson(res, 500, { error: err.message });
     }

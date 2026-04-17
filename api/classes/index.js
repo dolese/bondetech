@@ -28,6 +28,9 @@ const parseClass = (doc) => {
     form: data.form || "",
     createdAt: data.created_at || null,
     studentCount: data.student_count || 0,
+    archived: data.archived || false,
+    published: data.published || false,
+    publishedAt: data.published_at || null,
   };
 };
 
@@ -36,8 +39,11 @@ module.exports = async (req, res) => {
 
   if (req.method === "GET") {
     try {
+      const includeArchived = req.query.includeArchived === "true";
       const snapshot = await db.collection("classes").orderBy("created_at", "asc").get();
-      const classes = snapshot.docs.map(parseClass);
+      const classes = snapshot.docs
+        .map(parseClass)
+        .filter(c => includeArchived || !c.archived);
       return sendJson(res, 200, classes);
     } catch (err) {
       return sendJson(res, 500, { error: err.message });
