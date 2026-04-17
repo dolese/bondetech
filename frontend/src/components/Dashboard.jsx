@@ -59,6 +59,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
   }, [allComputed, filterYear, filterForm]);
 
   const allStudents = filtered.flatMap(c => c.computed ?? []);
+  const totalStudentCount = filtered.reduce((sum, c) => sum + (c.studentCount ?? 0), 0);
   const present = allStudents.filter(s => s.total !== null);
   const complete = present.filter(s => s.div !== null);
   
@@ -420,7 +421,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
         <div style={styles.kpiRow}>
           {[
             ["🏫", "Classes", filtered.length, "#003366"],
-            ["👥", "Students", allStudents.length, "#0b6b3a"],
+            ["👥", "Students", totalStudentCount, "#0b6b3a"],
             ["✅", "Present", present.length, "#0077aa"],
             ["🏆", "Div I", divCounts["I"], "#b8860b"],
             ["📈", "Pass Rate", passRate + "%", "#5a2d82"],
@@ -547,7 +548,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                           border: "1px solid #cbd8f3",
                         }}
                       >
-                        {cl.students?.length ?? 0}
+                        {cl.studentCount ?? 0}
                       </td>
                       <td
                         style={{
