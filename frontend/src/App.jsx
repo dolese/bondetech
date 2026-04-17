@@ -765,7 +765,7 @@ export default function App() {
         )}
 
         {/* Page content */}
-        <div style={S.content}>
+        <div style={{ ...S.content, ...(isMobile ? { paddingBottom: 56 } : {}) }}>
           {page === "dashboard" && (
             <Dashboard
               allComputed={allComputed}
@@ -897,6 +897,37 @@ export default function App() {
           onCancel={() => setExamPickerClass(null)}
         />
       )}
+
+      {/* BOTTOM NAV TABS (mobile only) */}
+      {isMobile && (
+        <nav style={S.bottomNav}>
+          {[
+            { key: "dashboard", icon: "📊", label: "Home" },
+            { key: "students",  icon: "👥", label: "Students" },
+            { key: "results",   icon: "📋", label: "Results" },
+            { key: "reports",   icon: "📄", label: "Reports" },
+            { key: "settings",  icon: "⚙️",  label: "Settings" },
+          ].map(item => {
+            const disabled = item.key !== "dashboard" && !activeClass;
+            return (
+              <button
+                key={item.key}
+                style={{
+                  ...S.tabBtn,
+                  ...(page === item.key ? S.tabBtnOn : {}),
+                  ...(disabled ? S.tabBtnDisabled : {}),
+                }}
+                disabled={disabled}
+                onClick={() => setPage(item.key)}
+                aria-label={item.label}
+              >
+                <span style={S.tabIcon}>{item.icon}</span>
+                <span style={S.tabLabel}>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }
@@ -951,4 +982,11 @@ const S = {
 
   btnGray: { background: "#eee", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
   btnRed: { background: "#cc2222", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
+
+  bottomNav: { position: "fixed", bottom: 0, left: 0, right: 0, height: 56, background: "#001a3d", display: "flex", alignItems: "stretch", zIndex: 30, borderTop: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 -4px 16px rgba(0,0,0,0.25)" },
+  tabBtn: { flex: 1, background: "none", border: "none", color: "rgba(200,216,240,0.55)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "4px 0", transition: "background 0.15s, color 0.15s" },
+  tabBtnOn: { color: "#7ab3ff", background: "rgba(100,160,255,0.15)" },
+  tabBtnDisabled: { opacity: 0.28, cursor: "not-allowed" },
+  tabIcon: { fontSize: 20, lineHeight: 1 },
+  tabLabel: { fontSize: 9, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" },
 };
