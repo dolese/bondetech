@@ -53,8 +53,9 @@ module.exports = async (req, res) => {
   for (const cls of classes) {
     if (results.length >= limit) break;
 
-    // Use Firestore range query on name for prefix search
-    const nameEnd = q.slice(0, -1) + String.fromCharCode(q.charCodeAt(q.length - 1) + 1);
+    // Use Firestore range query on name for prefix search.
+    // Appending '\uf8ff' works for any query length, including single characters.
+    const nameEnd = q + "\uf8ff";
     let studentSnap;
     try {
       // Try prefix-range on name field first
@@ -71,7 +72,7 @@ module.exports = async (req, res) => {
     }
 
     // Also search by index_no prefix
-    const idxEnd = q.slice(0, -1) + String.fromCharCode(q.charCodeAt(q.length - 1) + 1);
+    const idxEnd = q + "\uf8ff";
     let idxSnap;
     try {
       idxSnap = await db
