@@ -265,6 +265,18 @@ export function EntryPanel({
     }
   };
 
+  const gradeBadgeStyle = (grade) => ({
+    fontWeight: 700,
+    fontSize: 9,
+    color: grade ? GRADE_COLORS[grade] : "#aaa",
+    background: grade ? GRADE_BACKGROUNDS[grade] : "#f0f0f0",
+    padding: "1px 3px",
+    borderRadius: 3,
+    border: grade ? `1px solid ${GRADE_COLORS[grade]}` : "1px solid #ddd",
+    minWidth: 16,
+    textAlign: "center",
+  });
+
   const styles = {
     panel: {
       flex: 1,
@@ -984,19 +996,7 @@ export function EntryPanel({
                             const v = bulkScores[s.id]?.[si];
                             const g = (v !== "" && v != null) ? getGrade(Number(v)) : null;
                             return g ? (
-                              <span
-                                style={{
-                                  fontWeight: 700,
-                                  fontSize: 9,
-                                  color: GRADE_COLORS[g],
-                                  background: GRADE_BACKGROUNDS[g],
-                                  padding: "1px 3px",
-                                  borderRadius: 3,
-                                  border: `1px solid ${GRADE_COLORS[g]}`,
-                                }}
-                              >
-                                {g}
-                              </span>
+                              <span style={gradeBadgeStyle(g)}>{g}</span>
                             ) : null;
                           })()}
                         </div>
@@ -1352,19 +1352,7 @@ export function EntryPanel({
                                 fontSize: 10,
                               }}
                             />
-                            <span
-                              style={{
-                                minWidth: 16,
-                                textAlign: "center",
-                                fontWeight: 700,
-                                fontSize: 9,
-                                color: editGrade ? GRADE_COLORS[editGrade] : "#aaa",
-                                background: editGrade ? GRADE_BACKGROUNDS[editGrade] : "#f0f0f0",
-                                padding: "1px 3px",
-                                borderRadius: 3,
-                                border: editGrade ? `1px solid ${GRADE_COLORS[editGrade]}` : "1px solid #ddd",
-                              }}
-                            >
+                            <span style={gradeBadgeStyle(editGrade)}>
                               {editGrade ?? "–"}
                             </span>
                           </div>
@@ -1372,17 +1360,7 @@ export function EntryPanel({
                           <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
                             <span style={{ fontWeight: 600, fontSize: 10 }}>{score}</span>
                             {viewGrade && (
-                              <span
-                                style={{
-                                  fontWeight: 700,
-                                  fontSize: 9,
-                                  color: GRADE_COLORS[viewGrade],
-                                  background: GRADE_BACKGROUNDS[viewGrade],
-                                  padding: "1px 3px",
-                                  borderRadius: 3,
-                                  border: `1px solid ${GRADE_COLORS[viewGrade]}`,
-                                }}
-                              >
+                              <span style={gradeBadgeStyle(viewGrade)}>
                                 {viewGrade}
                               </span>
                             )}
