@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL, EXAM_TYPES, DEFAULT_EXAM_TYPE } from "../utils/constants";
+import { GRADE_COLORS, GRADE_BACKGROUNDS, DIVISION_COLORS, DEFAULT_SCHOOL, EXAM_TYPES, DEFAULT_EXAM_TYPE } from "../utils/constants";
 import { getGrade, getDivision, computeStudent } from "../utils/grading";
 import { validateStudent, validateSchoolInfo } from "../utils/validation";
 import { TextInput, NumberInput, SelectInput } from "./FormInputs";
@@ -264,6 +264,18 @@ export function EntryPanel({
       setBulkSaving(false);
     }
   };
+
+  const gradeBadgeStyle = (grade) => ({
+    fontWeight: 700,
+    fontSize: 9,
+    color: grade ? GRADE_COLORS[grade] : "#aaa",
+    background: grade ? GRADE_BACKGROUNDS[grade] : "#f0f0f0",
+    padding: "1px 3px",
+    borderRadius: 3,
+    border: grade ? `1px solid ${GRADE_COLORS[grade]}` : "1px solid #ddd",
+    minWidth: 16,
+    textAlign: "center",
+  });
 
   const styles = {
     panel: {
@@ -971,14 +983,23 @@ export function EntryPanel({
                     <td style={{ padding: "4px 6px", textAlign: "left", border: "1px solid #d2def5" }}>{s.stream ?? "–"}</td>
                     {subjects.map((_, si) => (
                       <td key={si} style={{ padding: "4px 4px", textAlign: "center", border: "1px solid #d2def5" }}>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={bulkScores[s.id]?.[si] ?? ""}
-                          onChange={(e) => handleBulkScoreChange(s.id, si, e.target.value)}
-                          style={styles.bulkInput}
-                        />
+                        <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={bulkScores[s.id]?.[si] ?? ""}
+                            onChange={(e) => handleBulkScoreChange(s.id, si, e.target.value)}
+                            style={styles.bulkInput}
+                          />
+                          {(() => {
+                            const v = bulkScores[s.id]?.[si];
+                            const g = (v !== "" && v != null) ? getGrade(Number(v)) : null;
+                            return g ? (
+                              <span style={gradeBadgeStyle(g)}>{g}</span>
+                            ) : null;
+                          })()}
+                        </div>
                       </td>
                     ))}
                   </tr>
@@ -1294,6 +1315,8 @@ export function EntryPanel({
                   {/* Score inputs */}
                   {(classData.subjects ?? []).map((subj, si) => {
                     const score = isEditing ? editData.grades?.[si]?.score ?? "" : s.grades?.[si]?.score ?? "–";
+                    const viewGrade = s.grades?.[si]?.grade ?? null;
+                    const editGrade = isEditing ? (editData.grades?.[si]?.grade ?? null) : null;
                     return (
                       <td
                         key={si}
@@ -1301,35 +1324,47 @@ export function EntryPanel({
                           padding: "4px 4px",
                           textAlign: "center",
                           border: "1px solid #d2def5",
-                          minWidth: 45,
+                          minWidth: 55,
                         }}
                       >
                         {isEditing ? (
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={score === "" ? "" : score}
-                            onChange={e => {
-                              const v = parseInt(e.target.value, 10) || null;
-                              const newGrades = [...(editData.grades ?? [])];
-                              newGrades[si] = {
-                                ...newGrades[si],
-                                score: v,
-                                grade: v != null ? getGrade(v) : null,
-                              };
-                              setEditData({ ...editData, grades: newGrades });
-                            }}
-                            style={{
-                              width: 40,
-                              padding: "2px 3px",
-                              borderRadius: 3,
-                              border: "1px solid #d0dcf8",
-                              fontSize: 10,
-                            }}
-                          />
+                          <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={score === "" ? "" : score}
+                              onChange={e => {
+                                const v = parseInt(e.target.value, 10) || null;
+                                const newGrades = [...(editData.grades ?? [])];
+                                newGrades[si] = {
+                                  ...newGrades[si],
+                                  score: v,
+                                  grade: v != null ? getGrade(v) : null,
+                                };
+                                setEditData({ ...editData, grades: newGrades });
+                              }}
+                              style={{
+                                width: 36,
+                                padding: "2px 3px",
+                                borderRadius: 3,
+                                border: "1px solid #d0dcf8",
+                                fontSize: 10,
+                              }}
+                            />
+                            <span style={gradeBadgeStyle(editGrade)}>
+                              {editGrade ?? "–"}
+                            </span>
+                          </div>
                         ) : (
-                          score
+                          <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
+                            <span style={{ fontWeight: 600, fontSize: 10 }}>{score}</span>
+                            {viewGrade && (
+                              <span style={gradeBadgeStyle(viewGrade)}>
+                                {viewGrade}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </td>
                     );
