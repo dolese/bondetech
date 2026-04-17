@@ -25,6 +25,7 @@ import { withPositions } from "./utils/grading";
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const FORMS = ["Form I", "Form II", "Form III", "Form IV"];
+const MOBILE_NAV_HEIGHT = 56;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROOT APP
@@ -549,6 +550,46 @@ export default function App() {
 
   const closeSide = () => { if (isMobile) setSideOpen(false); };
 
+  // Friendly empty state shown on class-specific pages when no class is selected.
+  const noClassBlock = (
+    <div style={{
+      display: "flex",
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "column",
+      gap: 16,
+      padding: 24,
+      background: "#f8fafc",
+    }}>
+      <div style={{ fontSize: 52 }}>📂</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: "#003366" }}>No class selected</div>
+      <div style={{ fontSize: 13, color: "#555", textAlign: "center", maxWidth: 260, lineHeight: 1.5 }}>
+        {isMobile
+          ? "Tap the button below to browse classes."
+          : "Choose a class from the sidebar to get started."}
+      </div>
+      {isMobile && (
+        <button
+          onClick={() => setSideOpen(true)}
+          style={{
+            padding: "10px 24px",
+            background: "#003366",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(0,51,102,0.25)",
+          }}
+        >
+          ☰ Select Class
+        </button>
+      )}
+    </div>
+  );
+
   const NAV_ITEMS = [
     { key: "students", icon: "👥", label: "Students" },
     { key: "results",  icon: "📋", label: "Results"  },
@@ -603,7 +644,7 @@ export default function App() {
             <span style={{ fontSize: 24 }}>🎓</span>
             <div>
               <div style={S.sideTitle}>BONDE SEC</div>
-              <div style={S.sideSub}>Result System</div>
+              <div style={S.sideSub}>{isMobile ? "Select a class" : "Result System"}</div>
             </div>
           </div>
 
@@ -732,9 +773,17 @@ export default function App() {
         <div style={{ ...S.topBar, height: topBarHeight, padding: isMobile ? "0 10px" : "0 16px" }}>
           <button style={S.menuBtn} onClick={() => setSideOpen(p => !p)}>☰</button>
           {!isMobile && <span style={S.topBrand}>🎓 BONDE SEC SCHOOL — RESULT SYSTEM</span>}
-          <span style={{ ...S.topCls, ...(isMobile ? { fontSize: 10, padding: "3px 8px" } : {}) }}>
-            {topBarLabel}
-          </span>
+          {isMobile ? (
+            <button
+              style={{ ...S.topCls, fontSize: 10, padding: "3px 8px", cursor: "pointer", background: "rgba(255,255,255,0.16)" }}
+              onClick={() => setSideOpen(true)}
+              title="Switch class"
+            >
+              {topBarLabel || "Select class"}
+            </button>
+          ) : (
+            <span style={S.topCls}>{topBarLabel}</span>
+          )}
           <button
             style={{ ...S.logoutBtn, ...(isMobile ? { padding: "5px 8px", fontSize: 10 } : {}) }}
             onClick={() => {
@@ -765,7 +814,7 @@ export default function App() {
         )}
 
         {/* Page content */}
-        <div style={S.content}>
+        <div style={{ ...S.content, ...(isMobile ? { paddingBottom: MOBILE_NAV_HEIGHT } : {}) }}>
           {page === "dashboard" && (
             <Dashboard
               allComputed={allComputed}
@@ -793,7 +842,7 @@ export default function App() {
                 onChangeExam={onChangeExam}
               />
             ) : (
-              <Splash text="Select a class from the sidebar" />
+              noClassBlock
             )
           )}
 
@@ -805,7 +854,7 @@ export default function App() {
                 onOpenReportCard={onOpenReportCard}
               />
             ) : (
-              <Splash text="Select a class from the sidebar" />
+              noClassBlock
             )
           )}
 
@@ -817,7 +866,7 @@ export default function App() {
                 onOpenReportCard={onOpenReportCard}
               />
             ) : (
-              <Splash text="Select a class from the sidebar" />
+              noClassBlock
             )
           )}
 
@@ -839,7 +888,7 @@ export default function App() {
                 onLoadAuditLog={onLoadAuditLog}
               />
             ) : (
-              <Splash text="Select a class from the sidebar" />
+              noClassBlock
             )
           )}
 
@@ -897,6 +946,37 @@ export default function App() {
           onCancel={() => setExamPickerClass(null)}
         />
       )}
+
+      {/* BOTTOM NAV TABS (mobile only) */}
+      {isMobile && (
+        <nav style={S.bottomNav}>
+          {[
+            { key: "dashboard", icon: "📊", label: "Home" },
+            { key: "students",  icon: "👥", label: "Students" },
+            { key: "results",   icon: "📋", label: "Results" },
+            { key: "reports",   icon: "📄", label: "Reports" },
+            { key: "settings",  icon: "⚙️",  label: "Settings" },
+          ].map(item => {
+            const disabled = item.key !== "dashboard" && !activeClass;
+            return (
+              <button
+                key={item.key}
+                style={{
+                  ...S.tabBtn,
+                  ...(page === item.key ? S.tabBtnOn : {}),
+                  ...(disabled ? S.tabBtnDisabled : {}),
+                }}
+                disabled={disabled}
+                onClick={() => setPage(item.key)}
+                aria-label={item.label}
+              >
+                <span style={S.tabIcon}>{item.icon}</span>
+                <span style={S.tabLabel}>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }
@@ -951,4 +1031,11 @@ const S = {
 
   btnGray: { background: "#eee", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
   btnRed: { background: "#cc2222", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
+
+  bottomNav: { position: "fixed", bottom: 0, left: 0, right: 0, height: MOBILE_NAV_HEIGHT, background: "#001a3d", display: "flex", alignItems: "stretch", zIndex: 30, borderTop: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 -4px 16px rgba(0,0,0,0.25)" },
+  tabBtn: { flex: 1, background: "none", border: "none", color: "rgba(200,216,240,0.55)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "4px 0", transition: "background 0.15s, color 0.15s" },
+  tabBtnOn: { color: "#7ab3ff", background: "rgba(100,160,255,0.15)" },
+  tabBtnDisabled: { opacity: 0.28, cursor: "not-allowed" },
+  tabIcon: { fontSize: 20, lineHeight: 1 },
+  tabLabel: { fontSize: 9, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" },
 };
