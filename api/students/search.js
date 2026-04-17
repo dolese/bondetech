@@ -53,8 +53,9 @@ module.exports = async (req, res) => {
   for (const cls of classes) {
     if (results.length >= limit) break;
 
-    // Use Firestore range query on name for prefix search.
-    // Appending '\uf8ff' works for any query length, including single characters.
+    // Appending '\uf8ff' (a high Unicode private-use character) as the upper
+    // bound creates an inclusive prefix range in Firestore that works correctly
+    // for any query length, including single-character queries.
     const nameEnd = q + "\uf8ff";
     let studentSnap;
     try {

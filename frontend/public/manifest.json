@@ -10,7 +10,7 @@
   "icons": [
     {
       "src": "asset/bonde.jpg",
-      "sizes": "any",
+      "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any"
     }

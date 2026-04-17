@@ -54,8 +54,9 @@ module.exports = async (req, res) => {
         if (!student.id) return;
         const { id: _sid, ...studentData } = student;
         const ref = classRef.collection("students").doc(student.id);
-        // Use merge:true so that if the student doc already exists its data is
-        // preserved for any fields not present in the backup snapshot.
+        // merge:true preserves any fields already on the student document that
+        // are not present in the backup snapshot (e.g. fields added after the
+        // backup was taken), so restore is always additive and non-destructive.
         batch.set(ref, studentData, { merge: true });
       });
       await batch.commit();
