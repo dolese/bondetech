@@ -9,7 +9,7 @@
       }
     },
     {
-      "src": "api/**/*.js",
+      "src": "api/!(_lib)/**/*.js",
       "use": "@vercel/node"
     }
   ],
@@ -56,7 +56,7 @@
     },
     {
       "source": "/api/restore",
-      "destination": "/api/restore/index.js"
+      "destination": "/api/backup/index.js"
     },
     {
       "source": "/api/:path*",
