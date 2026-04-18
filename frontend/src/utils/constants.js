@@ -26,6 +26,16 @@ export const EXAM_TYPES = [
 
 export const DEFAULT_EXAM_TYPE = EXAM_TYPES[0].value;
 
+export const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+export const MONTHLY_EXAM_PREFIX = "Monthly - ";
+
+// Returns the exam type key used in examScores for a monthly exam
+export const getMonthlyExamKey = (month) => `${MONTHLY_EXAM_PREFIX}${month}`;
+
 export const DEFAULT_SCHOOL = {
   name: "BONDE SECONDARY SCHOOL",
   authority: "PRIME MINISTER'S OFFICE",
