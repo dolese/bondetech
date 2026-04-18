@@ -281,13 +281,21 @@ export function EntryPanel({
     panel: {
       flex: 1,
       overflowY: "auto",
-      overflowX: "auto",
+      overflowX: "hidden",
       padding: isMobile ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 12,
       minHeight: 0,
       minWidth: 0,
+    },
+    tableScroller: {
+      overflowX: "auto",
+      overflowY: "auto",
+      maxHeight: "60vh",
+      minWidth: 0,
+      borderRadius: 6,
+      border: "1px solid #d6e0f5",
     },
     tlbx: {
       display: "flex",
@@ -946,9 +954,10 @@ export function EntryPanel({
             </div>
           </div>
 
+          <div style={styles.tableScroller}>
           <table style={styles.bulkTable}>
               <thead>
-                <tr style={{ background: "#003366", color: "#fff" }}>
+                <tr style={{ background: "#003366", color: "#fff", position: "sticky", top: 0, zIndex: 2 }}>
                   {[
                     "CNO",
                     "Name",
@@ -1026,8 +1035,10 @@ export function EntryPanel({
                 )}
               </tbody>
             </table>
+          </div>
         </div>
       ) : (
+        <div style={styles.tableScroller}>
         <table
           style={{
             borderCollapse: "collapse",
@@ -1038,7 +1049,7 @@ export function EntryPanel({
           }}
         >
           <thead>
-            <tr style={{ background: "#003366", color: "#fff" }}>
+            <tr style={{ background: "#003366", color: "#fff", position: "sticky", top: 0, zIndex: 2 }}>
               <th
                 style={{
                   padding: "5px 6px",
@@ -1571,6 +1582,7 @@ export function EntryPanel({
             )}
           </tbody>
           </table>
+        </div>
       )}
     </div>
   );
