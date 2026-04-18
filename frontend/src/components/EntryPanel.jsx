@@ -297,6 +297,13 @@ export function EntryPanel({
       borderRadius: 6,
       border: "1px solid #d6e0f5",
     },
+    stickyTh: {
+      background: "#003366",
+      color: "#fff",
+      position: "sticky",
+      top: 0,
+      zIndex: 2,
+    },
     tlbx: {
       display: "flex",
       gap: 12,
@@ -954,10 +961,10 @@ export function EntryPanel({
             </div>
           </div>
 
-          <div style={styles.tableScroller}>
+          <div style={styles.tableScroller} tabIndex={0} role="region" aria-label="Bulk scoring table">
           <table style={styles.bulkTable}>
               <thead>
-                <tr style={{ background: "#003366", color: "#fff", position: "sticky", top: 0, zIndex: 2 }}>
+                <tr style={styles.stickyTh}>
                   {[
                     "CNO",
                     "Name",
@@ -972,9 +979,6 @@ export function EntryPanel({
                         fontWeight: 700,
                         fontSize: 10,
                         border: "1px solid #224488",
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 1,
                       }}
                     >
                       {h}
@@ -1038,7 +1042,7 @@ export function EntryPanel({
           </div>
         </div>
       ) : (
-        <div style={styles.tableScroller}>
+        <div style={styles.tableScroller} tabIndex={0} role="region" aria-label="Student entry table">
         <table
           style={{
             borderCollapse: "collapse",
@@ -1049,7 +1053,7 @@ export function EntryPanel({
           }}
         >
           <thead>
-            <tr style={{ background: "#003366", color: "#fff", position: "sticky", top: 0, zIndex: 2 }}>
+            <tr style={styles.stickyTh}>
               <th
                 style={{
                   padding: "5px 6px",
