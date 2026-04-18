@@ -27,6 +27,7 @@ const parseClass = (doc) => {
     form: data.form || "",
     createdAt: data.created_at || null,
     studentCount: data.student_count || 0,
+    monthlyExams: Array.isArray(data.monthly_exams) ? data.monthly_exams : [],
   };
 };
 
@@ -158,7 +159,7 @@ router.put("/:id", async (req, res) => {
     if (!classSnap.exists) return res.status(404).json({ error: "Class not found" });
 
     const data = classSnap.data();
-    const { name, schoolInfo, subjects, year, form } = req.body;
+    const { name, schoolInfo, subjects, year, form, monthlyExams } = req.body;
     const updates = {};
 
     if (typeof name === "string") updates.name = name.trim() || data.name;
@@ -166,6 +167,11 @@ router.put("/:id", async (req, res) => {
     if (Array.isArray(subjects)) updates.subjects = subjects;
     if (year) updates.year = year;
     if (form) updates.form = form;
+    if (Array.isArray(monthlyExams)) {
+      updates.monthly_exams = monthlyExams.filter(
+        (m) => typeof m === "string" && m.trim()
+      );
+    }
 
     // If year or form changed, ensure no duplicate (year, form) combination
     const newYear = updates.year || data.year;

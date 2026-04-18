@@ -58,6 +58,11 @@ const normalizeClass = (cls) => ({
   archived: cls.archived ?? false,
   published: cls.published ?? false,
   publishedAt: cls.publishedAt ?? cls.published_at ?? null,
+  monthly_exams: Array.isArray(cls.monthly_exams)
+    ? cls.monthly_exams
+    : Array.isArray(cls.monthlyExams)
+    ? cls.monthlyExams
+    : [],
 });
 
 const toApiStudent = (student) => ({
@@ -335,6 +340,20 @@ export default function App() {
       await API.updateClass(activeClass.id, { subjects });
       await refreshClass(activeClass.id);
       showToast("Subjects updated");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
+  const onUpdateMonthlyExams = async (monthlyExams) => {
+    if (!activeClass) return;
+    try {
+      await API.updateClass(activeClass.id, { monthlyExams });
+      setClasses(prev =>
+        prev.map(c => c.id === activeClass.id ? { ...c, monthly_exams: monthlyExams } : c)
+      );
+      await refreshClass(activeClass.id);
+      showToast("Monthly exams updated");
     } catch (err) {
       showToast(err.message, "error");
     }
@@ -877,6 +896,7 @@ export default function App() {
                 onUpdateClassMeta={onUpdateClassMeta}
                 onUpdateSchool={onUpdateSchool}
                 onUpdateSubjects={onUpdateSubjects}
+                onUpdateMonthlyExams={onUpdateMonthlyExams}
                 onDeleteClass={() => setConfirmDel(activeClass.id)}
                 onArchiveClass={onArchiveClass}
                 onRestoreClass={onRestoreClass}

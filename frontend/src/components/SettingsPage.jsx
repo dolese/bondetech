@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DEFAULT_SCHOOL, EXAM_TYPES } from "../utils/constants";
+import { DEFAULT_SCHOOL, EXAM_TYPES, MONTHS } from "../utils/constants";
 import { validateSchoolInfo } from "../utils/validation";
 import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
@@ -9,6 +9,7 @@ export function SettingsPage({
   onUpdateClassMeta,
   onUpdateSchool,
   onUpdateSubjects,
+  onUpdateMonthlyExams,
   onDeleteClass,
   onArchiveClass,
   onRestoreClass,
@@ -42,6 +43,12 @@ export function SettingsPage({
   const [subjectError, setSubjectError] = useState("");
   const [updatingSubjects, setUpdatingSubjects] = useState(false);
 
+  // Monthly exams state
+  const [monthlyExams, setMonthlyExams] = useState(
+    Array.isArray(classData.monthly_exams) ? classData.monthly_exams : []
+  );
+  const [updatingMonthlyExams, setUpdatingMonthlyExams] = useState(false);
+
   const [auditOpen, setAuditOpen] = useState(false);
   const [loadingAudit, setLoadingAudit] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -56,6 +63,7 @@ export function SettingsPage({
     setSchoolInfo({ ...DEFAULT_SCHOOL, ...(classData.school_info ?? {}) });
     setSchoolErrors({});
     setMetaError("");
+    setMonthlyExams(Array.isArray(classData.monthly_exams) ? classData.monthly_exams : []);
   }, [classData.id]);
 
   const handleUpdateMeta = async () => {
@@ -126,6 +134,18 @@ export function SettingsPage({
     setUpdatingSubjects(true);
     await onUpdateSubjects?.(next);
     setUpdatingSubjects(false);
+  };
+
+  const handleToggleMonthlyExam = async (month) => {
+    const next = monthlyExams.includes(month)
+      ? monthlyExams.filter((m) => m !== month)
+      : [...monthlyExams, month];
+    // Keep months in calendar order
+    const ordered = MONTHS.filter((m) => next.includes(m));
+    setMonthlyExams(ordered);
+    setUpdatingMonthlyExams(true);
+    await onUpdateMonthlyExams?.(ordered);
+    setUpdatingMonthlyExams(false);
   };
 
   const styles = {
@@ -457,6 +477,49 @@ export function SettingsPage({
           </button>
           {subjectError && <div style={styles.errMsg}>{subjectError}</div>}
         </div>
+      </div>
+
+      {/* Monthly Exams */}
+      <div style={styles.section}>
+        <div>
+          <div style={styles.sectionTitle}>📅 Monthly Exams</div>
+          <div style={styles.sectionSub}>
+            Select which months have a monthly exam available for this Form.
+            Enabled months appear in the exam picker alongside the standard exams.
+          </div>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {MONTHS.map((month) => {
+            const enabled = monthlyExams.includes(month);
+            return (
+              <button
+                key={month}
+                onClick={() => handleToggleMonthlyExam(month)}
+                disabled={updatingMonthlyExams}
+                title={enabled ? `Remove ${month}` : `Add ${month}`}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 999,
+                  border: enabled ? "2px solid #0b4f9e" : "1.5px solid #ccd6f0",
+                  background: enabled ? "#d0e4ff" : "#f4f7ff",
+                  color: enabled ? "#0b4f9e" : "#667",
+                  fontWeight: enabled ? 800 : 600,
+                  fontSize: 11,
+                  cursor: updatingMonthlyExams ? "not-allowed" : "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {enabled ? "✓ " : ""}{month}
+              </button>
+            );
+          })}
+        </div>
+        {monthlyExams.length > 0 && (
+          <div style={{ fontSize: 10, color: "#0b6b3a" }}>
+            {monthlyExams.length} monthly exam{monthlyExams.length !== 1 ? "s" : ""} enabled:{" "}
+            {monthlyExams.join(", ")}
+          </div>
+        )}
       </div>
 
       {/* Publish / Unpublish */}
