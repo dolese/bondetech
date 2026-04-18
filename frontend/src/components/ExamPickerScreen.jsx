@@ -123,7 +123,7 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
 
   return (
     <div style={styles.overlay} onClick={onCancel}>
-      <div style={styles.box} onClick={e => e.stopPropagation()}>
+      <div style={styles.box} onClick={e => e.stopPropagation()} tabIndex={0}>
         <div style={styles.heading}>📋 Select Exam</div>
         <div style={styles.sub}>
           {className ? `Choose the exam you want to work with for ${className}.` : "Choose the exam you want to work with."}

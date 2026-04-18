@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DEFAULT_SCHOOL, EXAM_TYPES, MONTHS, getMonthlyExamKey } from "../utils/constants";
+import { DEFAULT_SCHOOL, EXAM_TYPES, MONTHS } from "../utils/constants";
 import { validateSchoolInfo } from "../utils/validation";
 import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
@@ -517,7 +517,7 @@ export function SettingsPage({
         {monthlyExams.length > 0 && (
           <div style={{ fontSize: 10, color: "#0b6b3a" }}>
             {monthlyExams.length} monthly exam{monthlyExams.length !== 1 ? "s" : ""} enabled:{" "}
-            {monthlyExams.map((m) => getMonthlyExamKey(m)).join(", ")}
+            {monthlyExams.join(", ")}
           </div>
         )}
       </div>
