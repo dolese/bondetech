@@ -158,7 +158,7 @@ router.put("/:id", async (req, res) => {
     if (!classSnap.exists) return res.status(404).json({ error: "Class not found" });
 
     const data = classSnap.data();
-    const { name, schoolInfo, subjects, year, form, monthlyExams } = req.body;
+    const { name, schoolInfo, subjects, year, form, monthlyExams } = req.body || {};
     const updates = {};
 
     if (typeof name === "string") updates.name = name.trim() || data.name;
@@ -205,6 +205,10 @@ router.put("/:id", async (req, res) => {
           return { scores: remappedScores, exam_scores: remappedExamScores };
         });
       }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.json(parseClass(classSnap));
     }
 
     await classRef.update(updates);
@@ -481,6 +485,10 @@ router.put("/:id/students/:sid", validateStudentMiddleware, async (req, res) => 
     }
     if (typeof req.body.remarks === "string")
       updates.remarks = sanitizeText(req.body.remarks);
+
+    if (Object.keys(updates).length === 0) {
+      return res.json(parseStudent(studentSnap, req.params.id));
+    }
 
     await studentRef.update(updates);
     const updated = await studentRef.get();
