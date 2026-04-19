@@ -85,7 +85,6 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
       const mapped = {
         indexNo: String(s.indexNo ?? s.index_no ?? "").trim(),
         name: String(s.name ?? "").trim(),
-        stream: String(s.stream ?? "").trim(),
         sex: sexVal,
         status: statusVal,
         scores: mapScores(rawScores, importedSubjects),
@@ -401,7 +400,7 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
                 <table style={styles.table}>
                   <thead>
                     <tr>
-                      {["CNO", "Name", "Stream", "Sex", "Status", ...subjects.slice(0, 5)].map((h) => (
+                      {["CNO", "Name", "Sex", "Status", ...subjects.slice(0, 5)].map((h) => (
                         <th key={h} style={styles.th}>
                           {h}
                         </th>
@@ -416,7 +415,6 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
                       <tr key={i}>
                         <td style={styles.td}>{s.indexNo || "—"}</td>
                         <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
-                        <td style={styles.td}>{s.stream || "—"}</td>
                         <td style={styles.td}>{s.sex}</td>
                         <td style={styles.td}>{s.status}</td>
                         {s.scores.slice(0, 5).map((sc, si) => (

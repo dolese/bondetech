@@ -16,7 +16,7 @@ const { sendJson } = require("../../_lib/http");
  *   entries: [
  *     {
  *       classId, className, form, year,
- *       stream, status, remarks,
+ *       status, remarks,
  *       examScores: { [examType]: score[] },
  *       subjects: string[],
  *     }
@@ -73,7 +73,6 @@ module.exports = async (req, res) => {
       className: cls.name || "",
       form: cls.form || "",
       year: cls.year || "",
-      stream: d.stream || "",
       status: d.status || "present",
       remarks: d.remarks || "",
       examScores:

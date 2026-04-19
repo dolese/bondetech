@@ -24,9 +24,9 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
   };
 
   const downloadTemplate = () => {
-    const header = ["cno", "name", "stream", "sex", ...subjects];
+    const header = ["cno", "name", "sex", ...subjects];
     const exampleScores = subjects.map((_, i) => 50 + i * 3);
-    const example = [`${CNO_PREFIX}/0001`, "John Doe", "A", "M", ...exampleScores];
+    const example = [`${CNO_PREFIX}/0001`, "John Doe", "M", ...exampleScores];
     const csv = [header.map(csvEscape).join(","), example.map(csvEscape).join(",")].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -44,19 +44,18 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
 
     const normalizedSubjects = subjects.map(s => s.toLowerCase());
     const headerGuess = lines[0].map(p => String(p ?? "").trim().toLowerCase());
-    const hasHeader = headerGuess.some(h => h.includes("index") || h.includes("admission") || h.includes("candidate") || h === "cno" || h.includes("name") || h.includes("sex") || h.includes("stream"));
+    const hasHeader = headerGuess.some(h => h.includes("index") || h.includes("admission") || h.includes("candidate") || h === "cno" || h.includes("name") || h.includes("sex"));
 
     let scoreCols = Array(subjects.length).fill(null);
-    let colMap = { indexNo: 0, name: 1, stream: 2, sex: 3 };
+    let colMap = { indexNo: 0, name: 1, sex: 2 };
     let startLine = 0;
 
     if (hasHeader) {
       startLine = 1;
-      colMap = { indexNo: null, name: null, stream: null, sex: null };
+      colMap = { indexNo: null, name: null, sex: null };
       headerGuess.forEach((h, idx) => {
         if (h.includes("index") || h.includes("admission") || h.includes("candidate") || h === "cno") colMap.indexNo = idx;
         else if (h === "name" || h.includes("student")) colMap.name = idx;
-        else if (h === "stream") colMap.stream = idx;
         else if (h === "sex" || h === "gender") colMap.sex = idx;
         else {
           const subjectIdx = normalizedSubjects.indexOf(h);
@@ -82,7 +81,7 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
     const rows = lines.slice(startLine).map((parts, idx) => {
       const get = (i, fallback = "") => (i == null ? fallback : (parts[i] ?? fallback));
       const scores = subjects.map((_, si) => {
-        const col = hasHeader ? scoreCols[si] : (4 + si);
+        const col = hasHeader ? scoreCols[si] : (3 + si);
         const raw = col != null ? (parts[col] ?? "") : "";
         return parseScore(raw);
       });
@@ -90,7 +89,6 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
         rowNum: idx + 1,
         index_no: String(get(colMap.indexNo, "")),
         name: String(get(colMap.name, "")),
-        stream: String(get(colMap.stream, "")),
         sex: String(get(colMap.sex, "M") || "M"),
         status: "present",
         scores,
@@ -366,11 +364,11 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
                   setErrors([]);
                 }
               }}
-              placeholder={`cno,name,stream,sex,${subjects.slice(0, 3).join(",")}`}
+              placeholder={`cno,name,sex,${subjects.slice(0, 3).join(",")}`}
               style={styles.textarea}
             />
             <div style={styles.helpText}>
-              📋 Format: <strong>cno,name,stream,sex,subjects...</strong> (one student per line)
+              📋 Format: <strong>cno,name,sex,subjects...</strong> (one student per line)
               <br />
               Sex: M or F | Scores: 0-100 or ABS
               <br />
@@ -462,7 +460,6 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
                     <tr>
                       <th style={styles.th}>CNO</th>
                       <th style={styles.th}>Name</th>
-                      <th style={styles.th}>Stream</th>
                       <th style={styles.th}>Sex</th>
                       <th style={styles.th}>Scores</th>
                     </tr>
@@ -480,9 +477,6 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
                           <td style={styles.td}>{row.previewCno || row.index_no || "(auto)"}</td>
                           <td style={{ ...styles.td, textAlign: "left" }}>
                             {row.name}
-                          </td>
-                          <td style={{ ...styles.td, textAlign: "left" }}>
-                            {row.stream || "–"}
                           </td>
                           <td style={styles.td}>{row.sex}</td>
                           <td style={styles.td}>{row.scores?.slice(0, 3).join(", ")}</td>

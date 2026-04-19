@@ -50,7 +50,6 @@ export function EntryPanel({
   const [newStudent, setNewStudent] = useState({
     index_no: "",
     name: "",
-    stream: "",
     sex: "M",
     status: "present",
   });
@@ -79,8 +78,7 @@ export function EntryPanel({
     .filter(s =>
       search === "" ||
       s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.index_no.toString().includes(search) ||
-      (s.stream ?? "").toLowerCase().includes(search.toLowerCase())
+      s.index_no.toString().includes(search)
     )
     .sort((a, b) => {
       let aVal = sortBy === "index" ? a.index_no : a[sortBy];
@@ -125,7 +123,7 @@ export function EntryPanel({
       scores,
       examType: effectiveExam,
     });
-    setNewStudent({ index_no: "", name: "", stream: "", sex: "M", status: "present" });
+    setNewStudent({ index_no: "", name: "", sex: "M", status: "present" });
     setAddingNew(false);
     setErrors({});
   };
@@ -139,13 +137,12 @@ export function EntryPanel({
   };
 
   const exportCsv = () => {
-    const header = ["admission_no", "name", "stream", "sex", ...subjects].map(csvEscape).join(",");
+    const header = ["admission_no", "name", "sex", ...subjects].map(csvEscape).join(",");
     const rows = (computed ?? []).map((s) => {
       const scores = subjects.map((_, si) => s.grades?.[si]?.score ?? "");
       return [
         s.index_no ?? "",
         s.name ?? "",
-        s.stream ?? "",
         s.sex ?? "",
         ...scores,
       ].map(csvEscape).join(",");
@@ -839,7 +836,7 @@ export function EntryPanel({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr 1fr 1fr",
+              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr 1fr",
               gap: 10,
             }}
           >
@@ -854,12 +851,6 @@ export function EntryPanel({
               value={newStudent.name}
               onChange={v => setNewStudent({ ...newStudent, name: v })}
               error={errors.name}
-            />
-            <TextInput
-              label="Stream"
-              value={newStudent.stream}
-              onChange={v => setNewStudent({ ...newStudent, stream: v })}
-              error={errors.stream}
             />
             <SelectInput
               label="Sex"
@@ -968,7 +959,6 @@ export function EntryPanel({
                   {[
                     "CNO",
                     "Name",
-                    "Stream",
                     ...subjects.map((s) => s.slice(0, 3)),
                   ].map((h, i) => (
                     <th
@@ -993,7 +983,6 @@ export function EntryPanel({
                       {s.index_no}
                     </td>
                     <td style={{ padding: "4px 6px", textAlign: "left", border: "1px solid #d2def5" }}>{s.name}</td>
-                    <td style={{ padding: "4px 6px", textAlign: "left", border: "1px solid #d2def5" }}>{s.stream ?? "–"}</td>
                     {subjects.map((_, si) => (
                       <td key={si} style={{ padding: "4px 4px", textAlign: "center", border: "1px solid #d2def5" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
@@ -1020,7 +1009,7 @@ export function EntryPanel({
                 {!filtered.length && (
                   <tr>
                     <td
-                      colSpan={3 + subjects.length}
+                      colSpan={2 + subjects.length}
                       style={{ padding: 20, textAlign: "center", color: "#aaa", border: "1px solid #e0e8ff" }}
                     >
                       No students match your search
@@ -1030,7 +1019,7 @@ export function EntryPanel({
                 {subjects.length === 0 && (
                   <tr>
                     <td
-                      colSpan={3}
+                      colSpan={2}
                       style={{ padding: 20, textAlign: "center", color: "#aaa", border: "1px solid #e0e8ff" }}
                     >
                       Add subjects to start bulk scoring.
@@ -1073,16 +1062,6 @@ export function EntryPanel({
                 }}
               >
                 Name
-              </th>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "left",
-                  fontWeight: 700,
-                  border: "1px solid #224488",
-                }}
-              >
-                Stream
               </th>
               <th
                 style={{
@@ -1247,31 +1226,6 @@ export function EntryPanel({
                       />
                     ) : (
                       s.name
-                    )}
-                  </td>
-                  <td
-                    style={{
-                      padding: "4px 6px",
-                      textAlign: "left",
-                      border: "1px solid #d2def5",
-                    }}
-                  >
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editData.stream ?? ""}
-                        onChange={e =>
-                          setEditData({ ...editData, stream: e.target.value })
-                        }
-                        style={{
-                          width: 70,
-                          padding: "3px 4px",
-                          borderRadius: 3,
-                          border: "1px solid #d0dcf8",
-                        }}
-                      />
-                    ) : (
-                      s.stream ?? "–"
                     )}
                   </td>
                   <td

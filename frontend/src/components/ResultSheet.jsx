@@ -340,7 +340,6 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                       "Pos",
                       "CNO",
                       "Name",
-                      "Stream",
                       "Sex",
                       ...subjects,
                       "Total",
@@ -362,7 +361,6 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                       <td style={{ ...styles.td, fontWeight: 800 }}>{s.posn ?? "–"}</td>
                       <td style={styles.td}>{s.index_no}</td>
                       <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
-                      <td style={{ ...styles.td, textAlign: "left" }}>{s.stream ?? "–"}</td>
                       <td style={styles.td}>{s.sex}</td>
                       {subjects.map((_, i) => {
                         const g = s.grades?.[i];

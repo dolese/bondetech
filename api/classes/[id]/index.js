@@ -25,7 +25,6 @@ const parseStudent = (doc, classId) => {
     classId,
     indexNo: data.index_no || "",
     name: data.name || "",
-    stream: data.stream || "",
     sex: data.sex || "M",
     status: data.status || "present",
     scores: Array.isArray(data.scores) ? data.scores : [],

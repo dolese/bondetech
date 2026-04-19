@@ -9,7 +9,7 @@ const { sendJson } = require("../_lib/http");
  * classes.
  *
  * Returns up to `limit` (default 50, max 200) results as:
- *   [{ studentId, classId, className, form, year, indexNo, name, sex, stream }]
+ *   [{ studentId, classId, className, form, year, indexNo, name, sex }]
  */
 module.exports = async (req, res) => {
   if (req.method !== "GET") {
@@ -106,7 +106,6 @@ module.exports = async (req, res) => {
         indexNo: d.index_no || "",
         name: d.name || "",
         sex: d.sex || "M",
-        stream: d.stream || "",
       });
     };
 

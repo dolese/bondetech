@@ -14,7 +14,7 @@ const { readJsonBody, sendJson } = require("../_lib/http");
  *     {
  *       id, name, form, year, subjects, school_info, archived, published,
  *       created_at, student_count, cno_counter,
- *       students: [ { id, index_no, name, sex, stream, status, scores,
+ *       students: [ { id, index_no, name, sex, status, scores,
  *                     exam_scores, remarks, created_at } ]
  *     }
  *   ]

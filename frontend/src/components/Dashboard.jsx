@@ -298,7 +298,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                 <thead>
                   <tr>
-                    {["CNO", "Name", "Sex", "Class", "Form", "Year", "Stream", ""].map(h => (
+                    {["CNO", "Name", "Sex", "Class", "Form", "Year", ""].map(h => (
                       <th key={h} style={{
                         padding: "5px 8px",
                         background: "#003366",
@@ -319,7 +319,6 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                       <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.className}</td>
                       <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.form}</td>
                       <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.year}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.stream || "–"}</td>
                       <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>
                         {onViewProfile && s.indexNo && (
                           <button

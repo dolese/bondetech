@@ -9,7 +9,6 @@ const parseStudent = (doc, classId) => {
     classId,
     indexNo: data.index_no || "",
     name: data.name || "",
-    stream: data.stream || "",
     sex: data.sex || "M",
     status: data.status || "present",
     scores: Array.isArray(data.scores) ? data.scores : [],
@@ -84,7 +83,6 @@ module.exports = async (req, res) => {
 
       const sex = body.sex === "F" ? "F" : "M";
       const status = ["present", "absent", "incomplete"].includes(body.status) ? body.status : "present";
-      const stream = sanitizeText(body.stream);
 
       let indexNo = sanitizeText(body.indexNo);
       if (!indexNo) {
@@ -101,7 +99,6 @@ module.exports = async (req, res) => {
       const studentRef = await classRef.collection("students").add({
         index_no: indexNo,
         name,
-        stream,
         sex,
         status,
         scores,

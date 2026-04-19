@@ -203,7 +203,6 @@ export function ReportCardPrint({ student, classData }) {
         <div style={styles.infoRowRight}>
           {[
             ["CNO:", student.index_no],
-            ["Stream:", student.stream ?? ""],
             ["Academic Year:", schoolInfo.year ?? ""],
             ["Exam:", schoolInfo.exam ?? schoolInfo.term ?? ""],
           ].map(([label, value]) => (
