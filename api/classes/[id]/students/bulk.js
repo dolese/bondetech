@@ -56,7 +56,6 @@ module.exports = async (req, res) => {
       const incomingIndexNo = sanitizeText(raw.indexNo || "");
       const existing = incomingIndexNo ? existingByIndexNo[incomingIndexNo] : null;
 
-      const newStream = sanitizeText(raw.stream || "");
       const newSex = raw.sex === "F" ? "F" : "M";
       const newStatus = ["present", "absent", "incomplete"].includes(raw.status)
         ? raw.status
@@ -73,7 +72,6 @@ module.exports = async (req, res) => {
         const existingExamScoreForType = existingExamScores[examType] ?? [];
         const changed =
           name !== (ed.name || "") ||
-          newStream !== (ed.stream || "") ||
           newSex !== (ed.sex || "M") ||
           newStatus !== (ed.status || "present") ||
           newRemarks !== (ed.remarks || "") ||
@@ -84,7 +82,6 @@ module.exports = async (req, res) => {
             ref: existing.ref,
             updates: {
               name,
-              stream: newStream,
               sex: newSex,
               status: newStatus,
               remarks: newRemarks,
@@ -100,7 +97,6 @@ module.exports = async (req, res) => {
         toCreate.push({
           index_no: finalIndexNo,
           name,
-          stream: newStream,
           sex: newSex,
           status: newStatus,
           scores: newScores,

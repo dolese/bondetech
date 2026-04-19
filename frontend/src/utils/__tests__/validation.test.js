@@ -91,12 +91,6 @@ describe("validate.student", () => {
   it("accepts string indexNo", () => {
     expect(validate.student({ ...valid, indexNo: "S001" }).valid).toBe(true);
   });
-
-  it("rejects non-string stream", () => {
-    const { valid: ok, errors } = validate.student({ ...valid, stream: 42 });
-    expect(ok).toBe(false);
-    expect(errors.stream).toBeDefined();
-  });
 });
 
 // ─── validate.class ──────────────────────────────────────────────────────────

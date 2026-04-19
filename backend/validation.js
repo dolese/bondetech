@@ -20,10 +20,6 @@ function validateStudent(data) {
     }
   }
 
-  if (data.stream !== undefined && typeof data.stream !== "string") {
-    errors.stream = "Stream must be text";
-  }
-
   if (!["M", "F"].includes(data.sex)) {
     errors.sex = "Sex must be M or F";
   }

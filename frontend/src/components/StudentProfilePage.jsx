@@ -129,7 +129,6 @@ export function StudentProfilePage({ indexNo, onBack }) {
             <div key={`${entry.classId}-${ei}`} style={styles.card}>
               <div style={styles.cardTitle}>
                 📚 {entry.className} — {entry.form} {entry.year}
-                {entry.stream ? ` · Stream: ${entry.stream}` : ""}
               </div>
 
               {examEntries.length === 0 ? (

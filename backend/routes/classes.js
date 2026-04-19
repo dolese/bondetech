@@ -38,7 +38,6 @@ const parseStudent = (doc, classId) => {
     classId,
     indexNo: data.index_no || "",
     name: data.name || "",
-    stream: data.stream || "",
     sex: data.sex || "M",
     status: data.status || "present",
     scores: Array.isArray(data.scores) ? data.scores : [],
@@ -272,7 +271,6 @@ router.post("/:id/students", validateStudentMiddleware, async (req, res) => {
     const status = ["present", "absent", "incomplete"].includes(req.body.status)
       ? req.body.status
       : "present";
-    const stream = sanitizeText(req.body.stream || "");
     const remarks = sanitizeText(req.body.remarks || "");
 
     let indexNo = sanitizeText(req.body.indexNo || "");
@@ -291,7 +289,6 @@ router.post("/:id/students", validateStudentMiddleware, async (req, res) => {
     const studentRef = await classRef.collection("students").add({
       index_no: indexNo,
       name,
-      stream,
       sex,
       status,
       scores,
@@ -363,7 +360,6 @@ router.post("/:id/students/bulk", async (req, res) => {
       const incomingIndexNo = sanitizeText(raw.indexNo || "");
       const existing = incomingIndexNo ? existingByIndexNo[incomingIndexNo] : null;
 
-      const newStream = sanitizeText(raw.stream || "");
       const newSex = raw.sex === "F" ? "F" : "M";
       const newStatus = ["present", "absent", "incomplete"].includes(raw.status)
         ? raw.status
@@ -379,7 +375,6 @@ router.post("/:id/students/bulk", async (req, res) => {
         const existingExamScoreForType = existingExamScores[examType] ?? ed.scores ?? [];
         const changed =
           name !== (ed.name || "") ||
-          newStream !== (ed.stream || "") ||
           newSex !== (ed.sex || "M") ||
           newStatus !== (ed.status || "present") ||
           newRemarks !== (ed.remarks || "") ||
@@ -390,7 +385,6 @@ router.post("/:id/students/bulk", async (req, res) => {
             ref: existing.ref,
             updates: {
               name,
-              stream: newStream,
               sex: newSex,
               status: newStatus,
               remarks: newRemarks,
@@ -407,7 +401,6 @@ router.post("/:id/students/bulk", async (req, res) => {
         toCreate.push({
           index_no: finalIndexNo,
           name,
-          stream: newStream,
           sex: newSex,
           status: newStatus,
           scores: newScores,
@@ -471,8 +464,6 @@ router.put("/:id/students/:sid", validateStudentMiddleware, async (req, res) => 
       updates.index_no = sanitizeText(req.body.indexNo) || existing.index_no;
     if (typeof req.body.name === "string")
       updates.name = sanitizeText(req.body.name) || existing.name;
-    if (typeof req.body.stream === "string")
-      updates.stream = sanitizeText(req.body.stream);
     if (req.body.sex) updates.sex = req.body.sex === "F" ? "F" : "M";
     if (req.body.status) {
       updates.status = ["present", "absent", "incomplete"].includes(req.body.status)

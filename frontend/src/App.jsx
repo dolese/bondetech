@@ -43,7 +43,6 @@ const normalizeStudent = (student) => {
   return {
     ...student,
     index_no: student.index_no ?? student.indexNo ?? "",
-    stream: student.stream ?? "",
     remarks: student.remarks ?? "",
     scores,
     examScores,
@@ -68,7 +67,6 @@ const normalizeClass = (cls) => ({
 const toApiStudent = (student) => ({
   indexNo: student.indexNo ?? student.index_no ?? "",
   name: student.name ?? "",
-  stream: student.stream ?? "",
   sex: student.sex ?? "M",
   status: student.status ?? "present",
   remarks: student.remarks ?? "",
