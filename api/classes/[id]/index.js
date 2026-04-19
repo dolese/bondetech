@@ -15,6 +15,7 @@ const parseClass = (doc) => {
     archived: data.archived || false,
     published: data.published || false,
     publishedAt: data.published_at || null,
+    monthly_exams: Array.isArray(data.monthly_exams) ? data.monthly_exams : [],
   };
 };
 
@@ -92,6 +93,11 @@ module.exports = async (req, res) => {
       if (Array.isArray(body.subjects)) updates.subjects = body.subjects;
       if (body.year) updates.year = body.year;
       if (body.form) updates.form = body.form;
+      if (Array.isArray(body.monthlyExams)) {
+        updates.monthly_exams = body.monthlyExams.filter(
+          (m) => typeof m === "string" && m.trim()
+        );
+      }
 
       if (Array.isArray(body.subjects)) {
         const oldSubjects = Array.isArray(data.subjects) ? data.subjects : [];
@@ -109,6 +115,11 @@ module.exports = async (req, res) => {
             return { scores: remappedScores, exam_scores: remappedExamScores };
           });
         }
+      }
+
+      if (Object.keys(updates).length === 0) {
+        const unchanged = await classRef.get();
+        return sendJson(res, 200, parseClass(unchanged));
       }
 
       await classRef.update(updates);
