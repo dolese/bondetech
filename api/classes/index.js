@@ -31,6 +31,7 @@ const parseClass = (doc) => {
     archived: data.archived || false,
     published: data.published || false,
     publishedAt: data.published_at || null,
+    monthly_exams: Array.isArray(data.monthly_exams) ? data.monthly_exams : [],
   };
 };
 
