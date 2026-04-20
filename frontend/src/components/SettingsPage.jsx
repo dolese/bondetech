@@ -156,6 +156,7 @@ export function SettingsPage({
       display: "flex",
       flexDirection: "column",
       gap: 16,
+      minHeight: 0,
     },
     section: {
       background: "#fff",
