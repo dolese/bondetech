@@ -133,6 +133,13 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
     URL.revokeObjectURL(url);
   };
 
+  const getRankBadge = (position) => {
+    if (position === 0) return "🥇";
+    if (position === 1) return "🥈";
+    if (position === 2) return "🥉";
+    return String(position + 1);
+  };
+
   const styles = {
     panel: {
       flex: 1,
@@ -457,7 +464,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               style={{
                 ...styles.kpiCard,
                 borderLeftColor: color,
-                ...(isMobile && !isLarge ? { flex: "1 1 45%" } : {}),
+                ...(isMobile ? { flex: "1 1 45%" } : {}),
               }}
             >
               <div style={{ fontSize: isLarge ? 26 : 22 }}>{icon}</div>
@@ -838,7 +845,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                   padding: "8px 10px",
                 }}>
                   <span style={{ fontSize: 18, minWidth: 24, textAlign: "center" }}>
-                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : <span style={{ fontSize: 11, fontWeight: 800, color: "#555" }}>{i + 1}</span>}
+                    {getRankBadge(i)}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 12, color: "#003366", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
@@ -895,7 +902,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                         color: i < 3 ? "#b8860b" : "#555",
                       }}
                     >
-                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
+                      {getRankBadge(i)}
                     </td>
                     <td
                       style={{
@@ -976,7 +983,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                         textAlign: "center",
                       }}
                     >
-                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
+                      {getRankBadge(i)}
                     </span>
                     <span
                       style={{

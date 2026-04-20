@@ -73,6 +73,13 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
     return `Div ${div}`;
   };
 
+  const getRankDisplay = (idx, posn) => {
+    if (idx === 0) return "🥇";
+    if (idx === 1) return "🥈";
+    if (idx === 2) return "🥉";
+    return `#${posn ?? idx + 1}`;
+  };
+
   const styles = {
     panel: {
       flex: 1,
@@ -190,7 +197,7 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontWeight: 800, fontSize: 12, color: idx < 3 ? "#b8860b" : "#888", minWidth: 20 }}>
-                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${s.posn ?? idx + 1}`}
+                    {getRankDisplay(idx, s.posn)}
                   </span>
                   <span style={{ fontWeight: 700, fontSize: 13, color: "#003366" }}>{s.name}</span>
                   <span style={{ fontSize: 10, color: "#888" }}>{s.sex === "F" ? "F" : "M"}</span>
