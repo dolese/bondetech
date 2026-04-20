@@ -39,6 +39,7 @@ export function StudentProfilePage({ indexNo, onBack }) {
       display: "flex",
       flexDirection: "column",
       gap: 14,
+      minHeight: 0,
     },
     backBtn: {
       padding: "6px 14px",

@@ -88,6 +88,7 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
       display: "flex",
       flexDirection: "column",
       gap: 12,
+      minHeight: 0,
     },
     headerRow: {
       display: "flex",
