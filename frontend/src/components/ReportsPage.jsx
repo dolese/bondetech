@@ -73,6 +73,13 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
     return `Div ${div}`;
   };
 
+  const getRankDisplay = (idx, posn) => {
+    if (idx === 0) return "🥇";
+    if (idx === 1) return "🥈";
+    if (idx === 2) return "🥉";
+    return `#${posn ?? idx + 1}`;
+  };
+
   const styles = {
     panel: {
       flex: 1,
@@ -175,6 +182,40 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
       {!present.length ? (
         <div style={styles.empty}>
           No scored students yet. Enter student scores to generate report cards.
+        </div>
+      ) : isMobile ? (
+        /* Mobile card list */
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {present.map((s, idx) => (
+            <div key={s.id} style={{
+              background: "#fff",
+              borderRadius: 8,
+              padding: "10px 12px",
+              boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
+              border: "1px solid #e8eef8",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontWeight: 800, fontSize: 12, color: idx < 3 ? "#b8860b" : "#888", minWidth: 20 }}>
+                    {getRankDisplay(idx, s.posn)}
+                  </span>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: "#003366" }}>{s.name}</span>
+                  <span style={{ fontSize: 10, color: "#888" }}>{s.sex === "F" ? "F" : "M"}</span>
+                </div>
+                <button style={styles.viewBtn} onClick={() => onOpenReportCard(s.id)}>View</button>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 12px", fontSize: 11 }}>
+                <span style={{ fontFamily: "monospace", color: "#555" }}>CNO: {s.index_no ?? s.indexNo ?? "—"}</span>
+                <span>Total: <b>{s.total ?? "—"}</b></span>
+                <span>Avg: <b>{s.avg ?? "—"}</b></span>
+                {s.div && (
+                  <span style={{ ...styles.divBadge, background: DIVISION_COLORS[s.div] ?? "#999", fontSize: 10, padding: "1px 8px" }}>
+                    {divLabel(s.div)}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div style={{ overflowX: "auto" }}>
