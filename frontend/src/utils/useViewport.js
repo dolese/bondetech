@@ -15,5 +15,6 @@ export const useViewport = () => {
     width,
     isMobile: width < 720,
     isTablet: width < 1024,
+    isLarge: width >= 1280,
   };
 };

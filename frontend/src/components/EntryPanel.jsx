@@ -1030,15 +1030,213 @@ export function EntryPanel({
             </table>
           </div>
         </div>
+      ) : isMobile ? (
+        /* ── Mobile student card list ─────────────────────────────────── */
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {!filtered.length && (
+            <div style={{ padding: 20, textAlign: "center", color: "#aaa", fontSize: 12 }}>
+              No students match your search
+            </div>
+          )}
+          {filtered.map((s) => {
+            const isEditing = editId === s.id;
+            if (isEditing) {
+              return (
+                <div key={s.id} style={{ background: "#e8f4ff", border: "2px solid #0077aa", borderRadius: 10, padding: 12 }}>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: "#003366", marginBottom: 10 }}>
+                    ✎ Editing: {s.name}
+                  </div>
+                  {/* Basic info row */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>CNO</div>
+                      <input
+                        type="text"
+                        value={editData.index_no}
+                        onChange={e => setEditData({ ...editData, index_no: e.target.value })}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Name</div>
+                      <input
+                        type="text"
+                        value={editData.name}
+                        onChange={e => setEditData({ ...editData, name: e.target.value })}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Sex</div>
+                      <select
+                        value={editData.sex}
+                        onChange={e => setEditData({ ...editData, sex: e.target.value })}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12 }}
+                      >
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Status</div>
+                      <select
+                        value={editData.status}
+                        onChange={e => setEditData({ ...editData, status: e.target.value })}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12 }}
+                      >
+                        <option value="present">Present</option>
+                        <option value="absent">Absent</option>
+                      </select>
+                    </div>
+                  </div>
+                  {/* Subject scores grid */}
+                  {subjects.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>Scores</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 10 }}>
+                        {subjects.map((subj, si) => {
+                          const score = editData.grades?.[si]?.score ?? "";
+                          const editGrade = editData.grades?.[si]?.grade ?? null;
+                          return (
+                            <div key={si} style={{ display: "flex", alignItems: "center", gap: 5, background: "#fff", borderRadius: 5, padding: "4px 6px", border: "1px solid #d0dcf8" }}>
+                              <span style={{ fontSize: 9, fontWeight: 700, color: "#555", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={subj}>{subj.slice(0, 8)}</span>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={score === "" ? "" : score}
+                                onChange={e => {
+                                  const v = parseInt(e.target.value, 10) || null;
+                                  const newGrades = [...(editData.grades ?? [])];
+                                  newGrades[si] = { ...newGrades[si], score: v, grade: v != null ? getGrade(v) : null };
+                                  setEditData({ ...editData, grades: newGrades });
+                                }}
+                                style={{ width: 40, padding: "2px 4px", borderRadius: 3, border: "1px solid #b0c8f0", fontSize: 11, textAlign: "center" }}
+                              />
+                              {editGrade && (
+                                <span style={gradeBadgeStyle(editGrade)}>{editGrade}</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {/* Remarks */}
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Remarks</div>
+                    <input
+                      type="text"
+                      value={editData.remarks ?? ""}
+                      onChange={e => setEditData({ ...editData, remarks: e.target.value })}
+                      placeholder="Optional remark"
+                      style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
+                    />
+                  </div>
+                  {/* Save/cancel */}
+                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                    <button
+                      onClick={handleSaveEdit}
+                      style={{ padding: "7px 18px", background: "#0b6b3a", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                    >
+                      ✓ Save
+                    </button>
+                    <button
+                      onClick={() => { setEditId(null); setEditData(null); setErrors({}); }}
+                      style={{ padding: "7px 18px", background: "#888", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div key={s.id} style={{
+                background: "#fff",
+                border: "1px solid #e0e8f8",
+                borderRadius: 10,
+                padding: "10px 12px",
+                boxShadow: "0 1px 4px rgba(0,51,102,0.06)",
+              }}>
+                {/* Header row */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                    <span style={{ fontFamily: "monospace", fontSize: 10, color: "#888", flexShrink: 0 }}>{s.index_no || "—"}</span>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: "#003366", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</span>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 999,
+                      background: s.sex === "F" ? "#fce8f7" : "#e4eeff",
+                      color: s.sex === "F" ? "#6b0055" : "#0b4f9e",
+                    }}>{s.sex === "F" ? "F" : "M"}</span>
+                    {s.status === "absent" && (
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 999, background: "#fff0f0", color: "#8b2500" }}>Absent</span>
+                    )}
+                  </div>
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                    <button
+                      onClick={() => handleEdit(s)}
+                      style={{ padding: "4px 8px", background: "#0077aa", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      title="Edit student"
+                    >✎</button>
+                    <button
+                      onClick={() => onShowModal("report-card-export", s.id)}
+                      style={{ padding: "4px 8px", background: "#003366", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      title="Export report card"
+                    >📥</button>
+                    <button
+                      onClick={() => { if (window.confirm(`Delete ${s.name || "this student"}?`)) onDeleteStudent(s.id); }}
+                      style={{ padding: "4px 8px", background: "#8b2500", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      title="Delete student"
+                    >🗑</button>
+                  </div>
+                </div>
+                {/* Subject scores */}
+                {subjects.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 6px", marginBottom: 6 }}>
+                    {subjects.map((subj, si) => {
+                      const score = s.grades?.[si]?.score;
+                      const grade = s.grades?.[si]?.grade;
+                      if (score == null) return null;
+                      return (
+                        <span key={si} style={{
+                          background: "#f4f7ff", border: "1px solid #d0dcf8", borderRadius: 4,
+                          padding: "2px 5px", fontSize: 10, display: "inline-flex", gap: 3, alignItems: "center",
+                        }}>
+                          <span style={{ color: "#555", fontWeight: 600 }} title={subj}>{subj.slice(0, 4)}:</span>
+                          <span style={{ fontWeight: 700, color: "#003366" }}>{score}</span>
+                          {grade && <span style={gradeBadgeStyle(grade)}>{grade}</span>}
+                        </span>
+                      );
+                    })}
+                    {subjects.every((_, si) => s.grades?.[si]?.score == null) && (
+                      <span style={{ fontSize: 10, color: "#bbb" }}>No scores entered</span>
+                    )}
+                  </div>
+                )}
+                {/* Summary row */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 12px", fontSize: 11 }}>
+                  <span>Total: <b style={{ color: "#003366" }}>{s.total ?? "—"}</b></span>
+                  <span>Avg: <b>{s.avg ?? "—"}</b></span>
+                  {s.agrd && <span style={{ fontWeight: 700, color: GRADE_COLORS[s.agrd] }}>Grade: {s.agrd}</span>}
+                  {s.div && <span style={{ fontWeight: 700, color: DIVISION_COLORS[s.div] }}>Div {s.div}</span>}
+                  {s.posn && <span style={{ color: "#888" }}>#{s.posn}</span>}
+                  {s.remarks && <span style={{ color: "#555", fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 160 }} title={s.remarks}>{s.remarks}</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       ) : (
         <div style={styles.tableScroller} tabIndex={0} role="region" aria-label="Student entry table">
         <table
           style={{
             borderCollapse: "collapse",
             width: "100%",
-            fontSize: isMobile ? 10 : 11,
+            fontSize: 11,
             background: "#fff",
-            minWidth: isMobile ? 900 : "auto",
+            minWidth: "auto",
           }}
         >
           <thead>

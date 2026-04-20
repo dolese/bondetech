@@ -10,7 +10,7 @@ import { API } from "../api";
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
-  const { isMobile, isTablet } = useViewport();
+  const { isMobile, isTablet, isLarge } = useViewport();
   const [filterYear, setFilterYear] = useState(String(new Date().getFullYear()));
   const [filterForm, setFilterForm] = useState("all");
   const summaryRef = useRef(null);
@@ -156,15 +156,15 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
     kpiRow: {
       display: "flex",
       gap: isMobile ? 8 : 10,
-      flexWrap: "wrap",
+      flexWrap: isLarge ? "nowrap" : "wrap",
       marginBottom: 14,
     },
     kpiCard: {
       flex: 1,
-      minWidth: isMobile ? 140 : 110,
+      minWidth: isLarge ? 0 : isMobile ? 140 : 110,
       background: "#fff",
       borderRadius: 10,
-      padding: "10px 12px",
+      padding: isLarge ? "14px 16px" : "10px 12px",
       boxShadow: "0 1px 6px rgba(0,51,102,0.08)",
       display: "flex",
       flexDirection: "column",
@@ -173,7 +173,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
     },
     dashGrid: {
       display: "grid",
-      gridTemplateColumns: isTablet ? "1fr" : "1fr 1fr",
+      gridTemplateColumns: isLarge ? "1fr 1fr 1fr" : isTablet ? "1fr" : "1fr 1fr",
       gap: 12,
     },
     card: {
@@ -293,6 +293,33 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
         {searchResults !== null && (
           searchResults.length === 0 ? (
             <div style={{ fontSize: 11, color: "#888" }}>No students found.</div>
+          ) : isMobile ? (
+            /* Mobile search result cards */
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {searchResults.map((s, i) => (
+                <div key={`${s.classId}-${s.studentId}`} style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  background: i % 2 === 0 ? "#fff" : "#f7f9ff",
+                  border: "1px solid #e8eef8", borderRadius: 7, padding: "8px 10px",
+                }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: "#003366", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
+                    <div style={{ fontSize: 10, color: "#667", marginTop: 1 }}>
+                      <span style={{ fontFamily: "monospace" }}>{s.indexNo}</span>
+                      {" · "}{s.className} · {s.form} {s.year}
+                    </div>
+                  </div>
+                  {onViewProfile && s.indexNo && (
+                    <button
+                      onClick={() => onViewProfile(s.indexNo)}
+                      style={{ padding: "4px 10px", borderRadius: 5, border: "none", background: "#003366", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", flexShrink: 0, marginLeft: 8 }}
+                    >
+                      Profile
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
@@ -430,14 +457,14 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               style={{
                 ...styles.kpiCard,
                 borderLeftColor: color,
-                ...(isMobile ? { flex: "1 1 45%" } : {}),
+                ...(isMobile && !isLarge ? { flex: "1 1 45%" } : {}),
               }}
             >
-              <div style={{ fontSize: 22 }}>{icon}</div>
-              <div style={{ fontSize: isMobile ? 22 : 26, fontWeight: 900, color }}>{val}</div>
+              <div style={{ fontSize: isLarge ? 26 : 22 }}>{icon}</div>
+              <div style={{ fontSize: isLarge ? 30 : isMobile ? 22 : 26, fontWeight: 900, color }}>{val}</div>
               <div
                 style={{
-                  fontSize: 10,
+                  fontSize: isLarge ? 11 : 10,
                   color: "#888",
                   fontWeight: 700,
                   textTransform: "uppercase",
@@ -451,9 +478,57 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
       </div>
 
       <div style={styles.dashGrid}>
-        {/* Classes Overview Table */}
-        <div style={{ ...styles.card, gridColumn: isTablet ? "span 1" : "span 2" }}>
+        {/* Classes Overview */}
+        <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isTablet ? "span 1" : "span 2" }}>
           <h3 style={styles.cardT}>🏫 Classes Overview ({summaryLabel})</h3>
+          {isMobile ? (
+            /* Mobile card list */
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {filtered.map((cl) => {
+                const pres = (cl.computed ?? []).filter(s => s.total !== null);
+                const d = dv => pres.filter(s => s.div === dv).length;
+                const clComplete = pres.filter(s => s.div !== null);
+                const pass = clComplete.length
+                  ? Math.round(clComplete.filter(s => s.div !== "0").length / clComplete.length * 100)
+                  : 0;
+                const top = [...pres].sort((a, b) => b.total - a.total)[0];
+                return (
+                  <div key={cl.id} style={{ background: "#f7f9ff", borderRadius: 8, padding: "10px 12px", border: "1px solid #d0dcf8" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontWeight: 800, fontSize: 13, color: "#003366" }}>{cl.name}</span>
+                        {cl.published && (
+                          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 999, background: "#0b6b3a", color: "#fff", fontWeight: 700 }}>Published</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => onOpenClass(cl.id)}
+                        style={{ background: "#003366", color: "#fff", border: "none", borderRadius: 5, padding: "4px 12px", cursor: "pointer", fontWeight: 700, fontSize: 11 }}
+                      >
+                        Open
+                      </button>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", fontSize: 11, color: "#444" }}>
+                      <span>👥 <b>{cl.studentCount ?? 0}</b> students</span>
+                      <span>✅ <b>{pres.length}</b> present</span>
+                      <span style={{ color: pass >= 50 ? "#0b6b3a" : "#8b2500", fontWeight: 700 }}>📈 {pass}% pass</span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 10px", marginTop: 4, fontSize: 10 }}>
+                      {["I","II","III","IV","0"].map(dv => (
+                        <span key={dv} style={{ color: DIVISION_COLORS[dv], fontWeight: 700 }}>Div {dv}: {d(dv)}</span>
+                      ))}
+                    </div>
+                    {top && (
+                      <div style={{ marginTop: 4, fontSize: 10, color: "#555" }}>🏆 Top: <b>{top.name}</b></div>
+                    )}
+                  </div>
+                );
+              })}
+              {!filtered.length && (
+                <div style={{ padding: 16, textAlign: "center", color: "#aaa", fontSize: 12 }}>No classes yet</div>
+              )}
+            </div>
+          ) : (
           <div style={{ overflowX: "auto", minWidth: 0 }}>
             <table
               style={{
@@ -637,6 +712,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               </tbody>
             </table>
           </div>
+          )}
         </div>
 
         {/* Division Distribution */}
@@ -746,8 +822,40 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
         </div>
 
         {/* Top 10 Students */}
-        <div style={{ ...styles.card, gridColumn: "span 2" }}>
+        <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : "span 2" }}>
           <h3 style={styles.cardT}>🏆 Top 10 Students</h3>
+          {isMobile ? (
+            /* Mobile ranked card list */
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {top10.map((s, i) => (
+                <div key={s.id} style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  background: i === 0 ? "#fffbe6" : i % 2 === 0 ? "#fff" : "#f7f9ff",
+                  border: "1px solid #d0dcf8",
+                  borderRadius: 8,
+                  padding: "8px 10px",
+                }}>
+                  <span style={{ fontSize: 18, minWidth: 24, textAlign: "center" }}>
+                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : <span style={{ fontSize: 11, fontWeight: 800, color: "#555" }}>{i + 1}</span>}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: "#003366", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
+                    <div style={{ fontSize: 10, color: "#667" }}>{studentClassMap[s.id] ?? ""} · {s.sex}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+                    <span style={{ fontWeight: 800, fontSize: 13, color: "#003366" }}>{s.total}</span>
+                    <span style={{ fontWeight: 700, fontSize: 11, color: GRADE_COLORS[s.agrd] }}>{s.agrd}</span>
+                    <span style={{ fontWeight: 700, fontSize: 11, color: DIVISION_COLORS[s.div] }}>Div {s.div}</span>
+                  </div>
+                </div>
+              ))}
+              {!top10.length && (
+                <div style={{ padding: 20, textAlign: "center", color: "#aaa", fontSize: 12 }}>No student data yet</div>
+              )}
+            </div>
+          ) : (
           <div style={{ overflowX: "auto", minWidth: 0 }}>
             <table
               style={{
@@ -846,11 +954,12 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               </tbody>
             </table>
           </div>
+          )}
         </div>
 
         {/* Class Rankings by Pass Rate */}
         {classRankings.length > 0 && (
-          <div style={{ ...styles.card, gridColumn: isTablet ? "span 1" : "span 2" }}>
+          <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isTablet ? "span 1" : "span 2" }}>
             <h3 style={styles.cardT}>🏫 Class Rankings by Pass Rate</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
               {classRankings.map(({ name, passRate: rate, avg, studentCount }, i) => {
