@@ -83,7 +83,7 @@ export function Landing({ onLogin }) {
       maxWidth: isMobile ? "none" : 560,
     },
     badge: {
-      alignSelf: isMobile ? "flex-start" : "flex-start",
+      alignSelf: "flex-start",
       background: "rgba(255,255,255,0.12)",
       padding: "6px 12px",
       borderRadius: 999,
