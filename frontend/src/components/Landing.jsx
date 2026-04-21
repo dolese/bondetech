@@ -354,8 +354,8 @@ export function Landing({ onLogin }) {
   ];
 
   const PERF_STATS = [
-    { emoji: "👥", color: "#2563eb", value: statsData ? statsData.totalStudents.toLocaleString() : "—", label: "Total Students" },
-    { emoji: "📚", color: "#059669", value: statsData ? String(statsData.totalClasses) : "—", label: "Classes" },
+    { emoji: "👥", color: "#2563eb", value: statsData?.totalStudents != null ? statsData.totalStudents.toLocaleString() : "—", label: "Total Students" },
+    { emoji: "📚", color: "#059669", value: statsData?.totalClasses != null ? String(statsData.totalClasses) : "—", label: "Classes" },
     { emoji: "📅", color: "#7c3aed", value: LATEST_EXAM, label: "Latest Exam" },
     { emoji: "✅", color: "#059669", value: "92.4%", label: "Pass Rate" },
     { emoji: "⭐", color: "#d97706", value: "Form IV A", label: "Top Class" },
@@ -533,7 +533,7 @@ export function Landing({ onLogin }) {
                 <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Total Students</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 22, fontWeight: 800, color: "#0f2d6e" }}>
-                    {statsData ? statsData.totalStudents.toLocaleString() : "—"}
+                    {statsData?.totalStudents != null ? statsData.totalStudents.toLocaleString() : "—"}
                   </span>
                   <span style={{ fontSize: 20 }}>👥</span>
                 </div>
@@ -542,7 +542,7 @@ export function Landing({ onLogin }) {
                 <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Classes</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 22, fontWeight: 800, color: "#059669" }}>
-                    {statsData ? statsData.totalClasses : "—"}
+                    {statsData?.totalClasses != null ? statsData.totalClasses : "—"}
                   </span>
                   <span style={{ fontSize: 20 }}>📚</span>
                 </div>
