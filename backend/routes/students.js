@@ -118,12 +118,8 @@ router.get("/:indexNo/profile", async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    // Sort entries by year ascending
-    entries.sort((a, b) => {
-      if (a.year < b.year) return -1;
-      if (a.year > b.year) return 1;
-      return 0;
-    });
+    // Sort entries by year ascending (numeric comparison)
+    entries.sort((a, b) => Number(a.year) - Number(b.year));
 
     res.json({ ...studentInfo, entries });
   } catch (err) {

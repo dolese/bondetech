@@ -253,7 +253,10 @@ export function Landing({ onLogin }) {
   useEffect(() => {
     API.getStats()
       .then(setStatsData)
-      .catch(() => {}); // silent – stats are best-effort
+      .catch((err) => {
+        // Stats are best-effort; log the error but don't surface it to the user
+        console.warn("Failed to load stats:", err);
+      });
   }, []);
 
   const scrollToSearch = () => {
