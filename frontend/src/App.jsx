@@ -82,7 +82,9 @@ export default function App() {
   const [activeExam, setActiveExam] = useState(DEFAULT_EXAM_TYPE);
   const [page, setPage] = useState("dashboard");
   const [loggedIn, setLoggedIn] = useState(false);
-  const [sideOpen, setSideOpen] = useState(true);
+  const [sideOpen, setSideOpen] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 720 : true
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedYears, setExpandedYears] = useState(new Set());
@@ -558,6 +560,7 @@ export default function App() {
   // Top bar label
   const topBarLabel = (() => {
     if (page === "dashboard") return "📊 Dashboard";
+    if (page === "profile") return "👤 Student Profile";
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);

@@ -460,34 +460,33 @@ export function EntryPanel({
           Add, edit, and score students for this class.
         </div>
         <div style={styles.tlbx}>
-          {/* Exam selector – always visible */}
-          <div style={{ ...styles.tlbGroup, alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#003366", whiteSpace: "nowrap" }}>
-              📋 Exam:
-            </span>
-            <select
-              value={effectiveExam}
-              onChange={e => onChangeExam && onChangeExam(e.target.value)}
-              style={{
-                padding: "6px 8px",
-                borderRadius: 5,
-                border: "2px solid #003366",
-                height: 30,
-                fontWeight: 700,
-                fontSize: 11,
-                background: "#f0f5ff",
-                color: "#003366",
-                cursor: "pointer",
-                width: isMobile ? "100%" : "auto",
-              }}
-            >
-              {EXAM_TYPES.map(et => (
-                <option key={et.value} value={et.value}>{et.label}</option>
-              ))}
-            </select>
-          </div>
-          <div style={styles.tlbDivider} />
-          <div style={styles.tlbGroup}>
+          {/* Row 1: Exam selector + Search (always full-width on mobile) */}
+          <div style={{ ...styles.tlbGroup, flex: "1 1 100%" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#003366", whiteSpace: "nowrap" }}>
+                📋 Exam:
+              </span>
+              <select
+                value={effectiveExam}
+                onChange={e => onChangeExam && onChangeExam(e.target.value)}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius: 5,
+                  border: "2px solid #003366",
+                  height: 30,
+                  fontWeight: 700,
+                  fontSize: 11,
+                  background: "#f0f5ff",
+                  color: "#003366",
+                  cursor: "pointer",
+                  minWidth: 120,
+                }}
+              >
+                {EXAM_TYPES.map(et => (
+                  <option key={et.value} value={et.value}>{et.label}</option>
+                ))}
+              </select>
+            </div>
             <input
               type="text"
               placeholder="🔍 Search name, CNO, or status"
@@ -498,9 +497,8 @@ export function EntryPanel({
                 borderRadius: 5,
                 border: "1px solid #d0dcf8",
                 flex: 1,
-                minWidth: 150,
+                minWidth: isMobile ? 0 : 150,
                 height: 30,
-                width: isMobile ? "100%" : "auto",
               }}
             />
             <select
@@ -511,7 +509,7 @@ export function EntryPanel({
                 borderRadius: 5,
                 border: "1px solid #d0dcf8",
                 height: 30,
-                width: isMobile ? "100%" : "auto",
+                flexShrink: 0,
               }}
             >
               <option value="index">Sort: CNO</option>
@@ -530,14 +528,18 @@ export function EntryPanel({
                 cursor: "pointer",
                 fontWeight: 700,
                 height: 30,
-                width: isMobile ? "100%" : "auto",
+                flexShrink: 0,
               }}
             >
               {sortAsc ? "⬆" : "⬇"}
             </button>
           </div>
           <div style={styles.tlbDivider} />
-          <div style={styles.tlbGroup}>
+          {/* Row 2: Import/Export buttons — 2 per row on mobile */}
+          <div style={{
+            ...styles.tlbGroup,
+            ...(isMobile ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 } : {}),
+          }}>
             <button
               onClick={() => onShowModal("csv-import")}
               title="Import students from CSV"
@@ -550,7 +552,6 @@ export function EntryPanel({
                 cursor: "pointer",
                 fontWeight: 700,
                 height: 30,
-                width: isMobile ? "100%" : "auto",
               }}
             >
               📤 Import CSV
@@ -567,7 +568,6 @@ export function EntryPanel({
                 cursor: "pointer",
                 fontWeight: 700,
                 height: 30,
-                width: isMobile ? "100%" : "auto",
               }}
             >
               ⬇ Export CSV
@@ -584,7 +584,6 @@ export function EntryPanel({
                 cursor: "pointer",
                 fontWeight: 700,
                 height: 30,
-                width: isMobile ? "100%" : "auto",
               }}
             >
               📥 Import JSON
@@ -601,14 +600,14 @@ export function EntryPanel({
                 cursor: "pointer",
                 fontWeight: 700,
                 height: 30,
-                width: isMobile ? "100%" : "auto",
               }}
             >
               ⬇ Export JSON
             </button>
           </div>
           <div style={styles.tlbDivider} />
-          <div style={styles.tlbGroup}>
+          {/* Row 3: Bulk Scores + New Student — side-by-side always */}
+          <div style={{ ...styles.tlbGroup, ...(isMobile ? { flex: "1 1 100%" } : {}) }}>
             <button
               onClick={() => setBulkMode(!bulkMode)}
               title="Bulk score entry"
@@ -621,7 +620,7 @@ export function EntryPanel({
                 cursor: "pointer",
                 fontWeight: 700,
                 height: 30,
-                width: isMobile ? "100%" : "auto",
+                flex: isMobile ? 1 : "0 0 auto",
               }}
             >
               {bulkMode ? "✕ Bulk Mode" : "🧮 Bulk Scores"}
@@ -638,7 +637,7 @@ export function EntryPanel({
                 cursor: "pointer",
                 fontWeight: 700,
                 height: 30,
-                width: isMobile ? "100%" : "auto",
+                flex: isMobile ? 1 : "0 0 auto",
               }}
             >
               ➕ New
