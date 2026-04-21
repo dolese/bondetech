@@ -6,6 +6,15 @@ module.exports = async (req, res) => {
     return sendJson(res, 405, { error: "Method not allowed" });
   }
 
+  // Also handles GET /api/health (routed here via vercel.json rewrite)
+  if (req.url && req.url.startsWith("/api/health")) {
+    return sendJson(res, 200, {
+      status: "ok",
+      time: new Date().toISOString(),
+      app: "BONDE Result System",
+    });
+  }
+
   try {
     const db = getDb();
     const classesSnap = await db
