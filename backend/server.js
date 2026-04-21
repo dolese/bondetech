@@ -48,6 +48,34 @@ app.use(express.json({ limit: "5mb" }));
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use("/api/classes", require("./routes/classes"));
+app.use("/api/students", require("./routes/students"));
+
+// ── GET /api/stats ── Public school statistics ────────────────────────────────
+app.get("/api/stats", async (req, res) => {
+  try {
+    const db = getDb();
+    const classesSnap = await db.collection("classes").get();
+
+    let totalStudents = 0;
+    let latestYear = "";
+
+    classesSnap.docs.forEach((doc) => {
+      const data = doc.data();
+      totalStudents += Number(data.student_count || 0);
+      if (data.year && (!latestYear || data.year > latestYear)) {
+        latestYear = data.year;
+      }
+    });
+
+    res.json({
+      totalStudents,
+      totalClasses: classesSnap.size,
+      latestYear,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ── SSRF guard helpers ────────────────────────────────────────────────────────
 const PRIVATE_IP_RE = [
