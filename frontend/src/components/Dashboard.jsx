@@ -180,7 +180,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
     },
     dashGrid: {
       display: "grid",
-      gridTemplateColumns: isLarge ? "1fr 1fr 1fr" : isTablet ? "1fr" : "1fr 1fr",
+      gridTemplateColumns: isLarge ? "1fr 1fr 1fr" : isMobile ? "1fr" : "1fr 1fr",
       gap: 12,
     },
     card: {
@@ -486,7 +486,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
 
       <div style={styles.dashGrid}>
         {/* Classes Overview */}
-        <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isTablet ? "span 1" : "span 2" }}>
+        <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isMobile ? "span 1" : "span 2" }}>
           <h3 style={styles.cardT}>🏫 Classes Overview ({summaryLabel})</h3>
           {isMobile ? (
             /* Mobile card list */
@@ -966,7 +966,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
 
         {/* Class Rankings by Pass Rate */}
         {classRankings.length > 0 && (
-          <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isTablet ? "span 1" : "span 2" }}>
+          <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isMobile ? "span 1" : "span 2" }}>
             <h3 style={styles.cardT}>🏫 Class Rankings by Pass Rate</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
               {classRankings.map(({ name, passRate: rate, avg, studentCount }, i) => {
