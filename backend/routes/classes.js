@@ -28,6 +28,9 @@ const parseClass = (doc) => {
     createdAt: data.created_at || null,
     studentCount: data.student_count || 0,
     monthlyExams: Array.isArray(data.monthly_exams) ? data.monthly_exams : [],
+    published: data.published || false,
+    publishedAt: data.published_at || null,
+    archived: data.archived || false,
   };
 };
 
@@ -516,6 +519,53 @@ router.delete("/:id/students/:sid", async (req, res) => {
     });
 
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/classes/:id/publish ── Publish class results ────────────────────
+router.post("/:id/publish", async (req, res) => {
+  try {
+    const db = getDb();
+    const classRef = db.collection("classes").doc(req.params.id);
+    const classSnap = await classRef.get();
+    if (!classSnap.exists) return res.status(404).json({ error: "Class not found" });
+
+    const publishedAt = new Date().toISOString();
+    await classRef.update({ published: true, published_at: publishedAt });
+    res.json({ published: true, published_at: publishedAt });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── DELETE /api/classes/:id/publish ── Unpublish class results ────────────────
+router.delete("/:id/publish", async (req, res) => {
+  try {
+    const db = getDb();
+    const classRef = db.collection("classes").doc(req.params.id);
+    const classSnap = await classRef.get();
+    if (!classSnap.exists) return res.status(404).json({ error: "Class not found" });
+
+    await classRef.update({ published: false, published_at: null });
+    res.json({ published: false, published_at: null });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── PATCH /api/classes/:id ── Restore archived class ─────────────────────────
+router.patch("/:id", async (req, res) => {
+  try {
+    const db = getDb();
+    const classRef = db.collection("classes").doc(req.params.id);
+    const classSnap = await classRef.get();
+    if (!classSnap.exists) return res.status(404).json({ error: "Class not found" });
+
+    await classRef.update({ archived: false });
+    const updated = await classRef.get();
+    res.json(parseClass(updated));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

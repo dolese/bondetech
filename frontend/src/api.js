@@ -72,4 +72,7 @@ export const API = {
 
   // Health
   health:          ()           => get("/health"),
+
+  // Stats (public)
+  getStats:        ()           => get("/stats"),
 };

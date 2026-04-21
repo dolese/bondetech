@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useViewport } from "../utils/useViewport";
+import { API } from "../api";
+import { StudentProfilePage } from "./StudentProfilePage";
 
 // ── Mini bar chart (SVG) ──────────────────────────────────────────────────────
 function MiniBarChart() {
@@ -38,12 +40,13 @@ function SchoolCrest({ size = 40 }) {
 }
 
 // ── Quick-access card ─────────────────────────────────────────────────────────
-function QuickCard({ emoji, bg, title, desc }) {
+function QuickCard({ emoji, bg, title, desc, onClick }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
       style={{
         background: hovered ? "#f0f4ff" : "#fff",
         border: "1px solid #e8edf5",
@@ -100,12 +103,13 @@ function AnnouncementRow({ emoji, bg, title, desc, date }) {
 }
 
 // ── Category chip ─────────────────────────────────────────────────────────────
-function CategoryChip({ emoji, label, color, bg }) {
+function CategoryChip({ emoji, label, color, bg, onClick }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -228,6 +232,81 @@ export function Landing({ onLogin }) {
   const { isMobile, width } = useViewport();
   const isDesktop = width >= 900;
 
+  // Search state
+  const [searchAdmission, setSearchAdmission] = useState("");
+  const [searchExam, setSearchExam] = useState("");
+  const [searchForm, setSearchForm] = useState("");
+  const [searchYear, setSearchYear] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [profileIndexNo, setProfileIndexNo] = useState(null);
+
+  // Real stats from API
+  const [statsData, setStatsData] = useState(null);
+
+  // Section refs for smooth scroll
+  const searchSectionRef = useRef(null);
+  const announcementsSectionRef = useRef(null);
+  const footerRef = useRef(null);
+
+  useEffect(() => {
+    API.getStats()
+      .then(setStatsData)
+      .catch(() => {}); // silent – stats are best-effort
+  }, []);
+
+  const scrollToSearch = () => {
+    searchSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  const scrollToAnnouncements = () => {
+    announcementsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const scrollToFooter = () => {
+    footerRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleSearch = async (e) => {
+    if (e) e.preventDefault();
+    if (!searchAdmission.trim()) {
+      setSearchError("Please enter an admission number or student name.");
+      return;
+    }
+    setSearchError("");
+    setSearching(true);
+    setSearchResults(null);
+    setProfileIndexNo(null);
+    try {
+      const opts = {};
+      if (searchForm) opts.form = searchForm;
+      if (searchYear) opts.year = searchYear;
+      const results = await API.searchStudents(searchAdmission.trim(), opts);
+      if (results.length === 0) {
+        setSearchError("No results found. Check the admission number and try again.");
+      } else if (results.length === 1) {
+        setProfileIndexNo(results[0].indexNo);
+      } else {
+        setSearchResults(results);
+      }
+    } catch (err) {
+      setSearchError(err.message || "Search failed. Please try again.");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleCategoryClick = (label) => {
+    const normalized = label.replace(/\n/g, " ");
+    const match = normalized.match(/Form\s+(I{1,3}V?|IV)/);
+    if (match) {
+      setSearchForm("Form " + match[1]);
+    }
+    scrollToSearch();
+  };
+
   const currentYear = new Date().getFullYear();
   const LATEST_EXAM = `Term II ${currentYear}`;
 
@@ -236,12 +315,12 @@ export function Landing({ onLogin }) {
   const CONTAINER_STYLE = { maxWidth: 1140, margin: "0 auto", padding: isMobile ? "0 16px" : "0 32px" };
 
   const QUICK_ACCESS = [
-    { emoji: "📊", bg: "#dbeafe", title: "Check Results", desc: "View your exam results instantly" },
-    { emoji: "👥", bg: "#d1fae5", title: "Class Performance", desc: "See performance by class or subject" },
-    { emoji: "📅", bg: "#fef3c7", title: "Exam Timetable", desc: "View upcoming exams and dates" },
-    { emoji: "🔔", bg: "#ede9fe", title: "Announcements", desc: "Latest school notices & updates" },
-    { emoji: "📥", bg: "#fee2e2", title: "Download Report", desc: "Download result sheets & reports" },
-    { emoji: "👤", bg: "#cffafe", title: "Student / Parent Login", desc: "Access your account securely" },
+    { emoji: "📊", bg: "#dbeafe", title: "Check Results", desc: "View your exam results instantly", onClick: scrollToSearch },
+    { emoji: "👥", bg: "#d1fae5", title: "Class Performance", desc: "See performance by class or subject", onClick: scrollToSearch },
+    { emoji: "📅", bg: "#fef3c7", title: "Exam Timetable", desc: "View upcoming exams and dates", onClick: scrollToAnnouncements },
+    { emoji: "🔔", bg: "#ede9fe", title: "Announcements", desc: "Latest school notices & updates", onClick: scrollToAnnouncements },
+    { emoji: "📥", bg: "#fee2e2", title: "Download Report", desc: "Download result sheets & reports", onClick: scrollToSearch },
+    { emoji: "👤", bg: "#cffafe", title: "Student / Parent Login", desc: "Access your account securely", onClick: () => setShowLogin(true) },
   ];
 
   const ANNOUNCEMENTS = [
@@ -272,8 +351,8 @@ export function Landing({ onLogin }) {
   ];
 
   const PERF_STATS = [
-    { emoji: "👥", color: "#2563eb", value: "1,245", label: "Total Students" },
-    { emoji: "📚", color: "#059669", value: "28", label: "Classes" },
+    { emoji: "👥", color: "#2563eb", value: statsData ? statsData.totalStudents.toLocaleString() : "—", label: "Total Students" },
+    { emoji: "📚", color: "#059669", value: statsData ? String(statsData.totalClasses) : "—", label: "Classes" },
     { emoji: "📅", color: "#7c3aed", value: LATEST_EXAM, label: "Latest Exam" },
     { emoji: "✅", color: "#059669", value: "92.4%", label: "Pass Rate" },
     { emoji: "⭐", color: "#d97706", value: "Form IV A", label: "Top Class" },
@@ -316,9 +395,15 @@ export function Landing({ onLogin }) {
           {/* Desktop nav links */}
           {isDesktop && (
             <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
-              {["Home", "Results", "Notices", "About Us", "Contact Us"].map((item) => (
-                <span key={item} style={{ fontSize: 13, fontWeight: 600, color: item === "Home" ? "#2563eb" : "#475569", cursor: "pointer", transition: "color 0.15s" }}>
-                  {item}
+              {[
+                { label: "Home", action: scrollToTop },
+                { label: "Results", action: scrollToSearch },
+                { label: "Notices", action: scrollToAnnouncements },
+                { label: "About Us", action: scrollToFooter },
+                { label: "Contact Us", action: scrollToFooter },
+              ].map(({ label, action }) => (
+                <span key={label} onClick={action} style={{ fontSize: 13, fontWeight: 600, color: label === "Home" ? "#2563eb" : "#475569", cursor: "pointer", transition: "color 0.15s" }}>
+                  {label}
                 </span>
               ))}
             </div>
@@ -346,8 +431,14 @@ export function Landing({ onLogin }) {
         {/* Mobile dropdown menu */}
         {!isDesktop && mobileMenuOpen && (
           <div style={{ background: "#fff", borderTop: "1px solid #f1f5f9", padding: "8px 0 12px" }}>
-            {["Home", "Results", "Notices", "About Us", "Contact Us"].map((item) => (
-              <div key={item} style={{ padding: "10px 20px", fontSize: 14, fontWeight: 600, color: "#475569", cursor: "pointer" }}>{item}</div>
+            {[
+              { label: "Home", action: scrollToTop },
+              { label: "Results", action: scrollToSearch },
+              { label: "Notices", action: scrollToAnnouncements },
+              { label: "About Us", action: scrollToFooter },
+              { label: "Contact Us", action: scrollToFooter },
+            ].map(({ label, action }) => (
+              <div key={label} onClick={() => { action(); setMobileMenuOpen(false); }} style={{ padding: "10px 20px", fontSize: 14, fontWeight: 600, color: "#475569", cursor: "pointer" }}>{label}</div>
             ))}
             <div style={{ padding: "8px 16px 0" }}>
               <button
@@ -400,7 +491,7 @@ export function Landing({ onLogin }) {
 
             {/* CTA buttons */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
-              <button className="landing-btn-outline">
+              <button className="landing-btn-outline" onClick={scrollToSearch}>
                 📊 Check Results
               </button>
               <button className="landing-btn-outline" onClick={() => setShowLogin(true)}>
@@ -433,20 +524,24 @@ export function Landing({ onLogin }) {
               <span style={{ fontSize: 18 }}>📅</span>
             </div>
 
-            {/* Total students + pass rate */}
+             {/* Total students + classes */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
               <div style={{ background: "#f8faff", borderRadius: 12, padding: "12px 14px" }}>
                 <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Total Students</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: "#0f2d6e" }}>1,245</span>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: "#0f2d6e" }}>
+                    {statsData ? statsData.totalStudents.toLocaleString() : "—"}
+                  </span>
                   <span style={{ fontSize: 20 }}>👥</span>
                 </div>
               </div>
               <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Pass Rate</div>
+                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Classes</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: "#059669" }}>92.4%</span>
-                  <span style={{ fontSize: 20 }}>📈</span>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: "#059669" }}>
+                    {statsData ? statsData.totalClasses : "—"}
+                  </span>
+                  <span style={{ fontSize: 20 }}>📚</span>
                 </div>
               </div>
             </div>
@@ -476,7 +571,7 @@ export function Landing({ onLogin }) {
       </section>
 
       {/* ── SEARCH RESULTS ─────────────────────────────────────────────────── */}
-      <section style={{ padding: isMobile ? "24px 0" : "32px 0" }}>
+      <section ref={searchSectionRef} style={{ padding: isMobile ? "24px 0" : "32px 0" }}>
         <div style={CONTAINER_STYLE}>
           <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? "20px 16px" : "28px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid #f1f5f9" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
@@ -485,57 +580,123 @@ export function Landing({ onLogin }) {
             </div>
             <p style={{ fontSize: 12, color: "#64748b", marginBottom: 18 }}>Enter student details to view results and academic progress.</p>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
-                gap: 10,
-                marginBottom: 14,
-              }}
-            >
-              <input className="landing-search-input" placeholder="👤 Admission No." />
-              <select className="landing-search-input" defaultValue="">
-                <option value="" disabled>Exam Type</option>
-                <option>March Exam</option>
-                <option>Terminal Exam</option>
-                <option>September Exam</option>
-                <option>Annual Exam</option>
-              </select>
-              <select className="landing-search-input" defaultValue="">
-                <option value="" disabled>🎓 Class / Form</option>
-                <option>Form I</option>
-                <option>Form II</option>
-                <option>Form III</option>
-                <option>Form IV</option>
-              </select>
-              <select className="landing-search-input" defaultValue="">
-                <option value="" disabled>📅 Year</option>
-                <option>2024</option>
-                <option>2023</option>
-                <option>2022</option>
-              </select>
-            </div>
+            <form onSubmit={handleSearch}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
+                  gap: 10,
+                  marginBottom: 14,
+                }}
+              >
+                <input
+                  className="landing-search-input"
+                  placeholder="👤 Admission No. or Name"
+                  value={searchAdmission}
+                  onChange={(e) => setSearchAdmission(e.target.value)}
+                />
+                <select
+                  className="landing-search-input"
+                  value={searchExam}
+                  onChange={(e) => setSearchExam(e.target.value)}
+                >
+                  <option value="">Exam Type (All)</option>
+                  <option>March Exam</option>
+                  <option>Mid-Term Exam</option>
+                  <option>Terminal Exam</option>
+                  <option>September Exam</option>
+                  <option>Annual Exam</option>
+                </select>
+                <select
+                  className="landing-search-input"
+                  value={searchForm}
+                  onChange={(e) => setSearchForm(e.target.value)}
+                >
+                  <option value="">🎓 Class / Form (All)</option>
+                  <option>Form I</option>
+                  <option>Form II</option>
+                  <option>Form III</option>
+                  <option>Form IV</option>
+                </select>
+                <select
+                  className="landing-search-input"
+                  value={searchYear}
+                  onChange={(e) => setSearchYear(e.target.value)}
+                >
+                  <option value="">📅 Year (All)</option>
+                  {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
+                    <option key={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
 
-            <button
-              style={{
-                width: "100%",
-                background: "#1a3a8f",
-                color: "#fff",
-                border: "none",
-                borderRadius: 12,
-                padding: isMobile ? "13px 0" : "14px 0",
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                boxShadow: "0 4px 14px rgba(26,58,143,0.25)",
-              }}
-            >
-              🔍 Search Results
-            </button>
+              {searchError && (
+                <div style={{ fontSize: 12, color: "#b42318", fontWeight: 600, marginBottom: 10 }}>
+                  ⚠ {searchError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={searching}
+                style={{
+                  width: "100%",
+                  background: searching ? "#6b82b8" : "#1a3a8f",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 12,
+                  padding: isMobile ? "13px 0" : "14px 0",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: searching ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  boxShadow: "0 4px 14px rgba(26,58,143,0.25)",
+                  transition: "background 0.2s",
+                }}
+              >
+                {searching ? "⏳ Searching…" : "🔍 Search Results"}
+              </button>
+            </form>
+
+            {/* Multiple search results list */}
+            {searchResults && searchResults.length > 1 && (
+              <div style={{ marginTop: 20 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0f2d6e", marginBottom: 10 }}>
+                  {searchResults.length} student{searchResults.length !== 1 ? "s" : ""} found — select to view results:
+                </div>
+                {searchResults.map((r) => (
+                  <div
+                    key={`${r.classId}-${r.id}`}
+                    onClick={() => setProfileIndexNo(r.indexNo)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "12px 14px",
+                      borderRadius: 10,
+                      border: "1.5px solid #e8edf5",
+                      marginBottom: 8,
+                      cursor: "pointer",
+                      background: "#f8faff",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#eef2ff")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "#f8faff")}
+                  >
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{r.name}</div>
+                      <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                        {r.indexNo} · {r.form} · {r.year}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 14, color: "#2563eb", fontWeight: 700 }}>View ›</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -545,7 +706,7 @@ export function Landing({ onLogin }) {
         <div style={CONTAINER_STYLE}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
             <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Quick Access</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>View All ›</span>
+            <span onClick={scrollToSearch} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>View All ›</span>
           </div>
           <div
             style={{
@@ -600,14 +761,14 @@ export function Landing({ onLogin }) {
       </section>
 
       {/* ── RECENT ANNOUNCEMENTS ───────────────────────────────────────────── */}
-      <section style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
+      <section ref={announcementsSectionRef} style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
         <div style={CONTAINER_STYLE}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 18 }}>🔔</span>
               <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Recent Announcements</span>
             </div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>View All ›</span>
+            <span onClick={scrollToAnnouncements} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>View All ›</span>
           </div>
           <div style={{ background: "#fff", borderRadius: 18, border: "1.5px solid #f1f5f9", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
             {ANNOUNCEMENTS.map((a, i) => (
@@ -634,7 +795,7 @@ export function Landing({ onLogin }) {
             }}
           >
             {CATEGORIES.map((c) => (
-              <CategoryChip key={c.label} {...c} />
+              <CategoryChip key={c.label} {...c} onClick={() => handleCategoryClick(c.label)} />
             ))}
           </div>
         </div>
@@ -675,7 +836,7 @@ export function Landing({ onLogin }) {
       </section>
 
       {/* ── FOOTER ─────────────────────────────────────────────────────────── */}
-      <footer style={{ background: "#0c2461", color: "#fff", padding: isMobile ? "32px 0 0" : "48px 0 0" }}>
+      <footer ref={footerRef} style={{ background: "#0c2461", color: "#fff", padding: isMobile ? "32px 0 0" : "48px 0 0" }}>
         <div
           style={{
             ...CONTAINER_STYLE,
@@ -702,8 +863,14 @@ export function Landing({ onLogin }) {
           {/* Quick links */}
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 14 }}>Quick Links</div>
-            {["Home", "Results", "Notices", "About Us", "Contact Us"].map((link) => (
-              <div key={link} style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, cursor: "pointer" }}>{link}</div>
+            {[
+              { label: "Home", action: scrollToTop },
+              { label: "Results", action: scrollToSearch },
+              { label: "Notices", action: scrollToAnnouncements },
+              { label: "About Us", action: scrollToFooter },
+              { label: "Contact Us", action: scrollToFooter },
+            ].map(({ label, action }) => (
+              <div key={label} onClick={action} style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, cursor: "pointer" }}>{label}</div>
             ))}
           </div>
 
@@ -739,6 +906,55 @@ export function Landing({ onLogin }) {
             onLogin?.(creds);
           }}
         />
+      )}
+
+      {/* ── STUDENT PROFILE OVERLAY ─────────────────────────────────────────── */}
+      {profileIndexNo && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(10,18,40,0.7)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            padding: isMobile ? 0 : "24px 16px",
+            overflowY: "auto",
+          }}
+          onClick={() => setProfileIndexNo(null)}
+        >
+          <div
+            style={{
+              background: "#f0f4fa",
+              borderRadius: isMobile ? 0 : 20,
+              width: "100%",
+              maxWidth: 760,
+              minHeight: isMobile ? "100vh" : undefined,
+              maxHeight: isMobile ? "100vh" : "90vh",
+              overflowY: "auto",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Overlay header */}
+            <div style={{ background: "#0f2d6e", color: "#fff", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 800 }}>📋 Student Results</div>
+              <button
+                onClick={() => setProfileIndexNo(null)}
+                style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 18, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                ×
+              </button>
+            </div>
+            <StudentProfilePage
+              indexNo={profileIndexNo}
+              onBack={() => setProfileIndexNo(null)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
