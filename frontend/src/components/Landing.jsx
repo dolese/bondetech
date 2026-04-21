@@ -228,6 +228,9 @@ export function Landing({ onLogin }) {
   const { isMobile, width } = useViewport();
   const isDesktop = width >= 900;
 
+  const currentYear = new Date().getFullYear();
+  const LATEST_EXAM = `Term II ${currentYear}`;
+
   const NAV_BG = "#0f2d6e";
   const FONT = "'Poppins', 'Segoe UI', sans-serif";
   const CONTAINER_STYLE = { maxWidth: 1140, margin: "0 auto", padding: isMobile ? "0 16px" : "0 32px" };
@@ -271,7 +274,7 @@ export function Landing({ onLogin }) {
   const PERF_STATS = [
     { emoji: "👥", color: "#2563eb", value: "1,245", label: "Total Students" },
     { emoji: "📚", color: "#059669", value: "28", label: "Classes" },
-    { emoji: "📅", color: "#7c3aed", value: "Term II 2024", label: "Latest Exam" },
+    { emoji: "📅", color: "#7c3aed", value: LATEST_EXAM, label: "Latest Exam" },
     { emoji: "✅", color: "#059669", value: "92.4%", label: "Pass Rate" },
     { emoji: "⭐", color: "#d97706", value: "Form IV A", label: "Top Class" },
     { emoji: "📈", color: "#2563eb", value: "76.8%", label: "Average Score" },
@@ -426,7 +429,7 @@ export function Landing({ onLogin }) {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>Latest Exam: Term II 2024</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>Latest Exam: {LATEST_EXAM}</div>
               <span style={{ fontSize: 18 }}>📅</span>
             </div>
 
@@ -722,7 +725,7 @@ export function Landing({ onLogin }) {
         {/* Bottom bar */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.10)", padding: "16px 0", textAlign: "center" }}>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.50)" }}>
-            © 2024 Bonde Secondary School. All Rights Reserved.
+            © {currentYear} Bonde Secondary School. All Rights Reserved.
           </span>
         </div>
       </footer>
