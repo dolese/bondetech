@@ -140,11 +140,33 @@ function FeatureChip({ emoji, bg, label }) {
   );
 }
 
-// ── Login modal ───────────────────────────────────────────────────────────────
-function LoginModal({ onClose, onLogin }) {
+// ── Person SVG icon ───────────────────────────────────────────────────────────
+function PersonIcon({ size = 22, color = "#555" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+// ── Lock SVG icon ─────────────────────────────────────────────────────────────
+function LockIcon({ size = 22, color = "#555" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+// ── Full-page Login ───────────────────────────────────────────────────────────
+function LoginPage({ onBack, onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [infoMsg, setInfoMsg] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -153,73 +175,198 @@ function LoginModal({ onClose, onLogin }) {
       return;
     }
     setError("");
-    onLogin?.({ username });
+    onLogin?.({ username, rememberMe });
+  };
+
+  const handleForgotPassword = () => {
+    setInfoMsg("Please contact the school administrator to reset your password.");
+    setTimeout(() => setInfoMsg(""), 4000);
+  };
+
+  const handleRegister = () => {
+    setInfoMsg("Registration is managed by the school administrator. Please contact the office.");
+    setTimeout(() => setInfoMsg(""), 4000);
   };
 
   return (
     <div
       style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(10,18,40,0.65)",
-        zIndex: 1000,
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #c9a8d4 0%, #a8aedd 25%, #88c8d8 55%, #5a80c8 100%)",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: 16,
+        padding: "24px 16px",
+        fontFamily: "'Poppins', 'Segoe UI', sans-serif",
+        position: "relative",
       }}
-      onClick={onClose}
     >
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+        .login-input {
+          flex: 1; border: none; outline: none; font-size: 15px;
+          color: #555; background: transparent; font-family: inherit;
+          padding: 0;
+        }
+        .login-input::placeholder { color: #aaa; }
+        .login-back-btn {
+          position: absolute; top: 20px; left: 20px;
+          background: rgba(255,255,255,0.25); border: none; border-radius: 10px;
+          padding: 8px 16px; color: #fff; font-size: 13px; font-weight: 600;
+          cursor: pointer; display: flex; align-items: center; gap: 6px;
+          font-family: inherit; backdrop-filter: blur(4px);
+          transition: background 0.18s;
+        }
+        .login-back-btn:hover { background: rgba(255,255,255,0.38); }
+        .login-submit-btn {
+          width: 100%; background: #3a8fa8; color: #fff; border: none;
+          border-radius: 10px; padding: 16px 0; font-size: 15px; font-weight: 700;
+          letter-spacing: 2px; cursor: pointer; font-family: inherit;
+          box-shadow: 0 6px 18px rgba(58,143,168,0.38);
+          transition: background 0.18s, box-shadow 0.18s;
+        }
+        .login-submit-btn:hover { background: #2e7d96; box-shadow: 0 8px 24px rgba(58,143,168,0.45); }
+      `}</style>
+
+      {/* Back button */}
+      <button className="login-back-btn" onClick={onBack}>
+        ← Back
+      </button>
+
+      {/* Glass card */}
       <div
         style={{
-          background: "#fff",
-          borderRadius: 20,
-          padding: "32px 28px",
+          background: "rgba(255,255,255,0.22)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          border: "1px solid rgba(255,255,255,0.45)",
+          borderRadius: 22,
+          padding: "44px 36px 36px",
           width: "100%",
-          maxWidth: 380,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.28)",
+          maxWidth: 420,
+          boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
+          position: "relative",
+          textAlign: "center",
         }}
-        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#0f2d6e" }}>Staff Login</div>
-            <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>Sign in to manage results</div>
-          </div>
-          <button
-            onClick={onClose}
-            style={{ background: "#f1f5f9", border: "none", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 18, color: "#475569", display: "flex", alignItems: "center", justifyContent: "center" }}
-          >
-            ×
-          </button>
+        {/* Avatar */}
+        <div
+          style={{
+            width: 82,
+            height: 82,
+            borderRadius: "50%",
+            background: "#3a8fa8",
+            border: "4px solid rgba(255,255,255,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "-82px auto 22px",
+            boxShadow: "0 4px 18px rgba(0,0,0,0.18)",
+          }}
+        >
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.92)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <label style={{ fontSize: 11, fontWeight: 700, color: "#475569", display: "block", marginBottom: 5 }}>Username</label>
-          <input
-            style={{ width: "100%", border: "1.5px solid #dde3ef", borderRadius: 10, padding: "11px 12px", fontSize: 14, marginBottom: 14, background: "#f8faff", boxSizing: "border-box" }}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter username"
-            autoFocus
-          />
-          <label style={{ fontSize: 11, fontWeight: 700, color: "#475569", display: "block", marginBottom: 5 }}>Password</label>
-          <input
-            style={{ width: "100%", border: "1.5px solid #dde3ef", borderRadius: 10, padding: "11px 12px", fontSize: 14, marginBottom: 6, background: "#f8faff", boxSizing: "border-box" }}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
-          />
-          {error && <div style={{ fontSize: 12, color: "#b42318", fontWeight: 700, marginBottom: 10 }}>{error}</div>}
-          <button
-            type="submit"
-            style={{ width: "100%", background: "#0f2d6e", color: "#fff", border: "none", borderRadius: 10, padding: "13px 0", fontSize: 14, fontWeight: 800, cursor: "pointer", marginTop: 10, letterSpacing: 0.3, boxShadow: "0 6px 18px rgba(15,45,110,0.25)" }}
+        <div style={{ fontSize: 26, fontWeight: 400, color: "#555", marginBottom: 28, letterSpacing: 0.5 }}>Sign In</div>
+
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          {/* Username field */}
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              padding: "14px 16px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+            }}
           >
-            Login
+            <PersonIcon size={22} color="#777" />
+            <div style={{ width: 1, height: 24, background: "#ddd", margin: "0 14px" }} />
+            <input
+              className="login-input"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          {/* Password field */}
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              padding: "14px 16px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+            }}
+          >
+            <LockIcon size={22} color="#777" />
+            <div style={{ width: 1, height: 24, background: "#ddd", margin: "0 14px" }} />
+            <input
+              className="login-input"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          {error && (
+            <div style={{ fontSize: 12, color: "#c0392b", fontWeight: 600, textAlign: "left", marginTop: -8 }}>
+              ⚠ {error}
+            </div>
+          )}
+          {infoMsg && (
+            <div style={{ fontSize: 12, color: "#1a2040", background: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "8px 12px", textAlign: "left", marginTop: -8 }}>
+              ℹ {infoMsg}
+            </div>
+          )}
+
+          {/* LOGIN button */}
+          <button type="submit" className="login-submit-btn" style={{ marginTop: 4 }}>
+            LOGIN
           </button>
+
+          {/* Remember me + Forgot password */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "#555", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                style={{ width: 15, height: 15, accentColor: "#3a8fa8", cursor: "pointer" }}
+              />
+              Remember me
+            </label>
+            <span
+              style={{ fontSize: 13, color: "#666", cursor: "pointer" }}
+              onClick={handleForgotPassword}
+            >
+              Forgot password?
+            </span>
+          </div>
         </form>
+      </div>
+
+      {/* Register link below card */}
+      <div style={{ marginTop: 36, textAlign: "center", width: "100%", maxWidth: 420 }}>
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.45)", marginBottom: 18 }} />
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.90)" }}>
+          Don't have an account?{" "}
+          <span
+            style={{ fontWeight: 700, color: "#fff", cursor: "pointer", letterSpacing: 0.5 }}
+            onClick={handleRegister}
+          >
+            REGISTER HERE
+          </span>
+        </p>
       </div>
     </div>
   );
@@ -227,7 +374,8 @@ function LoginModal({ onClose, onLogin }) {
 
 // ── Main Landing component ────────────────────────────────────────────────────
 export function Landing({ onLogin }) {
-  const [showLogin, setShowLogin] = useState(false);
+  // "landing" | "login"
+  const [view, setView] = useState("landing");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isMobile, width } = useViewport();
   const isDesktop = width >= 900;
@@ -323,7 +471,7 @@ export function Landing({ onLogin }) {
     { emoji: "📅", bg: "#fef3c7", title: "Exam Timetable", desc: "View upcoming exams and dates", onClick: scrollToAnnouncements },
     { emoji: "🔔", bg: "#ede9fe", title: "Announcements", desc: "Latest school notices & updates", onClick: scrollToAnnouncements },
     { emoji: "📥", bg: "#fee2e2", title: "Download Report", desc: "Download result sheets & reports", onClick: scrollToSearch },
-    { emoji: "👤", bg: "#cffafe", title: "Student / Parent Login", desc: "Access your account securely", onClick: () => setShowLogin(true) },
+    { emoji: "👤", bg: "#cffafe", title: "Student / Parent Login", desc: "Access your account securely", onClick: () => setView("login") },
   ];
 
   const ANNOUNCEMENTS = [
@@ -361,6 +509,18 @@ export function Landing({ onLogin }) {
     { emoji: "⭐", color: "#d97706", value: "Form IV A", label: "Top Class" },
     { emoji: "📈", color: "#2563eb", value: "76.8%", label: "Average Score" },
   ];
+
+  if (view === "login") {
+    return (
+      <LoginPage
+        onBack={() => setView("landing")}
+        onLogin={(creds) => {
+          setView("landing");
+          onLogin?.(creds);
+        }}
+      />
+    );
+  }
 
   return (
     <div style={{ fontFamily: FONT, background: "#f0f4fa", minHeight: "100vh", overflowX: "hidden" }}>
@@ -415,7 +575,7 @@ export function Landing({ onLogin }) {
           {/* Login button (desktop) or hamburger (mobile) */}
           {isDesktop ? (
             <button
-              onClick={() => setShowLogin(true)}
+              onClick={() => setView("login")}
               style={{ background: NAV_BG, color: "#fff", border: "none", borderRadius: 10, padding: "9px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(15,45,110,0.2)" }}
             >
               👤 Login
@@ -445,7 +605,7 @@ export function Landing({ onLogin }) {
             ))}
             <div style={{ padding: "8px 16px 0" }}>
               <button
-                onClick={() => { setShowLogin(true); setMobileMenuOpen(false); }}
+                onClick={() => { setView("login"); setMobileMenuOpen(false); }}
                 style={{ width: "100%", background: NAV_BG, color: "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
               >
                 👤 Login
@@ -497,7 +657,7 @@ export function Landing({ onLogin }) {
               <button className="landing-btn-outline" onClick={scrollToSearch}>
                 📊 Check Results
               </button>
-              <button className="landing-btn-outline" onClick={() => setShowLogin(true)}>
+              <button className="landing-btn-outline" onClick={() => setView("login")}>
                 👤 Login
               </button>
             </div>
@@ -899,17 +1059,6 @@ export function Landing({ onLogin }) {
           </span>
         </div>
       </footer>
-
-      {/* ── LOGIN MODAL ────────────────────────────────────────────────────── */}
-      {showLogin && (
-        <LoginModal
-          onClose={() => setShowLogin(false)}
-          onLogin={(creds) => {
-            setShowLogin(false);
-            onLogin?.(creds);
-          }}
-        />
-      )}
 
       {/* ── STUDENT PROFILE OVERLAY ─────────────────────────────────────────── */}
       {profileIndexNo && (
