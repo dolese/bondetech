@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { API } from "./api";
 import { useViewport } from "./utils/useViewport";
 
@@ -25,7 +25,37 @@ import { withPositions } from "./utils/grading";
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const FORMS = ["Form I", "Form II", "Form III", "Form IV"];
-const MOBILE_NAV_HEIGHT = 56;
+const MOBILE_NAV_HEIGHT = 94;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOTTOM NAV ICONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const HomeNavIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+  </svg>
+);
+const StudentsNavIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+  </svg>
+);
+const ResultsNavIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+    <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" />
+  </svg>
+);
+const ReportsNavIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+    <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+  </svg>
+);
+const SettingsNavIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+  </svg>
+);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROOT APP
@@ -972,28 +1002,45 @@ export default function App() {
       {isMobile && (
         <nav style={S.bottomNav}>
           {[
-            { key: "dashboard", icon: "📊", label: "Home" },
-            { key: "students",  icon: "👥", label: "Students" },
-            { key: "results",   icon: "📋", label: "Results" },
-            { key: "reports",   icon: "📄", label: "Reports" },
-            { key: "settings",  icon: "⚙️",  label: "Settings" },
-          ].map(item => {
+            { key: "dashboard", Icon: HomeNavIcon,     label: "Home"     },
+            { key: "students",  Icon: StudentsNavIcon, label: "Students" },
+            { key: "results",   Icon: ResultsNavIcon,  label: "Results"  },
+            { key: "reports",   Icon: ReportsNavIcon,  label: "Reports"  },
+            { key: "settings",  Icon: SettingsNavIcon, label: "Settings" },
+          ].map((item, idx) => {
+            const isActive = page === item.key;
             const disabled = item.key !== "dashboard" && !activeClass;
             return (
-              <button
-                key={item.key}
-                style={{
-                  ...S.tabBtn,
-                  ...(page === item.key ? S.tabBtnOn : {}),
-                  ...(disabled ? S.tabBtnDisabled : {}),
-                }}
-                disabled={disabled}
-                onClick={() => setPage(item.key)}
-                aria-label={item.label}
-              >
-                <span style={S.tabIcon}>{item.icon}</span>
-                <span style={S.tabLabel}>{item.label}</span>
-              </button>
+              <Fragment key={item.key}>
+                {idx > 0 && <div style={S.navTabDivider} />}
+                <button
+                  style={{
+                    ...S.tabBtn,
+                    ...(disabled ? S.tabBtnDisabled : {}),
+                  }}
+                  disabled={disabled}
+                  onClick={() => setPage(item.key)}
+                  aria-label={item.label}
+                >
+                  {isActive && <div style={S.tabActiveBar} />}
+                  <div
+                    style={{
+                      ...S.tabIconCircle,
+                      ...(isActive ? S.tabIconCircleActive : {}),
+                    }}
+                  >
+                    <item.Icon />
+                  </div>
+                  <span
+                    style={{
+                      ...S.tabLabel,
+                      ...(isActive ? S.tabLabelActive : {}),
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              </Fragment>
             );
           })}
         </nav>
@@ -1053,10 +1100,13 @@ const S = {
   btnGray: { background: "#eee", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
   btnRed: { background: "#cc2222", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
 
-  bottomNav: { position: "fixed", bottom: 0, left: 0, right: 0, height: MOBILE_NAV_HEIGHT, background: "#001a3d", display: "flex", alignItems: "stretch", zIndex: 30, borderTop: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 -4px 16px rgba(0,0,0,0.25)" },
-  tabBtn: { flex: 1, background: "none", border: "none", color: "rgba(200,216,240,0.55)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "4px 0", transition: "background 0.15s, color 0.15s" },
-  tabBtnOn: { color: "#7ab3ff", background: "rgba(100,160,255,0.15)" },
-  tabBtnDisabled: { opacity: 0.28, cursor: "not-allowed" },
-  tabIcon: { fontSize: 20, lineHeight: 1 },
-  tabLabel: { fontSize: 9, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" },
+  bottomNav: { position: "fixed", bottom: 14, left: 14, right: 14, height: 76, background: "#fff", borderRadius: 24, display: "flex", alignItems: "center", zIndex: 30, boxShadow: "0 4px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)", overflow: "visible" },
+  navTabDivider: { width: 1, height: 40, background: "rgba(0,0,0,0.07)", flexShrink: 0 },
+  tabBtn: { flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5, padding: "0 0 4px", position: "relative", height: "100%" },
+  tabBtnDisabled: { opacity: 0.3, cursor: "not-allowed" },
+  tabActiveBar: { position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 36, height: 3, borderRadius: 2, background: "#0da8a8" },
+  tabIconCircle: { width: 52, height: 52, borderRadius: "50%", background: "#eef0f6", display: "flex", alignItems: "center", justifyContent: "center", color: "#3d4f6e", transition: "transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease" },
+  tabIconCircleActive: { background: "linear-gradient(145deg, #1ac8c8, #0a8585)", color: "#fff", transform: "translateY(-16px)", boxShadow: "0 6px 20px rgba(0,168,168,0.45), 0 0 0 6px rgba(0,168,168,0.1)" },
+  tabLabel: { fontSize: 10, fontWeight: 600, color: "#8898aa", letterSpacing: 0.2, lineHeight: 1 },
+  tabLabelActive: { color: "#0da8a8", fontWeight: 700 },
 };
