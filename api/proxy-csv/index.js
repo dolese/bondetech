@@ -1,6 +1,6 @@
 const https = require("https");
 const http = require("http");
-const { readJsonBody, sendJson } = require("../_lib/http");
+const { readJsonBody, sendJson } = require("../../lib/http");
 
 const ALLOWED_PROTOCOLS = ["http:", "https:"];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB

@@ -1,5 +1,5 @@
-const { getDb } = require("../../../_lib/firebaseAdmin");
-const { sendJson } = require("../../../_lib/http");
+const { getDb } = require("../../../../lib/firebaseAdmin");
+const { sendJson } = require("../../../../lib/http");
 
 /**
  * GET /api/classes/:id/audit

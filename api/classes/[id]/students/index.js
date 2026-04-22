@@ -1,6 +1,6 @@
-const { getDb } = require("../../../_lib/firebaseAdmin");
-const { readJsonBody, sendJson } = require("../../../_lib/http");
-const { formatCno, sanitizeScores, sanitizeText, reserveCnoRange } = require("../../../_lib/students");
+const { getDb } = require("../../../../lib/firebaseAdmin");
+const { readJsonBody, sendJson } = require("../../../../lib/http");
+const { formatCno, sanitizeScores, sanitizeText, reserveCnoRange } = require("../../../../lib/students");
 
 const parseStudent = (doc, classId) => {
   const data = doc.data();
