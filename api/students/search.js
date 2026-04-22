@@ -1,5 +1,5 @@
-const { getDb } = require("../_lib/firebaseAdmin");
-const { sendJson } = require("../_lib/http");
+const { getDb } = require("../../lib/firebaseAdmin");
+const { sendJson } = require("../../lib/http");
 
 /**
  * GET /api/students/search?q=<name_or_index>&form=<form>&year=<year>&limit=<n>

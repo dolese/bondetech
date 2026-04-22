@@ -1,5 +1,5 @@
-const { getDb } = require("../../_lib/firebaseAdmin");
-const { readJsonBody, sendJson } = require("../../_lib/http");
+const { getDb } = require("../../../lib/firebaseAdmin");
+const { readJsonBody, sendJson } = require("../../../lib/http");
 
 const parseClass = (doc) => {
   const data = doc.data();
