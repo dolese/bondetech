@@ -1005,16 +1005,15 @@ export default function App() {
             { key: "dashboard", Icon: HomeNavIcon,     label: "Home"     },
             { key: "students",  Icon: StudentsNavIcon, label: "Students" },
             { key: "results",   Icon: ResultsNavIcon,  label: "Results"  },
-            { key: "reports",   Icon: ReportsNavIcon,  label: "Report"   },
+            { key: "reports",   Icon: ReportsNavIcon,  label: "Reports"  },
             { key: "settings",  Icon: SettingsNavIcon, label: "Settings" },
           ].map((item, idx) => {
             const isActive = page === item.key;
             const disabled = item.key !== "dashboard" && !activeClass;
             return (
               <Fragment key={item.key}>
-                {idx > 0 && <div style={S.navTabDivider} />}}
+                {idx > 0 && <div style={S.navTabDivider} />}
                 <button
-                  key={item.key}
                   style={{
                     ...S.tabBtn,
                     ...(disabled ? S.tabBtnDisabled : {}),
