@@ -166,6 +166,7 @@ function LoginPage({ onBack, onLogin }) {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [infoMsg, setInfoMsg] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -174,7 +175,17 @@ function LoginPage({ onBack, onLogin }) {
       return;
     }
     setError("");
-    onLogin?.({ username });
+    onLogin?.({ username, rememberMe });
+  };
+
+  const handleForgotPassword = () => {
+    setInfoMsg("Please contact the school administrator to reset your password.");
+    setTimeout(() => setInfoMsg(""), 4000);
+  };
+
+  const handleRegister = () => {
+    setInfoMsg("Registration is managed by the school administrator. Please contact the office.");
+    setTimeout(() => setInfoMsg(""), 4000);
   };
 
   return (
@@ -312,6 +323,11 @@ function LoginPage({ onBack, onLogin }) {
               ⚠ {error}
             </div>
           )}
+          {infoMsg && (
+            <div style={{ fontSize: 12, color: "#1a2040", background: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "8px 12px", textAlign: "left", marginTop: -8 }}>
+              ℹ {infoMsg}
+            </div>
+          )}
 
           {/* LOGIN button */}
           <button type="submit" className="login-submit-btn" style={{ marginTop: 4 }}>
@@ -331,7 +347,7 @@ function LoginPage({ onBack, onLogin }) {
             </label>
             <span
               style={{ fontSize: 13, color: "#666", cursor: "pointer" }}
-              onClick={() => {}}
+              onClick={handleForgotPassword}
             >
               Forgot password?
             </span>
@@ -343,10 +359,10 @@ function LoginPage({ onBack, onLogin }) {
       <div style={{ marginTop: 36, textAlign: "center", width: "100%", maxWidth: 420 }}>
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.45)", marginBottom: 18 }} />
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.90)" }}>
-          Don't have a account ?{" "}
+          Don't have an account?{" "}
           <span
             style={{ fontWeight: 700, color: "#fff", cursor: "pointer", letterSpacing: 0.5 }}
-            onClick={() => {}}
+            onClick={handleRegister}
           >
             REGISTER HERE
           </span>
