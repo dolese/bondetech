@@ -59,6 +59,10 @@
       "destination": "/api/backup/index.js"
     },
     {
+      "source": "/api/health",
+      "destination": "/api/stats/index.js"
+    },
+    {
       "source": "/api/stats",
       "destination": "/api/stats/index.js"
     },
