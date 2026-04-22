@@ -32,10 +32,13 @@ function MiniBarChart() {
 // ── School crest icon ─────────────────────────────────────────────────────────
 function SchoolCrest({ size = 40 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-      <path d="M20 3 L35 9 L35 22 C35 30 28 36 20 38 C12 36 5 30 5 22 L5 9 Z" fill="#1a3a7c" stroke="#f59e0b" strokeWidth="1.5" />
-      <text x="20" y="24" textAnchor="middle" fontSize="14" fill="#f59e0b" fontWeight="bold">B</text>
-    </svg>
+    <img
+      src="/asset/bonde.jpg"
+      alt="BONDE Secondary School Logo"
+      width={size}
+      height={size}
+      style={{ objectFit: "contain", borderRadius: 4 }}
+    />
   );
 }
 
