@@ -200,7 +200,8 @@ function LoginPage({ onBack, onLogin }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "24px 16px",
+        // 100px top = 82px floating avatar + ~18px safe gap; ensures avatar is never clipped even on short/landscape screens
+        padding: "100px 16px 40px",
         fontFamily: "'Poppins', 'Segoe UI', sans-serif",
         position: "relative",
       }}
@@ -230,6 +231,24 @@ function LoginPage({ onBack, onLogin }) {
           transition: background 0.18s, box-shadow 0.18s;
         }
         .login-submit-btn:hover { background: #2e7d96; box-shadow: 0 8px 24px rgba(58,143,168,0.45); }
+        .login-card-inner {
+          padding: 44px 36px 36px;
+          width: 100%;
+          max-width: 420px;
+          box-sizing: border-box;
+        }
+        .login-footer-section {
+          width: 100%;
+          max-width: 420px;
+          box-sizing: border-box;
+        }
+        @media (max-width: 480px) {
+          .login-card-inner { padding: 44px 20px 28px; }
+        }
+        @media (min-width: 1024px) {
+          .login-card-inner { padding: 52px 48px 44px; max-width: 460px; }
+          .login-footer-section { max-width: 460px; }
+        }
       `}</style>
 
       {/* Back button */}
@@ -239,15 +258,13 @@ function LoginPage({ onBack, onLogin }) {
 
       {/* Glass card */}
       <div
+        className="login-card-inner"
         style={{
           background: "rgba(255,255,255,0.22)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
           border: "1px solid rgba(255,255,255,0.45)",
           borderRadius: 22,
-          padding: "44px 36px 36px",
-          width: "100%",
-          maxWidth: 420,
           boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
           position: "relative",
           textAlign: "center",
@@ -359,7 +376,7 @@ function LoginPage({ onBack, onLogin }) {
       </div>
 
       {/* Register link below card */}
-      <div style={{ marginTop: 36, textAlign: "center", width: "100%", maxWidth: 420 }}>
+      <div className="login-footer-section" style={{ marginTop: 36, textAlign: "center" }}>
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.45)", marginBottom: 18 }} />
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.90)" }}>
           Don't have an account?{" "}
