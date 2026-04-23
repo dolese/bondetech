@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { API } from "./api";
 import { useViewport } from "./utils/useViewport";
+import { useTheme } from "./utils/ThemeContext";
+import { themeColors } from "./utils/themeColors";
 
 // Import extracted components
 import { Dashboard } from "./components/Dashboard";
@@ -126,6 +128,8 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState(null);
   const [searchProfileIndexNo, setSearchProfileIndexNo] = useState(null);
   const { isMobile } = useViewport();
+  const { dark, toggleDark } = useTheme();
+  const t = themeColors(dark);
   const topBarHeight = isMobile ? 52 : 46;
 
   const showToast = (msg, type = "success") => {
@@ -610,11 +614,11 @@ export default function App() {
       flexDirection: "column",
       gap: 16,
       padding: 24,
-      background: "#f8fafc",
+      background: t.bgCard,
     }}>
       <div style={{ fontSize: 52 }}>📂</div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: "#003366" }}>No class selected</div>
-      <div style={{ fontSize: 13, color: "#555", textAlign: "center", maxWidth: 260, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: t.header }}>No class selected</div>
+      <div style={{ fontSize: 13, color: t.textMuted, textAlign: "center", maxWidth: 260, lineHeight: 1.5 }}>
         {isMobile
           ? "Tap the button below to browse classes."
           : "Choose a class from the sidebar to get started."}
@@ -648,7 +652,7 @@ export default function App() {
   ];
 
   return (
-    <div style={{ ...S.root, ...(isMobile ? { overflow: "hidden" } : {}) }}>
+    <div style={{ ...S.root, background: t.bgPage, color: t.text, ...(isMobile ? { overflow: "hidden" } : {}) }}>
       {toast && (
         <div
           style={{

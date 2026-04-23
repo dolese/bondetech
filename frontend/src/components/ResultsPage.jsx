@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { AnalysisPanel } from "./AnalysisPanel";
 import { ResultSheet } from "./ResultSheet";
+import { MonthlyAveragePanel } from "./MonthlyAveragePanel";
 import { useViewport } from "../utils/useViewport";
 
 export function ResultsPage({ classData, computed, onOpenReportCard }) {
@@ -8,9 +9,12 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
   const { isMobile } = useViewport();
   const topOffset = isMobile ? 52 : 46;
 
+  const hasMonthly = Array.isArray(classData.monthly_exams) && classData.monthly_exams.length > 0;
+
   const tabs = [
     { key: "analysis", label: "📊 Analysis" },
     { key: "sheet", label: "📄 Sheet" },
+    ...(hasMonthly ? [{ key: "monthly", label: "📅 Monthly" }] : []),
   ];
 
   return (
@@ -68,6 +72,9 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
             computed={computed}
             onOpenReportCard={onOpenReportCard}
           />
+        )}
+        {tab === "monthly" && (
+          <MonthlyAveragePanel classData={classData} />
         )}
       </div>
     </div>
