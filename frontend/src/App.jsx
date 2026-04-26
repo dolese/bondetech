@@ -8,6 +8,7 @@ import { StudentsPage } from "./components/StudentsPage";
 import { ResultsPage } from "./components/ResultsPage";
 import { ReportsPage } from "./components/ReportsPage";
 import { SettingsPage } from "./components/SettingsPage";
+import { AccountPage } from "./components/AccountPage";
 import { ReportCardModal } from "./components/ReportCardModal";
 import { CSVImportModal } from "./components/CSVImportModal";
 import { JSONImportModal } from "./components/JSONImportModal";
@@ -26,6 +27,7 @@ import { withPositions } from "./utils/grading";
 
 const FORMS = ["Form I", "Form II", "Form III", "Form IV"];
 const MOBILE_NAV_HEIGHT = 94;
+const ACCOUNT_STORAGE_KEY = "bonde-account-profile";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BOTTOM NAV ICONS
@@ -107,6 +109,15 @@ const toApiStudent = (student) => ({
 });
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem(ACCOUNT_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
   const [classes, setClasses] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [activeExam, setActiveExam] = useState(DEFAULT_EXAM_TYPE);
@@ -128,10 +139,57 @@ export default function App() {
   const { isMobile } = useViewport();
   const topBarHeight = isMobile ? 52 : 46;
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (currentUser) {
+        window.localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(currentUser));
+      } else {
+        window.localStorage.removeItem(ACCOUNT_STORAGE_KEY);
+      }
+    } catch {
+      // Persistence is best-effort only.
+    }
+  }, [currentUser]);
+
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2500);
   };
+
+  const handleLogin = useCallback((creds = {}) => {
+    const username = String(creds.username ?? "").trim() || "Operator";
+    setCurrentUser((prev) => ({
+      username,
+      displayName: prev?.displayName || username,
+      role: prev?.role || "School Administrator",
+      email: prev?.email || "",
+      phone: prev?.phone || "",
+      rememberMe: Boolean(creds.rememberMe),
+      loginAt: new Date().toISOString(),
+    }));
+    setLoggedIn(true);
+    setPage("dashboard");
+  }, []);
+
+  const handleSaveAccount = useCallback(async (updates) => {
+    setCurrentUser((prev) => ({
+      username: prev?.username || "Operator",
+      displayName: prev?.displayName || prev?.username || "Operator",
+      role: prev?.role || "School Administrator",
+      email: prev?.email || "",
+      phone: prev?.phone || "",
+      ...updates,
+    }));
+    showToast("Account updated");
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setLoggedIn(false);
+    setClasses([]);
+    setActiveId(null);
+    setPage("dashboard");
+  }, []);
 
   useEffect(() => {
     if (!loggedIn) return;
@@ -573,10 +631,7 @@ export default function App() {
   if (!loggedIn) {
     return (
       <Landing
-        onLogin={() => {
-          setLoggedIn(true);
-          setPage("dashboard");
-        }}
+        onLogin={handleLogin}
       />
     );
   }
@@ -586,11 +641,13 @@ export default function App() {
 
   const sidebarWidth = 240;
   const isClassPage = ["students", "results", "reports", "settings"].includes(page);
+  const accountLabel = currentUser?.displayName || currentUser?.username || "Account";
 
   // Top bar label
   const topBarLabel = (() => {
     if (page === "dashboard") return "📊 Dashboard";
     if (page === "profile") return "👤 Student Profile";
+    if (page === "account") return "Account";
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
@@ -809,6 +866,14 @@ export default function App() {
             </button>
           ))}
 
+          <div style={S.sideSection}>ACCOUNT</div>
+          <button
+            onClick={() => { setPage("account"); closeSide(); }}
+            style={{ ...S.navBtn, ...(page === "account" ? S.navBtnOn : {}) }}
+          >
+            {accountLabel}
+          </button>
+
           <div style={S.sideFooter}>
             <span style={{ color: "#5dbb6b", fontSize: 10, fontWeight: 700 }}>🗄️ Firebase / Firestore</span>
             <br />
@@ -835,13 +900,15 @@ export default function App() {
             <span style={S.topCls}>{topBarLabel}</span>
           )}
           <button
+            style={{ ...S.accountBtn, ...(page === "account" ? S.accountBtnOn : {}), ...(isMobile ? { padding: "5px 8px", fontSize: 10 } : {}) }}
+            onClick={() => setPage("account")}
+            title="Open account"
+          >
+            {accountLabel}
+          </button>
+          <button
             style={{ ...S.logoutBtn, ...(isMobile ? { padding: "5px 8px", fontSize: 10 } : {}) }}
-            onClick={() => {
-              setLoggedIn(false);
-              setClasses([]);
-              setActiveId(null);
-              setPage("dashboard");
-            }}
+            onClick={handleLogout}
           >
             Log out
           </button>
@@ -876,6 +943,14 @@ export default function App() {
                 setSearchProfileIndexNo(indexNo);
                 setPage("profile");
               }}
+            />
+          )}
+
+          {page === "account" && (
+            <AccountPage
+              user={currentUser}
+              onSaveProfile={handleSaveAccount}
+              onLogout={handleLogout}
             />
           )}
 
@@ -1091,6 +1166,8 @@ const S = {
   menuBtn: { background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", padding: "4px 6px" },
   topBrand: { color: "#fff", fontWeight: 800, fontSize: 13, flex: 1, letterSpacing: 0.3 },
   topCls: { color: "#d7e6ff", fontSize: 11, fontWeight: 700, background: "rgba(255,255,255,0.12)", padding: "4px 10px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)" },
+  accountBtn: { background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "6px 10px", borderRadius: 6, cursor: "pointer", maxWidth: 150, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  accountBtnOn: { background: "rgba(90,180,255,0.22)", border: "1px solid rgba(90,180,255,0.35)" },
   logoutBtn: { background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "6px 10px", borderRadius: 6, cursor: "pointer" },
   content: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 },
 
