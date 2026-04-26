@@ -170,6 +170,8 @@ function LoginPage({ onBack, onLogin }) {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [infoMsg, setInfoMsg] = useState("");
+  const { isMobile, width } = useViewport();
+  const isWide = width >= 980;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -195,61 +197,99 @@ function LoginPage({ onBack, onLogin }) {
     <div
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #c9a8d4 0%, #a8aedd 25%, #88c8d8 55%, #5a80c8 100%)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        // 100px top = 82px floating avatar + ~18px safe gap; ensures avatar is never clipped even on short/landscape screens
-        padding: "100px 16px 40px",
+        padding: isMobile ? "92px 16px 28px" : "112px 20px 40px",
         fontFamily: "'Poppins', 'Segoe UI', sans-serif",
         position: "relative",
+        backgroundImage: "url('/asset/loginback.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        overflow: "hidden",
       }}
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+        .login-overlay {
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(125deg, rgba(4,18,35,0.88) 0%, rgba(7,35,61,0.72) 42%, rgba(11,61,92,0.56) 100%),
+            radial-gradient(circle at top right, rgba(255, 205, 96, 0.18), transparent 30%);
+        }
+        .login-panel {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          max-width: 460px;
+        }
         .login-input {
           flex: 1; border: none; outline: none; font-size: 15px;
-          color: #555; background: transparent; font-family: inherit;
+          color: #17324d; background: transparent; font-family: inherit;
           padding: 0;
         }
-        .login-input::placeholder { color: #aaa; }
+        .login-input::placeholder { color: #7890a7; }
         .login-back-btn {
-          position: absolute; top: 20px; left: 20px;
-          background: rgba(255,255,255,0.25); border: none; border-radius: 10px;
-          padding: 8px 16px; color: #fff; font-size: 13px; font-weight: 600;
+          position: absolute; top: 18px; left: 18px; z-index: 2;
+          background: rgba(4,18,35,0.42); border: 1px solid rgba(255,255,255,0.16); border-radius: 999px;
+          padding: 10px 16px; color: #fff; font-size: 13px; font-weight: 600;
           cursor: pointer; display: flex; align-items: center; gap: 6px;
-          font-family: inherit; backdrop-filter: blur(4px);
-          transition: background 0.18s;
+          font-family: inherit; backdrop-filter: blur(10px);
+          transition: background 0.18s, transform 0.18s;
         }
-        .login-back-btn:hover { background: rgba(255,255,255,0.38); }
+        .login-back-btn:hover { background: rgba(4,18,35,0.58); transform: translateY(-1px); }
         .login-submit-btn {
-          width: 100%; background: #3a8fa8; color: #fff; border: none;
-          border-radius: 10px; padding: 16px 0; font-size: 15px; font-weight: 700;
-          letter-spacing: 2px; cursor: pointer; font-family: inherit;
-          box-shadow: 0 6px 18px rgba(58,143,168,0.38);
-          transition: background 0.18s, box-shadow 0.18s;
+          width: 100%; background: linear-gradient(135deg, #0f5579, #1f8e9d); color: #fff; border: none;
+          border-radius: 16px; padding: 16px 0; font-size: 14px; font-weight: 800;
+          letter-spacing: 0.18em; cursor: pointer; font-family: inherit;
+          box-shadow: 0 16px 28px rgba(19,104,133,0.30);
+          transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
         }
-        .login-submit-btn:hover { background: #2e7d96; box-shadow: 0 8px 24px rgba(58,143,168,0.45); }
+        .login-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 20px 34px rgba(19,104,133,0.36); filter: brightness(1.03); }
         .login-card-inner {
-          padding: 44px 36px 36px;
+          padding: 32px 28px 26px;
           width: 100%;
-          max-width: 420px;
           box-sizing: border-box;
+          border-radius: 28px;
+          background: rgba(242,247,251,0.78);
+          border: 1px solid rgba(255,255,255,0.34);
+          box-shadow: 0 26px 56px rgba(4,18,35,0.26);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
         }
         .login-footer-section {
           width: 100%;
-          max-width: 420px;
           box-sizing: border-box;
         }
+        .login-meta-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 18px;
+          padding: 8px 12px;
+          border-radius: 999px;
+          background: rgba(15,85,121,0.09);
+          border: 1px solid rgba(15,85,121,0.12);
+          color: #0f5579;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
         @media (max-width: 480px) {
-          .login-card-inner { padding: 44px 20px 28px; }
+          .login-back-btn { top: 14px; left: 14px; }
+          .login-card-inner { padding: 24px 18px 20px; border-radius: 22px; }
         }
         @media (min-width: 1024px) {
-          .login-card-inner { padding: 52px 48px 44px; max-width: 460px; }
-          .login-footer-section { max-width: 460px; }
+          .login-panel { max-width: 490px; }
+          .login-card-inner { padding: 36px 34px 28px; }
         }
       `}</style>
+
+      <div className="login-overlay" />
 
       {/* Back button */}
       <button className="login-back-btn" onClick={onBack}>
@@ -258,16 +298,12 @@ function LoginPage({ onBack, onLogin }) {
 
       {/* Glass card */}
       <div
-        className="login-card-inner"
+        className="login-panel login-card-inner"
         style={{
-          background: "rgba(255,255,255,0.22)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          border: "1px solid rgba(255,255,255,0.45)",
-          borderRadius: 22,
-          boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
           position: "relative",
           textAlign: "center",
+          zIndex: 1,
+          maxWidth: 460,
         }}
       >
         {/* Avatar */}
@@ -275,38 +311,46 @@ function LoginPage({ onBack, onLogin }) {
           style={{
             width: 82,
             height: 82,
-            borderRadius: "50%",
-            background: "#3a8fa8",
-            border: "4px solid rgba(255,255,255,0.7)",
+            borderRadius: 24,
+            background: "linear-gradient(145deg, #0f5579, #1f8e9d)",
+            border: "4px solid rgba(255,255,255,0.78)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            margin: "-82px auto 22px",
-            boxShadow: "0 4px 18px rgba(0,0,0,0.18)",
+            margin: "0 auto 20px",
+            boxShadow: "0 18px 34px rgba(15,85,121,0.28)",
           }}
         >
-          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.92)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+          <SchoolCrest size={44} />
         </div>
 
-        <div style={{ fontSize: 26, fontWeight: 400, color: "#555", marginBottom: 28, letterSpacing: 0.5 }}>Sign In</div>
+        <div className="login-meta-chip">
+          <span>Academic portal</span>
+          {isWide && <span>System online</span>}
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#688198", marginBottom: 8 }}>
+          BONDE Secondary School
+        </div>
+        <div style={{ fontSize: 30, fontWeight: 800, color: "#102a43", marginBottom: 10, lineHeight: 1.08 }}>Sign in</div>
+        <div style={{ fontSize: 13, color: "#52667a", lineHeight: 1.7, marginBottom: 24 }}>
+          Continue to the results dashboard to manage classes, students, and report cards securely.
+        </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* Username field */}
           <div
             style={{
-              background: "#fff",
-              borderRadius: 10,
+              background: "rgba(255,255,255,0.88)",
+              borderRadius: 16,
               display: "flex",
               alignItems: "center",
-              padding: "14px 16px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+              padding: "16px 18px",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
+              border: "1px solid rgba(83,120,154,0.16)",
             }}
           >
-            <PersonIcon size={22} color="#777" />
-            <div style={{ width: 1, height: 24, background: "#ddd", margin: "0 14px" }} />
+            <PersonIcon size={22} color="#4d6a85" />
+            <div style={{ width: 1, height: 24, background: "rgba(83,120,154,0.18)", margin: "0 14px" }} />
             <input
               className="login-input"
               placeholder="Username"
@@ -319,16 +363,17 @@ function LoginPage({ onBack, onLogin }) {
           {/* Password field */}
           <div
             style={{
-              background: "#fff",
-              borderRadius: 10,
+              background: "rgba(255,255,255,0.88)",
+              borderRadius: 16,
               display: "flex",
               alignItems: "center",
-              padding: "14px 16px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+              padding: "16px 18px",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
+              border: "1px solid rgba(83,120,154,0.16)",
             }}
           >
-            <LockIcon size={22} color="#777" />
-            <div style={{ width: 1, height: 24, background: "#ddd", margin: "0 14px" }} />
+            <LockIcon size={22} color="#4d6a85" />
+            <div style={{ width: 1, height: 24, background: "rgba(83,120,154,0.18)", margin: "0 14px" }} />
             <input
               className="login-input"
               type="password"
@@ -339,34 +384,34 @@ function LoginPage({ onBack, onLogin }) {
           </div>
 
           {error && (
-            <div style={{ fontSize: 12, color: "#c0392b", fontWeight: 600, textAlign: "left", marginTop: -8 }}>
+            <div style={{ fontSize: 12, color: "#b42318", fontWeight: 700, textAlign: "left", marginTop: -4 }}>
               ⚠ {error}
             </div>
           )}
           {infoMsg && (
-            <div style={{ fontSize: 12, color: "#1a2040", background: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "8px 12px", textAlign: "left", marginTop: -8 }}>
+            <div style={{ fontSize: 12, color: "#17324d", background: "rgba(20,85,124,0.08)", borderRadius: 12, padding: "10px 12px", textAlign: "left", marginTop: -4, lineHeight: 1.6 }}>
               ℹ {infoMsg}
             </div>
           )}
 
           {/* LOGIN button */}
-          <button type="submit" className="login-submit-btn" style={{ marginTop: 4 }}>
+          <button type="submit" className="login-submit-btn" style={{ marginTop: 2 }}>
             LOGIN
           </button>
 
           {/* Remember me + Forgot password */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "#555", cursor: "pointer" }}>
+          <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", gap: 12, marginTop: 2 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#425466", cursor: "pointer", fontWeight: 500 }}>
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                style={{ width: 15, height: 15, accentColor: "#3a8fa8", cursor: "pointer" }}
+                style={{ width: 15, height: 15, accentColor: "#0f5579", cursor: "pointer" }}
               />
-              Remember me
+              Keep me signed in
             </label>
             <span
-              style={{ fontSize: 13, color: "#666", cursor: "pointer" }}
+              style={{ fontSize: 13, color: "#0f5579", cursor: "pointer", fontWeight: 700 }}
               onClick={handleForgotPassword}
             >
               Forgot password?
@@ -376,15 +421,15 @@ function LoginPage({ onBack, onLogin }) {
       </div>
 
       {/* Register link below card */}
-      <div className="login-footer-section" style={{ marginTop: 36, textAlign: "center" }}>
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.45)", marginBottom: 18 }} />
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.90)" }}>
-          Don't have an account?{" "}
+      <div className="login-footer-section" style={{ marginTop: 18, textAlign: "center", zIndex: 1 }}>
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.24)", marginBottom: 16 }} />
+        <p style={{ fontSize: 13, color: "rgba(244,247,252,0.92)", lineHeight: 1.7, margin: 0 }}>
+          Need access for the first time?{" "}
           <span
-            style={{ fontWeight: 700, color: "#fff", cursor: "pointer", letterSpacing: 0.5 }}
+            style={{ fontWeight: 800, color: "#fff", cursor: "pointer", letterSpacing: "0.04em" }}
             onClick={handleRegister}
           >
-            REGISTER HERE
+            CONTACT THE ADMINISTRATOR
           </span>
         </p>
       </div>
