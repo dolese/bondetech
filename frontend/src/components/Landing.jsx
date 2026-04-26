@@ -201,7 +201,7 @@ function LoginPage({ onBack, onLogin }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: isMobile ? "92px 16px 28px" : "112px 20px 40px",
+        padding: isMobile ? "74px 12px 18px" : "112px 20px 40px",
         fontFamily: "'Poppins', 'Segoe UI', sans-serif",
         position: "relative",
         backgroundImage: "url('/asset/loginback.png')",
@@ -225,6 +225,41 @@ function LoginPage({ onBack, onLogin }) {
           z-index: 1;
           width: 100%;
           max-width: 460px;
+        }
+        .login-field-wrap {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .login-field-label {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #587087;
+        }
+        .login-field {
+          width: 100%;
+          background: rgba(255,255,255,0.9);
+          border: 1px solid rgba(83,120,154,0.18);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          padding: 14px 16px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+          transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+        }
+        .login-field:focus-within {
+          border-color: rgba(15,85,121,0.55);
+          box-shadow: 0 0 0 4px rgba(15,85,121,0.12), inset 0 1px 0 rgba(255,255,255,0.72);
+          transform: translateY(-1px);
+        }
+        .login-field-divider {
+          width: 1px;
+          height: 24px;
+          background: rgba(83,120,154,0.18);
+          margin: 0 14px;
         }
         .login-input {
           flex: 1; border: none; outline: none; font-size: 15px;
@@ -281,7 +316,12 @@ function LoginPage({ onBack, onLogin }) {
         }
         @media (max-width: 480px) {
           .login-back-btn { top: 14px; left: 14px; }
-          .login-card-inner { padding: 24px 18px 20px; border-radius: 22px; }
+          .login-panel { max-width: 340px; }
+          .login-card-inner { padding: 18px 14px 16px; border-radius: 20px; }
+          .login-meta-chip { margin-bottom: 14px; padding: 7px 10px; }
+          .login-field { padding: 12px 14px; border-radius: 14px; }
+          .login-input { font-size: 14px; }
+          .login-submit-btn { padding: 14px 0; }
         }
         @media (min-width: 1024px) {
           .login-panel { max-width: 490px; }
@@ -303,7 +343,7 @@ function LoginPage({ onBack, onLogin }) {
           position: "relative",
           textAlign: "center",
           zIndex: 1,
-          maxWidth: 460,
+          maxWidth: isMobile ? 340 : 460,
         }}
       >
         {/* Avatar */}
@@ -337,51 +377,35 @@ function LoginPage({ onBack, onLogin }) {
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Username field */}
-          <div
-            style={{
-              background: "rgba(255,255,255,0.88)",
-              borderRadius: 16,
-              display: "flex",
-              alignItems: "center",
-              padding: "16px 18px",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
-              border: "1px solid rgba(83,120,154,0.16)",
-            }}
-          >
-            <PersonIcon size={22} color="#4d6a85" />
-            <div style={{ width: 1, height: 24, background: "rgba(83,120,154,0.18)", margin: "0 14px" }} />
-            <input
-              className="login-input"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoFocus
-            />
-          </div>
+          <label className="login-field-wrap">
+            <span className="login-field-label">Username</span>
+            <div className="login-field">
+              <PersonIcon size={22} color="#4d6a85" />
+              <div className="login-field-divider" />
+              <input
+                className="login-input"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </label>
 
-          {/* Password field */}
-          <div
-            style={{
-              background: "rgba(255,255,255,0.88)",
-              borderRadius: 16,
-              display: "flex",
-              alignItems: "center",
-              padding: "16px 18px",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
-              border: "1px solid rgba(83,120,154,0.16)",
-            }}
-          >
-            <LockIcon size={22} color="#4d6a85" />
-            <div style={{ width: 1, height: 24, background: "rgba(83,120,154,0.18)", margin: "0 14px" }} />
-            <input
-              className="login-input"
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <label className="login-field-wrap">
+            <span className="login-field-label">Password</span>
+            <div className="login-field">
+              <LockIcon size={22} color="#4d6a85" />
+              <div className="login-field-divider" />
+              <input
+                className="login-input"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </label>
 
           {error && (
             <div style={{ fontSize: 12, color: "#b42318", fontWeight: 700, textAlign: "left", marginTop: -4 }}>
@@ -438,9 +462,7 @@ function LoginPage({ onBack, onLogin }) {
 }
 
 // ── Main Landing component ────────────────────────────────────────────────────
-export function Landing({ onLogin }) {
-  // "landing" | "login"
-  const [view, setView] = useState("landing");
+function HomePage({ onOpenLogin }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isMobile, width } = useViewport();
   const isDesktop = width >= 900;
@@ -536,7 +558,7 @@ export function Landing({ onLogin }) {
     { emoji: "📅", bg: "#fef3c7", title: "Exam Timetable", desc: "View upcoming exams and dates", onClick: scrollToAnnouncements },
     { emoji: "🔔", bg: "#ede9fe", title: "Announcements", desc: "Latest school notices & updates", onClick: scrollToAnnouncements },
     { emoji: "📥", bg: "#fee2e2", title: "Download Report", desc: "Download result sheets & reports", onClick: scrollToSearch },
-    { emoji: "👤", bg: "#cffafe", title: "Student / Parent Login", desc: "Access your account securely", onClick: () => setView("login") },
+    { emoji: "👤", bg: "#cffafe", title: "Student / Parent Login", desc: "Access your account securely", onClick: onOpenLogin },
   ];
 
   const ANNOUNCEMENTS = [
@@ -574,18 +596,6 @@ export function Landing({ onLogin }) {
     { emoji: "⭐", color: "#d97706", value: "Form IV A", label: "Top Class" },
     { emoji: "📈", color: "#2563eb", value: "76.8%", label: "Average Score" },
   ];
-
-  if (view === "login") {
-    return (
-      <LoginPage
-        onBack={() => setView("landing")}
-        onLogin={(creds) => {
-          setView("landing");
-          onLogin?.(creds);
-        }}
-      />
-    );
-  }
 
   return (
     <div style={{ fontFamily: FONT, background: "#f0f4fa", minHeight: "100vh", overflowX: "hidden" }}>
@@ -640,7 +650,7 @@ export function Landing({ onLogin }) {
           {/* Login button (desktop) or hamburger (mobile) */}
           {isDesktop ? (
             <button
-              onClick={() => setView("login")}
+              onClick={onOpenLogin}
               style={{ background: NAV_BG, color: "#fff", border: "none", borderRadius: 10, padding: "9px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(15,45,110,0.2)" }}
             >
               👤 Login
@@ -670,7 +680,7 @@ export function Landing({ onLogin }) {
             ))}
             <div style={{ padding: "8px 16px 0" }}>
               <button
-                onClick={() => { setView("login"); setMobileMenuOpen(false); }}
+                onClick={() => { onOpenLogin?.(); setMobileMenuOpen(false); }}
                 style={{ width: "100%", background: NAV_BG, color: "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
               >
                 👤 Login
@@ -722,7 +732,7 @@ export function Landing({ onLogin }) {
               <button className="landing-btn-outline" onClick={scrollToSearch}>
                 📊 Check Results
               </button>
-              <button className="landing-btn-outline" onClick={() => setView("login")}>
+              <button className="landing-btn-outline" onClick={onOpenLogin}>
                 👤 Login
               </button>
             </div>
@@ -1175,4 +1185,22 @@ export function Landing({ onLogin }) {
       )}
     </div>
   );
+}
+
+export function Landing({ onLogin }) {
+  const [view, setView] = useState("home");
+
+  if (view === "login") {
+    return (
+      <LoginPage
+        onBack={() => setView("home")}
+        onLogin={(creds) => {
+          setView("home");
+          onLogin?.(creds);
+        }}
+      />
+    );
+  }
+
+  return <HomePage onOpenLogin={() => setView("login")} />;
 }
