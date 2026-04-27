@@ -1,25 +1,29 @@
 import React, { useMemo } from "react";
 import { GRADE_COLORS, DIVISION_COLORS } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 
 export function AnalysisPanel({ classData, computed }) {
   const present = (computed ?? []).filter(s => s.total !== null);
   const { isMobile } = useViewport();
+  const { dark } = useTheme();
+  const t = themeColors(dark);
 
   if (!present.length) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 14 }}>
-        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#003366" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 14, background: t.bgPage, flex: 1 }}>
+        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: t.header }}>
           📊 Analysis & Statistics
         </h2>
         <div
           style={{
-            background: "#fff",
-            border: "1px dashed #c8d8f8",
+            background: t.bgCard,
+            border: `1px dashed ${t.borderDash}`,
             borderRadius: 8,
             padding: 16,
             textAlign: "center",
-            color: "#666",
+            color: t.textMuted,
             fontSize: 12,
           }}
         >
@@ -105,9 +109,10 @@ export function AnalysisPanel({ classData, computed }) {
       gap: 12,
       minHeight: 0,
       minWidth: 0,
+      background: t.bgPage,
     },
     card: {
-      background: "#fff",
+      background: t.bgCard,
       borderRadius: 10,
       padding: isMobile ? 10 : 12,
       boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
@@ -116,8 +121,8 @@ export function AnalysisPanel({ classData, computed }) {
       margin: "0 0 12px",
       fontSize: isMobile ? 11 : 12,
       fontWeight: 800,
-      color: "#003366",
-      borderBottom: "1.5px solid #e4ecff",
+      color: t.header,
+      borderBottom: `1.5px solid ${t.borderLight}`,
       paddingBottom: 6,
     },
     grid: {
@@ -129,10 +134,10 @@ export function AnalysisPanel({ classData, computed }) {
 
   return (
     <div style={styles.panel}>
-      <h2 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 900, color: "#003366" }}>
+      <h2 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 900, color: t.header }}>
         📊 Analysis & Statistics
       </h2>
-      <div style={{ fontSize: 11, color: "#667", marginTop: -4 }}>
+      <div style={{ fontSize: 11, color: t.textMuted, marginTop: -4 }}>
         Performance breakdowns for this class.
       </div>
 
@@ -145,22 +150,22 @@ export function AnalysisPanel({ classData, computed }) {
               <div style={{ fontSize: 14, fontWeight: 900, color: "#0077aa" }}>
                 {maleStudents.length}
               </div>
-              <div style={{ fontSize: 10, color: "#666", marginTop: 2, fontWeight: 700 }}>
+              <div style={{ fontSize: 10, color: t.textMuted, marginTop: 2, fontWeight: 700 }}>
                 Male Students
               </div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#003366", marginTop: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: t.header, marginTop: 8 }}>
                 {getMaleAvg()} avg
               </div>
             </div>
-            <div style={{ fontSize: 2, color: "#ddd" }}></div>
+            <div style={{ fontSize: 2, color: t.border }}></div>
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#c041a3" }}>
                 {femaleStudents.length}
               </div>
-              <div style={{ fontSize: 10, color: "#666", marginTop: 2, fontWeight: 700 }}>
+              <div style={{ fontSize: 10, color: t.textMuted, marginTop: 2, fontWeight: 700 }}>
                 Female Students
               </div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#003366", marginTop: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: t.header, marginTop: 8 }}>
                 {getFemaleAvg()} avg
               </div>
             </div>
@@ -178,7 +183,7 @@ export function AnalysisPanel({ classData, computed }) {
                     fontSize: 10,
                     width: 60,
                     fontWeight: 700,
-                    color: "#333",
+                    color: t.text,
                   }}
                 >
                   Div {div}
@@ -186,7 +191,7 @@ export function AnalysisPanel({ classData, computed }) {
                 <div
                   style={{
                     flex: 1,
-                    background: "#e8edf5",
+                    background: t.bgCardAlt,
                     borderRadius: 4,
                     height: 12,
                     overflow: "hidden",
@@ -229,7 +234,7 @@ export function AnalysisPanel({ classData, computed }) {
               }}
             >
               <thead>
-                <tr style={{ background: "#003366", color: "#fff" }}>
+                <tr style={{ background: t.tableHeader, color: "#fff" }}>
                   {["Subject", "Avg", "Min", "Max", "Coverage"].map(h => (
                     <th
                       key={h}
@@ -237,7 +242,7 @@ export function AnalysisPanel({ classData, computed }) {
                         padding: "5px 6px",
                         textAlign: "center",
                         fontWeight: 700,
-                        border: "1px solid #224488",
+                        border: `1px solid ${t.tableHeader}`,
                       }}
                     >
                       {h}
@@ -252,13 +257,14 @@ export function AnalysisPanel({ classData, computed }) {
                   return (
                     <tr
                       key={subj}
-                      style={{ background: i % 2 === 0 ? "#fff" : "#f4f7ff" }}
+                      style={{ background: i % 2 === 0 ? t.rowEven : t.rowOdd }}
                     >
                       <td
                         style={{
                           padding: "4px 6px",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
                           fontWeight: 700,
+                          color: t.text,
                         }}
                       >
                         {subj}
@@ -266,7 +272,7 @@ export function AnalysisPanel({ classData, computed }) {
                       <td
                         style={{
                           padding: "4px 6px",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
                           textAlign: "center",
                           fontWeight: 700,
                           color: avgColor,
@@ -277,8 +283,9 @@ export function AnalysisPanel({ classData, computed }) {
                       <td
                         style={{
                           padding: "4px 6px",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
                           textAlign: "center",
+                          color: t.text,
                         }}
                       >
                         {stats.min}
@@ -286,8 +293,9 @@ export function AnalysisPanel({ classData, computed }) {
                       <td
                         style={{
                           padding: "4px 6px",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
                           textAlign: "center",
+                          color: t.text,
                         }}
                       >
                         {stats.max}
@@ -295,8 +303,9 @@ export function AnalysisPanel({ classData, computed }) {
                       <td
                         style={{
                           padding: "4px 6px",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
                           textAlign: "center",
+                          color: t.text,
                         }}
                       >
                         {stats.count} / {present.length}
@@ -311,8 +320,8 @@ export function AnalysisPanel({ classData, computed }) {
                       style={{
                         padding: 20,
                         textAlign: "center",
-                        color: "#aaa",
-                        border: "1px solid #cbd8f3",
+                        color: t.textMuted,
+                        border: `1px solid ${t.borderTable}`,
                       }}
                     >
                       No scores entered yet
@@ -360,7 +369,7 @@ export function AnalysisPanel({ classData, computed }) {
                     gap: 6,
                   }}
                 >
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#333" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: t.text }}>
                     {count}
                   </span>
                   <div
@@ -376,7 +385,7 @@ export function AnalysisPanel({ classData, computed }) {
                     style={{
                       fontSize: 9,
                       fontWeight: 700,
-                      color: "#666",
+                      color: t.textMuted,
                       textAlign: "center",
                       width: 40,
                     }}

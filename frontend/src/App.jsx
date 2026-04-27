@@ -840,6 +840,13 @@ export default function App() {
           )}
           <button
             style={{ ...S.logoutBtn, ...(isMobile ? { padding: "5px 8px", fontSize: 10 } : {}) }}
+            onClick={toggleDark}
+            title={dark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {dark ? "☀️" : "🌙"}
+          </button>
+          <button
+            style={{ ...S.logoutBtn, ...(isMobile ? { padding: "5px 8px", fontSize: 10 } : {}) }}
             onClick={() => {
               setLoggedIn(false);
               setClasses([]);

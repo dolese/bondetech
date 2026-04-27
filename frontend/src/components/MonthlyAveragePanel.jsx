@@ -51,7 +51,7 @@ export function MonthlyAveragePanel({ classData }) {
     });
 
     return withPositions(studentsWithAvg, subjects);
-  }, [students, monthlyKeys, subjects]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [students, monthlyKeys, subjects]);
 
   const present = aggregated.filter(s => s.total !== null).sort((a, b) => (a.posn ?? 999) - (b.posn ?? 999));
 

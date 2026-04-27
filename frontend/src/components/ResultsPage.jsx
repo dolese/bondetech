@@ -3,10 +3,14 @@ import { AnalysisPanel } from "./AnalysisPanel";
 import { ResultSheet } from "./ResultSheet";
 import { MonthlyAveragePanel } from "./MonthlyAveragePanel";
 import { useViewport } from "../utils/useViewport";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 
 export function ResultsPage({ classData, computed, onOpenReportCard }) {
   const [tab, setTab] = useState("analysis");
   const { isMobile } = useViewport();
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const topOffset = isMobile ? 52 : 46;
 
   const hasMonthly = Array.isArray(classData.monthly_exams) && classData.monthly_exams.length > 0;
@@ -24,7 +28,7 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
         flexDirection: "column",
         flex: 1,
         height: "100%",
-        background: "#f4f7ff",
+        background: t.bgPage,
       }}
     >
       <div
@@ -32,8 +36,8 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
           display: "flex",
           gap: 8,
           padding: 12,
-          background: "#fff",
-          borderBottom: "2px solid #d0dcf8",
+          background: t.bgCard,
+          borderBottom: `2px solid ${t.border}`,
           boxShadow: "0 1px 4px rgba(0,51,102,0.05)",
           flexWrap: "wrap",
           position: "sticky",
@@ -48,9 +52,9 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
             style={{
               padding: "8px 16px",
               borderRadius: 6,
-              border: "2px solid #d0dcf8",
-              background: tab === btn.key ? "#003366" : "#fff",
-              color: tab === btn.key ? "#fff" : "#666",
+              border: `2px solid ${t.border}`,
+              background: tab === btn.key ? t.tableHeader : t.bgCard,
+              color: tab === btn.key ? "#fff" : t.textMuted,
               cursor: "pointer",
               fontWeight: 700,
               fontSize: 12,

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { EXAM_TYPES, getMonthlyExamKey } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 
 const EXAM_META = {
   "March Exam":     { icon: "🌱", color: "#0b6b3a", bg: "#e6f9ee", border: "#7dd3a8" },
@@ -13,6 +15,8 @@ const MONTHLY_META = { icon: "📅", color: "#1a5276", bg: "#eaf4fb", border: "#
 
 export function ExamPickerScreen({ classData, onPick, onCancel }) {
   const { isMobile } = useViewport();
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const [hoveredExam, setHoveredExam] = useState(null);
 
   const monthlyExams = Array.isArray(classData?.monthly_exams)
@@ -23,7 +27,7 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
     overlay: {
       position: "fixed",
       inset: 0,
-      background: "rgba(0,20,60,0.6)",
+      background: t.overlay,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -31,7 +35,7 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
       backdropFilter: "blur(3px)",
     },
     box: {
-      background: "#fff",
+      background: t.bgCard,
       borderRadius: 16,
       boxShadow: "0 12px 48px rgba(0,0,0,0.35)",
       padding: isMobile ? 16 : 28,
@@ -43,12 +47,12 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
     heading: {
       fontSize: isMobile ? 16 : 19,
       fontWeight: 900,
-      color: "#003366",
+      color: t.header,
       marginBottom: 4,
     },
     sub: {
       fontSize: 11,
-      color: "#667",
+      color: t.textMuted,
       marginBottom: 18,
     },
     grid: {
@@ -60,7 +64,7 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
     sectionLabel: {
       fontSize: 10,
       fontWeight: 800,
-      color: "#667",
+      color: t.textSubtle,
       textTransform: "uppercase",
       letterSpacing: 0.8,
       marginBottom: 8,
@@ -69,9 +73,9 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
       width: "100%",
       padding: "9px",
       borderRadius: 8,
-      border: "1px solid #d0dcf8",
-      background: "#f4f7ff",
-      color: "#555",
+      border: `1px solid ${t.border}`,
+      background: t.bgCardAlt,
+      color: t.textMid,
       fontSize: 12,
       fontWeight: 700,
       cursor: "pointer",

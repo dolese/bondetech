@@ -4,6 +4,8 @@ import { getGradePoints } from "../utils/grading";
 import { useViewport } from "../utils/useViewport";
 import { exportElementToPdf } from "../utils/pdfExport";
 import { API } from "../api";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DASHBOARD COMPONENT
@@ -11,6 +13,8 @@ import { API } from "../api";
 
 export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
   const { isMobile, isTablet, isLarge } = useViewport();
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const [filterYear, setFilterYear] = useState(String(new Date().getFullYear()));
   const [filterForm, setFilterForm] = useState("all");
   const summaryRef = useRef(null);
@@ -151,14 +155,15 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
       gap: 12,
       minHeight: 0,
       minWidth: 0,
+      background: t.bgPage,
     },
     pageTitle: {
       fontSize: isMobile ? 16 : 18,
       fontWeight: 900,
-      color: "#003366",
+      color: t.header,
       margin: "0 0 14px",
       paddingBottom: 8,
-      borderBottom: "2px solid #d0dcf8",
+      borderBottom: `2px solid ${t.border}`,
     },
     kpiRow: {
       display: "flex",
@@ -169,7 +174,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
     kpiCard: {
       flex: 1,
       minWidth: isLarge ? 0 : isMobile ? 140 : 110,
-      background: "#fff",
+      background: t.bgCard,
       borderRadius: 10,
       padding: isLarge ? "14px 16px" : "10px 12px",
       boxShadow: "0 1px 6px rgba(0,51,102,0.08)",
@@ -184,7 +189,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
       gap: 12,
     },
     card: {
-      background: "#fff",
+      background: t.bgCard,
       borderRadius: 10,
       padding: isMobile ? 10 : 12,
       boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
@@ -193,8 +198,8 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
       margin: "0 0 10px",
       fontSize: 13,
       fontWeight: 800,
-      color: "#003366",
-      borderBottom: "1.5px solid #e4ecff",
+      color: t.header,
+      borderBottom: `1.5px solid ${t.borderLight}`,
       paddingBottom: 6,
     },
     filterRow: {
@@ -207,17 +212,17 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
     select: {
       padding: "6px 10px",
       borderRadius: 8,
-      border: "1px solid #cbd8f3",
-      background: "#fff",
+      border: `1px solid ${t.borderInput}`,
+      background: t.bgInput,
       fontSize: 11,
       fontWeight: 700,
-      color: "#003366",
+      color: t.header,
     },
     miniBtn: {
       padding: "6px 10px",
       borderRadius: 8,
-      border: "1px solid #003366",
-      background: "#003366",
+      border: `1px solid ${t.tableHeader}`,
+      background: t.tableHeader,
       color: "#fff",
       fontSize: 11,
       fontWeight: 700,
@@ -232,13 +237,13 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
   return (
     <div style={styles.panel}>
       <h2 style={styles.pageTitle}>📊 School Dashboard</h2>
-      <div style={{ fontSize: 11, color: "#667", marginTop: -8, marginBottom: 6 }}>
+      <div style={{ fontSize: 11, color: t.textMuted, marginTop: -8, marginBottom: 6 }}>
         Overview across selected classes and subjects.
       </div>
 
       {/* Global student search */}
       <div style={{
-        background: "#fff",
+        background: t.bgCard,
         borderRadius: 10,
         padding: isMobile ? 10 : 14,
         boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
@@ -246,7 +251,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
         flexDirection: "column",
         gap: 8,
       }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>🔍 Search Students</div>
+        <div style={{ fontSize: 12, fontWeight: 800, color: t.header }}>🔍 Search Students</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <input
             type="text"
@@ -259,8 +264,10 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               minWidth: 160,
               padding: "7px 10px",
               borderRadius: 7,
-              border: "1px solid #d0dcf8",
+              border: `1px solid ${t.borderInput}`,
               fontSize: 12,
+              background: t.bgInput,
+              color: t.text,
             }}
           />
           <button
@@ -270,7 +277,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               padding: "7px 16px",
               borderRadius: 7,
               border: "none",
-              background: searching ? "#999" : "#003366",
+              background: searching ? "#999" : t.tableHeader,
               color: "#fff",
               fontWeight: 700,
               fontSize: 12,
@@ -285,11 +292,11 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               style={{
                 padding: "7px 12px",
                 borderRadius: 7,
-                border: "1px solid #d0dcf8",
-                background: "#fff",
+                border: `1px solid ${t.border}`,
+                background: t.bgCard,
                 fontSize: 12,
                 cursor: "pointer",
-                color: "#666",
+                color: t.textMuted,
               }}
             >
               Clear
@@ -299,19 +306,19 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
         {searchError && <div style={{ fontSize: 11, color: "#8b2500" }}>{searchError}</div>}
         {searchResults !== null && (
           searchResults.length === 0 ? (
-            <div style={{ fontSize: 11, color: "#888" }}>No students found.</div>
+            <div style={{ fontSize: 11, color: t.textMuted }}>No students found.</div>
           ) : isMobile ? (
             /* Mobile search result cards */
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {searchResults.map((s, i) => (
                 <div key={`${s.classId}-${s.studentId}`} style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
-                  background: i % 2 === 0 ? "#fff" : "#f7f9ff",
-                  border: "1px solid #e8eef8", borderRadius: 7, padding: "8px 10px",
+                  background: i % 2 === 0 ? t.rowEven : t.rowOdd,
+                  border: `1px solid ${t.borderLight}`, borderRadius: 7, padding: "8px 10px",
                 }}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: "#003366", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
-                    <div style={{ fontSize: 10, color: "#667", marginTop: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: t.header, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
+                    <div style={{ fontSize: 10, color: t.textMuted, marginTop: 1 }}>
                       <span style={{ fontFamily: "monospace" }}>{s.indexNo}</span>
                       {" · "}{s.className} · {s.form} {s.year}
                     </div>
@@ -319,7 +326,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                   {onViewProfile && s.indexNo && (
                     <button
                       onClick={() => onViewProfile(s.indexNo)}
-                      style={{ padding: "4px 10px", borderRadius: 5, border: "none", background: "#003366", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", flexShrink: 0, marginLeft: 8 }}
+                      style={{ padding: "4px 10px", borderRadius: 5, border: "none", background: t.tableHeader, color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", flexShrink: 0, marginLeft: 8 }}
                     >
                       Profile
                     </button>
@@ -335,7 +342,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                     {["CNO", "Name", "Sex", "Class", "Form", "Year", ""].map(h => (
                       <th key={h} style={{
                         padding: "5px 8px",
-                        background: "#003366",
+                        background: t.tableHeader,
                         color: "#fff",
                         fontWeight: 700,
                         textAlign: "left",
@@ -346,14 +353,14 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                 </thead>
                 <tbody>
                   {searchResults.map((s, i) => (
-                    <tr key={`${s.classId}-${s.studentId}`} style={{ background: i % 2 === 0 ? "#fff" : "#f7f9ff" }}>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8", fontFamily: "monospace" }}>{s.indexNo}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8", fontWeight: 600 }}>{s.name}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.sex}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.className}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.form}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.year}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>
+                    <tr key={`${s.classId}-${s.studentId}`} style={{ background: i % 2 === 0 ? t.rowEven : t.rowOdd }}>
+                      <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.borderLight}`, fontFamily: "monospace", color: t.text }}>{s.indexNo}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.borderLight}`, fontWeight: 600, color: t.text }}>{s.name}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.borderLight}`, color: t.text }}>{s.sex}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.borderLight}`, color: t.text }}>{s.className}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.borderLight}`, color: t.text }}>{s.form}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.borderLight}`, color: t.text }}>{s.year}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: `1px solid ${t.borderLight}` }}>
                         {onViewProfile && s.indexNo && (
                           <button
                             onClick={() => onViewProfile(s.indexNo)}
@@ -361,7 +368,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                               padding: "3px 10px",
                               borderRadius: 5,
                               border: "none",
-                              background: "#003366",
+                              background: t.tableHeader,
                               color: "#fff",
                               fontSize: 10,
                               fontWeight: 700,
@@ -382,7 +389,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
       </div>
 
       <div style={{ ...styles.filterRow, ...(isMobile ? { alignItems: "stretch" } : {}) }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: "#003366" }}>Filter:</span>
+        <span style={{ fontSize: 11, fontWeight: 800, color: t.header }}>Filter:</span>
         <select
           style={{ ...styles.select, ...(isMobile ? { width: "100%" } : {}) }}
           value={filterYear}
@@ -426,12 +433,12 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
       {!allComputed.length && (
         <div
           style={{
-            background: "#fff",
-            border: "1px dashed #c8d8f8",
+            background: t.bgCard,
+            border: `1px dashed ${t.borderDash}`,
             borderRadius: 8,
             padding: 16,
             textAlign: "center",
-            color: "#666",
+            color: t.textMuted,
             fontSize: 12,
           }}
         >
@@ -442,13 +449,13 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
       <div
         ref={summaryRef}
         style={{
-          background: "#fff",
+          background: t.bgCard,
           borderRadius: 10,
           padding: isMobile ? 10 : 12,
           boxShadow: "0 1px 6px rgba(0,51,102,0.06)",
         }}
       >
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#003366", marginBottom: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: t.header, marginBottom: 8 }}>
           📌 Summary: {summaryLabel}
         </div>
         <div style={styles.kpiRow}>
@@ -472,7 +479,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               <div
                 style={{
                   fontSize: isLarge ? 11 : 10,
-                  color: "#888",
+                  color: t.textMuted,
                   fontWeight: 700,
                   textTransform: "uppercase",
                 }}
@@ -500,22 +507,22 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                   : 0;
                 const top = [...pres].sort((a, b) => b.total - a.total)[0];
                 return (
-                  <div key={cl.id} style={{ background: "#f7f9ff", borderRadius: 8, padding: "10px 12px", border: "1px solid #d0dcf8" }}>
+                  <div key={cl.id} style={{ background: t.bgCardAlt, borderRadius: 8, padding: "10px 12px", border: `1px solid ${t.border}` }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontWeight: 800, fontSize: 13, color: "#003366" }}>{cl.name}</span>
+                        <span style={{ fontWeight: 800, fontSize: 13, color: t.header }}>{cl.name}</span>
                         {cl.published && (
                           <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 999, background: "#0b6b3a", color: "#fff", fontWeight: 700 }}>Published</span>
                         )}
                       </div>
                       <button
                         onClick={() => onOpenClass(cl.id)}
-                        style={{ background: "#003366", color: "#fff", border: "none", borderRadius: 5, padding: "4px 12px", cursor: "pointer", fontWeight: 700, fontSize: 11 }}
+                        style={{ background: t.tableHeader, color: "#fff", border: "none", borderRadius: 5, padding: "4px 12px", cursor: "pointer", fontWeight: 700, fontSize: 11 }}
                       >
                         Open
                       </button>
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", fontSize: 11, color: "#444" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", fontSize: 11, color: t.text }}>
                       <span>👥 <b>{cl.studentCount ?? 0}</b> students</span>
                       <span>✅ <b>{pres.length}</b> present</span>
                       <span style={{ color: pass >= 50 ? "#0b6b3a" : "#8b2500", fontWeight: 700 }}>📈 {pass}% pass</span>
@@ -526,13 +533,13 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                       ))}
                     </div>
                     {top && (
-                      <div style={{ marginTop: 4, fontSize: 10, color: "#555" }}>🏆 Top: <b>{top.name}</b></div>
+                      <div style={{ marginTop: 4, fontSize: 10, color: t.textMid }}>🏆 Top: <b>{top.name}</b></div>
                     )}
                   </div>
                 );
               })}
               {!filtered.length && (
-                <div style={{ padding: 16, textAlign: "center", color: "#aaa", fontSize: 12 }}>No classes yet</div>
+                <div style={{ padding: 16, textAlign: "center", color: t.textMuted, fontSize: 12 }}>No classes yet</div>
               )}
             </div>
           ) : (
@@ -546,7 +553,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               }}
             >
               <thead>
-                <tr style={{ background: "#003366", color: "#fff" }}>
+                <tr style={{ background: t.tableHeader, color: "#fff" }}>
                   {[
                     "Class",
                     "Students",
@@ -567,7 +574,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                         textAlign: "center",
                         fontWeight: 700,
                         fontSize: 10,
-                        border: "1px solid #224488",
+                        border: `1px solid ${t.tableHeader}`,
                       }}
                     >
                       {h}
@@ -594,16 +601,16 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                     <tr
                       key={cl.id}
                       style={{
-                        background: ri % 2 === 0 ? "#fff" : "#f4f7ff",
+                        background: ri % 2 === 0 ? t.rowEven : t.rowOdd,
                       }}
                     >
                       <td
                         style={{
                           padding: "3px 6px",
                           textAlign: "center",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
                           fontWeight: 700,
-                          color: "#003366",
+                          color: t.header,
                         }}
                       >
                         {cl.name}
@@ -626,7 +633,8 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                         style={{
                           padding: "3px 6px",
                           textAlign: "center",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
+                          color: t.text,
                         }}
                       >
                         {cl.studentCount ?? 0}
@@ -635,7 +643,8 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                         style={{
                           padding: "3px 6px",
                           textAlign: "center",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
+                          color: t.text,
                         }}
                       >
                         {pres.length}
@@ -646,7 +655,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                           style={{
                             padding: "3px 6px",
                             textAlign: "center",
-                            border: "1px solid #cbd8f3",
+                            border: `1px solid ${t.borderTable}`,
                             color: DIVISION_COLORS[dv],
                             fontWeight: 700,
                           }}
@@ -658,7 +667,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                         style={{
                           padding: "3px 6px",
                           textAlign: "center",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
                           fontWeight: 700,
                           color: pass >= 50 ? "#0b6b3a" : "#8b2500",
                         }}
@@ -669,8 +678,9 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                         style={{
                           padding: "4px 6px",
                           textAlign: "center",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
                           fontSize: 10,
+                          color: t.text,
                         }}
                       >
                         {top?.name ?? "–"}
@@ -679,13 +689,13 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                         style={{
                           padding: "3px 6px",
                           textAlign: "center",
-                          border: "1px solid #cbd8f3",
+                          border: `1px solid ${t.borderTable}`,
                         }}
                       >
                         <button
                           onClick={() => onOpenClass(cl.id)}
                           style={{
-                            background: "#003366",
+                            background: t.tableHeader,
                             color: "#fff",
                             border: "none",
                             borderRadius: 5,
@@ -709,7 +719,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                       style={{
                         padding: 20,
                         textAlign: "center",
-                        color: "#aaa",
+                        color: t.textMuted,
                       }}
                     >
                       No classes yet
@@ -782,7 +792,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                       width: 66,
                       textAlign: "right",
                       fontWeight: 700,
-                      color: "#555",
+                      color: t.textMid,
                       flexShrink: 0,
                     }}
                   >
@@ -791,7 +801,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                   <div
                     style={{
                       flex: 1,
-                      background: "#e8edf5",
+                      background: t.bgCardAlt,
                       borderRadius: 4,
                       height: 13,
                       overflow: "hidden",
@@ -821,7 +831,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               );
             })}
             {!subjAvg.length && (
-              <div style={{ color: "#aaa", fontSize: 12, textAlign: "center", padding: 20 }}>
+              <div style={{ color: t.textMuted, fontSize: 12, textAlign: "center", padding: 20 }}>
                 No data yet
               </div>
             )}
@@ -839,8 +849,8 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  background: i === 0 ? "#fffbe6" : i % 2 === 0 ? "#fff" : "#f7f9ff",
-                  border: "1px solid #d0dcf8",
+                  background: i === 0 ? (dark ? "#2a2200" : "#fffbe6") : i % 2 === 0 ? t.rowEven : t.rowOdd,
+                  border: `1px solid ${t.border}`,
                   borderRadius: 8,
                   padding: "8px 10px",
                 }}>
@@ -848,18 +858,18 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                     {getRankBadge(i)}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: "#003366", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
-                    <div style={{ fontSize: 10, color: "#667" }}>{studentClassMap[s.id] ?? ""} · {s.sex}</div>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: t.header, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
+                    <div style={{ fontSize: 10, color: t.textMuted }}>{studentClassMap[s.id] ?? ""} · {s.sex}</div>
                   </div>
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-                    <span style={{ fontWeight: 800, fontSize: 13, color: "#003366" }}>{s.total}</span>
+                    <span style={{ fontWeight: 800, fontSize: 13, color: t.header }}>{s.total}</span>
                     <span style={{ fontWeight: 700, fontSize: 11, color: GRADE_COLORS[s.agrd] }}>{s.agrd}</span>
                     <span style={{ fontWeight: 700, fontSize: 11, color: DIVISION_COLORS[s.div] }}>Div {s.div}</span>
                   </div>
                 </div>
               ))}
               {!top10.length && (
-                <div style={{ padding: 20, textAlign: "center", color: "#aaa", fontSize: 12 }}>No student data yet</div>
+                <div style={{ padding: 20, textAlign: "center", color: t.textMuted, fontSize: 12 }}>No student data yet</div>
               )}
             </div>
           ) : (
@@ -872,7 +882,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               }}
             >
               <thead>
-                <tr style={{ background: "#003366", color: "#fff" }}>
+                <tr style={{ background: t.tableHeader, color: "#fff" }}>
                   {["#", "Name", "Class", "Sex", "Total", "Avg", "Grade", "Division", "Points"].map(
                     h => (
                       <th
@@ -882,7 +892,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                           textAlign: "center",
                           fontWeight: 700,
                           fontSize: 10,
-                          border: "1px solid #224488",
+                          border: `1px solid ${t.tableHeader}`,
                         }}
                       >
                         {h}
@@ -893,13 +903,13 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               </thead>
               <tbody>
                 {top10.map((s, i) => (
-                  <tr key={s.id} style={{ background: i === 0 ? "#fffbe6" : i % 2 === 0 ? "#fff" : "#f4f7ff" }}>
+                  <tr key={s.id} style={{ background: i === 0 ? (dark ? "#2a2200" : "#fffbe6") : i % 2 === 0 ? t.rowEven : t.rowOdd }}>
                     <td
                       style={{
                         padding: "4px 6px",
-                        border: "1px solid #cbd8f3",
+                        border: `1px solid ${t.borderTable}`,
                         fontWeight: 800,
-                        color: i < 3 ? "#b8860b" : "#555",
+                        color: i < 3 ? "#b8860b" : t.textMid,
                       }}
                     >
                       {getRankBadge(i)}
@@ -907,24 +917,25 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                     <td
                       style={{
                         padding: "4px 6px",
-                        border: "1px solid #cbd8f3",
+                        border: `1px solid ${t.borderTable}`,
                         fontWeight: 700,
+                        color: t.text,
                       }}
                     >
                       {s.name}
                     </td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3", color: "#003366" }}>
+                    <td style={{ padding: "4px 6px", border: `1px solid ${t.borderTable}`, color: t.header }}>
                       {studentClassMap[s.id] ?? ""}
                     </td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3" }}>{s.sex}</td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3", fontWeight: 800 }}>
+                    <td style={{ padding: "4px 6px", border: `1px solid ${t.borderTable}`, color: t.text }}>{s.sex}</td>
+                    <td style={{ padding: "4px 6px", border: `1px solid ${t.borderTable}`, fontWeight: 800, color: t.text }}>
                       {s.total}
                     </td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3" }}>{s.avg}</td>
+                    <td style={{ padding: "4px 6px", border: `1px solid ${t.borderTable}`, color: t.text }}>{s.avg}</td>
                     <td
                       style={{
                         padding: "4px 6px",
-                        border: "1px solid #cbd8f3",
+                        border: `1px solid ${t.borderTable}`,
                         fontWeight: 800,
                         color: GRADE_COLORS[s.agrd],
                       }}
@@ -934,14 +945,14 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                     <td
                       style={{
                         padding: "4px 6px",
-                        border: "1px solid #cbd8f3",
+                        border: `1px solid ${t.borderTable}`,
                         fontWeight: 800,
                         color: DIVISION_COLORS[s.div],
                       }}
                     >
                       {s.div}
                     </td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3" }}>{s.points}</td>
+                    <td style={{ padding: "4px 6px", border: `1px solid ${t.borderTable}`, color: t.text }}>{s.points}</td>
                   </tr>
                 ))}
                 {!top10.length && (
@@ -951,7 +962,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                       style={{
                         padding: 20,
                         textAlign: "center",
-                        color: "#aaa",
+                        color: t.textMuted,
                       }}
                     >
                       No student data yet
@@ -977,7 +988,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                       style={{
                         fontSize: 10,
                         fontWeight: 800,
-                        color: i < 3 ? "#b8860b" : "#555",
+                        color: i < 3 ? "#b8860b" : t.textMid,
                         width: 18,
                         flexShrink: 0,
                         textAlign: "center",
@@ -989,7 +1000,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                       style={{
                         fontSize: 10,
                         fontWeight: 700,
-                        color: "#003366",
+                        color: t.header,
                         width: isMobile ? 80 : 110,
                         flexShrink: 0,
                         whiteSpace: "nowrap",
@@ -1003,7 +1014,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                     <div
                       style={{
                         flex: 1,
-                        background: "#e8edf5",
+                        background: t.bgCardAlt,
                         borderRadius: 4,
                         height: 14,
                         overflow: "hidden",
@@ -1034,7 +1045,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
                     <span
                       style={{
                         fontSize: 9,
-                        color: "#888",
+                        color: t.textMuted,
                         width: isMobile ? 0 : 60,
                         flexShrink: 0,
                         display: isMobile ? "none" : "block",
