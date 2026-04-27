@@ -4,6 +4,8 @@ import { getGrade, getDivision, computeStudent } from "../utils/grading";
 import { validateStudent, validateSchoolInfo } from "../utils/validation";
 import { TextInput, NumberInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 
 export function EntryPanel({
   classId,
@@ -54,6 +56,8 @@ export function EntryPanel({
     status: "present",
   });
   const { isMobile } = useViewport();
+  const { dark } = useTheme();
+  const t = themeColors(dark);
 
   useEffect(() => {
     setClassYear(classData.year ?? "");
@@ -285,6 +289,7 @@ export function EntryPanel({
       gap: 12,
       minHeight: 0,
       minWidth: 0,
+      background: t.bgPage,
     },
     tableScroller: {
       overflowX: "auto",
@@ -292,7 +297,7 @@ export function EntryPanel({
       maxHeight: "60vh",
       minWidth: 0,
       borderRadius: 6,
-      border: "1px solid #d6e0f5",
+      border: `1px solid ${t.border}`,
     },
     stickyTh: {
       background: "#003366",
@@ -306,7 +311,7 @@ export function EntryPanel({
       gap: 12,
       flexWrap: "wrap",
       alignItems: "center",
-      background: "#f4f7ff",
+      background: t.bgCardAlt,
       padding: isMobile ? 8 : 10,
       borderRadius: 8,
     },
@@ -320,12 +325,12 @@ export function EntryPanel({
     tlbDivider: {
       width: 1,
       height: 22,
-      background: "#d0dcf8",
+      background: t.border,
       display: isMobile ? "none" : "block",
     },
     bulkPanel: {
-      background: "#fff",
-      border: "1px solid #d0dcf8",
+      background: t.bgCard,
+      border: `1px solid ${t.border}`,
       borderRadius: 8,
       padding: isMobile ? 10 : 12,
       display: "flex",
@@ -337,23 +342,24 @@ export function EntryPanel({
       borderCollapse: "collapse",
       width: "100%",
       fontSize: isMobile ? 10 : 11,
-      background: "#fff",
-      border: "1px solid #d6e0f5",
+      background: t.bgCard,
+      border: `1px solid ${t.border}`,
       minWidth: isMobile ? 680 : "auto",
     },
     bulkInput: {
       width: 44,
       padding: "3px 4px",
       borderRadius: 3,
-      border: "1px solid #c6d5f5",
+      border: `1px solid ${t.borderInput}`,
       fontSize: 10,
       textAlign: "center",
-      background: "#f9fbff",
+      background: t.bgInput,
+      color: t.text,
       outline: "none",
     },
     subjectPanel: {
-      background: "#fff",
-      border: "1px solid #d0dcf8",
+      background: t.bgCard,
+      border: `1px solid ${t.border}`,
       borderRadius: 8,
       padding: isMobile ? 10 : 12,
       display: "flex",
@@ -361,8 +367,8 @@ export function EntryPanel({
       gap: 10,
     },
     metaPanel: {
-      background: "#fff",
-      border: "1px solid #d0dcf8",
+      background: t.bgCard,
+      border: `1px solid ${t.border}`,
       borderRadius: 8,
       padding: isMobile ? 10 : 12,
       display: "flex",
@@ -370,8 +376,8 @@ export function EntryPanel({
       gap: 10,
     },
     schoolPanel: {
-      background: "#fff",
-      border: "1px solid #d0dcf8",
+      background: t.bgCard,
+      border: `1px solid ${t.border}`,
       borderRadius: 8,
       padding: isMobile ? 10 : 12,
       display: "flex",
@@ -388,13 +394,13 @@ export function EntryPanel({
       display: "inline-flex",
       alignItems: "center",
       gap: 6,
-      background: "#f4f7ff",
-      border: "1px solid #d0dcf8",
+      background: t.bgCardAlt,
+      border: `1px solid ${t.border}`,
       borderRadius: 999,
       padding: "4px 10px",
       fontSize: 10,
       fontWeight: 700,
-      color: "#003366",
+      color: t.header,
     },
     subjectRemove: {
       background: "#8b2500",
@@ -408,9 +414,11 @@ export function EntryPanel({
     subjectInput: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      border: `1px solid ${t.borderInput}`,
       height: 30,
       minWidth: 160,
+      background: t.bgInput,
+      color: t.text,
     },
     subjectAddBtn: {
       padding: "6px 10px",
@@ -425,18 +433,22 @@ export function EntryPanel({
     metaInput: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      border: `1px solid ${t.borderInput}`,
       height: 30,
       minWidth: isMobile ? 0 : 120,
       width: isMobile ? "100%" : "auto",
+      background: t.bgInput,
+      color: t.text,
     },
     metaSelect: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      border: `1px solid ${t.borderInput}`,
       height: 30,
       minWidth: isMobile ? 0 : 120,
       width: isMobile ? "100%" : "auto",
+      background: t.bgInput,
+      color: t.text,
     },
     metaBtn: {
       padding: "6px 12px",
@@ -453,17 +465,17 @@ export function EntryPanel({
   return (
     <div style={styles.panel}>
       <div>
-        <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 800 }}>
+        <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 800, color: t.header }}>
           📝 Student Entry
         </h3>
-        <div style={{ fontSize: 11, color: "#667", marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 8 }}>
           Add, edit, and score students for this class.
         </div>
         <div style={styles.tlbx}>
           {/* Row 1: Exam selector + Search (always full-width on mobile) */}
           <div style={{ ...styles.tlbGroup, flex: "1 1 100%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#003366", whiteSpace: "nowrap" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: t.header, whiteSpace: "nowrap" }}>
                 📋 Exam:
               </span>
               <select
@@ -472,12 +484,12 @@ export function EntryPanel({
                 style={{
                   padding: "6px 8px",
                   borderRadius: 5,
-                  border: "2px solid #003366",
+                  border: `2px solid ${t.header}`,
                   height: 30,
                   fontWeight: 700,
                   fontSize: 11,
-                  background: "#f0f5ff",
-                  color: "#003366",
+                  background: t.bgCardAlt,
+                  color: t.header,
                   cursor: "pointer",
                   minWidth: 120,
                 }}
@@ -495,10 +507,12 @@ export function EntryPanel({
               style={{
                 padding: "6px 8px",
                 borderRadius: 5,
-                border: "1px solid #d0dcf8",
+                border: `1px solid ${t.borderInput}`,
                 flex: 1,
                 minWidth: isMobile ? 0 : 150,
                 height: 30,
+                background: t.bgInput,
+                color: t.text,
               }}
             />
             <select
@@ -507,9 +521,11 @@ export function EntryPanel({
               style={{
                 padding: "6px 8px",
                 borderRadius: 5,
-                border: "1px solid #d0dcf8",
+                border: `1px solid ${t.borderInput}`,
                 height: 30,
                 flexShrink: 0,
+                background: t.bgInput,
+                color: t.text,
               }}
             >
               <option value="index">Sort: CNO</option>
@@ -650,8 +666,8 @@ export function EntryPanel({
       <div style={styles.schoolPanel}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>School Information</div>
-            <div style={{ fontSize: 10, color: "#667" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: t.header }}>School Information</div>
+            <div style={{ fontSize: 10, color: t.textMuted }}>
               Appears on report cards and result sheets.
             </div>
           </div>
@@ -725,8 +741,8 @@ export function EntryPanel({
       <div style={styles.metaPanel}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Class Year & Form</div>
-            <div style={{ fontSize: 10, color: "#667" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: t.header }}>Class Year &amp; Form</div>
+            <div style={{ fontSize: 10, color: t.textMuted }}>
               Used to group results by academic year.
             </div>
           </div>
@@ -770,16 +786,16 @@ export function EntryPanel({
       <div style={styles.subjectPanel}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Subjects</div>
-            <div style={{ fontSize: 10, color: "#667" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: t.header }}>Subjects</div>
+            <div style={{ fontSize: 10, color: t.textMuted }}>
               Add or remove subjects for this class. Scores are remapped automatically.
             </div>
           </div>
-          <div style={{ fontSize: 10, color: "#667" }}>{subjects.length} subjects</div>
+          <div style={{ fontSize: 10, color: t.textMuted }}>{subjects.length} subjects</div>
         </div>
         <div style={styles.subjectRow}>
           {subjects.length === 0 && (
-            <div style={{ fontSize: 10, color: "#999" }}>No subjects yet.</div>
+            <div style={{ fontSize: 10, color: t.textMuted }}>No subjects yet.</div>
           )}
           {subjects.map((subj) => (
             <span key={subj} style={styles.subjectChip}>
@@ -825,13 +841,13 @@ export function EntryPanel({
       {addingNew && (
         <div
           style={{
-            background: "#fff",
-            border: "2px dashed #0b6b3a",
+            background: t.bgCard,
+            border: `2px dashed #0b6b3a`,
             borderRadius: 8,
             padding: isMobile ? 10 : 12,
           }}
         >
-          <h4 style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 800 }}>Add Student</h4>
+          <h4 style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 800, color: t.header }}>Add Student</h4>
           <div
             style={{
               display: "grid",
@@ -906,12 +922,12 @@ export function EntryPanel({
       {!computed?.length && (
         <div
           style={{
-            background: "#fff",
-            border: "1px dashed #c8d8f8",
+            background: t.bgCard,
+            border: `1px dashed ${t.borderDash}`,
             borderRadius: 8,
             padding: 16,
             textAlign: "center",
-            color: "#666",
+            color: t.textMuted,
             fontSize: 12,
           }}
         >
@@ -923,8 +939,8 @@ export function EntryPanel({
         <div style={styles.bulkPanel}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Bulk Scoring Grid</div>
-              <div style={{ fontSize: 10, color: "#667" }}>Enter scores for all students quickly.</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: t.header }}>Bulk Scoring Grid</div>
+              <div style={{ fontSize: 10, color: t.textMuted }}>Enter scores for all students quickly.</div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               {bulkNotice && (
