@@ -3,6 +3,8 @@ import { DEFAULT_SCHOOL, EXAM_TYPES, MONTHS } from "../utils/constants";
 import { validateSchoolInfo } from "../utils/validation";
 import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 
 export function SettingsPage({
   classData,
@@ -21,6 +23,8 @@ export function SettingsPage({
   onLoadAuditLog,
 }) {
   const { isMobile } = useViewport();
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const subjects = classData.subjects ?? [];
 
   // Class name & year/form state
@@ -157,10 +161,11 @@ export function SettingsPage({
       flexDirection: "column",
       gap: 16,
       minHeight: 0,
+      background: t.bgPage,
     },
     section: {
-      background: "#fff",
-      border: "1px solid #d0dcf8",
+      background: t.bgCard,
+      border: `1px solid ${t.border}`,
       borderRadius: 10,
       padding: isMobile ? 12 : 16,
       display: "flex",
@@ -170,12 +175,12 @@ export function SettingsPage({
     sectionTitle: {
       fontSize: 13,
       fontWeight: 800,
-      color: "#003366",
+      color: t.header,
       marginBottom: 2,
     },
     sectionSub: {
       fontSize: 10,
-      color: "#667",
+      color: t.textMuted,
     },
     grid2: {
       display: "grid",
@@ -191,21 +196,24 @@ export function SettingsPage({
     input: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      border: `1px solid ${t.borderInput}`,
       height: 30,
       minWidth: isMobile ? 0 : 120,
       width: isMobile ? "100%" : "auto",
       fontSize: 12,
+      background: t.bgInput,
+      color: t.text,
     },
     select: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      border: `1px solid ${t.borderInput}`,
       height: 30,
       minWidth: isMobile ? 0 : 120,
       width: isMobile ? "100%" : "auto",
       fontSize: 12,
-      background: "#fff",
+      background: t.bgInput,
+      color: t.text,
     },
     saveBtn: {
       padding: "6px 14px",
@@ -222,13 +230,13 @@ export function SettingsPage({
       display: "inline-flex",
       alignItems: "center",
       gap: 6,
-      background: "#f4f7ff",
-      border: "1px solid #d0dcf8",
+      background: t.bgCardAlt,
+      border: `1px solid ${t.border}`,
       borderRadius: 999,
       padding: "4px 10px",
       fontSize: 10,
       fontWeight: 700,
-      color: "#003366",
+      color: t.header,
     },
     subjectRemove: {
       background: "#8b2500",
@@ -241,8 +249,8 @@ export function SettingsPage({
     },
     subjectArrow: {
       background: "transparent",
-      color: "#003366",
-      border: "1px solid #d0dcf8",
+      color: t.header,
+      border: `1px solid ${t.border}`,
       borderRadius: 4,
       padding: "1px 4px",
       fontSize: 9,
@@ -252,17 +260,19 @@ export function SettingsPage({
     subjectInput: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      border: `1px solid ${t.borderInput}`,
       height: 30,
       minWidth: 160,
       fontSize: 12,
+      background: t.bgInput,
+      color: t.text,
     },
     subjectAddBtn: {
       padding: "6px 10px",
       height: 30,
       borderRadius: 6,
       border: "none",
-      background: "#003366",
+      background: t.tableHeader,
       color: "#fff",
       fontWeight: 700,
       cursor: "pointer",
