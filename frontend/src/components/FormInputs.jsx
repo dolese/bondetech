@@ -1,4 +1,6 @@
 import React from "react";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // REUSABLE FORM COMPONENTS
@@ -14,6 +16,8 @@ export function TextInput({
   width = "100%",
   required = false,
 }) {
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const styles = {
     wrapper: {
       display: "flex",
@@ -23,7 +27,7 @@ export function TextInput({
     label: {
       fontSize: 11,
       fontWeight: 700,
-      color: "#555",
+      color: t.textMid,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
@@ -32,14 +36,14 @@ export function TextInput({
       marginLeft: 4,
     },
     input: {
-      border: error ? "2px solid #cc2222" : "1.5px solid #ccd6f0",
+      border: error ? "2px solid #cc2222" : `1.5px solid ${t.borderInput}`,
       borderRadius: 5,
       padding: "6px 10px",
       fontSize: 12,
       outline: "none",
       width,
-      background: disabled ? "#f0f4ff" : "#fff",
-      color: disabled ? "#999" : "#000",
+      background: disabled ? t.bgDisabled : t.bgInput,
+      color: disabled ? t.textMuted : t.text,
       cursor: disabled ? "not-allowed" : "auto",
       transition: "border-color 0.2s",
     },
@@ -84,6 +88,8 @@ export function NumberInput({
   width = "80px",
   required = false,
 }) {
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const styles = {
     wrapper: {
       display: "flex",
@@ -93,7 +99,7 @@ export function NumberInput({
     label: {
       fontSize: 11,
       fontWeight: 700,
-      color: "#555",
+      color: t.textMid,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
@@ -102,15 +108,15 @@ export function NumberInput({
       marginLeft: 4,
     },
     input: {
-      border: error ? "2px solid #cc2222" : "1.5px solid #ccd6f0",
+      border: error ? "2px solid #cc2222" : `1.5px solid ${t.borderInput}`,
       borderRadius: 5,
       padding: "6px 10px",
       fontSize: 12,
       outline: "none",
       width,
       textAlign: "center",
-      background: disabled ? "#f0f4ff" : "#fff",
-      color: disabled ? "#999" : "#000",
+      background: disabled ? t.bgDisabled : t.bgInput,
+      color: disabled ? t.textMuted : t.text,
       cursor: disabled ? "not-allowed" : "auto",
       transition: "border-color 0.2s",
     },
@@ -155,6 +161,8 @@ export function SelectInput({
   width = "100%",
   required = false,
 }) {
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const styles = {
     wrapper: {
       display: "flex",
@@ -164,7 +172,7 @@ export function SelectInput({
     label: {
       fontSize: 11,
       fontWeight: 700,
-      color: "#555",
+      color: t.textMid,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
@@ -173,14 +181,14 @@ export function SelectInput({
       marginLeft: 4,
     },
     select: {
-      border: error ? "2px solid #cc2222" : "1.5px solid #ccd6f0",
+      border: error ? "2px solid #cc2222" : `1.5px solid ${t.borderInput}`,
       borderRadius: 5,
       padding: "6px 10px",
       fontSize: 12,
       outline: "none",
       width,
-      background: "#fff",
-      color: "#000",
+      background: t.bgInput,
+      color: t.text,
       cursor: disabled ? "not-allowed" : "auto",
       transition: "border-color 0.2s",
     },
@@ -228,6 +236,8 @@ export function TextAreaInput({
   rows = 4,
   required = false,
 }) {
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const styles = {
     wrapper: {
       display: "flex",
@@ -237,7 +247,7 @@ export function TextAreaInput({
     label: {
       fontSize: 11,
       fontWeight: 700,
-      color: "#555",
+      color: t.textMid,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
@@ -246,15 +256,15 @@ export function TextAreaInput({
       marginLeft: 4,
     },
     textarea: {
-      border: error ? "2px solid #cc2222" : "1.5px solid #ccd6f0",
+      border: error ? "2px solid #cc2222" : `1.5px solid ${t.borderInput}`,
       borderRadius: 5,
       padding: "8px 10px",
       fontSize: 12,
       outline: "none",
       fontFamily: "inherit",
       resize: "vertical",
-      background: "#fff",
-      color: "#000",
+      background: t.bgInput,
+      color: t.text,
       transition: "border-color 0.2s",
     },
     errorMsg: {

@@ -297,7 +297,7 @@ export function SettingsPage({
 
   return (
     <div style={styles.panel}>
-      <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800 }}>⚙️ Settings</h3>
+      <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: t.header }}>⚙️ Settings</h3>
 
       {/* Class name / year / form */}
       <div style={styles.section}>
@@ -309,7 +309,7 @@ export function SettingsPage({
         </div>
         <div style={{ ...styles.grid2, gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: t.textMid, textTransform: "uppercase", letterSpacing: 0.5 }}>
               Class Name
             </label>
             <input
@@ -321,7 +321,7 @@ export function SettingsPage({
             />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: t.textMid, textTransform: "uppercase", letterSpacing: 0.5 }}>
               Year
             </label>
             <input
@@ -334,7 +334,7 @@ export function SettingsPage({
             />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: t.textMid, textTransform: "uppercase", letterSpacing: 0.5 }}>
               Form
             </label>
             <select
@@ -432,11 +432,11 @@ export function SettingsPage({
               Add or remove subjects. Student scores are remapped automatically.
             </div>
           </div>
-          <div style={{ fontSize: 10, color: "#667" }}>{subjects.length} subjects</div>
+          <div style={{ fontSize: 10, color: t.textMuted }}>{subjects.length} subjects</div>
         </div>
         <div style={styles.row}>
           {subjects.length === 0 && (
-            <div style={{ fontSize: 10, color: "#999" }}>No subjects yet.</div>
+            <div style={{ fontSize: 10, color: t.textMuted }}>No subjects yet.</div>
           )}
           {subjects.map((subj, idx) => (
             <span key={subj} style={styles.subjectChip}>
@@ -511,9 +511,9 @@ export function SettingsPage({
                 style={{
                   padding: "5px 12px",
                   borderRadius: 999,
-                  border: enabled ? "2px solid #0b4f9e" : "1.5px solid #ccd6f0",
-                  background: enabled ? "#d0e4ff" : "#f4f7ff",
-                  color: enabled ? "#0b4f9e" : "#667",
+                  border: enabled ? `2px solid ${t.headerLight}` : `1.5px solid ${t.borderInput}`,
+                  background: enabled ? (dark ? "#1a3050" : "#d0e4ff") : t.bgCardAlt,
+                  color: enabled ? t.headerLight : t.textMuted,
                   fontWeight: enabled ? 800 : 600,
                   fontSize: 11,
                   cursor: updatingMonthlyExams ? "not-allowed" : "pointer",
@@ -642,20 +642,20 @@ export function SettingsPage({
             <div style={styles.sectionTitle}>📋 Audit Log</div>
             <div style={styles.sectionSub}>View who updated scores and when.</div>
           </div>
-          <span style={{ fontSize: 12, color: "#003366" }}>{auditOpen ? "▲ Hide" : "▼ Show"}</span>
+          <span style={{ fontSize: 12, color: t.header }}>{auditOpen ? "▲ Hide" : "▼ Show"}</span>
         </div>
         {auditOpen && (
           loadingAudit ? (
-            <div style={{ fontSize: 11, color: "#888" }}>Loading…</div>
+            <div style={{ fontSize: 11, color: t.textMuted }}>Loading…</div>
           ) : !auditLogs || auditLogs.length === 0 ? (
-            <div style={{ fontSize: 11, color: "#888" }}>No audit records yet.</div>
+            <div style={{ fontSize: 11, color: t.textMuted }}>No audit records yet.</div>
           ) : (
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
                 <thead>
                   <tr>
                     {["When", "Student", "By", "Changes"].map(h => (
-                      <th key={h} style={{ padding: "5px 6px", background: "#003366", color: "#fff", textAlign: "left", fontWeight: 700 }}>
+                      <th key={h} style={{ padding: "5px 6px", background: t.tableHeader, color: "#fff", textAlign: "left", fontWeight: 700 }}>
                         {h}
                       </th>
                     ))}
@@ -663,17 +663,17 @@ export function SettingsPage({
                 </thead>
                 <tbody>
                   {auditLogs.map((log, i) => (
-                    <tr key={log.id || i} style={{ background: i % 2 === 0 ? "#fff" : "#f7f9ff" }}>
-                      <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8", whiteSpace: "nowrap" }}>
+                    <tr key={log.id || i} style={{ background: i % 2 === 0 ? t.rowEven : t.rowOdd }}>
+                      <td style={{ padding: "4px 6px", borderBottom: `1px solid ${t.borderLight}`, whiteSpace: "nowrap", color: t.text }}>
                         {log.updatedAt ? new Date(log.updatedAt).toLocaleString() : "–"}
                       </td>
-                      <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8" }}>
+                      <td style={{ padding: "4px 6px", borderBottom: `1px solid ${t.borderLight}`, color: t.text }}>
                         {log.studentName || log.studentId || "–"}
                       </td>
-                      <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8" }}>
+                      <td style={{ padding: "4px 6px", borderBottom: `1px solid ${t.borderLight}`, color: t.text }}>
                         {log.updatedBy || "–"}
                       </td>
-                      <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <td style={{ padding: "4px 6px", borderBottom: `1px solid ${t.borderLight}`, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", color: t.text }}>
                         {log.changes
                           ? Object.entries(log.changes)
                               .map(([k, v]) => `${k}: ${JSON.stringify(v.from)} → ${JSON.stringify(v.to)}`)
@@ -690,7 +690,7 @@ export function SettingsPage({
       </div>
 
       {/* Danger zone */}
-      <div style={{ ...styles.section, borderColor: "#f5c6c6" }}>
+      <div style={{ ...styles.section, borderColor: dark ? "#5a1a1a" : "#f5c6c6" }}>
         <div>
           <div style={{ ...styles.sectionTitle, color: "#8b2500" }}>Danger Zone</div>
           <div style={styles.sectionSub}>

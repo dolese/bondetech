@@ -2,6 +2,8 @@ import React, { useRef, useState } from "react";
 import { DIVISION_COLORS, DEFAULT_SCHOOL } from "../utils/constants";
 import { exportElementToPdfBlob } from "../utils/pdfExport";
 import { useViewport } from "../utils/useViewport";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 import { ReportCardPrint } from "./ReportCardPrint";
 import { createRoot } from "react-dom/client";
 import JSZip from "jszip";
@@ -9,6 +11,8 @@ import { saveAs } from "file-saver";
 
 export function ReportsPage({ classData, computed, onOpenReportCard }) {
   const { isMobile } = useViewport();
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const [exportingZip, setExportingZip] = useState(false);
 
   const schoolInfo = classData.school_info ?? DEFAULT_SCHOOL;
@@ -89,6 +93,7 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
       flexDirection: "column",
       gap: 12,
       minHeight: 0,
+      background: t.bgPage,
     },
     headerRow: {
       display: "flex",
@@ -99,7 +104,7 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
     },
     exportBtn: {
       padding: "8px 16px",
-      background: exportingZip ? "#999" : "#003366",
+      background: exportingZip ? "#999" : t.tableHeader,
       color: "#fff",
       border: "none",
       borderRadius: 7,
@@ -110,14 +115,14 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
     table: {
       width: "100%",
       borderCollapse: "collapse",
-      background: "#fff",
+      background: t.bgCard,
       borderRadius: 8,
       overflow: "hidden",
       boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
       fontSize: isMobile ? 11 : 12,
     },
     th: {
-      background: "#003366",
+      background: t.tableHeader,
       color: "#fff",
       padding: "8px 10px",
       textAlign: "left",
@@ -127,12 +132,13 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
     },
     td: {
       padding: "7px 10px",
-      borderBottom: "1px solid #e8eef8",
+      borderBottom: `1px solid ${t.borderLight}`,
       verticalAlign: "middle",
+      color: t.text,
     },
     viewBtn: {
       padding: "4px 10px",
-      background: "#003366",
+      background: t.tableHeader,
       color: "#fff",
       border: "none",
       borderRadius: 5,
@@ -149,12 +155,12 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
       color: "#fff",
     },
     empty: {
-      background: "#fff",
-      border: "1px dashed #c8d8f8",
+      background: t.bgCard,
+      border: `1px dashed ${t.borderDash}`,
       borderRadius: 8,
       padding: 24,
       textAlign: "center",
-      color: "#666",
+      color: t.textMuted,
       fontSize: 12,
     },
   };
@@ -163,10 +169,10 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
     <div style={styles.panel}>
       <div style={styles.headerRow}>
         <div>
-          <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800 }}>
+          <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: t.header }}>
             📄 Report Cards
           </h3>
-          <div style={{ fontSize: 11, color: "#667" }}>
+          <div style={{ fontSize: 11, color: t.textMuted }}>
             {schoolInfo.name} — {classData.form || ""} {classData.year || ""}
           </div>
         </div>
@@ -189,26 +195,26 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {present.map((s, idx) => (
             <div key={s.id} style={{
-              background: "#fff",
+              background: t.bgCard,
               borderRadius: 8,
               padding: "10px 12px",
               boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
-              border: "1px solid #e8eef8",
+              border: `1px solid ${t.borderLight}`,
             }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontWeight: 800, fontSize: 12, color: idx < 3 ? "#b8860b" : "#888", minWidth: 20 }}>
+                  <span style={{ fontWeight: 800, fontSize: 12, color: idx < 3 ? "#b8860b" : t.textMuted, minWidth: 20 }}>
                     {getRankDisplay(idx, s.posn)}
                   </span>
-                  <span style={{ fontWeight: 700, fontSize: 13, color: "#003366" }}>{s.name}</span>
-                  <span style={{ fontSize: 10, color: "#888" }}>{s.sex === "F" ? "F" : "M"}</span>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: t.header }}>{s.name}</span>
+                  <span style={{ fontSize: 10, color: t.textMuted }}>{s.sex === "F" ? "F" : "M"}</span>
                 </div>
                 <button style={styles.viewBtn} onClick={() => onOpenReportCard(s.id)}>View</button>
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 12px", fontSize: 11 }}>
-                <span style={{ fontFamily: "monospace", color: "#555" }}>CNO: {s.index_no ?? s.indexNo ?? "—"}</span>
-                <span>Total: <b>{s.total ?? "—"}</b></span>
-                <span>Avg: <b>{s.avg ?? "—"}</b></span>
+                <span style={{ fontFamily: "monospace", color: t.textMid }}>CNO: {s.index_no ?? s.indexNo ?? "—"}</span>
+                <span style={{ color: t.text }}>Total: <b>{s.total ?? "—"}</b></span>
+                <span style={{ color: t.text }}>Avg: <b>{s.avg ?? "—"}</b></span>
                 {s.div && (
                   <span style={{ ...styles.divBadge, background: DIVISION_COLORS[s.div] ?? "#999", fontSize: 10, padding: "1px 8px" }}>
                     {divLabel(s.div)}
@@ -235,8 +241,8 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
             </thead>
             <tbody>
               {present.map((s, idx) => (
-                <tr key={s.id} style={{ background: idx % 2 === 0 ? "#fff" : "#f7f9ff" }}>
-                  <td style={{ ...styles.td, color: "#888", fontSize: 10 }}>
+                <tr key={s.id} style={{ background: idx % 2 === 0 ? t.rowEven : t.rowOdd }}>
+                  <td style={{ ...styles.td, color: t.textMuted, fontSize: 10 }}>
                     {s.posn ?? idx + 1}
                   </td>
                   <td style={{ ...styles.td, fontFamily: "monospace", fontSize: 11 }}>
@@ -257,7 +263,7 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
                         {divLabel(s.div)}
                       </span>
                     ) : (
-                      <span style={{ color: "#aaa", fontSize: 10 }}>—</span>
+                      <span style={{ color: t.textMuted, fontSize: 10 }}>—</span>
                     )}
                   </td>
                   <td style={{ ...styles.td, textAlign: "center" }}>
@@ -279,7 +285,7 @@ export function ReportsPage({ classData, computed, onOpenReportCard }) {
       <div
         style={{
           fontSize: 10,
-          color: "#999",
+          color: t.textMuted,
           textAlign: "center",
           paddingTop: 4,
         }}

@@ -2,6 +2,8 @@ import React, { useRef, useState } from "react";
 import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL } from "../utils/constants";
 import { exportElementToPdf, exportElementToPdfBlob } from "../utils/pdfExport";
 import { useViewport } from "../utils/useViewport";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { createRoot } from "react-dom/client";
@@ -14,6 +16,8 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     .sort((a, b) => (a.posn ?? Infinity) - (b.posn ?? Infinity));
   const sheetRef = useRef(null);
   const { isMobile } = useViewport();
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const [exportingZip, setExportingZip] = useState(false);
 
   const divisionCount = {};
@@ -87,13 +91,14 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       gap: 12,
       minHeight: 0,
       minWidth: 0,
+      background: t.bgPage,
     },
     sheet: {
-      background: "#fff",
+      background: "#fff",   // print-friendly: always white
       padding: isMobile ? 12 : 18,
       borderRadius: 10,
       boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-      border: "1px solid #d6e0f5",
+      border: `1px solid ${t.border}`,
       pageBreakAfter: "always",
     },
     header: {
@@ -137,22 +142,22 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       marginBottom: 16,
     },
     summaryBox: {
-      background: "#f4f7ff",
+      background: t.bgCardAlt,
       padding: 8,
       borderRadius: 6,
       textAlign: "center",
-      border: "1px solid #d0dcf8",
+      border: `1px solid ${t.border}`,
       boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
     },
     summaryValue: {
       fontSize: isMobile ? 16 : 18,
       fontWeight: 900,
-      color: "#003366",
+      color: t.header,
       margin: "0 0 4px",
     },
     summaryLabel: {
       fontSize: 10,
-      color: "#666",
+      color: t.textMuted,
       fontWeight: 700,
     },
     table: {
@@ -175,6 +180,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       padding: "5px",
       border: "1px solid #cbd8f3",
       textAlign: "center",
+      color: "#1a1a2e",
     },
     gradeTable: {
       marginTop: 16,
@@ -202,8 +208,9 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     tabBtn: {
       padding: "6px 12px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
-      background: "#fff",
+      border: `1px solid ${t.border}`,
+      background: t.bgCard,
+      color: t.text,
       cursor: "pointer",
       fontWeight: 700,
       fontSize: isMobile ? 11 : 12,
@@ -229,10 +236,10 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
           .result-sheet-ui { display: none !important; }
         }
       `}</style>
-      <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 900, color: "#003366" }}>
+      <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 900, color: t.header }}>
         📄 Result Sheet
       </h2>
-      <div style={{ fontSize: 11, color: "#667", marginTop: -6, marginBottom: 8 }}>
+      <div style={{ fontSize: 11, color: t.textMuted, marginTop: -6, marginBottom: 8 }}>
         Export a clean class summary for printing or sharing.
       </div>
 
@@ -416,7 +423,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                 </thead>
                 <tbody>
                   {allGrades.map((g, i) => (
-                    <tr key={g} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc" }}>
+                    <tr key={g} style={{ background: "#fff" }}>
                       <td
                         style={{
                           ...styles.td,
@@ -456,7 +463,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
                 </thead>
                 <tbody>
                   {["I", "II", "III", "IV", "0"].map((d, i) => (
-                    <tr key={d} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc" }}>
+                    <tr key={d} style={{ background: "#fff" }}>
                       <td
                         style={{
                           ...styles.td,

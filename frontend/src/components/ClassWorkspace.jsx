@@ -3,6 +3,8 @@ import { EntryPanel } from "./EntryPanel";
 import { AnalysisPanel } from "./AnalysisPanel";
 import { ResultSheet } from "./ResultSheet";
 import { useViewport } from "../utils/useViewport";
+import { useTheme } from "../utils/ThemeContext";
+import { themeColors } from "../utils/themeColors";
 
 export function ClassWorkspace({
   classData,
@@ -18,6 +20,8 @@ export function ClassWorkspace({
 }) {
   const [tab, setTab] = useState("entry"); // entry, analysis, sheet
   const { isMobile } = useViewport();
+  const { dark } = useTheme();
+  const t = themeColors(dark);
   const topOffset = isMobile ? 52 : 46;
 
   const tabButtons = [
@@ -32,14 +36,14 @@ export function ClassWorkspace({
       flexDirection: "column",
       flex: 1,
       height: "100%",
-      background: "#f4f7ff",
+      background: t.bgPage,
     },
     tabbar: {
       display: "flex",
       gap: 8,
       padding: 12,
-      background: "#fff",
-      borderBottom: "2px solid #d0dcf8",
+      background: t.bgCard,
+      borderBottom: `2px solid ${t.border}`,
       boxShadow: "0 1px 4px rgba(0,51,102,0.05)",
       flexWrap: "wrap",
       position: "sticky",
@@ -49,17 +53,17 @@ export function ClassWorkspace({
     tabBtn: {
       padding: "8px 16px",
       borderRadius: 6,
-      border: "2px solid #d0dcf8",
-      background: "#fff",
+      border: `2px solid ${t.border}`,
+      background: t.bgCard,
       cursor: "pointer",
       fontWeight: 700,
       fontSize: 12,
-      color: "#666",
+      color: t.textMuted,
       transition: "all 0.2s",
     },
     tabBtnActive: {
-      borderColor: "#003366",
-      background: "#003366",
+      borderColor: t.tableHeader,
+      background: t.tableHeader,
       color: "#fff",
     },
     content: {
