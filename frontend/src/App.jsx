@@ -22,12 +22,20 @@ import { CLASS_FORMS, useClasses } from "./hooks/useClasses";
 
 const MOBILE_NAV_HEIGHT = 94;
 
-const NAV_ITEMS = [
+const CLASS_NAV_ITEMS = [
   { key: "students", icon: "S", label: "Students" },
   { key: "results", icon: "R", label: "Results" },
   { key: "reports", icon: "P", label: "Reports" },
   { key: "settings", icon: "C", label: "Settings" },
 ];
+
+const CLASS_ACCESS_ROLES = new Set(["admin", "teacher"]);
+
+function getDefaultPageForUser(user) {
+  if (!user) return "dashboard";
+  if (CLASS_ACCESS_ROLES.has(user.role)) return "dashboard";
+  return user.linkedIndexNo ? "profile" : "account";
+}
 
 export default function App() {
   const [page, setPage] = useState("dashboard");
@@ -51,13 +59,32 @@ export default function App() {
   const {
     currentUser,
     loggedIn,
+    authReady,
+    managedUsers,
     handleLogin,
     handleSaveAccount,
+    handleChangePassword,
+    loadUsers,
+    handleCreateUser,
+    handleUpdateUser,
     handleLogout: logoutSession,
   } = useSession({
-    onLoginSuccess: () => setPage("dashboard"),
+    onLoginSuccess: (user) => {
+      setPage(getDefaultPageForUser(user));
+      if (user?.linkedIndexNo) {
+        setSearchProfileIndexNo(user.linkedIndexNo);
+      }
+    },
     onAccountSaved: () => showToast("Account updated"),
   });
+
+  const role = currentUser?.role || "";
+  const canAccessClassData = CLASS_ACCESS_ROLES.has(role);
+  const canManageUsers = role === "admin";
+  const canViewSettings = role === "admin";
+  const navItems = canViewSettings
+    ? CLASS_NAV_ITEMS
+    : CLASS_NAV_ITEMS.filter((item) => item.key !== "settings");
 
   const {
     classes,
@@ -96,7 +123,7 @@ export default function App() {
     onChangeExam,
     resetClassesState,
   } = useClasses({
-    loggedIn,
+    loggedIn: loggedIn && canAccessClassData,
     showToast,
     onNavigate: setPage,
   });
@@ -112,6 +139,21 @@ export default function App() {
       setSideOpen(false);
     }
   }, [isMobile]);
+
+  useEffect(() => {
+    if (!loggedIn || !currentUser) return;
+    if (canAccessClassData) return;
+    setSearchProfileIndexNo(currentUser.linkedIndexNo || null);
+    if (["dashboard", "students", "results", "reports", "settings"].includes(page)) {
+      setPage(getDefaultPageForUser(currentUser));
+    }
+  }, [canAccessClassData, currentUser, loggedIn, page]);
+
+  useEffect(() => {
+    if (page === "settings" && !canViewSettings) {
+      setPage(canAccessClassData ? "students" : "account");
+    }
+  }, [canAccessClassData, canViewSettings, page]);
 
   const onShowModal = useCallback((type, studentId = null) => {
     setModalType(type);
@@ -150,15 +192,18 @@ export default function App() {
     setConfirmDel(null);
   }, [confirmDel, deleteClass]);
 
+  if (!authReady) {
+    return <Splash text="Checking session..." />;
+  }
   if (!loggedIn) {
     return <Landing onLogin={handleLogin} />;
   }
 
-  if (loading) return <Splash text="Loading data..." />;
-  if (error) return <Splash text={error} isError />;
+  if (canAccessClassData && loading) return <Splash text="Loading data..." />;
+  if (canAccessClassData && error) return <Splash text={error} isError />;
 
   const sidebarWidth = 240;
-  const isClassPage = ["students", "results", "reports", "settings"].includes(page);
+  const isClassPage = canAccessClassData && ["students", "results", "reports", "settings"].includes(page);
   const accountLabel = currentUser?.displayName || currentUser?.username || "Account";
 
   const topBarLabel = (() => {
@@ -235,28 +280,30 @@ export default function App() {
         </div>
       )}
 
-      <AppSidebar
-        isMobile={isMobile}
-        sideOpen={sideOpen}
-        topBarHeight={topBarHeight}
-        sidebarWidth={sidebarWidth}
-        page={page}
-        activeId={activeId}
-        activeClass={activeClass}
-        isClassPage={isClassPage}
-        classesByYear={classesByYear}
-        expandedYears={expandedYears}
-        forms={CLASS_FORMS}
-        unorganizedClasses={unorganizedClasses}
-        accountLabel={accountLabel}
-        navItems={NAV_ITEMS}
-        styles={S}
-        onClose={closeSide}
-        onToggleYear={toggleYear}
-        onAddClass={addClass}
-        onPickClass={setExamPickerClass}
-        onSetPage={setPage}
-      />
+      {canAccessClassData && (
+        <AppSidebar
+          isMobile={isMobile}
+          sideOpen={sideOpen}
+          topBarHeight={topBarHeight}
+          sidebarWidth={sidebarWidth}
+          page={page}
+          activeId={activeId}
+          activeClass={activeClass}
+          isClassPage={isClassPage}
+          classesByYear={classesByYear}
+          expandedYears={expandedYears}
+          forms={CLASS_FORMS}
+          unorganizedClasses={unorganizedClasses}
+          accountLabel={accountLabel}
+          navItems={navItems}
+          styles={S}
+          onClose={closeSide}
+          onToggleYear={toggleYear}
+          onAddClass={addClass}
+          onPickClass={setExamPickerClass}
+          onSetPage={setPage}
+        />
+      )}
 
       <div style={S.main}>
         <AppTopBar
@@ -265,6 +312,7 @@ export default function App() {
           topBarHeight={topBarHeight}
           topBarLabel={topBarLabel}
           accountLabel={accountLabel}
+          showMenu={canAccessClassData}
           styles={S}
           onToggleSidebar={() => setSideOpen((prev) => !prev)}
           onOpenSidebar={() => setSideOpen(true)}
@@ -283,23 +331,43 @@ export default function App() {
 
         <div style={{ ...S.content, ...(isMobile ? { paddingBottom: MOBILE_NAV_HEIGHT } : {}) }}>
           {page === "dashboard" && (
-            <Dashboard
-              allComputed={allComputed}
-              onOpenClass={(id) => {
-                setActiveId(id);
-                setPage("students");
-              }}
-              onViewProfile={(indexNo) => {
-                setSearchProfileIndexNo(indexNo);
-                setPage("profile");
-              }}
-            />
+            canAccessClassData ? (
+              <Dashboard
+                allComputed={allComputed}
+                onOpenClass={(id) => {
+                  setActiveId(id);
+                  setPage("students");
+                }}
+                onViewProfile={(indexNo) => {
+                  setSearchProfileIndexNo(indexNo);
+                  setPage("profile");
+                }}
+              />
+            ) : (
+              <AccountPage
+                user={currentUser}
+                users={managedUsers}
+                canManageUsers={canManageUsers}
+                onLoadUsers={loadUsers}
+                onSaveProfile={handleSaveAccount}
+                onChangePassword={handleChangePassword}
+                onCreateUser={handleCreateUser}
+                onUpdateUser={handleUpdateUser}
+                onLogout={handleLogout}
+              />
+            )
           )}
 
           {page === "account" && (
             <AccountPage
               user={currentUser}
+              users={managedUsers}
+              canManageUsers={canManageUsers}
+              onLoadUsers={loadUsers}
               onSaveProfile={handleSaveAccount}
+              onChangePassword={handleChangePassword}
+              onCreateUser={handleCreateUser}
+              onUpdateUser={handleUpdateUser}
               onLogout={handleLogout}
             />
           )}
@@ -422,12 +490,14 @@ export default function App() {
       )}
 
       {isMobile && (
+        canAccessClassData && (
         <MobileBottomNav
           page={page}
           activeClass={activeClass}
           styles={S}
           onSetPage={setPage}
         />
+        )
       )}
     </div>
   );

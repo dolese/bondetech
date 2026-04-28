@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { API, clearStoredAuthToken, getStoredAuthToken, storeAuthToken } from "../api";
 
 const DEFAULT_ACCOUNT_STORAGE_KEY = "bonde-account-profile";
 
@@ -16,7 +17,9 @@ export function useSession({
       return null;
     }
   });
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(Boolean(getStoredAuthToken()));
+  const [authReady, setAuthReady] = useState(false);
+  const [managedUsers, setManagedUsers] = useState([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -31,42 +34,91 @@ export function useSession({
     }
   }, [currentUser, storageKey]);
 
-  const handleLogin = useCallback((creds = {}) => {
-    const username = String(creds.username ?? "").trim() || "Operator";
-    setCurrentUser((prev) => ({
-      username,
-      displayName: prev?.displayName || username,
-      role: prev?.role || "School Administrator",
-      email: prev?.email || "",
-      phone: prev?.phone || "",
+  useEffect(() => {
+    const token = getStoredAuthToken();
+    if (!token) {
+      setLoggedIn(false);
+      setCurrentUser(null);
+      setAuthReady(true);
+      return;
+    }
+
+    API.getSession()
+      .then(({ user }) => {
+        setCurrentUser(user);
+        setLoggedIn(true);
+      })
+      .catch(() => {
+        clearStoredAuthToken();
+        setCurrentUser(null);
+        setLoggedIn(false);
+      })
+      .finally(() => setAuthReady(true));
+  }, []);
+
+  const handleLogin = useCallback(async (creds = {}) => {
+    const result = await API.login({
+      username: creds.username,
+      password: creds.password,
       rememberMe: Boolean(creds.rememberMe),
-      loginAt: new Date().toISOString(),
-    }));
+    });
+    storeAuthToken(result.token, Boolean(creds.rememberMe));
+    setCurrentUser(result.user);
     setLoggedIn(true);
-    onLoginSuccess?.();
+    onLoginSuccess?.(result.user);
+    return result;
   }, [onLoginSuccess]);
 
   const handleSaveAccount = useCallback(async (updates) => {
-    setCurrentUser((prev) => ({
-      username: prev?.username || "Operator",
-      displayName: prev?.displayName || prev?.username || "Operator",
-      role: prev?.role || "School Administrator",
-      email: prev?.email || "",
-      phone: prev?.phone || "",
-      ...updates,
-    }));
+    const result = await API.updateMyProfile(updates);
+    setCurrentUser(result.user);
     onAccountSaved?.();
+    return result.user;
   }, [onAccountSaved]);
 
+  const handleChangePassword = useCallback(async (currentPassword, newPassword) => {
+    await API.changeMyPassword({ currentPassword, newPassword });
+  }, []);
+
+  const loadUsers = useCallback(async () => {
+    const result = await API.listUsers();
+    setManagedUsers(result.users ?? []);
+    return result.users ?? [];
+  }, []);
+
+  const handleCreateUser = useCallback(async (payload) => {
+    const result = await API.createUser(payload);
+    setManagedUsers((prev) => [...prev, result.user].sort((a, b) => a.username.localeCompare(b.username)));
+    return result.user;
+  }, []);
+
+  const handleUpdateUser = useCallback(async (username, payload) => {
+    const result = await API.updateUser(username, payload);
+    setManagedUsers((prev) => prev.map((user) => (user.username === username ? result.user : user)));
+    if (currentUser?.username === username) {
+      setCurrentUser(result.user);
+    }
+    return result.user;
+  }, [currentUser?.username]);
+
   const handleLogout = useCallback(() => {
+    clearStoredAuthToken();
+    setManagedUsers([]);
+    setCurrentUser(null);
     setLoggedIn(false);
   }, []);
 
   return {
     currentUser,
     loggedIn,
+    authReady,
+    managedUsers,
     handleLogin,
     handleSaveAccount,
+    handleChangePassword,
+    loadUsers,
+    handleCreateUser,
+    handleUpdateUser,
     handleLogout,
   };
 }

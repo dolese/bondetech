@@ -55,17 +55,28 @@ export function LoginPage({ onBack, onLogin }) {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [infoMsg, setInfoMsg] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const { isMobile, width } = useViewport();
   const isWide = width >= 980;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {
       setError("Enter a username and password");
       return;
     }
     setError("");
-    onLogin?.({ username, rememberMe });
+    setSubmitting(true);
+    try {
+      const result = await onLogin?.({ username, password, rememberMe });
+      if (result?.bootstrap) {
+        setInfoMsg("First administrator account created successfully.");
+      }
+    } catch (err) {
+      setError(err.message || "Login failed");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleForgotPassword = () => {
@@ -337,6 +348,7 @@ export function LoginPage({ onBack, onLogin }) {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoFocus
+                disabled={submitting}
               />
             </div>
           </label>
@@ -352,6 +364,7 @@ export function LoginPage({ onBack, onLogin }) {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={submitting}
               />
             </div>
           </label>
@@ -378,8 +391,8 @@ export function LoginPage({ onBack, onLogin }) {
             </div>
           )}
 
-          <button type="submit" className="login-submit-btn" style={{ marginTop: 2 }}>
-            LOGIN
+          <button type="submit" className="login-submit-btn" style={{ marginTop: 2 }} disabled={submitting}>
+            {submitting ? "SIGNING IN..." : "LOGIN"}
           </button>
 
           <div
@@ -407,6 +420,7 @@ export function LoginPage({ onBack, onLogin }) {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={submitting}
                 style={{ width: 15, height: 15, accentColor: "#0f5579", cursor: "pointer" }}
               />
               Keep me signed in

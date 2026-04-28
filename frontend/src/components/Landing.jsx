@@ -9,9 +9,10 @@ export function Landing({ onLogin }) {
     return (
       <LoginPage
         onBack={() => setView("home")}
-        onLogin={(creds) => {
+        onLogin={async (creds) => {
+          const result = await onLogin?.(creds);
           setView("home");
-          onLogin?.(creds);
+          return result;
         }}
       />
     );

@@ -1,5 +1,6 @@
 const { getDb } = require("../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../lib/http");
+const { resolveSessionUser, canReadClassData, canManageClasses } = require("../../lib/auth");
 
 const DEFAULT_SUBJECTS = [
   "CIV", "HTZ", "HIST", "GEO", "KISW",
@@ -37,8 +38,21 @@ const parseClass = (doc) => {
 
 module.exports = async (req, res) => {
   const db = getDb();
+  let currentUser;
+
+  try {
+    currentUser = await resolveSessionUser(db, req);
+  } catch (err) {
+    return sendJson(res, 401, { error: err.message });
+  }
+  if (!currentUser) {
+    return sendJson(res, 401, { error: "Authentication required" });
+  }
 
   if (req.method === "GET") {
+    if (!canReadClassData(currentUser.role)) {
+      return sendJson(res, 403, { error: "You do not have permission to view classes" });
+    }
     try {
       const includeArchived = req.query.includeArchived === "true";
       const snapshot = await db.collection("classes").orderBy("created_at", "asc").get();
@@ -52,6 +66,9 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === "POST") {
+    if (!canManageClasses(currentUser.role)) {
+      return sendJson(res, 403, { error: "Only administrators can create classes" });
+    }
     try {
       const body = await readJsonBody(req);
       const name = (body.name || "New Class").trim() || "New Class";

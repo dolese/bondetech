@@ -1,6 +1,7 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../../lib/http");
 const { formatCno, sanitizeScores, sanitizeText, reserveCnoRange } = require("../../../../lib/students");
+const { resolveSessionUser, canManageStudents } = require("../../../../lib/auth");
 
 const DEFAULT_EXAM_TYPE = "March Exam";
 
@@ -12,6 +13,18 @@ module.exports = async (req, res) => {
   const db = getDb();
   const classId = req.query.id;
   const classRef = db.collection("classes").doc(classId);
+  let currentUser;
+  try {
+    currentUser = await resolveSessionUser(db, req);
+  } catch (err) {
+    return sendJson(res, 401, { error: err.message });
+  }
+  if (!currentUser) {
+    return sendJson(res, 401, { error: "Authentication required" });
+  }
+  if (!canManageStudents(currentUser.role)) {
+    return sendJson(res, 403, { error: "You do not have permission to import students" });
+  }
   const classSnap = await classRef.get();
   if (!classSnap.exists) {
     return sendJson(res, 404, { error: "Class not found" });

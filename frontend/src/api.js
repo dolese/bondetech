@@ -1,11 +1,43 @@
 // ── API Base ──────────────────────────────────────────────────────────────────
 const BASE = "/api";
+const AUTH_TOKEN_KEY = "bonde-auth-token";
+const AUTH_SESSION_TOKEN_KEY = "bonde-auth-token-session";
+
+export function getStoredAuthToken() {
+  if (typeof window === "undefined") return "";
+  return (
+    window.localStorage.getItem(AUTH_TOKEN_KEY) ||
+    window.sessionStorage.getItem(AUTH_SESSION_TOKEN_KEY) ||
+    ""
+  );
+}
+
+export function storeAuthToken(token, rememberMe) {
+  if (typeof window === "undefined") return;
+  if (rememberMe) {
+    window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+    window.sessionStorage.removeItem(AUTH_SESSION_TOKEN_KEY);
+  } else {
+    window.sessionStorage.setItem(AUTH_SESSION_TOKEN_KEY, token);
+    window.localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
+}
+
+export function clearStoredAuthToken() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(AUTH_TOKEN_KEY);
+  window.sessionStorage.removeItem(AUTH_SESSION_TOKEN_KEY);
+}
 
 async function request(method, url, body) {
   const opts = {
     method,
     headers: { "Content-Type": "application/json" },
   };
+  const token = getStoredAuthToken();
+  if (token) {
+    opts.headers.Authorization = `Bearer ${token}`;
+  }
   if (body !== undefined) opts.body = JSON.stringify(body);
   const res = await fetch(BASE + url, opts);
   const text = await res.text();
@@ -76,4 +108,13 @@ export const API = {
   // Stats (public)
   getStats:        ()           => get("/stats"),
   getHomepageOverview: ()       => get("/stats?overview=1"),
+
+  // Auth
+  login:           (data)       => post("/auth/login", data),
+  getSession:      ()           => get("/auth/me"),
+  updateMyProfile: (data)       => patch("/auth/me", data),
+  changeMyPassword:(data)       => post("/auth/change-password", data),
+  listUsers:       ()           => get("/auth/users"),
+  createUser:      (data)       => post("/auth/users", data),
+  updateUser:      (username, data) => put(`/auth/users/${encodeURIComponent(username)}`, data),
 };

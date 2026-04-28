@@ -47,6 +47,7 @@ app.use(express.json({ limit: "5mb" }));
 app.use("/api/classes", require("./routes/classes"));
 app.use("/api/students", require("./routes/students"));
 app.use("/api/homepage", require("./routes/homepage"));
+app.use("/api/auth", require("./routes/auth"));
 
 app.get("/api/stats", async (req, res) => {
   try {

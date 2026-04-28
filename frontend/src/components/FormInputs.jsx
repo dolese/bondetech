@@ -9,6 +9,7 @@ export function TextInput({
   value,
   onChange,
   placeholder,
+  type = "text",
   error,
   disabled = false,
   width = "100%",
@@ -57,7 +58,7 @@ export function TextInput({
         {required && <span style={styles.labelRequired}>*</span>}
       </label>
       <input
-        type="text"
+        type={type}
         value={value ?? ""}
         onChange={e => onChange?.(e.target.value)}
         placeholder={placeholder}

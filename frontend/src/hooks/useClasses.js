@@ -69,7 +69,14 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
   }, []);
 
   useEffect(() => {
-    if (!loggedIn) return;
+    if (!loggedIn) {
+      setLoading(false);
+      setError(null);
+      setClasses([]);
+      setActiveId(null);
+      setAuditLogs(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     API.getClasses()

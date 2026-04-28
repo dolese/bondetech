@@ -1,5 +1,6 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { sendJson } = require("../../../../lib/http");
+const { resolveSessionUser, canManageClasses } = require("../../../../lib/auth");
 
 /**
  * POST /api/classes/:id/publish
@@ -16,6 +17,18 @@ module.exports = async (req, res) => {
   }
 
   const db = getDb();
+  let currentUser;
+  try {
+    currentUser = await resolveSessionUser(db, req);
+  } catch (err) {
+    return sendJson(res, 401, { error: err.message });
+  }
+  if (!currentUser) {
+    return sendJson(res, 401, { error: "Authentication required" });
+  }
+  if (!canManageClasses(currentUser.role)) {
+    return sendJson(res, 403, { error: "Only administrators can publish results" });
+  }
   const classId = req.query.id;
   const classRef = db.collection("classes").doc(classId);
 

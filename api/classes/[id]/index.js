@@ -1,5 +1,6 @@
 const { getDb } = require("../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../lib/http");
+const { resolveSessionUser, canReadClassData, canManageClasses } = require("../../../lib/auth");
 
 const parseClass = (doc) => {
   const data = doc.data();
@@ -64,6 +65,16 @@ const updateStudentsInBatches = async (db, students, updater) => {
 module.exports = async (req, res) => {
   const db = getDb();
   const classId = req.query.id;
+  let currentUser;
+
+  try {
+    currentUser = await resolveSessionUser(db, req);
+  } catch (err) {
+    return sendJson(res, 401, { error: err.message });
+  }
+  if (!currentUser) {
+    return sendJson(res, 401, { error: "Authentication required" });
+  }
 
   const classRef = db.collection("classes").doc(classId);
   const classSnap = await classRef.get();
@@ -72,6 +83,9 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === "GET") {
+    if (!canReadClassData(currentUser.role)) {
+      return sendJson(res, 403, { error: "You do not have permission to view classes" });
+    }
     try {
       const studentsSnap = await classRef.collection("students").orderBy("index_no", "asc").get();
       const students = studentsSnap.docs.map((doc) => parseStudent(doc, classId));
@@ -85,6 +99,9 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === "PUT") {
+    if (!canManageClasses(currentUser.role)) {
+      return sendJson(res, 403, { error: "Only administrators can update classes" });
+    }
     try {
       const body = await readJsonBody(req);
       const data = classSnap.data();
@@ -133,6 +150,9 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === "DELETE") {
+    if (!canManageClasses(currentUser.role)) {
+      return sendJson(res, 403, { error: "Only administrators can delete classes" });
+    }
     try {
       // Soft-delete: mark as archived instead of permanently deleting.
       // Pass ?permanent=true to perform a hard delete (admin use only).
@@ -159,6 +179,9 @@ module.exports = async (req, res) => {
 
   // PATCH used for restore (un-archive)
   if (req.method === "PATCH") {
+    if (!canManageClasses(currentUser.role)) {
+      return sendJson(res, 403, { error: "Only administrators can restore classes" });
+    }
     try {
       await classRef.update({ archived: false, archived_at: null });
       const updated = await classRef.get();

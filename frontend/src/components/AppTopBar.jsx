@@ -4,6 +4,7 @@ export function AppTopBar({
   topBarHeight,
   topBarLabel,
   accountLabel,
+  showMenu = true,
   styles,
   onToggleSidebar,
   onOpenSidebar,
@@ -12,15 +13,19 @@ export function AppTopBar({
 }) {
   return (
     <div style={{ ...styles.topBar, height: topBarHeight, padding: isMobile ? "0 10px" : "0 16px" }}>
-      <button style={styles.menuBtn} onClick={onToggleSidebar}>☰</button>
+      {showMenu ? (
+        <button style={styles.menuBtn} onClick={onToggleSidebar}>☰</button>
+      ) : (
+        <div style={{ width: 22 }} />
+      )}
       {!isMobile && <span style={styles.topBrand}>🎓 BONDE SEC SCHOOL - RESULT SYSTEM</span>}
       {isMobile ? (
         <button
           style={{ ...styles.topCls, fontSize: 10, padding: "3px 8px", cursor: "pointer", background: "rgba(255,255,255,0.16)" }}
-          onClick={onOpenSidebar}
+          onClick={showMenu ? onOpenSidebar : onOpenAccount}
           title="Switch class"
         >
-          {topBarLabel || "Select class"}
+          {topBarLabel || (showMenu ? "Select class" : "Account")}
         </button>
       ) : (
         <span style={styles.topCls}>{topBarLabel}</span>

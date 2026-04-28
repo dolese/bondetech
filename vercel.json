@@ -51,16 +51,40 @@
       "destination": "/api/proxy-csv/index.js"
     },
     {
+      "source": "/api/auth/login",
+      "destination": "/api/auth/index.js?action=login"
+    },
+    {
+      "source": "/api/auth/me",
+      "destination": "/api/auth/index.js?action=me"
+    },
+    {
+      "source": "/api/auth/change-password",
+      "destination": "/api/auth/index.js?action=change-password"
+    },
+    {
+      "source": "/api/auth/users",
+      "destination": "/api/auth/index.js?action=users"
+    },
+    {
+      "source": "/api/auth/users/:username",
+      "destination": "/api/auth/index.js?action=user&username=:username"
+    },
+    {
       "source": "/api/backup",
-      "destination": "/api/backup/index.js"
+      "destination": "/api/stats/index.js"
     },
     {
       "source": "/api/restore",
-      "destination": "/api/backup/index.js"
+      "destination": "/api/stats/index.js"
     },
     {
       "source": "/api/health",
       "destination": "/api/stats/index.js"
+    },
+    {
+      "source": "/api/homepage",
+      "destination": "/api/stats/index.js?overview=1"
     },
     {
       "source": "/api/stats",

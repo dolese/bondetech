@@ -47,6 +47,16 @@ export const DEFAULT_SCHOOL = {
   year: String(new Date().getFullYear()),
 };
 
+export const USER_ROLE_OPTIONS = [
+  { label: "Administrator", value: "admin" },
+  { label: "Teacher", value: "teacher" },
+  { label: "Parent", value: "parent" },
+  { label: "Student", value: "student" },
+];
+
+export const formatUserRole = (role) =>
+  USER_ROLE_OPTIONS.find((option) => option.value === role)?.label || "User";
+
 // Grade colors & backgrounds
 export const GRADE_COLORS = {
   A: "#1a6b2f", // Dark green

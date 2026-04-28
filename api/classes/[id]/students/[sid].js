@@ -1,6 +1,7 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../../lib/http");
 const { sanitizeScores, sanitizeText } = require("../../../../lib/students");
+const { resolveSessionUser, canManageStudents, canDeleteStudents } = require("../../../../lib/auth");
 
 const DEFAULT_EXAM_TYPE = "March Exam";
 
@@ -26,6 +27,16 @@ module.exports = async (req, res) => {
   const db = getDb();
   const classId = req.query.id;
   const studentId = req.query.sid;
+  let currentUser;
+
+  try {
+    currentUser = await resolveSessionUser(db, req);
+  } catch (err) {
+    return sendJson(res, 401, { error: err.message });
+  }
+  if (!currentUser) {
+    return sendJson(res, 401, { error: "Authentication required" });
+  }
 
   const classRef = db.collection("classes").doc(classId);
   const classSnap = await classRef.get();
@@ -40,6 +51,9 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === "PUT") {
+    if (!canManageStudents(currentUser.role)) {
+      return sendJson(res, 403, { error: "You do not have permission to update students" });
+    }
     try {
       const body = await readJsonBody(req);
       const data = classSnap.data();
@@ -101,6 +115,9 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === "DELETE") {
+    if (!canDeleteStudents(currentUser.role)) {
+      return sendJson(res, 403, { error: "Only administrators can delete students" });
+    }
     try {
       await studentRef.delete();
       const data = classSnap.data();

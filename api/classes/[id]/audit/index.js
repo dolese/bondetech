@@ -1,5 +1,6 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { sendJson } = require("../../../../lib/http");
+const { resolveSessionUser, canViewAudit } = require("../../../../lib/auth");
 
 /**
  * GET /api/classes/:id/audit
@@ -17,6 +18,18 @@ module.exports = async (req, res) => {
   }
 
   const db = getDb();
+  let currentUser;
+  try {
+    currentUser = await resolveSessionUser(db, req);
+  } catch (err) {
+    return sendJson(res, 401, { error: err.message });
+  }
+  if (!currentUser) {
+    return sendJson(res, 401, { error: "Authentication required" });
+  }
+  if (!canViewAudit(currentUser.role)) {
+    return sendJson(res, 403, { error: "Only administrators can view the audit log" });
+  }
   const classId = req.query.id;
 
   const classRef = db.collection("classes").doc(classId);
