@@ -2,8 +2,12 @@ const { getDb } = require("../../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../../lib/http");
 const { sanitizeScores, sanitizeText } = require("../../../../lib/students");
 
+const DEFAULT_EXAM_TYPE = "March Exam";
+
 const parseStudent = (doc, classId) => {
   const data = doc.data();
+  const examScores = (data.exam_scores && typeof data.exam_scores === "object") ? data.exam_scores : {};
+  const legacyScores = Array.isArray(data.scores) ? data.scores : [];
   return {
     id: doc.id,
     classId,
@@ -11,8 +15,8 @@ const parseStudent = (doc, classId) => {
     name: data.name || "",
     sex: data.sex || "M",
     status: data.status || "present",
-    scores: Array.isArray(data.scores) ? data.scores : [],
-    examScores: (data.exam_scores && typeof data.exam_scores === "object") ? data.exam_scores : {},
+    scores: Array.isArray(examScores[DEFAULT_EXAM_TYPE]) ? examScores[DEFAULT_EXAM_TYPE] : legacyScores,
+    examScores,
     remarks: data.remarks || "",
     createdAt: data.created_at || null,
   };
@@ -51,12 +55,16 @@ module.exports = async (req, res) => {
       }
       if (Array.isArray(body.scores)) {
         const newScores = sanitizeScores(body.scores, subjects.length);
-        updates.scores = newScores;
-        const examType = sanitizeText(body.examType || "March Exam");
+        const examType = sanitizeText(body.examType || DEFAULT_EXAM_TYPE);
         const existingExamScores = (prevData.exam_scores && typeof prevData.exam_scores === "object")
           ? prevData.exam_scores
           : {};
         updates.exam_scores = { ...existingExamScores, [examType]: newScores };
+        if (examType === DEFAULT_EXAM_TYPE) {
+          updates.scores = newScores;
+        } else if (Array.isArray(existingExamScores[DEFAULT_EXAM_TYPE])) {
+          updates.scores = existingExamScores[DEFAULT_EXAM_TYPE];
+        }
       }
       if (typeof body.remarks === "string") updates.remarks = sanitizeText(body.remarks);
 

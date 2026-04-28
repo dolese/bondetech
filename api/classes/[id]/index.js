@@ -21,6 +21,8 @@ const parseClass = (doc) => {
 
 const parseStudent = (doc, classId) => {
   const data = doc.data();
+  const examScores = (data.exam_scores && typeof data.exam_scores === "object") ? data.exam_scores : {};
+  const legacyScores = Array.isArray(data.scores) ? data.scores : [];
   return {
     id: doc.id,
     classId,
@@ -28,8 +30,8 @@ const parseStudent = (doc, classId) => {
     name: data.name || "",
     sex: data.sex || "M",
     status: data.status || "present",
-    scores: Array.isArray(data.scores) ? data.scores : [],
-    examScores: (data.exam_scores && typeof data.exam_scores === "object") ? data.exam_scores : {},
+    scores: Array.isArray(examScores["March Exam"]) ? examScores["March Exam"] : legacyScores,
+    examScores,
     createdAt: data.created_at || null,
   };
 };

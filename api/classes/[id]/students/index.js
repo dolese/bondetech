@@ -2,8 +2,12 @@ const { getDb } = require("../../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../../lib/http");
 const { formatCno, sanitizeScores, sanitizeText, reserveCnoRange } = require("../../../../lib/students");
 
+const DEFAULT_EXAM_TYPE = "March Exam";
+
 const parseStudent = (doc, classId) => {
   const data = doc.data();
+  const examScores = (data.exam_scores && typeof data.exam_scores === "object") ? data.exam_scores : {};
+  const legacyScores = Array.isArray(data.scores) ? data.scores : [];
   return {
     id: doc.id,
     classId,
@@ -11,8 +15,8 @@ const parseStudent = (doc, classId) => {
     name: data.name || "",
     sex: data.sex || "M",
     status: data.status || "present",
-    scores: Array.isArray(data.scores) ? data.scores : [],
-    examScores: (data.exam_scores && typeof data.exam_scores === "object") ? data.exam_scores : {},
+    scores: Array.isArray(examScores[DEFAULT_EXAM_TYPE]) ? examScores[DEFAULT_EXAM_TYPE] : legacyScores,
+    examScores,
     remarks: data.remarks || "",
     createdAt: data.created_at || null,
   };
@@ -92,20 +96,20 @@ module.exports = async (req, res) => {
 
       const scores = sanitizeScores(body.scores, subjects.length);
       const remarks = sanitizeText(body.remarks ?? "");
-      const examType = sanitizeText(body.examType || "March Exam");
+      const examType = sanitizeText(body.examType || DEFAULT_EXAM_TYPE);
       const examScores = { [examType]: scores };
-
-      const created_at = new Date().toISOString();
-      const studentRef = await classRef.collection("students").add({
+      const studentData = {
         index_no: indexNo,
         name,
         sex,
         status,
-        scores,
         exam_scores: examScores,
         remarks,
-        created_at,
-      });
+        created_at: new Date().toISOString(),
+      };
+      if (examType === DEFAULT_EXAM_TYPE) studentData.scores = scores;
+
+      const studentRef = await classRef.collection("students").add(studentData);
 
       await classRef.update({
         student_count: Number(data.student_count || 0) + 1,

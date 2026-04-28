@@ -75,4 +75,5 @@ export const API = {
 
   // Stats (public)
   getStats:        ()           => get("/stats"),
+  getHomepageOverview: ()       => get("/homepage"),
 };

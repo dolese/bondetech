@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { GRADE_COLORS, GRADE_BACKGROUNDS, DIVISION_COLORS, DEFAULT_SCHOOL, EXAM_TYPES, DEFAULT_EXAM_TYPE } from "../utils/constants";
+import {
+  GRADE_COLORS,
+  GRADE_BACKGROUNDS,
+  DIVISION_COLORS,
+  DEFAULT_SCHOOL,
+  EXAM_TYPES,
+  DEFAULT_EXAM_TYPE,
+  getMonthlyExamKey,
+} from "../utils/constants";
 import { getGrade, getDivision, computeStudent } from "../utils/grading";
 import { validateStudent, validateSchoolInfo } from "../utils/validation";
 import { TextInput, NumberInput, SelectInput } from "./FormInputs";
@@ -23,6 +31,15 @@ export function EntryPanel({
   const subjects = classData.subjects ?? [];
   // Determine the effective active exam: prefer the prop, fall back to schoolInfo
   const effectiveExam = activeExam || classData.school_info?.exam || DEFAULT_EXAM_TYPE;
+  const monthlyExamOptions = Array.isArray(classData.monthly_exams)
+    ? classData.monthly_exams.map((month) => ({
+        value: getMonthlyExamKey(month),
+        label: `${month} Exam`,
+      }))
+    : [];
+  const examOptions = [...EXAM_TYPES, ...monthlyExamOptions].filter(
+    (option, index, all) => all.findIndex((entry) => entry.value === option.value) === index
+  );
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("index");
   const [sortAsc, setSortAsc] = useState(true);
@@ -64,6 +81,14 @@ export function EntryPanel({
     });
     setSchoolErrors({});
   }, [classData.id, classData.year, classData.form]);
+
+  useEffect(() => {
+    setSchoolInfo((prev) => (
+      prev.exam === effectiveExam
+        ? prev
+        : { ...prev, exam: effectiveExam }
+    ));
+  }, [effectiveExam]);
 
   useEffect(() => {
     if (!bulkMode) return;
@@ -482,7 +507,7 @@ export function EntryPanel({
                   minWidth: 120,
                 }}
               >
-                {EXAM_TYPES.map(et => (
+                {examOptions.map(et => (
                   <option key={et.value} value={et.value}>{et.label}</option>
                 ))}
               </select>
@@ -703,7 +728,7 @@ export function EntryPanel({
             label="Exam"
             value={schoolInfo.exam}
             onChange={(v) => setSchoolInfo({ ...schoolInfo, exam: v })}
-            options={EXAM_TYPES}
+            options={examOptions}
             error={schoolErrors.exam}
           />
           <TextInput

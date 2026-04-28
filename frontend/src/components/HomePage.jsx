@@ -3,34 +3,173 @@ import { API } from "../api";
 import { useViewport } from "../utils/useViewport";
 import { StudentProfilePage } from "./StudentProfilePage";
 
-function MiniBarChart() {
-  const bars = [
-    { label: "A", h: 52 },
-    { label: "B", h: 70 },
-    { label: "C", h: 42 },
-    { label: "D", h: 28 },
-    { label: "E", h: 14 },
+const ANNOUNCEMENT_TONES = {
+  info: { bg: "#dbeafe", color: "#2563eb", label: "Live" },
+  success: { bg: "#d1fae5", color: "#059669", label: "Published" },
+  warning: { bg: "#fef3c7", color: "#d97706", label: "Schedule" },
+  accent: { bg: "#ede9fe", color: "#7c3aed", label: "Portal" },
+};
+
+const FALLBACK_OVERVIEW = {
+  stats: {
+    totalStudents: 0,
+    totalClasses: 0,
+    activeForms: 0,
+    publishedClasses: 0,
+    publishedStudents: 0,
+    latestYear: "",
+    latestExamLabel: "",
+    monthlyExamCount: 0,
+    monthlyExamLabels: [],
+    averageClassSize: 0,
+  },
+  formBreakdown: [],
+  announcements: [
+    {
+      id: "portal-ready",
+      tone: "info",
+      title: "The results portal is ready",
+      description: "Create classes and publish results to replace this starter update with live activity.",
+      date: new Date().toISOString(),
+    },
+  ],
+};
+
+function formatDateLabel(value) {
+  if (!value) return "Updated just now";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Updated just now";
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatCount(value, label) {
+  const number = Number(value || 0);
+  return `${number.toLocaleString()} ${label}${number === 1 ? "" : "s"}`;
+}
+
+function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin, scrollToSearch, scrollToAnnouncements) {
+  const publishedLabel = formatCount(stats.publishedClasses, "published class");
+  const studentLabel = formatCount(stats.totalStudents, "student");
+  const formLabel = formatCount(stats.activeForms, "active form");
+  const monthlyLabel = formatCount(stats.monthlyExamCount, "monthly exam");
+
+  return [
+    {
+      id: "results",
+      bg: "#dbeafe",
+      badge: publishedLabel,
+      title: "Check Results",
+      desc: stats.publishedClasses > 0
+        ? `${publishedLabel} are ready for public result search.`
+        : "Results will appear here once classes are published.",
+      onClick: scrollToSearch,
+    },
+    {
+      id: "performance",
+      bg: "#d1fae5",
+      badge: studentLabel,
+      title: "Class Performance",
+      desc: `${studentLabel} are currently tracked across ${formLabel}.`,
+      onClick: scrollToSearch,
+    },
+    {
+      id: "timetable",
+      bg: "#fef3c7",
+      badge: monthlyLabel,
+      title: "Exam Timetable",
+      desc: stats.monthlyExamCount > 0
+        ? `${monthlyLabel} are enabled on active classes.`
+        : latestExamLabel
+        ? `Current exam session: ${latestExamLabel}.`
+        : "Add exam settings to surface timetable updates here.",
+      onClick: scrollToAnnouncements,
+    },
+    {
+      id: "announcements",
+      bg: "#ede9fe",
+      badge: formatCount(announcementCount, "live update"),
+      title: "Announcements",
+      desc: `${formatCount(announcementCount, "live update")} are available on the portal homepage.`,
+      onClick: scrollToAnnouncements,
+    },
+    {
+      id: "reports",
+      bg: "#fee2e2",
+      badge: formatCount(stats.publishedStudents, "searchable student"),
+      title: "Download Report",
+      desc: stats.publishedStudents > 0
+        ? `${formatCount(stats.publishedStudents, "searchable student")} can be reached once staff open report tools.`
+        : "Staff report downloads unlock after results are published.",
+      onClick: scrollToSearch,
+    },
+    {
+      id: "login",
+      bg: "#cffafe",
+      badge: stats.latestYear ? `Year ${stats.latestYear}` : "Portal Access",
+      title: "Student / Parent Login",
+      desc: stats.latestYear
+        ? `Portal access is prepared for the ${stats.latestYear} academic cycle.`
+        : "Access the staff portal and student tools securely.",
+      onClick: onOpenLogin,
+    },
   ];
-  const width = 18;
-  const gap = 8;
+}
+
+function buildPerformanceStats(stats, latestExamLabel) {
+  return [
+    { key: "students", color: "#2563eb", value: Number(stats.totalStudents || 0).toLocaleString(), label: "Total Students" },
+    { key: "classes", color: "#059669", value: String(stats.totalClasses || 0), label: "Active Classes" },
+    { key: "exam", color: "#7c3aed", value: latestExamLabel || "No exam yet", label: "Latest Exam" },
+    { key: "published", color: "#d97706", value: String(stats.publishedClasses || 0), label: "Published Classes" },
+    { key: "forms", color: "#0891b2", value: String(stats.activeForms || 0), label: "Active Forms" },
+    { key: "monthly", color: "#dc2626", value: String(stats.monthlyExamCount || 0), label: "Monthly Exams" },
+  ];
+}
+
+function MiniBarChart({ bars }) {
+  const normalized = bars.length > 0
+    ? bars
+    : [
+        { label: "F1", value: 0 },
+        { label: "F2", value: 0 },
+        { label: "F3", value: 0 },
+        { label: "F4", value: 0 },
+      ];
+  const width = 22;
+  const gap = 12;
   const maxHeight = 72;
+  const maxValue = Math.max(...normalized.map((bar) => bar.value), 1);
 
   return (
-    <svg width={bars.length * (width + gap) - gap} height={maxHeight + 16} style={{ display: "block", overflow: "visible" }}>
-      {bars.map((bar, index) => (
-        <g key={bar.label}>
-          <rect x={index * (width + gap)} y={maxHeight - bar.h} width={width} height={bar.h} rx={3} fill="#3b82f6" />
-          <text
-            x={index * (width + gap) + width / 2}
-            y={maxHeight + 13}
-            textAnchor="middle"
-            fontSize={9}
-            fill="#94a3b8"
-          >
-            {bar.label}
-          </text>
-        </g>
-      ))}
+    <svg width={normalized.length * (width + gap) - gap} height={maxHeight + 20} style={{ display: "block", overflow: "visible" }}>
+      {normalized.map((bar, index) => {
+        const height = bar.value > 0 ? Math.max(12, Math.round((bar.value / maxValue) * maxHeight)) : 8;
+        return (
+          <g key={bar.label}>
+            <rect
+              x={index * (width + gap)}
+              y={maxHeight - height}
+              width={width}
+              height={height}
+              rx={4}
+              fill={bar.value > 0 ? "#2563eb" : "#cbd5e1"}
+            />
+            <text
+              x={index * (width + gap) + width / 2}
+              y={maxHeight + 13}
+              textAnchor="middle"
+              fontSize={9}
+              fill="#64748b"
+            >
+              {bar.label}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
@@ -47,7 +186,7 @@ function SchoolCrest({ size = 40 }) {
   );
 }
 
-function QuickCard({ emoji, bg, title, desc, onClick }) {
+function QuickCard({ bg, badge, title, desc, onClick }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -61,38 +200,28 @@ function QuickCard({ emoji, bg, title, desc, onClick }) {
         borderRadius: 14,
         padding: "16px 14px",
         display: "flex",
-        alignItems: "flex-start",
-        gap: 12,
+        flexDirection: "column",
+        gap: 10,
         cursor: "pointer",
         transition: "all 0.18s ease",
         boxShadow: hovered ? "0 4px 16px rgba(0,51,102,0.10)" : "0 1px 4px rgba(0,0,0,0.04)",
       }}
     >
-      <div
-        style={{
-          width: 46,
-          height: 46,
-          borderRadius: 12,
-          background: bg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 22,
-          flexShrink: 0,
-        }}
-      >
-        {emoji}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: bg }} />
+        <span style={{ fontSize: 10, fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          {badge}
+        </span>
       </div>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040", marginBottom: 3 }}>{title}</div>
-        <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5 }}>{desc}</div>
-      </div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{title}</div>
+      <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.6 }}>{desc}</div>
     </div>
   );
 }
 
-function AnnouncementRow({ emoji, bg, title, desc, date }) {
+function AnnouncementRow({ title, desc, date, tone }) {
   const [hovered, setHovered] = useState(false);
+  const palette = ANNOUNCEMENT_TONES[tone] || ANNOUNCEMENT_TONES.info;
 
   return (
     <div
@@ -111,22 +240,25 @@ function AnnouncementRow({ emoji, bg, title, desc, date }) {
     >
       <div
         style={{
-          width: 40,
-          height: 40,
-          borderRadius: 10,
-          background: bg,
+          width: 42,
+          height: 42,
+          borderRadius: 12,
+          background: palette.bg,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 20,
+          color: palette.color,
+          fontSize: 10,
+          fontWeight: 800,
+          textTransform: "uppercase",
           flexShrink: 0,
         }}
       >
-        {emoji}
+        {palette.label}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{title}</div>
-        <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{desc}</div>
+        <div style={{ fontSize: 11, color: "#64748b", marginTop: 2, lineHeight: 1.5 }}>{desc}</div>
       </div>
       <div style={{ fontSize: 11, color: "#94a3b8", flexShrink: 0, marginLeft: 8 }}>{date}</div>
       <div style={{ fontSize: 16, color: "#94a3b8" }}>{">"}</div>
@@ -134,7 +266,7 @@ function AnnouncementRow({ emoji, bg, title, desc, date }) {
   );
 }
 
-function CategoryChip({ emoji, label, color, bg, onClick }) {
+function CategoryChip({ label, color, bg, onClick }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -153,34 +285,19 @@ function CategoryChip({ emoji, label, color, bg, onClick }) {
         borderRadius: 14,
         cursor: "pointer",
         transition: "all 0.18s ease",
-        minWidth: 72,
+        minWidth: 84,
       }}
     >
-      <div style={{ fontSize: 22 }}>{emoji}</div>
-      <div style={{ fontSize: 10, fontWeight: 700, color: hovered ? color : "#475569", textAlign: "center", lineHeight: 1.3 }}>
-        {label}
-      </div>
+      <div style={{ width: 26, height: 26, borderRadius: 999, background: hovered ? color : "#e2e8f0" }} />
+      <div style={{ fontSize: 10, fontWeight: 700, color: hovered ? color : "#475569", textAlign: "center", lineHeight: 1.3 }}>{label}</div>
     </div>
   );
 }
 
-function FeatureChip({ emoji, bg, label }) {
+function FeatureChip({ bg, label }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "14px 10px" }}>
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 14,
-          background: bg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 22,
-        }}
-      >
-        {emoji}
-      </div>
+      <div style={{ width: 48, height: 48, borderRadius: 14, background: bg }} />
       <div style={{ fontSize: 10, fontWeight: 700, color: "#475569", textAlign: "center", lineHeight: 1.3 }}>{label}</div>
     </div>
   );
@@ -188,8 +305,6 @@ function FeatureChip({ emoji, bg, label }) {
 
 export function HomePage({ onOpenLogin }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isMobile, width } = useViewport();
-  const isDesktop = width >= 900;
   const [searchAdmission, setSearchAdmission] = useState("");
   const [searchExam, setSearchExam] = useState("");
   const [searchForm, setSearchForm] = useState("");
@@ -198,17 +313,52 @@ export function HomePage({ onOpenLogin }) {
   const [searchError, setSearchError] = useState("");
   const [searchResults, setSearchResults] = useState(null);
   const [profileIndexNo, setProfileIndexNo] = useState(null);
-  const [statsData, setStatsData] = useState(null);
+  const [homepageData, setHomepageData] = useState(FALLBACK_OVERVIEW);
+  const [homepageStatus, setHomepageStatus] = useState("loading");
+  const { isMobile, width } = useViewport();
+  const isDesktop = width >= 900;
   const searchSectionRef = useRef(null);
   const announcementsSectionRef = useRef(null);
   const footerRef = useRef(null);
 
   useEffect(() => {
-    API.getStats()
-      .then(setStatsData)
-      .catch((err) => {
-        console.warn("Failed to load stats:", err);
-      });
+    let active = true;
+
+    async function loadHomepage() {
+      try {
+        const overview = await API.getHomepageOverview();
+        if (!active) return;
+        setHomepageData(overview);
+        setHomepageStatus("ready");
+      } catch (err) {
+        if (!active) return;
+        try {
+          const basicStats = await API.getStats();
+          if (!active) return;
+          setHomepageData({
+            ...FALLBACK_OVERVIEW,
+            stats: {
+              ...FALLBACK_OVERVIEW.stats,
+              totalStudents: Number(basicStats.totalStudents || 0),
+              totalClasses: Number(basicStats.totalClasses || 0),
+              latestYear: basicStats.latestYear || "",
+              averageClassSize: basicStats.totalClasses
+                ? Math.round(Number(basicStats.totalStudents || 0) / Number(basicStats.totalClasses))
+                : 0,
+            },
+          });
+        } catch {
+          if (!active) return;
+          setHomepageData(FALLBACK_OVERVIEW);
+        }
+        setHomepageStatus("fallback");
+      }
+    }
+
+    loadHomepage();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const scrollToSearch = () => {
@@ -244,7 +394,6 @@ export function HomePage({ onOpenLogin }) {
       if (searchForm) opts.form = searchForm;
       if (searchYear) opts.year = searchYear;
       const results = await API.searchStudents(searchAdmission.trim(), opts);
-
       if (results.length === 0) {
         setSearchError("No results found. Check the admission number and try again.");
       } else if (results.length === 1) {
@@ -269,54 +418,41 @@ export function HomePage({ onOpenLogin }) {
   };
 
   const currentYear = new Date().getFullYear();
-  const latestExam = `Term II ${currentYear}`;
+  const stats = homepageData?.stats || FALLBACK_OVERVIEW.stats;
+  const announcements = Array.isArray(homepageData?.announcements) && homepageData.announcements.length > 0
+    ? homepageData.announcements
+    : FALLBACK_OVERVIEW.announcements;
+  const latestExamLabel = stats.latestExamLabel || (stats.latestYear ? `Academic Year ${stats.latestYear}` : "Results Portal");
+  const quickAccess = buildQuickAccess(stats, announcements.length, latestExamLabel, onOpenLogin, scrollToSearch, scrollToAnnouncements);
+  const performanceStats = buildPerformanceStats(stats, latestExamLabel);
+  const chartBars = Array.isArray(homepageData?.formBreakdown) && homepageData.formBreakdown.length > 0
+    ? homepageData.formBreakdown.map((item) => ({
+        label: item.label.replace("Form ", "F"),
+        value: Number(item.students || 0),
+      }))
+    : [];
   const navBg = "#0f2d6e";
   const font = "'Poppins', 'Segoe UI', sans-serif";
   const containerStyle = { maxWidth: 1140, margin: "0 auto", padding: isMobile ? "0 16px" : "0 32px" };
 
-  const quickAccess = [
-    { emoji: "Results", bg: "#dbeafe", title: "Check Results", desc: "View your exam results instantly", onClick: scrollToSearch },
-    { emoji: "Class", bg: "#d1fae5", title: "Class Performance", desc: "See performance by class or subject", onClick: scrollToSearch },
-    { emoji: "Exam", bg: "#fef3c7", title: "Exam Timetable", desc: "View upcoming exams and dates", onClick: scrollToAnnouncements },
-    { emoji: "News", bg: "#ede9fe", title: "Announcements", desc: "Latest school notices and updates", onClick: scrollToAnnouncements },
-    { emoji: "PDF", bg: "#fee2e2", title: "Download Report", desc: "Download result sheets and reports", onClick: scrollToSearch },
-    { emoji: "Login", bg: "#cffafe", title: "Student / Parent Login", desc: "Access your account securely", onClick: onOpenLogin },
-  ];
-
-  const announcements = [
-    { emoji: "Info", bg: "#dbeafe", title: "Term II 2024 results have been released", desc: "Check your results now and download your reports.", date: "May 20, 2024" },
-    { emoji: "Info", bg: "#d1fae5", title: "Form IV Mock Examination Timetable", desc: "The timetable is now available. Check the exam dates.", date: "May 18, 2024" },
-    { emoji: "Info", bg: "#fee2e2", title: "Parents' Meeting - All Forms", desc: "Meeting scheduled for 25th May 2024 at 9:00 AM.", date: "May 15, 2024" },
-    { emoji: "Info", bg: "#fef3c7", title: "System Maintenance Notice", desc: "System will be unavailable on 22nd May from 12:00 AM - 4:00 AM.", date: "May 14, 2024" },
-  ];
-
   const categories = [
-    { emoji: "I", label: "Form I\nResults", color: "#2563eb", bg: "#dbeafe" },
-    { emoji: "II", label: "Form II\nResults", color: "#2563eb", bg: "#dbeafe" },
-    { emoji: "III", label: "Form III\nResults", color: "#2563eb", bg: "#dbeafe" },
-    { emoji: "IV", label: "Form IV\nResults", color: "#2563eb", bg: "#dbeafe" },
-    { emoji: "T", label: "Terminal\nExams", color: "#dc2626", bg: "#fee2e2" },
-    { emoji: "M", label: "Midterm\nExams", color: "#dc2626", bg: "#fee2e2" },
-    { emoji: "A", label: "Annual\nExams", color: "#7c3aed", bg: "#ede9fe" },
-    { emoji: "Mock", label: "Mock\nExams", color: "#0891b2", bg: "#cffafe" },
+    { label: "Form I\nResults", color: "#2563eb", bg: "#dbeafe" },
+    { label: "Form II\nResults", color: "#2563eb", bg: "#dbeafe" },
+    { label: "Form III\nResults", color: "#2563eb", bg: "#dbeafe" },
+    { label: "Form IV\nResults", color: "#2563eb", bg: "#dbeafe" },
+    { label: "Terminal\nExams", color: "#dc2626", bg: "#fee2e2" },
+    { label: "Midterm\nExams", color: "#dc2626", bg: "#fee2e2" },
+    { label: "Annual\nExams", color: "#7c3aed", bg: "#ede9fe" },
+    { label: "Mock\nExams", color: "#0891b2", bg: "#cffafe" },
   ];
 
   const features = [
-    { emoji: "Safe", bg: "#dbeafe", label: "Secure\nAccess" },
-    { emoji: "Fast", bg: "#d1fae5", label: "Fast Results\nChecking" },
-    { emoji: "Mobile", bg: "#ede9fe", label: "Mobile\nResponsive" },
-    { emoji: "PDF", bg: "#fef3c7", label: "Easy Report\nDownload" },
-    { emoji: "Track", bg: "#d1fae5", label: "Performance\nTracking" },
-    { emoji: "Notice", bg: "#fee2e2", label: "Notices in\nOne Place" },
-  ];
-
-  const performanceStats = [
-    { emoji: "Students", color: "#2563eb", value: statsData?.totalStudents != null ? statsData.totalStudents.toLocaleString() : "--", label: "Total Students" },
-    { emoji: "Classes", color: "#059669", value: statsData?.totalClasses != null ? String(statsData.totalClasses) : "--", label: "Classes" },
-    { emoji: "Exam", color: "#7c3aed", value: latestExam, label: "Latest Exam" },
-    { emoji: "Pass", color: "#059669", value: "92.4%", label: "Pass Rate" },
-    { emoji: "Top", color: "#d97706", value: "Form IV A", label: "Top Class" },
-    { emoji: "Avg", color: "#2563eb", value: "76.8%", label: "Average Score" },
+    { bg: "#dbeafe", label: "Secure\nAccess" },
+    { bg: "#d1fae5", label: "Fast Results\nChecking" },
+    { bg: "#ede9fe", label: "Mobile\nResponsive" },
+    { bg: "#fef3c7", label: "Easy Report\nDownload" },
+    { bg: "#d1fae5", label: "Performance\nTracking" },
+    { bg: "#fee2e2", label: "Notices in\nOne Place" },
   ];
 
   return (
@@ -365,12 +501,8 @@ export function HomePage({ onOpenLogin }) {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <SchoolCrest size={isMobile ? 36 : 44} />
             <div>
-              <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 800, color: navBg, letterSpacing: 0.3, lineHeight: 1.2 }}>
-                BONDE SECONDARY SCHOOL
-              </div>
-              <div style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, color: "#2563eb", letterSpacing: 1, textTransform: "uppercase" }}>
-                Results System
-              </div>
+              <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 800, color: navBg, letterSpacing: 0.3, lineHeight: 1.2 }}>BONDE SECONDARY SCHOOL</div>
+              <div style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, color: "#2563eb", letterSpacing: 1, textTransform: "uppercase" }}>Results System</div>
             </div>
           </div>
 
@@ -466,15 +598,15 @@ export function HomePage({ onOpenLogin }) {
         >
           <div style={{ color: "#fff" }}>
             <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: "5px 14px", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 18 }}>
-              Welcome
+              {homepageStatus === "loading" ? "Loading Portal Data" : homepageStatus === "fallback" ? "Portal Snapshot" : "Live Portal Overview"}
             </div>
             <h1 style={{ fontSize: isMobile ? 28 : 42, fontWeight: 800, lineHeight: 1.2, margin: "0 0 16px", letterSpacing: -0.5 }}>
               Academic Results
               <br />
               Made <span style={{ color: "#f59e0b" }}>Simple</span>
             </h1>
-            <p style={{ fontSize: isMobile ? 13 : 15, color: "rgba(255,255,255,0.80)", lineHeight: 1.7, marginBottom: 28, maxWidth: 440 }}>
-              Access results, track performance and stay updated with school notices anytime, anywhere.
+            <p style={{ fontSize: isMobile ? 13 : 15, color: "rgba(255,255,255,0.80)", lineHeight: 1.7, marginBottom: 28, maxWidth: 460 }}>
+              Search live student records, follow result publication updates, and track the active exam cycle from one public homepage.
             </p>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
@@ -483,57 +615,50 @@ export function HomePage({ onOpenLogin }) {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: "rgba(255,255,255,0.70)", flexWrap: "wrap" }}>
-              <span>Fast</span>
+              <span>{formatCount(stats.totalStudents, "student")}</span>
               <span style={{ opacity: 0.4 }}>|</span>
-              <span>Secure</span>
+              <span>{formatCount(stats.publishedClasses, "published class")}</span>
               <span style={{ opacity: 0.4 }}>|</span>
-              <span>Mobile Friendly</span>
+              <span>{formatCount(stats.activeForms, "active form")}</span>
             </div>
           </div>
 
           <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? "18px 16px" : "22px 20px", boxShadow: "0 16px 48px rgba(0,0,0,0.20)", width: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>Latest Exam: {latestExam}</div>
-              <span style={{ fontSize: 18 }}>Exam</span>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>Latest Exam: {latestExamLabel}</div>
+              <span style={{ fontSize: 11, color: "#64748b" }}>{stats.latestYear || "Current Year"}</span>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
               <div style={{ background: "#f8faff", borderRadius: 12, padding: "12px 14px" }}>
                 <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Total Students</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: "#0f2d6e" }}>
-                    {statsData?.totalStudents != null ? statsData.totalStudents.toLocaleString() : "--"}
-                  </span>
-                  <span style={{ fontSize: 20 }}>Students</span>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: "#0f2d6e" }}>{Number(stats.totalStudents || 0).toLocaleString()}</span>
                 </div>
               </div>
               <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Classes</div>
+                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Active Classes</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: "#059669" }}>
-                    {statsData?.totalClasses != null ? statsData.totalClasses : "--"}
-                  </span>
-                  <span style={{ fontSize: 20 }}>Classes</span>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: "#059669" }}>{stats.totalClasses || 0}</span>
                 </div>
               </div>
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 10 }}>Performance Overview</div>
-              <MiniBarChart />
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 10 }}>Students by Form</div>
+              <MiniBarChart bars={chartBars} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div style={{ background: "#fffbeb", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: 10, color: "#92400e", fontWeight: 600, marginBottom: 3 }}>Top Student</div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#1a2040" }}>Agnes M.</div>
-                <div style={{ fontSize: 10, color: "#64748b" }}>493/500</div>
-                <div style={{ fontSize: 18, marginTop: 4 }}>Top</div>
+                <div style={{ fontSize: 10, color: "#92400e", fontWeight: 600, marginBottom: 3 }}>Published Classes</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>{stats.publishedClasses || 0}</div>
+                <div style={{ fontSize: 10, color: "#64748b" }}>{formatCount(stats.publishedStudents, "searchable student")}</div>
               </div>
               <div style={{ background: "#f5f3ff", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: 10, color: "#5b21b6", fontWeight: 600, marginBottom: 3 }}>Average Score</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>76.8%</div>
-                <div style={{ fontSize: 18, marginTop: 4 }}>Avg</div>
+                <div style={{ fontSize: 10, color: "#5b21b6", fontWeight: 600, marginBottom: 3 }}>Average Class Size</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>{stats.averageClassSize || 0}</div>
+                <div style={{ fontSize: 10, color: "#64748b" }}>{formatCount(stats.monthlyExamCount, "monthly exam")}</div>
               </div>
             </div>
           </div>
@@ -543,9 +668,13 @@ export function HomePage({ onOpenLogin }) {
       <section ref={searchSectionRef} style={{ padding: isMobile ? "24px 0" : "32px 0" }}>
         <div style={containerStyle}>
           <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? "20px 16px" : "28px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid #f1f5f9" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-              <span style={{ fontSize: 20 }}>Search</span>
-              <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Search Results</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Search Results</span>
+              </div>
+              {homepageStatus === "fallback" && (
+                <span style={{ fontSize: 11, color: "#64748b" }}>Live overview unavailable</span>
+              )}
             </div>
             <p style={{ fontSize: 12, color: "#64748b", marginBottom: 18 }}>Enter student details to view results and academic progress.</p>
 
@@ -558,12 +687,7 @@ export function HomePage({ onOpenLogin }) {
                   marginBottom: 14,
                 }}
               >
-                <input
-                  className="landing-search-input"
-                  placeholder="Admission No. or Name"
-                  value={searchAdmission}
-                  onChange={(e) => setSearchAdmission(e.target.value)}
-                />
+                <input className="landing-search-input" placeholder="Admission No. or Name" value={searchAdmission} onChange={(e) => setSearchAdmission(e.target.value)} />
                 <select className="landing-search-input" value={searchExam} onChange={(e) => setSearchExam(e.target.value)}>
                   <option value="">Exam Type (All)</option>
                   <option>March Exam</option>
@@ -588,9 +712,7 @@ export function HomePage({ onOpenLogin }) {
               </div>
 
               {searchError && (
-                <div style={{ fontSize: 12, color: "#b42318", fontWeight: 600, marginBottom: 10 }}>
-                  {searchError}
-                </div>
+                <div style={{ fontSize: 12, color: "#b42318", fontWeight: 600, marginBottom: 10 }}>{searchError}</div>
               )}
 
               <button
@@ -665,13 +787,11 @@ export function HomePage({ onOpenLogin }) {
         <div style={containerStyle}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
             <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Quick Access</span>
-            <span onClick={scrollToSearch} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>
-              View All &gt;
-            </span>
+            <span onClick={scrollToSearch} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>View All &gt;</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)", gap: isMobile ? 10 : 14 }}>
             {quickAccess.map((item) => (
-              <QuickCard key={item.title} {...item} />
+              <QuickCard key={item.id} {...item} />
             ))}
           </div>
         </div>
@@ -680,8 +800,7 @@ export function HomePage({ onOpenLogin }) {
       <section style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
         <div style={containerStyle}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-            <span style={{ fontSize: 18 }}>Stats</span>
-            <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Performance Highlights</span>
+            <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Portal Highlights</span>
           </div>
           <div
             style={{
@@ -697,7 +816,7 @@ export function HomePage({ onOpenLogin }) {
           >
             {performanceStats.map((stat, index) => (
               <div
-                key={stat.label}
+                key={stat.key}
                 style={{
                   padding: isMobile ? "16px 8px" : "20px 16px",
                   textAlign: "center",
@@ -705,7 +824,7 @@ export function HomePage({ onOpenLogin }) {
                   borderBottom: isMobile && index < 3 ? "1px solid #f1f5f9" : "none",
                 }}
               >
-                <div style={{ fontSize: isMobile ? 20 : 24, marginBottom: 6, color: stat.color }}>{stat.emoji}</div>
+                <div style={{ width: 16, height: 16, borderRadius: 999, background: stat.color, margin: "0 auto 8px" }} />
                 <div style={{ fontSize: isMobile ? 14 : 18, fontWeight: 800, color: "#0f2d6e" }}>{stat.value}</div>
                 <div style={{ fontSize: isMobile ? 9 : 11, color: "#64748b", marginTop: 3 }}>{stat.label}</div>
               </div>
@@ -718,16 +837,19 @@ export function HomePage({ onOpenLogin }) {
         <div style={containerStyle}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 18 }}>News</span>
               <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Recent Announcements</span>
             </div>
-            <span onClick={scrollToAnnouncements} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>
-              View All &gt;
-            </span>
+            <span onClick={scrollToAnnouncements} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>View All &gt;</span>
           </div>
           <div style={{ background: "#fff", borderRadius: 18, border: "1.5px solid #f1f5f9", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
-            {announcements.map((announcement, index) => (
-              <AnnouncementRow key={index} {...announcement} />
+            {announcements.map((announcement) => (
+              <AnnouncementRow
+                key={announcement.id}
+                title={announcement.title}
+                desc={announcement.description}
+                date={formatDateLabel(announcement.date)}
+                tone={announcement.tone}
+              />
             ))}
           </div>
         </div>
@@ -736,7 +858,6 @@ export function HomePage({ onOpenLogin }) {
       <section style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
         <div style={containerStyle}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-            <span style={{ fontSize: 18 }}>Forms</span>
             <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Results Categories</span>
           </div>
           <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
@@ -750,7 +871,6 @@ export function HomePage({ onOpenLogin }) {
       <section style={{ padding: isMobile ? "4px 0 28px" : "4px 0 40px" }}>
         <div style={containerStyle}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-            <span style={{ fontSize: 18 }}>Why</span>
             <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Why Use This System?</span>
           </div>
           <div

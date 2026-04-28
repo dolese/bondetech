@@ -69,7 +69,13 @@ module.exports = async (req, res) => {
       if (existing) {
         const ed = existing.data;
         const existingExamScores = (ed.exam_scores && typeof ed.exam_scores === "object") ? ed.exam_scores : {};
-        const existingExamScoreForType = existingExamScores[examType] ?? [];
+        const existingDefaultScores = Array.isArray(existingExamScores[DEFAULT_EXAM_TYPE])
+          ? existingExamScores[DEFAULT_EXAM_TYPE]
+          : Array.isArray(ed.scores)
+          ? ed.scores
+          : [];
+        const existingExamScoreForType = existingExamScores[examType]
+          ?? (examType === DEFAULT_EXAM_TYPE ? existingDefaultScores : []);
         const changed =
           name !== (ed.name || "") ||
           newSex !== (ed.sex || "M") ||
@@ -78,32 +84,38 @@ module.exports = async (req, res) => {
           JSON.stringify(newScores) !== JSON.stringify(existingExamScoreForType);
 
         if (changed) {
+          const updates = {
+            name,
+            sex: newSex,
+            status: newStatus,
+            remarks: newRemarks,
+            exam_scores: { ...existingExamScores, [examType]: newScores },
+          };
+          if (examType === DEFAULT_EXAM_TYPE) {
+            updates.scores = newScores;
+          } else if (Array.isArray(existingExamScores[DEFAULT_EXAM_TYPE])) {
+            updates.scores = existingExamScores[DEFAULT_EXAM_TYPE];
+          }
           toUpdate.push({
             ref: existing.ref,
-            updates: {
-              name,
-              sex: newSex,
-              status: newStatus,
-              remarks: newRemarks,
-              scores: newScores,
-              exam_scores: { ...existingExamScores, [examType]: newScores },
-            },
+            updates,
           });
         } else {
           skipped += 1;
         }
       } else {
         const finalIndexNo = incomingIndexNo || formatCno(cursor++);
-        toCreate.push({
+        const studentData = {
           index_no: finalIndexNo,
           name,
           sex: newSex,
           status: newStatus,
-          scores: newScores,
           exam_scores: { [examType]: newScores },
           remarks: newRemarks,
           created_at,
-        });
+        };
+        if (examType === DEFAULT_EXAM_TYPE) studentData.scores = newScores;
+        toCreate.push(studentData);
       }
     }
 

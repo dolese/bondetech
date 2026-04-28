@@ -36,6 +36,8 @@ const parseClass = (doc) => {
 
 const parseStudent = (doc, classId) => {
   const data = doc.data();
+  const examScores = data.exam_scores && typeof data.exam_scores === "object" ? data.exam_scores : {};
+  const legacyScores = Array.isArray(data.scores) ? data.scores : [];
   return {
     id: doc.id,
     classId,
@@ -43,8 +45,8 @@ const parseStudent = (doc, classId) => {
     name: data.name || "",
     sex: data.sex || "M",
     status: data.status || "present",
-    scores: Array.isArray(data.scores) ? data.scores : [],
-    examScores: data.exam_scores && typeof data.exam_scores === "object" ? data.exam_scores : {},
+    scores: Array.isArray(examScores[DEFAULT_EXAM_TYPE]) ? examScores[DEFAULT_EXAM_TYPE] : legacyScores,
+    examScores,
     remarks: data.remarks || "",
     createdAt: data.created_at || null,
   };
@@ -292,17 +294,18 @@ router.post("/:id/students", validateStudentMiddleware, async (req, res) => {
 
     const examType = sanitizeText(req.body.examType || DEFAULT_EXAM_TYPE);
     const examScores = { [examType]: scores };
-
-    const studentRef = await classRef.collection("students").add({
+    const studentData = {
       index_no: indexNo,
       name,
       sex,
       status,
-      scores,
       exam_scores: examScores,
       remarks,
       created_at: new Date().toISOString(),
-    });
+    };
+    if (examType === DEFAULT_EXAM_TYPE) studentData.scores = scores;
+
+    const studentRef = await classRef.collection("students").add(studentData);
 
     await classRef.update({ student_count: Number(data.student_count || 0) + 1 });
 
@@ -379,7 +382,13 @@ router.post("/:id/students/bulk", async (req, res) => {
       if (existing) {
         const ed = existing.data;
         const existingExamScores = (ed.exam_scores && typeof ed.exam_scores === "object") ? ed.exam_scores : {};
-        const existingExamScoreForType = existingExamScores[examType] ?? ed.scores ?? [];
+        const existingDefaultScores = Array.isArray(existingExamScores[DEFAULT_EXAM_TYPE])
+          ? existingExamScores[DEFAULT_EXAM_TYPE]
+          : Array.isArray(ed.scores)
+          ? ed.scores
+          : [];
+        const existingExamScoreForType = existingExamScores[examType]
+          ?? (examType === DEFAULT_EXAM_TYPE ? existingDefaultScores : []);
         const changed =
           name !== (ed.name || "") ||
           newSex !== (ed.sex || "M") ||
@@ -388,16 +397,21 @@ router.post("/:id/students/bulk", async (req, res) => {
           JSON.stringify(newScores) !== JSON.stringify(existingExamScoreForType);
 
         if (changed) {
+          const updates = {
+            name,
+            sex: newSex,
+            status: newStatus,
+            remarks: newRemarks,
+            exam_scores: { ...existingExamScores, [examType]: newScores },
+          };
+          if (examType === DEFAULT_EXAM_TYPE) {
+            updates.scores = newScores;
+          } else if (Array.isArray(existingExamScores[DEFAULT_EXAM_TYPE])) {
+            updates.scores = existingExamScores[DEFAULT_EXAM_TYPE];
+          }
           toUpdate.push({
             ref: existing.ref,
-            updates: {
-              name,
-              sex: newSex,
-              status: newStatus,
-              remarks: newRemarks,
-              scores: newScores,
-              exam_scores: { ...existingExamScores, [examType]: newScores },
-            },
+            updates,
           });
         } else {
           skipped += 1;
@@ -405,16 +419,17 @@ router.post("/:id/students/bulk", async (req, res) => {
       } else {
         // New student — assign a CNO if none provided.
         let finalIndexNo = incomingIndexNo || formatCno(cursor++);
-        toCreate.push({
+        const studentData = {
           index_no: finalIndexNo,
           name,
           sex: newSex,
           status: newStatus,
-          scores: newScores,
           exam_scores: { [examType]: newScores },
           remarks: newRemarks,
           created_at,
-        });
+        };
+        if (examType === DEFAULT_EXAM_TYPE) studentData.scores = newScores;
+        toCreate.push(studentData);
       }
     }
 
@@ -479,12 +494,16 @@ router.put("/:id/students/:sid", validateStudentMiddleware, async (req, res) => 
     }
     if (Array.isArray(req.body.scores)) {
       const newScores = sanitizeScores(req.body.scores.slice(0, subjects.length));
-      updates.scores = newScores;
       const examType = sanitizeText(req.body.examType || DEFAULT_EXAM_TYPE);
       const existingExamScores = (existing.exam_scores && typeof existing.exam_scores === "object")
         ? existing.exam_scores
         : {};
       updates.exam_scores = { ...existingExamScores, [examType]: newScores };
+      if (examType === DEFAULT_EXAM_TYPE) {
+        updates.scores = newScores;
+      } else if (Array.isArray(existingExamScores[DEFAULT_EXAM_TYPE])) {
+        updates.scores = existingExamScores[DEFAULT_EXAM_TYPE];
+      }
     }
     if (typeof req.body.remarks === "string")
       updates.remarks = sanitizeText(req.body.remarks);
@@ -572,4 +591,3 @@ router.patch("/:id", async (req, res) => {
 });
 
 module.exports = router;
-
