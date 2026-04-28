@@ -1,13 +1,16 @@
 const { getDb } = require("../../lib/firebaseAdmin");
 const { sendJson } = require("../../lib/http");
+const { getHomepageOverview } = require("../../lib/homepageOverview");
 
 module.exports = async (req, res) => {
   if (req.method !== "GET") {
     return sendJson(res, 405, { error: "Method not allowed" });
   }
 
+  const requestUrl = new URL(req.url || "/api/stats", "https://bonde-results.local");
+
   // Also handles GET /api/health (routed here via vercel.json rewrite)
-  if (req.url && req.url.startsWith("/api/health")) {
+  if (requestUrl.pathname.startsWith("/api/health")) {
     return sendJson(res, 200, {
       status: "ok",
       time: new Date().toISOString(),
@@ -17,6 +20,12 @@ module.exports = async (req, res) => {
 
   try {
     const db = getDb();
+
+    if (requestUrl.searchParams.get("overview") === "1") {
+      const overview = await getHomepageOverview(db);
+      return sendJson(res, 200, overview);
+    }
+
     const classesSnap = await db
       .collection("classes")
       .where("archived", "==", false)

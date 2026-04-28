@@ -9,14 +9,66 @@
       }
     },
     {
-      "src": "api/[...path].js",
+      "src": "api/**/*.js",
       "use": "@vercel/node"
     }
   ],
   "rewrites": [
     {
+      "source": "/api/classes/:id/students/bulk",
+      "destination": "/api/classes/[id]/students/bulk.js?id=:id"
+    },
+    {
+      "source": "/api/classes/:id/students/:sid",
+      "destination": "/api/classes/[id]/students/[sid].js?id=:id&sid=:sid"
+    },
+    {
+      "source": "/api/classes/:id/students",
+      "destination": "/api/classes/[id]/students/index.js?id=:id"
+    },
+    {
+      "source": "/api/classes/:id/publish",
+      "destination": "/api/classes/[id]/publish/index.js?id=:id"
+    },
+    {
+      "source": "/api/classes/:id/audit",
+      "destination": "/api/classes/[id]/audit/index.js?id=:id"
+    },
+    {
+      "source": "/api/classes/:id",
+      "destination": "/api/classes/[id]/index.js?id=:id"
+    },
+    {
+      "source": "/api/students/search",
+      "destination": "/api/students/search.js"
+    },
+    {
+      "source": "/api/students/:indexNo/profile",
+      "destination": "/api/students/[indexNo].js?indexNo=:indexNo"
+    },
+    {
+      "source": "/api/proxy-csv",
+      "destination": "/api/proxy-csv/index.js"
+    },
+    {
+      "source": "/api/backup",
+      "destination": "/api/backup/index.js"
+    },
+    {
+      "source": "/api/restore",
+      "destination": "/api/backup/index.js"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/stats/index.js"
+    },
+    {
+      "source": "/api/stats",
+      "destination": "/api/stats/index.js"
+    },
+    {
       "source": "/api/:path*",
-      "destination": "/api/[...path]"
+      "destination": "/api/:path*"
     },
     {
       "source": "/asset/:path*",
