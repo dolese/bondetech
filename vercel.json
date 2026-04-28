@@ -15,10 +15,6 @@
   ],
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
       "source": "/asset/:path*",
       "destination": "/frontend/asset/:path*"
     },
