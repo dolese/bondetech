@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { API } from "../api";
+import { EXAM_TYPES } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
 import { StudentProfilePage } from "./StudentProfilePage";
 
@@ -219,7 +220,7 @@ function QuickCard({ bg, badge, title, desc, onClick }) {
   );
 }
 
-function AnnouncementRow({ title, desc, date, tone }) {
+function AnnouncementRow({ title, desc, date, tone, compact = false }) {
   const [hovered, setHovered] = useState(false);
   const palette = ANNOUNCEMENT_TONES[tone] || ANNOUNCEMENT_TONES.info;
 
@@ -229,7 +230,8 @@ function AnnouncementRow({ title, desc, date, tone }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         display: "flex",
-        alignItems: "center",
+        alignItems: compact ? "flex-start" : "center",
+        flexWrap: compact ? "wrap" : "nowrap",
         gap: 14,
         padding: "14px 16px",
         borderBottom: "1px solid #f1f5f9",
@@ -260,8 +262,18 @@ function AnnouncementRow({ title, desc, date, tone }) {
         <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{title}</div>
         <div style={{ fontSize: 11, color: "#64748b", marginTop: 2, lineHeight: 1.5 }}>{desc}</div>
       </div>
-      <div style={{ fontSize: 11, color: "#94a3b8", flexShrink: 0, marginLeft: 8 }}>{date}</div>
-      <div style={{ fontSize: 16, color: "#94a3b8" }}>{">"}</div>
+      <div
+        style={{
+          fontSize: 11,
+          color: "#94a3b8",
+          flexShrink: 0,
+          marginLeft: compact ? 56 : 8,
+          width: compact ? "calc(100% - 56px)" : "auto",
+        }}
+      >
+        {date}
+      </div>
+      {!compact && <div style={{ fontSize: 16, color: "#94a3b8" }}>{">"}</div>}
     </div>
   );
 }
@@ -315,8 +327,7 @@ export function HomePage({ onOpenLogin }) {
   const [profileIndexNo, setProfileIndexNo] = useState(null);
   const [homepageData, setHomepageData] = useState(FALLBACK_OVERVIEW);
   const [homepageStatus, setHomepageStatus] = useState("loading");
-  const { isMobile, width } = useViewport();
-  const isDesktop = width >= 900;
+  const { isXs, isMobile, isTablet, isDesktop } = useViewport();
   const searchSectionRef = useRef(null);
   const announcementsSectionRef = useRef(null);
   const footerRef = useRef(null);
@@ -424,7 +435,9 @@ export function HomePage({ onOpenLogin }) {
     : FALLBACK_OVERVIEW.announcements;
   const latestExamLabel = stats.latestExamLabel || (stats.latestYear ? `Academic Year ${stats.latestYear}` : "Results Portal");
   const quickAccess = buildQuickAccess(stats, announcements.length, latestExamLabel, onOpenLogin, scrollToSearch, scrollToAnnouncements);
-  const performanceStats = buildPerformanceStats(stats, latestExamLabel);
+  const performanceStats = Array.isArray(homepageData?.highlights) && homepageData.highlights.length > 0
+    ? homepageData.highlights
+    : buildPerformanceStats(stats, latestExamLabel);
   const chartBars = Array.isArray(homepageData?.formBreakdown) && homepageData.formBreakdown.length > 0
     ? homepageData.formBreakdown.map((item) => ({
         label: item.label.replace("Form ", "F"),
@@ -682,7 +695,13 @@ export function HomePage({ onOpenLogin }) {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
+                  gridTemplateColumns: isDesktop
+                    ? "repeat(4, 1fr)"
+                    : isXs
+                    ? "1fr"
+                    : isMobile || isTablet
+                    ? "1fr 1fr"
+                    : "repeat(3, 1fr)",
                   gap: 10,
                   marginBottom: 14,
                 }}
@@ -690,11 +709,11 @@ export function HomePage({ onOpenLogin }) {
                 <input className="landing-search-input" placeholder="Admission No. or Name" value={searchAdmission} onChange={(e) => setSearchAdmission(e.target.value)} />
                 <select className="landing-search-input" value={searchExam} onChange={(e) => setSearchExam(e.target.value)}>
                   <option value="">Exam Type (All)</option>
-                  <option>March Exam</option>
-                  <option>Mid-Term Exam</option>
-                  <option>Terminal Exam</option>
-                  <option>September Exam</option>
-                  <option>Annual Exam</option>
+                  {EXAM_TYPES.map((examType) => (
+                    <option key={examType.value} value={examType.value}>
+                      {examType.label}
+                    </option>
+                  ))}
                 </select>
                 <select className="landing-search-input" value={searchForm} onChange={(e) => setSearchForm(e.target.value)}>
                   <option value="">Class / Form (All)</option>
@@ -789,7 +808,13 @@ export function HomePage({ onOpenLogin }) {
             <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>Quick Access</span>
             <span onClick={scrollToSearch} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>View All &gt;</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)", gap: isMobile ? 10 : 14 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: isXs ? "1fr" : isMobile || isTablet ? "1fr 1fr" : "repeat(3, 1fr)",
+              gap: isMobile ? 10 : 14,
+            }}
+          >
             {quickAccess.map((item) => (
               <QuickCard key={item.id} {...item} />
             ))}
@@ -809,24 +834,29 @@ export function HomePage({ onOpenLogin }) {
               border: "1.5px solid #f1f5f9",
               boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
               display: "grid",
-              gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
+              gridTemplateColumns: isXs ? "1fr 1fr" : isMobile ? "repeat(2, 1fr)" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
               gap: 0,
               overflow: "hidden",
             }}
           >
             {performanceStats.map((stat, index) => (
               <div
-                key={stat.key}
+                key={stat.key || `${stat.label}-${index}`}
                 style={{
                   padding: isMobile ? "16px 8px" : "20px 16px",
                   textAlign: "center",
                   borderRight: index < performanceStats.length - 1 ? "1px solid #f1f5f9" : "none",
-                  borderBottom: isMobile && index < 3 ? "1px solid #f1f5f9" : "none",
+                  borderBottom: (isMobile || isTablet) && index < (isXs ? 4 : isMobile ? 4 : 3) ? "1px solid #f1f5f9" : "none",
                 }}
               >
                 <div style={{ width: 16, height: 16, borderRadius: 999, background: stat.color, margin: "0 auto 8px" }} />
                 <div style={{ fontSize: isMobile ? 14 : 18, fontWeight: 800, color: "#0f2d6e" }}>{stat.value}</div>
                 <div style={{ fontSize: isMobile ? 9 : 11, color: "#64748b", marginTop: 3 }}>{stat.label}</div>
+                {stat.description && (
+                  <div style={{ fontSize: isMobile ? 9 : 10, color: "#94a3b8", marginTop: 6, lineHeight: 1.45 }}>
+                    {stat.description}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -849,6 +879,7 @@ export function HomePage({ onOpenLogin }) {
                 desc={announcement.description}
                 date={formatDateLabel(announcement.date)}
                 tone={announcement.tone}
+                compact={isMobile}
               />
             ))}
           </div>
@@ -880,7 +911,7 @@ export function HomePage({ onOpenLogin }) {
               border: "1.5px solid #f1f5f9",
               boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
               display: "grid",
-              gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
+              gridTemplateColumns: isXs ? "1fr 1fr" : isMobile ? "repeat(2, 1fr)" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
               gap: 0,
               overflow: "hidden",
             }}
@@ -890,7 +921,7 @@ export function HomePage({ onOpenLogin }) {
                 key={feature.label}
                 style={{
                   borderRight: index < features.length - 1 ? "1px solid #f1f5f9" : "none",
-                  borderBottom: isMobile && index < 3 ? "1px solid #f1f5f9" : "none",
+                  borderBottom: (isMobile || isTablet) && index < (isXs ? 4 : isMobile ? 4 : 3) ? "1px solid #f1f5f9" : "none",
                 }}
               >
                 <FeatureChip {...feature} />

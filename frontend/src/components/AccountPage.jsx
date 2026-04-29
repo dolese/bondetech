@@ -1,7 +1,23 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { TextInput, SelectInput } from "./FormInputs";
+import { TextInput, SelectInput, TextAreaInput } from "./FormInputs";
 import { formatUserRole, USER_ROLE_OPTIONS } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
+
+const HOMEPAGE_TONE_OPTIONS = [
+  { label: "Info", value: "info" },
+  { label: "Success", value: "success" },
+  { label: "Warning", value: "warning" },
+  { label: "Accent", value: "accent" },
+];
+
+const HOMEPAGE_COLOR_OPTIONS = [
+  { label: "Blue", value: "#2563eb" },
+  { label: "Green", value: "#059669" },
+  { label: "Purple", value: "#7c3aed" },
+  { label: "Orange", value: "#d97706" },
+  { label: "Cyan", value: "#0891b2" },
+  { label: "Red", value: "#dc2626" },
+];
 
 function blankManagedUser() {
   return {
@@ -16,18 +32,42 @@ function blankManagedUser() {
   };
 }
 
+function blankHomepageAnnouncement() {
+  return {
+    id: "",
+    title: "",
+    description: "",
+    tone: "info",
+    date: new Date().toISOString().slice(0, 10),
+  };
+}
+
+function blankHomepageHighlight() {
+  return {
+    key: "",
+    label: "",
+    value: "",
+    description: "",
+    color: "#2563eb",
+  };
+}
+
 export function AccountPage({
   user,
   users = [],
   canManageUsers = false,
   onLoadUsers,
+  onLoadHomepageContent,
   onSaveProfile,
   onChangePassword,
   onCreateUser,
   onUpdateUser,
+  onSaveHomepageContent,
   onLogout,
 }) {
-  const { isMobile } = useViewport();
+  const { isMobile, isTablet } = useViewport();
+  const singleColumn = isMobile;
+  const stackedColumns = isMobile || isTablet;
   const [form, setForm] = useState({
     username: "",
     displayName: "",
@@ -49,6 +89,18 @@ export function AccountPage({
   const [adminError, setAdminError] = useState("");
   const [adminSaving, setAdminSaving] = useState(false);
   const [editingUsers, setEditingUsers] = useState({});
+  const [userSearch, setUserSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [homepageForm, setHomepageForm] = useState({
+    announcements: [],
+    highlights: [],
+    updatedAt: "",
+    updatedBy: "",
+  });
+  const [homepageLoading, setHomepageLoading] = useState(false);
+  const [homepageSaving, setHomepageSaving] = useState(false);
+  const [homepageError, setHomepageError] = useState("");
+  const [homepageMessage, setHomepageMessage] = useState("");
 
   useEffect(() => {
     setForm({
@@ -64,8 +116,33 @@ export function AccountPage({
 
   useEffect(() => {
     if (!canManageUsers) return;
-    onLoadUsers?.().catch(() => {});
+    Promise.resolve(onLoadUsers?.()).catch(() => {});
   }, [canManageUsers, onLoadUsers]);
+
+  useEffect(() => {
+    if (!canManageUsers || !onLoadHomepageContent) return;
+    setHomepageLoading(true);
+    setHomepageError("");
+    Promise.resolve(onLoadHomepageContent())
+      .then((content) => {
+        setHomepageForm({
+          announcements: Array.isArray(content?.announcements) && content.announcements.length
+            ? content.announcements
+            : [blankHomepageAnnouncement()],
+          highlights: Array.isArray(content?.highlights) && content.highlights.length
+            ? content.highlights
+            : [blankHomepageHighlight()],
+          updatedAt: content?.updatedAt || "",
+          updatedBy: content?.updatedBy || "",
+        });
+      })
+      .catch((err) => {
+        setHomepageError(err.message || "Unable to load homepage content");
+      })
+      .finally(() => {
+        setHomepageLoading(false);
+      });
+  }, [canManageUsers, onLoadHomepageContent]);
 
   useEffect(() => {
     const next = {};
@@ -83,7 +160,25 @@ export function AccountPage({
     setEditingUsers(next);
   }, [users]);
 
-  const managedUserCards = useMemo(() => users.slice().sort((a, b) => a.username.localeCompare(b.username)), [users]);
+  const managedUserCards = useMemo(() => {
+    const query = userSearch.trim().toLowerCase();
+    return users
+      .slice()
+      .sort((a, b) => a.username.localeCompare(b.username))
+      .filter((managedUser) => {
+        if (roleFilter !== "all" && managedUser.role !== roleFilter) return false;
+        if (!query) return true;
+        return [
+          managedUser.username,
+          managedUser.displayName,
+          managedUser.email,
+          managedUser.phone,
+          managedUser.linkedIndexNo,
+        ]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(query));
+      });
+  }, [roleFilter, userSearch, users]);
 
   const sectionStyle = {
     background: "#fff",
@@ -192,10 +287,95 @@ export function AccountPage({
     const payload = editingUsers[username];
     if (!payload) return;
     try {
+      setAdminError("");
       await onUpdateUser?.(username, payload);
       updateManagedField(username, "password", "");
     } catch (err) {
       setAdminError(err.message || `Unable to update ${username}`);
+    }
+  };
+
+  const handleResetManagedPassword = async (username) => {
+    const payload = editingUsers[username];
+    if (!payload?.password) {
+      setAdminError(`Enter a new password for ${username} first`);
+      return;
+    }
+    await handleSaveManagedUser(username);
+  };
+
+  const handleToggleManagedStatus = async (managedUser) => {
+    const payload = editingUsers[managedUser.username];
+    if (!payload) return;
+    try {
+      setAdminError("");
+      await onUpdateUser?.(managedUser.username, {
+        ...payload,
+        active: !payload.active,
+        password: "",
+      });
+      updateManagedField(managedUser.username, "active", !payload.active);
+    } catch (err) {
+      setAdminError(err.message || `Unable to update ${managedUser.username}`);
+    }
+  };
+
+  const updateHomepageCollectionItem = (collection, index, key, value) => {
+    setHomepageForm((prev) => ({
+      ...prev,
+      [collection]: prev[collection].map((item, itemIndex) => (
+        itemIndex === index ? { ...item, [key]: value } : item
+      )),
+    }));
+  };
+
+  const addHomepageCollectionItem = (collection) => {
+    setHomepageForm((prev) => ({
+      ...prev,
+      [collection]: [
+        ...prev[collection],
+        collection === "announcements" ? blankHomepageAnnouncement() : blankHomepageHighlight(),
+      ],
+    }));
+  };
+
+  const removeHomepageCollectionItem = (collection, index) => {
+    setHomepageForm((prev) => {
+      const nextItems = prev[collection].filter((_, itemIndex) => itemIndex !== index);
+      return {
+        ...prev,
+        [collection]: nextItems.length
+          ? nextItems
+          : [collection === "announcements" ? blankHomepageAnnouncement() : blankHomepageHighlight()],
+      };
+    });
+  };
+
+  const handleSaveHomepage = async () => {
+    setHomepageSaving(true);
+    setHomepageError("");
+    setHomepageMessage("");
+    try {
+      const saved = await onSaveHomepageContent?.({
+        announcements: homepageForm.announcements,
+        highlights: homepageForm.highlights,
+      });
+      setHomepageForm((prev) => ({
+        ...prev,
+        announcements: Array.isArray(saved?.announcements)
+          ? (saved.announcements.length ? saved.announcements : [blankHomepageAnnouncement()])
+          : prev.announcements,
+        highlights: Array.isArray(saved?.highlights)
+          ? (saved.highlights.length ? saved.highlights : [blankHomepageHighlight()])
+          : prev.highlights,
+        updatedAt: saved?.updatedAt || prev.updatedAt,
+        updatedBy: saved?.updatedBy || prev.updatedBy,
+      }));
+      setHomepageMessage("Homepage content saved successfully.");
+    } catch (err) {
+      setHomepageError(err.message || "Unable to save homepage content");
+    } finally {
+      setHomepageSaving(false);
     }
   };
 
@@ -213,7 +393,7 @@ export function AccountPage({
           style={{
             ...sectionStyle,
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1.2fr 0.8fr",
+            gridTemplateColumns: stackedColumns ? "1fr" : "1.2fr 0.8fr",
             gap: 18,
             alignItems: "stretch",
           }}
@@ -267,7 +447,7 @@ export function AccountPage({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1.1fr 0.9fr",
+            gridTemplateColumns: stackedColumns ? "1fr" : "1.1fr 0.9fr",
             gap: 18,
           }}
         >
@@ -281,7 +461,7 @@ export function AccountPage({
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 14 }}>
               <TextInput label="Username" value={form.username} onChange={() => {}} disabled />
               <TextInput
                 label="Display Name"
@@ -298,7 +478,7 @@ export function AccountPage({
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 14 }}>
               <TextInput
                 label="Email"
                 value={form.email}
@@ -420,7 +600,7 @@ export function AccountPage({
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : isTablet ? "1fr 1fr" : "repeat(3, 1fr)", gap: 14 }}>
               <TextInput label="Username" value={adminForm.username} onChange={(value) => setAdminForm((prev) => ({ ...prev, username: value }))} required />
               <TextInput label="Display Name" value={adminForm.displayName} onChange={(value) => setAdminForm((prev) => ({ ...prev, displayName: value }))} />
               <SelectInput label="Role" value={adminForm.role} onChange={(value) => setAdminForm((prev) => ({ ...prev, role: value }))} options={USER_ROLE_OPTIONS} />
@@ -455,6 +635,25 @@ export function AccountPage({
               </button>
             </div>
 
+            <div style={{ display: "grid", gridTemplateColumns: stackedColumns ? "1fr" : "1.2fr 0.8fr", gap: 12 }}>
+              <TextInput
+                label="Search Users"
+                value={userSearch}
+                onChange={setUserSearch}
+                placeholder="Search username, name, email, phone, or index no"
+              />
+              <SelectInput
+                label="Filter by Role"
+                value={roleFilter}
+                onChange={setRoleFilter}
+                options={[{ label: "All roles", value: "all" }, ...USER_ROLE_OPTIONS]}
+              />
+            </div>
+
+            <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
+              Showing {managedUserCards.length} of {users.length} users
+            </div>
+
             <div style={{ display: "grid", gap: 14 }}>
               {managedUserCards.map((managedUser) => {
                 const edit = editingUsers[managedUser.username] || blankManagedUser();
@@ -482,7 +681,7 @@ export function AccountPage({
                       </div>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 12 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : isTablet ? "1fr 1fr" : "repeat(3, 1fr)", gap: 12 }}>
                       <TextInput label="Display Name" value={edit.displayName} onChange={(value) => updateManagedField(managedUser.username, "displayName", value)} />
                       <SelectInput label="Role" value={edit.role} onChange={(value) => updateManagedField(managedUser.username, "role", value)} options={USER_ROLE_OPTIONS} />
                       <TextInput label="Email" value={edit.email} onChange={(value) => updateManagedField(managedUser.username, "email", value)} />
@@ -501,7 +700,7 @@ export function AccountPage({
                       User can sign in
                     </label>
 
-                    <div>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                       <button
                         onClick={() => handleSaveManagedUser(managedUser.username)}
                         style={{
@@ -517,11 +716,290 @@ export function AccountPage({
                       >
                         Save User
                       </button>
+                      <button
+                        onClick={() => handleResetManagedPassword(managedUser.username)}
+                        style={{
+                          background: "#2563eb",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 10,
+                          padding: "10px 18px",
+                          fontSize: 13,
+                          fontWeight: 800,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Reset Password
+                      </button>
+                      <button
+                        onClick={() => handleToggleManagedStatus(managedUser)}
+                        style={{
+                          background: edit.active ? "#fff1f2" : "#ecfdf3",
+                          color: edit.active ? "#b42318" : "#1a6b2f",
+                          border: `1px solid ${edit.active ? "#fecdd3" : "#bbf7d0"}`,
+                          borderRadius: 10,
+                          padding: "10px 18px",
+                          fontSize: 13,
+                          fontWeight: 800,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {edit.active ? "Deactivate" : "Reactivate"}
+                      </button>
                     </div>
                   </div>
                 );
               })}
+              {!managedUserCards.length && (
+                <div style={{ fontSize: 13, color: "#64748b", border: "1px dashed #d5dfef", borderRadius: 12, padding: 16 }}>
+                  No users match the current search and filter.
+                </div>
+              )}
             </div>
+          </div>
+        )}
+
+        {canManageUsers && (
+          <div style={{ ...sectionStyle, display: "grid", gap: 18 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+                  Homepage Content
+                </div>
+                <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, maxWidth: 640 }}>
+                  Edit the public homepage announcements and highlights from inside the admin account area.
+                </div>
+              </div>
+              {(homepageForm.updatedAt || homepageForm.updatedBy) && (
+                <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6, textAlign: stackedColumns ? "left" : "right" }}>
+                  <div>Last updated: {homepageForm.updatedAt ? new Date(homepageForm.updatedAt).toLocaleString() : "Not yet saved"}</div>
+                  <div>Updated by: {homepageForm.updatedBy || "System"}</div>
+                </div>
+              )}
+            </div>
+
+            {homepageLoading ? (
+              <div style={{ fontSize: 13, color: "#64748b" }}>Loading homepage content...</div>
+            ) : (
+              <>
+                <div style={{ display: "grid", gap: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>Announcements</div>
+                      <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
+                        These appear in the public Recent Announcements section.
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => addHomepageCollectionItem("announcements")}
+                      style={{
+                        background: "#eff6ff",
+                        color: "#1d4ed8",
+                        border: "1px solid #bfdbfe",
+                        borderRadius: 10,
+                        padding: "10px 16px",
+                        fontSize: 12,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Add Announcement
+                    </button>
+                  </div>
+
+                  <div style={{ display: "grid", gap: 14 }}>
+                    {homepageForm.announcements.map((announcement, index) => (
+                      <div
+                        key={`announcement-${index}`}
+                        style={{
+                          border: "1px solid #e2ebf7",
+                          borderRadius: 14,
+                          padding: isMobile ? 14 : 18,
+                          background: "#f8fbff",
+                          display: "grid",
+                          gap: 12,
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
+                            Announcement {index + 1}
+                          </div>
+                          <button
+                            onClick={() => removeHomepageCollectionItem("announcements", index)}
+                            style={{
+                              background: "#fff1f2",
+                              color: "#b42318",
+                              border: "1px solid #fecdd3",
+                              borderRadius: 10,
+                              padding: "8px 14px",
+                              fontSize: 12,
+                              fontWeight: 800,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : isTablet ? "1fr 1fr" : "1.25fr 0.75fr", gap: 12 }}>
+                          <TextInput
+                            label="Title"
+                            value={announcement.title}
+                            onChange={(value) => updateHomepageCollectionItem("announcements", index, "title", value)}
+                            placeholder="Results for Form IV are now published"
+                          />
+                          <SelectInput
+                            label="Tone"
+                            value={announcement.tone}
+                            onChange={(value) => updateHomepageCollectionItem("announcements", index, "tone", value)}
+                            options={HOMEPAGE_TONE_OPTIONS}
+                          />
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 220px", gap: 12 }}>
+                          <TextAreaInput
+                            label="Description"
+                            value={announcement.description}
+                            onChange={(value) => updateHomepageCollectionItem("announcements", index, "description", value)}
+                            placeholder="Share what parents and students need to know."
+                            rows={3}
+                          />
+                          <TextInput
+                            label="Date"
+                            type="date"
+                            value={announcement.date ? String(announcement.date).slice(0, 10) : ""}
+                            onChange={(value) => updateHomepageCollectionItem("announcements", index, "date", value)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gap: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>Portal Highlights</div>
+                      <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
+                        Customize the highlight cards shown on the public homepage.
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => addHomepageCollectionItem("highlights")}
+                      style={{
+                        background: "#eff6ff",
+                        color: "#1d4ed8",
+                        border: "1px solid #bfdbfe",
+                        borderRadius: 10,
+                        padding: "10px 16px",
+                        fontSize: 12,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Add Highlight
+                    </button>
+                  </div>
+
+                  <div style={{ display: "grid", gap: 14 }}>
+                    {homepageForm.highlights.map((highlight, index) => (
+                      <div
+                        key={`highlight-${index}`}
+                        style={{
+                          border: "1px solid #e2ebf7",
+                          borderRadius: 14,
+                          padding: isMobile ? 14 : 18,
+                          background: "#f8fbff",
+                          display: "grid",
+                          gap: 12,
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
+                            Highlight {index + 1}
+                          </div>
+                          <button
+                            onClick={() => removeHomepageCollectionItem("highlights", index)}
+                            style={{
+                              background: "#fff1f2",
+                              color: "#b42318",
+                              border: "1px solid #fecdd3",
+                              borderRadius: 10,
+                              padding: "8px 14px",
+                              fontSize: 12,
+                              fontWeight: 800,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : isTablet ? "1fr 1fr" : "repeat(3, 1fr)", gap: 12 }}>
+                          <TextInput
+                            label="Label"
+                            value={highlight.label}
+                            onChange={(value) => updateHomepageCollectionItem("highlights", index, "label", value)}
+                            placeholder="Published Classes"
+                          />
+                          <TextInput
+                            label="Value"
+                            value={highlight.value}
+                            onChange={(value) => updateHomepageCollectionItem("highlights", index, "value", value)}
+                            placeholder="12"
+                          />
+                          <SelectInput
+                            label="Accent Color"
+                            value={highlight.color}
+                            onChange={(value) => updateHomepageCollectionItem("highlights", index, "color", value)}
+                            options={HOMEPAGE_COLOR_OPTIONS}
+                          />
+                        </div>
+
+                        <TextAreaInput
+                          label="Description"
+                          value={highlight.description}
+                          onChange={(value) => updateHomepageCollectionItem("highlights", index, "description", value)}
+                          placeholder="Short context under the highlight card."
+                          rows={2}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {homepageError && (
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#b42318" }}>
+                    {homepageError}
+                  </div>
+                )}
+
+                {homepageMessage && (
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1a6b2f" }}>
+                    {homepageMessage}
+                  </div>
+                )}
+
+                <div>
+                  <button
+                    onClick={handleSaveHomepage}
+                    disabled={homepageSaving}
+                    style={{
+                      background: homepageSaving ? "#7aa3db" : "#2563eb",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 10,
+                      padding: "10px 18px",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      cursor: homepageSaving ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {homepageSaving ? "Saving..." : "Save Homepage Content"}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

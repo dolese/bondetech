@@ -7,6 +7,13 @@ import { saveAs } from "file-saver";
 import { createRoot } from "react-dom/client";
 import { ReportCardPrint } from "./ReportCardPrint";
 
+const RESULT_SHEET_PAPER_SIZE = "a3";
+const RESULT_SHEET_ORIENTATION = "landscape";
+const RESULT_SHEET_PREVIEW_WIDTH = "420mm";
+const RESULT_SHEET_PREVIEW_HEIGHT = "297mm";
+const REPORT_CARD_PAPER_SIZE = "a4";
+const REPORT_CARD_ORIENTATION = "portrait";
+
 export function ResultSheet({ classData, computed, onOpenReportCard }) {
   const subjects = classData.subjects ?? [];
   const present = (computed ?? [])
@@ -44,7 +51,10 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       const zip = new JSZip();
       const safeClass = (classData.name || "class").replace(/[^a-z0-9-_ ]/gi, "").trim() || "class";
 
-      const summaryBlob = await exportElementToPdfBlob(sheetRef.current);
+      const summaryBlob = await exportElementToPdfBlob(sheetRef.current, {
+        format: RESULT_SHEET_PAPER_SIZE,
+        orientation: RESULT_SHEET_ORIENTATION,
+      });
       if (summaryBlob) {
         zip.file(`${safeClass}-summary.pdf`, summaryBlob);
       }
@@ -59,9 +69,19 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
 
       for (const student of computed ?? []) {
         const safeName = (student.name || "student").replace(/[^a-z0-9-_ ]/gi, "").trim() || "student";
-        root.render(<ReportCardPrint student={student} classData={classData} />);
+        root.render(
+          <ReportCardPrint
+            student={student}
+            classData={classData}
+            paperSize={REPORT_CARD_PAPER_SIZE}
+            orientation={REPORT_CARD_ORIENTATION}
+          />
+        );
         await new Promise((resolve) => requestAnimationFrame(resolve));
-        const blob = await exportElementToPdfBlob(container);
+        const blob = await exportElementToPdfBlob(container.firstChild, {
+          format: REPORT_CARD_PAPER_SIZE,
+          orientation: REPORT_CARD_ORIENTATION,
+        });
         if (blob) {
           zip.file(`${safeName}-report.pdf`, blob);
         }
@@ -80,7 +100,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     panel: {
       flex: 1,
       overflowY: "auto",
-      overflowX: "hidden",
+      overflowX: "auto",
       padding: isMobile ? 10 : 14,
       display: "flex",
       flexDirection: "column",
@@ -95,6 +115,10 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
       border: "1px solid #d6e0f5",
       pageBreakAfter: "always",
+      width: RESULT_SHEET_PREVIEW_WIDTH,
+      minHeight: RESULT_SHEET_PREVIEW_HEIGHT,
+      boxSizing: "border-box",
+      flexShrink: 0,
     },
     header: {
       display: "flex",
@@ -220,7 +244,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         @media print {
           body { margin: 0; }
           .result-sheet-page {
-            width: 210mm;
+            width: 420mm;
             min-height: 297mm;
             margin: 0 auto;
             box-shadow: none !important;
@@ -251,7 +275,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
           onClick={() => {
             const date = new Date().toISOString().slice(0, 10);
             const name = `${classData.name || "class"}-results-${date}.pdf`;
-            exportElementToPdf(sheetRef.current, name, "landscape");
+            exportElementToPdf(sheetRef.current, name, RESULT_SHEET_ORIENTATION, RESULT_SHEET_PAPER_SIZE);
           }}
           style={{
             ...styles.tabBtn,
@@ -275,6 +299,12 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         </button>
       </div>
 
+      <div
+        style={{
+          overflowX: "auto",
+          paddingBottom: 4,
+        }}
+      >
       <div ref={sheetRef} style={styles.sheet} className="result-sheet-page">
         <div style={styles.header}>
           <img src="/asset/Tz.jpg" alt="Tanzania logo" style={styles.logo} />
@@ -490,6 +520,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
             <div style={{ fontSize: 8, marginTop: 4 }}>Date: __________</div>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Button to open individual report cards */}

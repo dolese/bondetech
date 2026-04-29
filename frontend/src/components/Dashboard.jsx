@@ -11,6 +11,7 @@ import { API } from "../api";
 
 export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
   const { isMobile, isTablet, isLarge } = useViewport();
+  const compactView = isMobile || isTablet;
   const [filterYear, setFilterYear] = useState(String(new Date().getFullYear()));
   const [filterForm, setFilterForm] = useState("all");
   const summaryRef = useRef(null);
@@ -168,7 +169,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
     },
     kpiCard: {
       flex: 1,
-      minWidth: isLarge ? 0 : isMobile ? 140 : 110,
+      minWidth: isLarge ? 0 : compactView ? 140 : 110,
       background: "#fff",
       borderRadius: 10,
       padding: isLarge ? "14px 16px" : "10px 12px",
@@ -256,10 +257,11 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
             onKeyDown={(e) => { if (e.key === "Enter") handleSearch(searchQuery); }}
             style={{
               flex: 1,
-              minWidth: 160,
-              padding: "7px 10px",
-              borderRadius: 7,
-              border: "1px solid #d0dcf8",
+                minWidth: 160,
+                width: compactView ? "100%" : "auto",
+                padding: "7px 10px",
+                borderRadius: 7,
+                border: "1px solid #d0dcf8",
               fontSize: 12,
             }}
           />
@@ -300,7 +302,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
         {searchResults !== null && (
           searchResults.length === 0 ? (
             <div style={{ fontSize: 11, color: "#888" }}>No students found.</div>
-          ) : isMobile ? (
+          ) : compactView ? (
             /* Mobile search result cards */
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {searchResults.map((s, i) => (
@@ -384,7 +386,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
       <div style={{ ...styles.filterRow, ...(isMobile ? { alignItems: "stretch" } : {}) }}>
         <span style={{ fontSize: 11, fontWeight: 800, color: "#003366" }}>Filter:</span>
         <select
-          style={{ ...styles.select, ...(isMobile ? { width: "100%" } : {}) }}
+          style={{ ...styles.select, ...(compactView ? { width: "100%" } : {}) }}
           value={filterYear}
           onChange={(e) => setFilterYear(e.target.value)}
         >
@@ -394,7 +396,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
           ))}
         </select>
         <select
-          style={{ ...styles.select, ...(isMobile ? { width: "100%" } : {}) }}
+          style={{ ...styles.select, ...(compactView ? { width: "100%" } : {}) }}
           value={filterForm}
           onChange={(e) => setFilterForm(e.target.value)}
         >
@@ -404,7 +406,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
           ))}
         </select>
         <button
-          style={{ ...styles.miniBtn, ...(isMobile ? { width: "100%" } : {}) }}
+          style={{ ...styles.miniBtn, ...(compactView ? { width: "100%" } : {}) }}
           onClick={() => {
             const date = new Date().toISOString().slice(0, 10);
             const name = `summary-${summaryLabel.replace(/\s+/g, "-")}-${date}.pdf`;
@@ -414,7 +416,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
           📄 Export Summary
         </button>
         <button
-          style={{ ...styles.miniBtn, background: "#0b6b3a", borderColor: "#0b6b3a", ...(isMobile ? { width: "100%" } : {}) }}
+          style={{ ...styles.miniBtn, background: "#0b6b3a", borderColor: "#0b6b3a", ...(compactView ? { width: "100%" } : {}) }}
           onClick={exportAllData}
           title="Download a full JSON backup of all classes and student data"
           disabled={!allComputed.length}
@@ -464,11 +466,11 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               style={{
                 ...styles.kpiCard,
                 borderLeftColor: color,
-                ...(isMobile ? { flex: "1 1 45%" } : {}),
+                ...(compactView ? { flex: "1 1 45%" } : {}),
               }}
             >
               <div style={{ fontSize: isLarge ? 26 : 22 }}>{icon}</div>
-              <div style={{ fontSize: isLarge ? 30 : isMobile ? 22 : 26, fontWeight: 900, color }}>{val}</div>
+                <div style={{ fontSize: isLarge ? 30 : compactView ? 22 : 26, fontWeight: 900, color }}>{val}</div>
               <div
                 style={{
                   fontSize: isLarge ? 11 : 10,
@@ -486,9 +488,9 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
 
       <div style={styles.dashGrid}>
         {/* Classes Overview */}
-        <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isMobile ? "span 1" : "span 2" }}>
+        <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isTablet ? "span 2" : "span 1" }}>
           <h3 style={styles.cardT}>🏫 Classes Overview ({summaryLabel})</h3>
-          {isMobile ? (
+          {compactView ? (
             /* Mobile card list */
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {filtered.map((cl) => {
@@ -541,8 +543,8 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
               style={{
                 borderCollapse: "collapse",
                 width: "100%",
-                fontSize: isMobile ? 10 : 11,
-                minWidth: isMobile ? 720 : "auto",
+                fontSize: 11,
+                minWidth: "auto",
               }}
             >
               <thead>
@@ -831,7 +833,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
         {/* Top 10 Students */}
         <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : "span 2" }}>
           <h3 style={styles.cardT}>🏆 Top 10 Students</h3>
-          {isMobile ? (
+          {compactView ? (
             /* Mobile ranked card list */
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {top10.map((s, i) => (
@@ -966,7 +968,7 @@ export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
 
         {/* Class Rankings by Pass Rate */}
         {classRankings.length > 0 && (
-          <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isMobile ? "span 1" : "span 2" }}>
+          <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isTablet ? "span 2" : "span 1" }}>
             <h3 style={styles.cardT}>🏫 Class Rankings by Pass Rate</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
               {classRankings.map(({ name, passRate: rate, avg, studentCount }, i) => {

@@ -19,6 +19,7 @@ import { DeleteClassDialog } from "./components/DeleteClassDialog";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { useSession } from "./hooks/useSession";
 import { CLASS_FORMS, useClasses } from "./hooks/useClasses";
+import { API } from "./api";
 
 const MOBILE_NAV_HEIGHT = 94;
 
@@ -133,6 +134,16 @@ export default function App() {
     resetClassesState();
     setPage("dashboard");
   }, [logoutSession, resetClassesState]);
+
+  const handleLoadHomepageContent = useCallback(async () => {
+    return API.getHomepageContent();
+  }, []);
+
+  const handleSaveHomepageContent = useCallback(async (content) => {
+    const saved = await API.saveHomepageContent(content);
+    showToast("Homepage content updated");
+    return saved;
+  }, [showToast]);
 
   useEffect(() => {
     if (isMobile) {
@@ -349,10 +360,12 @@ export default function App() {
                 users={managedUsers}
                 canManageUsers={canManageUsers}
                 onLoadUsers={loadUsers}
+                onLoadHomepageContent={handleLoadHomepageContent}
                 onSaveProfile={handleSaveAccount}
                 onChangePassword={handleChangePassword}
                 onCreateUser={handleCreateUser}
                 onUpdateUser={handleUpdateUser}
+                onSaveHomepageContent={handleSaveHomepageContent}
                 onLogout={handleLogout}
               />
             )
@@ -364,10 +377,12 @@ export default function App() {
               users={managedUsers}
               canManageUsers={canManageUsers}
               onLoadUsers={loadUsers}
+              onLoadHomepageContent={handleLoadHomepageContent}
               onSaveProfile={handleSaveAccount}
               onChangePassword={handleChangePassword}
               onCreateUser={handleCreateUser}
               onUpdateUser={handleUpdateUser}
+              onSaveHomepageContent={handleSaveHomepageContent}
               onLogout={handleLogout}
             />
           )}
@@ -406,6 +421,7 @@ export default function App() {
               <ReportsPage
                 classData={{ ...activeClass, school_info: { ...(activeClass.school_info ?? {}), exam: activeExam } }}
                 computed={activeComputed}
+                allClasses={allComputed}
                 onOpenReportCard={onOpenReportCard}
               />
             ) : (

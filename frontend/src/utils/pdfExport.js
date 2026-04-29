@@ -1,30 +1,35 @@
 import html2pdf from "html2pdf.js";
 
-export const exportElementToPdf = (element, fileName = "result-sheet.pdf", orientation = "portrait") => {
-  if (!element) return;
-
-  const opt = {
-    margin: 8,
+function buildPdfOptions({
+  fileName = "result-sheet.pdf",
+  orientation = "portrait",
+  format = "a4",
+  margin = 8,
+} = {}) {
+  return {
+    margin,
     filename: fileName,
     image: { type: "jpeg", quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: "mm", format: "a4", orientation },
+    jsPDF: { unit: "mm", format, orientation },
   };
+}
 
-  html2pdf().set(opt).from(element).save();
+export const exportElementToPdf = (
+  element,
+  fileName = "result-sheet.pdf",
+  orientation = "portrait",
+  format = "a4"
+) => {
+  if (!element) return;
+
+  html2pdf().set(buildPdfOptions({ fileName, orientation, format })).from(element).save();
 };
 
-export const exportElementToPdfBlob = async (element) => {
+export const exportElementToPdfBlob = async (element, options = {}) => {
   if (!element) return null;
 
-  const opt = {
-    margin: 8,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-  };
-
-  const worker = html2pdf().set(opt).from(element);
+  const worker = html2pdf().set(buildPdfOptions(options)).from(element);
   const blob = await worker.outputPdf("blob");
   return blob;
 };

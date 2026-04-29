@@ -19,6 +19,9 @@ export const DEFAULT_SUBJECTS = [
 
 export const EXAM_TYPES = [
   { label: "March Exam", value: "March Exam" },
+  { label: "Pre-Mock Exam", value: "Pre-Mock Exam" },
+  { label: "Mock Exam", value: "Mock Exam" },
+  { label: "Pre-Necta Exam", value: "Pre-Necta Exam" },
   { label: "Terminal Exam", value: "Terminal Exam" },
   { label: "September Exam", value: "September Exam" },
   { label: "Annual Exam", value: "Annual Exam" },

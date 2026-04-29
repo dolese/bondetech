@@ -1,17 +1,20 @@
 const { getDb } = require("../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../lib/http");
-const { getHomepageOverview } = require("../../lib/homepageOverview");
+const {
+  getHomepageOverview,
+  getHomepageContentEditor,
+  saveHomepageContent,
+} = require("../../lib/homepageOverview");
 const { resolveSessionUser, canManageClasses } = require("../../lib/auth");
 
 module.exports = async (req, res) => {
-  if (req.method !== "GET") {
-    return sendJson(res, 405, { error: "Method not allowed" });
-  }
-
   const requestUrl = new URL(req.url || "/api/stats", "https://bonde-results.local");
 
   // Also handles GET /api/health (routed here via vercel.json rewrite)
   if (requestUrl.pathname.startsWith("/api/health")) {
+    if (req.method !== "GET") {
+      return sendJson(res, 405, { error: "Method not allowed" });
+    }
     return sendJson(res, 200, {
       status: "ok",
       time: new Date().toISOString(),
@@ -20,6 +23,9 @@ module.exports = async (req, res) => {
   }
 
   if (requestUrl.pathname.startsWith("/api/backup")) {
+    if (req.method !== "GET") {
+      return sendJson(res, 405, { error: "Method not allowed" });
+    }
     let currentUser;
     try {
       currentUser = await resolveSessionUser(getDb(), req);
@@ -56,6 +62,9 @@ module.exports = async (req, res) => {
   }
 
   if (requestUrl.pathname.startsWith("/api/restore")) {
+    if (req.method !== "POST") {
+      return sendJson(res, 405, { error: "Method not allowed" });
+    }
     let currentUser;
     try {
       currentUser = await resolveSessionUser(getDb(), req);
@@ -114,6 +123,49 @@ module.exports = async (req, res) => {
     } catch (err) {
       return sendJson(res, 500, { error: err.message });
     }
+  }
+
+  if (requestUrl.searchParams.get("homepageContent") === "1") {
+    let currentUser;
+    try {
+      currentUser = await resolveSessionUser(getDb(), req);
+    } catch (err) {
+      return sendJson(res, 401, { error: err.message });
+    }
+    if (!currentUser || !canManageClasses(currentUser.role)) {
+      return sendJson(res, 403, { error: "Only administrators can manage homepage content" });
+    }
+
+    if (req.method === "GET") {
+      try {
+        const homepageContent = await getHomepageContentEditor(getDb());
+        return sendJson(res, 200, homepageContent);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    }
+
+    if (req.method === "PUT") {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        return sendJson(res, 400, { error: "Invalid JSON body" });
+      }
+
+      try {
+        const homepageContent = await saveHomepageContent(getDb(), body, currentUser);
+        return sendJson(res, 200, homepageContent);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    }
+
+    return sendJson(res, 405, { error: "Method not allowed" });
+  }
+
+  if (req.method !== "GET") {
+    return sendJson(res, 405, { error: "Method not allowed" });
   }
 
   try {

@@ -3,21 +3,22 @@ import { EXAM_TYPES, getMonthlyExamKey } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
 
 const EXAM_META = {
-  "March Exam":     { icon: "🌱", color: "#0b6b3a", bg: "#e6f9ee", border: "#7dd3a8" },
-  "Terminal Exam":  { icon: "📘", color: "#0b4f9e", bg: "#e4eeff", border: "#7aabf7" },
-  "September Exam": { icon: "🍂", color: "#7a5800", bg: "#fff8e1", border: "#f7d47a" },
-  "Annual Exam":    { icon: "🏆", color: "#6b0055", bg: "#fce8f7", border: "#e89de0" },
+  "March Exam": { icon: "SE", color: "#0b6b3a", bg: "#e6f9ee", border: "#7dd3a8" },
+  "Pre-Mock Exam": { icon: "PM", color: "#7c3aed", bg: "#f3e8ff", border: "#c4b5fd" },
+  "Mock Exam": { icon: "MK", color: "#dc2626", bg: "#fee2e2", border: "#fca5a5" },
+  "Pre-Necta Exam": { icon: "PN", color: "#0891b2", bg: "#cffafe", border: "#67e8f9" },
+  "Terminal Exam": { icon: "TE", color: "#0b4f9e", bg: "#e4eeff", border: "#7aabf7" },
+  "September Exam": { icon: "SP", color: "#7a5800", bg: "#fff8e1", border: "#f7d47a" },
+  "Annual Exam": { icon: "AE", color: "#6b0055", bg: "#fce8f7", border: "#e89de0" },
 };
 
-const MONTHLY_META = { icon: "📅", color: "#1a5276", bg: "#eaf4fb", border: "#7fb3d3" };
+const MONTHLY_META = { icon: "ME", color: "#1a5276", bg: "#eaf4fb", border: "#7fb3d3" };
 
 export function ExamPickerScreen({ classData, onPick, onCancel }) {
   const { isMobile } = useViewport();
   const [hoveredExam, setHoveredExam] = useState(null);
 
-  const monthlyExams = Array.isArray(classData?.monthly_exams)
-    ? classData.monthly_exams
-    : [];
+  const monthlyExams = Array.isArray(classData?.monthly_exams) ? classData.monthly_exams : [];
 
   const styles = {
     overlay: {
@@ -35,7 +36,7 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
       borderRadius: 16,
       boxShadow: "0 12px 48px rgba(0,0,0,0.35)",
       padding: isMobile ? 16 : 28,
-      width: isMobile ? "92vw" : 480,
+      width: isMobile ? "92vw" : 560,
       maxWidth: "96vw",
       maxHeight: "90vh",
       overflowY: "auto",
@@ -53,7 +54,7 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
     },
     grid: {
       display: "grid",
-      gridTemplateColumns: "1fr 1fr",
+      gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)",
       gap: 10,
       marginBottom: 16,
     },
@@ -78,9 +79,7 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
     },
   };
 
-  const className = classData
-    ? `${classData.form ?? ""} ${classData.year ?? ""}`.trim()
-    : "";
+  const className = classData ? `${classData.form ?? ""} ${classData.year ?? ""}`.trim() : "";
 
   const renderExamButton = (examValue, meta, label) => {
     const isActive = classData?.school_info?.exam === examValue;
@@ -102,18 +101,46 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
           gap: 6,
           transition: "transform 0.12s, box-shadow 0.12s",
           transform: hoveredExam === examValue ? "translateY(-2px)" : "",
-          boxShadow: hoveredExam === examValue
-            ? `0 4px 14px ${meta.color}44`
-            : isActive ? `0 0 0 3px ${meta.color}44` : "0 1px 4px rgba(0,0,0,0.07)",
+          boxShadow:
+            hoveredExam === examValue
+              ? `0 4px 14px ${meta.color}44`
+              : isActive
+              ? `0 0 0 3px ${meta.color}44`
+              : "0 1px 4px rgba(0,0,0,0.07)",
           outline: "none",
         }}
       >
-        <span style={{ fontSize: 28 }}>{meta.icon}</span>
+        <span
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#fff",
+            color: meta.color,
+            fontSize: 12,
+            fontWeight: 900,
+            letterSpacing: 0.6,
+          }}
+        >
+          {meta.icon}
+        </span>
         <span style={{ fontSize: 11, fontWeight: 800, color: meta.color, textAlign: "center", lineHeight: 1.3 }}>
           {label}
         </span>
         {isActive && (
-          <span style={{ fontSize: 9, fontWeight: 700, color: meta.color, background: `${meta.color}1a`, borderRadius: 99, padding: "2px 8px" }}>
+          <span
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: meta.color,
+              background: `${meta.color}1a`,
+              borderRadius: 99,
+              padding: "2px 8px",
+            }}
+          >
             Last used
           </span>
         )}
@@ -123,35 +150,40 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
 
   return (
     <div style={styles.overlay} onClick={onCancel}>
-      <div style={styles.box} onClick={e => e.stopPropagation()} tabIndex={0}>
-        <div style={styles.heading}>📋 Select Exam</div>
+      <div style={styles.box} onClick={(e) => e.stopPropagation()} tabIndex={0}>
+        <div style={styles.heading}>Select Exam</div>
         <div style={styles.sub}>
           {className ? `Choose the exam you want to work with for ${className}.` : "Choose the exam you want to work with."}
         </div>
 
-        {/* Standard exams */}
         <div style={styles.sectionLabel}>Standard Exams</div>
-        <div style={{ ...styles.grid, marginBottom: monthlyExams.length ? 16 : 16 }}>
-          {EXAM_TYPES.map(et => {
-            const meta = EXAM_META[et.value] ?? { icon: "📋", color: "#003366", bg: "#f4f7ff", border: "#d0dcf8" };
-            return renderExamButton(et.value, meta, et.label);
+        <div style={styles.grid}>
+          {EXAM_TYPES.map((examType) => {
+            const meta = EXAM_META[examType.value] ?? {
+              icon: "EX",
+              color: "#003366",
+              bg: "#f4f7ff",
+              border: "#d0dcf8",
+            };
+            return renderExamButton(examType.value, meta, examType.label);
           })}
         </div>
 
-        {/* Monthly exams (if any are enabled for this Form) */}
         {monthlyExams.length > 0 && (
           <>
             <div style={styles.sectionLabel}>Monthly Exams</div>
-            <div style={{ ...styles.grid, marginBottom: 16 }}>
+            <div style={styles.grid}>
               {monthlyExams.map((month) => {
                 const key = getMonthlyExamKey(month);
-                return renderExamButton(key, MONTHLY_META, `${month}`);
+                return renderExamButton(key, MONTHLY_META, month);
               })}
             </div>
           </>
         )}
 
-        <button style={styles.cancelBtn} onClick={onCancel}>Cancel</button>
+        <button style={styles.cancelBtn} onClick={onCancel}>
+          Cancel
+        </button>
       </div>
     </div>
   );

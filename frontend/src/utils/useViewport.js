@@ -11,10 +11,18 @@ export const useViewport = () => {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  const isXs = width < 480;
+  const isMobile = width < 720;
+  const isTablet = width >= 720 && width < 1024;
+  const isDesktop = width >= 1024;
+  const isLarge = width >= 1280;
+
   return {
     width,
-    isMobile: width < 720,
-    isTablet: width < 1024,
-    isLarge: width >= 1280,
+    isXs,
+    isMobile,
+    isTablet,
+    isDesktop,
+    isLarge,
   };
 };

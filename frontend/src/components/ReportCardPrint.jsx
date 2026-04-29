@@ -1,48 +1,65 @@
 import React from "react";
-import { GRADE_COLORS, DIVISION_COLORS } from "../utils/constants";
+import { GRADE_COLORS } from "../utils/constants";
 import { getGradePoints } from "../utils/grading";
 
-export function ReportCardPrint({ student, classData }) {
+const PAPER_DIMENSIONS = {
+  a4: { width: "210mm", minHeight: "297mm" },
+  a3: { width: "297mm", minHeight: "420mm" },
+};
+
+function getTermLabel(term) {
+  const raw = String(term ?? "").trim();
+  if (!raw) return "";
+  const upper = raw.toUpperCase();
+  if (upper === "I" || upper === "II" || upper === "III") return raw;
+  if (upper.includes("MID")) return "I";
+  if (upper.includes("FINAL") || upper.includes("END") || upper.includes("TERMINAL")) return "II";
+  return raw;
+}
+
+export function ReportCardPrint({
+  student,
+  classData,
+  template = "official",
+  paperSize = "a4",
+  orientation = "portrait",
+}) {
   if (!student) return null;
 
   const subjects = classData.subjects ?? [];
   const grades = student.grades ?? [];
   const schoolInfo = classData.school_info ?? {};
-
-  const getTermLabel = (term) => {
-    const raw = String(term ?? "").trim();
-    if (!raw) return "";
-    const upper = raw.toUpperCase();
-    if (upper === "I" || upper === "II" || upper === "III") return raw;
-    if (upper.includes("MID")) return "I";
-    if (upper.includes("FINAL") || upper.includes("END") || upper.includes("TERMINAL")) return "II";
-    return raw;
-  };
+  const numericGrades = grades.filter((grade) => grade?.score !== null && grade?.score !== undefined);
+  const totalScore = numericGrades.reduce((sum, grade) => sum + (grade?.score || 0), 0);
+  const avgScore = numericGrades.length > 0 ? (totalScore / numericGrades.length).toFixed(1) : "0.0";
+  const dimension = PAPER_DIMENSIONS[paperSize] ?? PAPER_DIMENSIONS.a4;
+  const isLandscape = orientation === "landscape";
+  const isCompact = template === "compact";
 
   const styles = {
     card: {
       background: "#fff",
       borderRadius: 10,
-      padding: 20,
+      padding: isCompact ? 16 : 20,
       border: "1px solid #d0dcf8",
       boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
       fontFamily: "'Times New Roman', serif",
       color: "#1f1f1f",
-      width: "210mm",
-      minHeight: "297mm",
+      width: isLandscape ? dimension.minHeight : dimension.width,
+      minHeight: isLandscape ? dimension.width : dimension.minHeight,
       boxSizing: "border-box",
       margin: "0 auto",
     },
     cardHeader: {
       display: "grid",
-      gridTemplateColumns: "80px 1fr 80px",
+      gridTemplateColumns: isCompact ? "64px 1fr 64px" : "80px 1fr 80px",
       alignItems: "center",
       gap: 10,
       marginBottom: 10,
     },
     crest: {
-      width: 70,
-      height: 70,
+      width: isCompact ? 54 : 70,
+      height: isCompact ? 54 : 70,
       objectFit: "contain",
     },
     schoolTitle: {
@@ -50,17 +67,13 @@ export function ReportCardPrint({ student, classData }) {
       lineHeight: 1.2,
     },
     schoolName: {
-      fontSize: 18,
+      fontSize: isCompact ? 16 : 18,
       fontWeight: 800,
       letterSpacing: 0.3,
       margin: 0,
     },
     schoolSub: {
-      fontSize: 12,
-      margin: "2px 0",
-    },
-    schoolSub2: {
-      fontSize: 12,
+      fontSize: isCompact ? 11 : 12,
       margin: "2px 0",
     },
     rule: {
@@ -70,7 +83,7 @@ export function ReportCardPrint({ student, classData }) {
     },
     title: {
       textAlign: "center",
-      fontSize: 16,
+      fontSize: isCompact ? 14 : 16,
       fontWeight: 800,
       letterSpacing: 0.5,
       margin: "4px 0 8px",
@@ -83,10 +96,10 @@ export function ReportCardPrint({ student, classData }) {
     },
     infoRow: {
       display: "grid",
-      gridTemplateColumns: "140px 1fr",
+      gridTemplateColumns: isCompact ? "110px 1fr" : "140px 1fr",
       borderBottom: "1px solid #c7d2d0",
       padding: "8px 10px",
-      fontSize: 12,
+      fontSize: isCompact ? 11 : 12,
     },
     infoRowRight: {
       borderLeft: "1px solid #c7d2d0",
@@ -97,20 +110,20 @@ export function ReportCardPrint({ student, classData }) {
     sectionTitle: {
       margin: "14px 0 6px",
       fontWeight: 800,
-      fontSize: 12,
+      fontSize: isCompact ? 11 : 12,
       letterSpacing: 0.3,
       color: "#0d5c4f",
     },
     scoreWrap: {
       display: "grid",
-      gridTemplateColumns: "2fr 1fr",
+      gridTemplateColumns: isCompact ? "1.6fr 0.9fr" : "2fr 1fr",
       gap: 12,
       alignItems: "start",
     },
     scoreTable: {
       width: "100%",
       borderCollapse: "collapse",
-      fontSize: 12,
+      fontSize: isCompact ? 11 : 12,
     },
     th: {
       padding: "6px",
@@ -127,7 +140,7 @@ export function ReportCardPrint({ student, classData }) {
     summaryBox: {
       border: "1px solid #9fb3b0",
       background: "#f7f9f9",
-      fontSize: 12,
+      fontSize: isCompact ? 11 : 12,
     },
     summaryRow: {
       display: "flex",
@@ -141,20 +154,21 @@ export function ReportCardPrint({ student, classData }) {
     },
     remarks: {
       marginTop: 12,
-      fontSize: 12,
+      fontSize: isCompact ? 11 : 12,
     },
     remarksBox: {
       border: "1px solid #d6dfde",
       background: "#f3f6f6",
       padding: 10,
       marginTop: 6,
+      minHeight: isCompact ? 58 : 72,
     },
     signRow: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
       gap: 20,
       marginTop: 18,
-      fontSize: 12,
+      fontSize: isCompact ? 11 : 12,
     },
     signLine: {
       borderTop: "1px solid #777",
@@ -163,13 +177,9 @@ export function ReportCardPrint({ student, classData }) {
     },
     issued: {
       marginTop: 10,
-      fontSize: 12,
+      fontSize: isCompact ? 11 : 12,
     },
   };
-
-  const numericGrades = grades.filter(g => g?.score !== null && g?.score !== undefined);
-  const totalScore = numericGrades.reduce((sum, g) => sum + (g?.score || 0), 0);
-  const avgScore = numericGrades.length > 0 ? (totalScore / numericGrades.length).toFixed(1) : 0;
 
   return (
     <div style={styles.card}>
@@ -178,12 +188,14 @@ export function ReportCardPrint({ student, classData }) {
         <div style={styles.schoolTitle}>
           <div style={styles.schoolName}>{schoolInfo.name || "BONDE SECONDARY SCHOOL"}</div>
           <div style={styles.schoolSub}>{schoolInfo.authority || "MUHEZA DISTRICT COUNCIL"}</div>
-          <div style={styles.schoolSub2}>{schoolInfo.district ? `P.O. BOX 03, ${schoolInfo.district}` : "P.O. BOX 03, MUHEZA"}</div>
+          <div style={styles.schoolSub}>
+            {schoolInfo.district ? `P.O. BOX 03, ${schoolInfo.district}` : "P.O. BOX 03, MUHEZA"}
+          </div>
         </div>
         <img src="/asset/bonde.jpg" alt="School crest" style={styles.crest} />
       </div>
       <div style={styles.rule} />
-      <div style={styles.title}>STUDENT REPORT CARD</div>
+      <div style={styles.title}>{isCompact ? "ACADEMIC PERFORMANCE SUMMARY" : "STUDENT REPORT CARD"}</div>
       <div style={styles.rule} />
 
       <div style={styles.infoGrid}>
@@ -196,7 +208,7 @@ export function ReportCardPrint({ student, classData }) {
           ].map(([label, value]) => (
             <div key={label} style={styles.infoRow}>
               <div style={styles.infoLabel}>{label}</div>
-              <div>{value || "–"}</div>
+              <div>{value || "-"}</div>
             </div>
           ))}
         </div>
@@ -208,7 +220,7 @@ export function ReportCardPrint({ student, classData }) {
           ].map(([label, value]) => (
             <div key={label} style={styles.infoRow}>
               <div style={styles.infoLabel}>{label}</div>
-              <div>{value || "–"}</div>
+              <div>{value || "-"}</div>
             </div>
           ))}
         </div>
@@ -228,14 +240,14 @@ export function ReportCardPrint({ student, classData }) {
           <tbody>
             {subjects.map((subj, i) => {
               const grade = grades[i];
-              const scoreDisplay = grade?.raw === "ABS" ? "ABS" : grade?.score ?? "–";
-              const pointDisplay = grade?.grade ? getGradePoints(grade.grade) : "–";
+              const scoreDisplay = grade?.raw === "ABS" ? "ABS" : grade?.score ?? "-";
+              const pointDisplay = grade?.grade ? getGradePoints(grade.grade) : "-";
               return (
                 <tr key={subj}>
                   <td style={{ ...styles.td, textAlign: "left" }}>{subj}</td>
                   <td style={styles.td}>{scoreDisplay}</td>
                   <td style={{ ...styles.td, fontWeight: 800, color: GRADE_COLORS[grade?.grade] || "#999" }}>
-                    {grade?.grade ?? "–"}
+                    {grade?.grade ?? "-"}
                   </td>
                   <td style={styles.td}>{pointDisplay}</td>
                 </tr>
@@ -255,11 +267,19 @@ export function ReportCardPrint({ student, classData }) {
           </div>
           <div style={styles.summaryRow}>
             <span>Division:</span>
-            <span>{student.resultStatus === "COMPLETE" ? `Division ${student.div}` : student.resultStatus ?? "–"}</span>
+            <span>{student.resultStatus === "COMPLETE" ? `Division ${student.div}` : student.resultStatus ?? "-"}</span>
           </div>
           <div style={styles.summaryRow}>
             <span>Position:</span>
-            <span>{student.posn ?? "–"}</span>
+            <span>{student.posn ?? "-"}</span>
+          </div>
+          <div style={styles.summaryRow}>
+            <span>Template:</span>
+            <span>{isCompact ? "Compact" : "Official"}</span>
+          </div>
+          <div style={{ ...styles.summaryRow, borderBottom: "none" }}>
+            <span>Paper:</span>
+            <span>{paperSize.toUpperCase()} {isLandscape ? "Landscape" : "Portrait"}</span>
           </div>
         </div>
       </div>

@@ -108,6 +108,8 @@ export const API = {
   // Stats (public)
   getStats:        ()           => get("/stats"),
   getHomepageOverview: ()       => get("/stats?overview=1"),
+  getHomepageContent: ()        => get("/stats?homepageContent=1"),
+  saveHomepageContent: (data)   => put("/stats?homepageContent=1", data),
 
   // Auth
   login:           (data)       => post("/auth/login", data),

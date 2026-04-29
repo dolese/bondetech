@@ -70,7 +70,8 @@ export function EntryPanel({
     sex: "M",
     status: "present",
   });
-  const { isMobile } = useViewport();
+  const { isMobile, isTablet } = useViewport();
+  const compactLayout = isMobile || isTablet;
 
   useEffect(() => {
     setClassYear(classData.year ?? "");
@@ -330,9 +331,9 @@ export function EntryPanel({
       display: "flex",
       gap: 12,
       flexWrap: "wrap",
-      alignItems: "center",
+      alignItems: compactLayout ? "stretch" : "center",
       background: "#f4f7ff",
-      padding: isMobile ? 8 : 10,
+      padding: compactLayout ? 8 : 10,
       borderRadius: 8,
     },
     tlbGroup: {
@@ -346,13 +347,13 @@ export function EntryPanel({
       width: 1,
       height: 22,
       background: "#d0dcf8",
-      display: isMobile ? "none" : "block",
+      display: compactLayout ? "none" : "block",
     },
     bulkPanel: {
       background: "#fff",
       border: "1px solid #d0dcf8",
       borderRadius: 8,
-      padding: isMobile ? 10 : 12,
+      padding: compactLayout ? 10 : 12,
       display: "flex",
       flexDirection: "column",
       gap: 10,
@@ -361,10 +362,10 @@ export function EntryPanel({
     bulkTable: {
       borderCollapse: "collapse",
       width: "100%",
-      fontSize: isMobile ? 10 : 11,
+      fontSize: compactLayout ? 10 : 11,
       background: "#fff",
       border: "1px solid #d6e0f5",
-      minWidth: isMobile ? 680 : "auto",
+      minWidth: compactLayout ? 680 : "auto",
     },
     bulkInput: {
       width: 44,
@@ -380,7 +381,7 @@ export function EntryPanel({
       background: "#fff",
       border: "1px solid #d0dcf8",
       borderRadius: 8,
-      padding: isMobile ? 10 : 12,
+      padding: compactLayout ? 10 : 12,
       display: "flex",
       flexDirection: "column",
       gap: 10,
@@ -389,7 +390,7 @@ export function EntryPanel({
       background: "#fff",
       border: "1px solid #d0dcf8",
       borderRadius: 8,
-      padding: isMobile ? 10 : 12,
+      padding: compactLayout ? 10 : 12,
       display: "flex",
       flexDirection: "column",
       gap: 10,
@@ -398,7 +399,7 @@ export function EntryPanel({
       background: "#fff",
       border: "1px solid #d0dcf8",
       borderRadius: 8,
-      padding: isMobile ? 10 : 12,
+      padding: compactLayout ? 10 : 12,
       display: "flex",
       flexDirection: "column",
       gap: 10,
@@ -452,16 +453,16 @@ export function EntryPanel({
       borderRadius: 6,
       border: "1px solid #d0dcf8",
       height: 30,
-      minWidth: isMobile ? 0 : 120,
-      width: isMobile ? "100%" : "auto",
+      minWidth: compactLayout ? 0 : 120,
+      width: compactLayout ? "100%" : "auto",
     },
     metaSelect: {
       padding: "6px 8px",
       borderRadius: 6,
       border: "1px solid #d0dcf8",
       height: 30,
-      minWidth: isMobile ? 0 : 120,
-      width: isMobile ? "100%" : "auto",
+      minWidth: compactLayout ? 0 : 120,
+      width: compactLayout ? "100%" : "auto",
     },
     metaBtn: {
       padding: "6px 12px",
@@ -501,10 +502,11 @@ export function EntryPanel({
                   height: 30,
                   fontWeight: 700,
                   fontSize: 11,
-                  background: "#f0f5ff",
-                  color: "#003366",
-                  cursor: "pointer",
-                  minWidth: 120,
+                background: "#f0f5ff",
+                color: "#003366",
+                cursor: "pointer",
+                  minWidth: compactLayout ? 0 : 120,
+                  width: compactLayout ? "100%" : "auto",
                 }}
               >
                 {examOptions.map(et => (
@@ -522,7 +524,7 @@ export function EntryPanel({
                 borderRadius: 5,
                 border: "1px solid #d0dcf8",
                 flex: 1,
-                minWidth: isMobile ? 0 : 150,
+                minWidth: compactLayout ? 0 : 150,
                 height: 30,
               }}
             />
@@ -563,7 +565,7 @@ export function EntryPanel({
           {/* Row 2: Import/Export buttons — 2 per row on mobile */}
           <div style={{
             ...styles.tlbGroup,
-            ...(isMobile ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 } : {}),
+            ...(compactLayout ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 } : {}),
           }}>
             <button
               onClick={() => onShowModal("csv-import")}
@@ -632,7 +634,7 @@ export function EntryPanel({
           </div>
           <div style={styles.tlbDivider} />
           {/* Row 3: Bulk Scores + New Student — side-by-side always */}
-          <div style={{ ...styles.tlbGroup, ...(isMobile ? { flex: "1 1 100%" } : {}) }}>
+          <div style={{ ...styles.tlbGroup, ...(compactLayout ? { flex: "1 1 100%" } : {}) }}>
             <button
               onClick={() => setBulkMode(!bulkMode)}
               title="Bulk score entry"
@@ -645,7 +647,7 @@ export function EntryPanel({
                 cursor: "pointer",
                 fontWeight: 700,
                 height: 30,
-                flex: isMobile ? 1 : "0 0 auto",
+                flex: compactLayout ? 1 : "0 0 auto",
               }}
             >
               {bulkMode ? "✕ Bulk Mode" : "🧮 Bulk Scores"}
@@ -662,7 +664,7 @@ export function EntryPanel({
                 cursor: "pointer",
                 fontWeight: 700,
                 height: 30,
-                flex: isMobile ? 1 : "0 0 auto",
+                flex: compactLayout ? 1 : "0 0 auto",
               }}
             >
               ➕ New
@@ -684,7 +686,7 @@ export function EntryPanel({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            gridTemplateColumns: compactLayout ? "1fr" : "1fr 1fr",
             gap: 10,
           }}
         >
@@ -1054,7 +1056,7 @@ export function EntryPanel({
             </table>
           </div>
         </div>
-      ) : isMobile ? (
+      ) : compactLayout ? (
         /* ── Mobile student card list ─────────────────────────────────── */
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {!filtered.length && (
