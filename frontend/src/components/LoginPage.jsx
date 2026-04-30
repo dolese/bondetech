@@ -123,7 +123,7 @@ export function LoginPage({ onBack, onLogin }) {
           position: relative;
           z-index: 1;
           width: 100%;
-          max-width: 392px;
+          max-width: 396px;
         }
         .login-field-wrap {
           display: flex;
@@ -140,13 +140,15 @@ export function LoginPage({ onBack, onLogin }) {
         }
         .login-field {
           width: 100%;
-          background: rgba(255,255,255,0.9);
-          border: 1px solid rgba(83,120,154,0.18);
+          background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,248,252,0.88));
+          border: 1px solid rgba(83,120,154,0.16);
           border-radius: 16px;
           display: flex;
           align-items: center;
           padding: 14px 16px;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.7),
+            0 8px 16px rgba(15,85,121,0.06);
           transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
         }
         .login-field:focus-within {
@@ -218,36 +220,65 @@ export function LoginPage({ onBack, onLogin }) {
           filter: brightness(1.03);
         }
         .login-card-inner {
-          padding: 24px 22px 20px;
+          padding: 18px 16px 15px;
           width: 100%;
           box-sizing: border-box;
           border-radius: 26px;
-          background: linear-gradient(180deg, rgba(244,248,252,0.58), rgba(228,238,247,0.34));
-          border: 1px solid rgba(255,255,255,0.42);
+          background:
+            linear-gradient(180deg, rgba(247,251,255,0.68), rgba(230,239,247,0.34)),
+            linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
+          border: 1px solid rgba(255,255,255,0.46);
           box-shadow:
-            0 24px 52px rgba(4,18,35,0.24),
-            inset 0 1px 0 rgba(255,255,255,0.48);
-          backdrop-filter: blur(18px) saturate(145%);
-          -webkit-backdrop-filter: blur(18px) saturate(145%);
+            0 28px 60px rgba(4,18,35,0.28),
+            0 10px 20px rgba(8,36,63,0.12),
+            inset 0 1px 0 rgba(255,255,255,0.56);
+          backdrop-filter: blur(22px) saturate(150%);
+          -webkit-backdrop-filter: blur(22px) saturate(150%);
+          overflow: hidden;
         }
         .login-footer-section {
           width: 100%;
           box-sizing: border-box;
         }
+        .login-card-glow {
+          position: absolute;
+          border-radius: 999px;
+          pointer-events: none;
+          opacity: 0.9;
+          filter: blur(4px);
+        }
         .login-meta-chip {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          margin-bottom: 18px;
-          padding: 8px 12px;
+          padding: 7px 11px;
           border-radius: 999px;
           background: rgba(15,85,121,0.09);
           border: 1px solid rgba(15,85,121,0.12);
           color: #0f5579;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+        }
+        .login-status-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 999px;
+          background: #20b26b;
+          box-shadow: 0 0 0 4px rgba(32,178,107,0.12);
+        }
+        .login-support-strip {
+          margin-top: 4px;
+          padding: 9px 10px;
+          border-radius: 14px;
+          background: rgba(255,255,255,0.34);
+          border: 1px solid rgba(255,255,255,0.24);
+          color: #3e5468;
+          font-size: 11px;
+          line-height: 1.45;
+          text-align: left;
         }
         @media (max-width: 480px) {
           .login-back-btn {
@@ -258,13 +289,13 @@ export function LoginPage({ onBack, onLogin }) {
             max-width: 308px;
           }
           .login-card-inner {
-            padding: 12px 10px 10px;
+            padding: 13px 11px 11px;
             border-radius: 16px;
           }
           .login-meta-chip {
-            margin-bottom: 8px;
             padding: 6px 9px;
-            font-size: 10px;
+            gap: 6px;
+            font-size: 9px;
           }
           .login-field {
             padding: 10px 12px;
@@ -277,6 +308,11 @@ export function LoginPage({ onBack, onLogin }) {
             padding: 12px 0;
             border-radius: 14px;
             letter-spacing: 0.12em;
+          }
+          .login-support-strip {
+            padding: 8px 9px;
+            border-radius: 12px;
+            font-size: 10px;
           }
           .login-footer-section {
             margin-top: 10px !important;
@@ -308,49 +344,103 @@ export function LoginPage({ onBack, onLogin }) {
         }}
       >
         <div
+          className="login-card-glow"
           style={{
-            width: isMobile ? 58 : 72,
-            height: isMobile ? 58 : 72,
-            borderRadius: isMobile ? 18 : 22,
-            background: "linear-gradient(145deg, #0f5579, #1f8e9d)",
-            border: "4px solid rgba(255,255,255,0.78)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: isMobile ? "0 auto 10px" : "0 auto 16px",
-            boxShadow: "0 16px 28px rgba(15,85,121,0.24)",
+            top: -42,
+            right: -18,
+            width: isMobile ? 96 : 132,
+            height: isMobile ? 96 : 132,
+            background: "radial-gradient(circle, rgba(255,205,96,0.42) 0%, rgba(255,205,96,0) 72%)",
           }}
-        >
-          <SchoolCrest size={isMobile ? 30 : 38} />
-        </div>
+        />
+        <div
+          className="login-card-glow"
+          style={{
+            bottom: -54,
+            left: -36,
+            width: isMobile ? 112 : 158,
+            height: isMobile ? 112 : 158,
+            background: "radial-gradient(circle, rgba(31,142,157,0.24) 0%, rgba(31,142,157,0) 72%)",
+          }}
+        />
 
-        <div className="login-meta-chip">
-          <span>{t("academicPortal")}</span>
-          {isWide && <span>{t("systemOnline")}</span>}
-        </div>
         <div
           style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#688198",
-            marginBottom: 8,
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: isMobile ? 10 : 14,
+            marginBottom: isMobile ? 10 : 14,
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          BONDE Secondary School
+          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 9 : 12, minWidth: 0, textAlign: "left" }}>
+            <div
+              style={{
+                width: isMobile ? 46 : 56,
+                height: isMobile ? 46 : 56,
+                minWidth: isMobile ? 46 : 56,
+                borderRadius: isMobile ? 14 : 18,
+                background: "linear-gradient(145deg, rgba(15,85,121,0.96), rgba(31,142,157,0.95))",
+                border: "3px solid rgba(255,255,255,0.78)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 12px 22px rgba(15,85,121,0.2)",
+              }}
+            >
+              <SchoolCrest size={isMobile ? 25 : 31} />
+            </div>
+
+            <div style={{ minWidth: 0 }}>
+              <div className="login-meta-chip">
+                <span className="login-status-dot" />
+                <span>{t("academicPortal")}</span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: isMobile ? 12 : 14,
+                  fontWeight: 800,
+                  letterSpacing: "0.06em",
+                  color: "#102a43",
+                  textTransform: "uppercase",
+                  lineHeight: 1.25,
+                  marginTop: isMobile ? 8 : 10,
+                }}
+              >
+                BONDE Secondary School
+              </div>
+
+              {isWide && (
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "#587087",
+                    marginTop: 4,
+                  }}
+                >
+                  {t("systemOnline")}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: -2 }}>
+            <LanguageToggle />
+          </div>
         </div>
-        <div style={{ fontSize: isMobile ? 21 : 27, fontWeight: 800, color: "#102a43", marginBottom: isMobile ? 5 : 8, lineHeight: 1.08 }}>
+
+        <div style={{ fontSize: isMobile ? 21 : 27, fontWeight: 800, color: "#102a43", marginBottom: isMobile ? 4 : 6, lineHeight: 1.08, textAlign: "left" }}>
           {t("signIn")}
         </div>
         {!isMobile && (
-          <div style={{ fontSize: 12, color: "#52667a", lineHeight: 1.65, marginBottom: 18 }}>
+          <div style={{ fontSize: 12, color: "#52667a", lineHeight: 1.55, marginBottom: 12, textAlign: "left", maxWidth: 290 }}>
             {t("loginIntro")}
           </div>
         )}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: isMobile ? 10 : 18 }}>
-          <LanguageToggle />
-        </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: isMobile ? 12 : 16 }}>
           <label className="login-field-wrap">
@@ -407,6 +497,23 @@ export function LoginPage({ onBack, onLogin }) {
             </div>
           )}
 
+          {!error && !infoMsg && (
+            <div className="login-support-strip">
+              {t("needAccessFirstTime")}{" "}
+              <span
+                style={{
+                  fontWeight: 800,
+                  color: "#0f5579",
+                  cursor: "pointer",
+                  letterSpacing: "0.02em",
+                }}
+                onClick={handleRegister}
+              >
+                {t("contactAdministrator")}
+              </span>
+            </div>
+          )}
+
           <button type="submit" className="login-submit-btn" style={{ marginTop: 2 }} disabled={submitting}>
             {submitting ? t("signingIn").toUpperCase() : t("loginButton").toUpperCase()}
           </button>
@@ -454,13 +561,7 @@ export function LoginPage({ onBack, onLogin }) {
       <div className="login-footer-section" style={{ marginTop: 18, textAlign: "center", zIndex: 1 }}>
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.24)", marginBottom: isMobile ? 8 : 16 }} />
         <p style={{ fontSize: isMobile ? 11 : 13, color: "rgba(244,247,252,0.92)", lineHeight: isMobile ? 1.45 : 1.7, margin: 0, maxWidth: isMobile ? 300 : "none" }}>
-          {t("needAccessFirstTime")}{" "}
-          <span
-            style={{ fontWeight: 800, color: "#fff", cursor: "pointer", letterSpacing: "0.04em" }}
-            onClick={handleRegister}
-          >
-            {t("contactAdministrator")}
-          </span>
+          {t("contactAdminReset")}
         </p>
       </div>
     </div>
