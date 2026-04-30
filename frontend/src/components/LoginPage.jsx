@@ -258,22 +258,28 @@ export function LoginPage({ onBack, onLogin }) {
             max-width: 308px;
           }
           .login-card-inner {
-            padding: 16px 12px 14px;
-            border-radius: 18px;
+            padding: 12px 10px 10px;
+            border-radius: 16px;
           }
           .login-meta-chip {
-            margin-bottom: 14px;
-            padding: 7px 10px;
+            margin-bottom: 8px;
+            padding: 6px 9px;
+            font-size: 10px;
           }
           .login-field {
-            padding: 12px 14px;
-            border-radius: 14px;
+            padding: 10px 12px;
+            border-radius: 13px;
           }
           .login-input {
-            font-size: 14px;
+            font-size: 13px;
           }
           .login-submit-btn {
-            padding: 14px 0;
+            padding: 12px 0;
+            border-radius: 14px;
+            letter-spacing: 0.12em;
+          }
+          .login-footer-section {
+            margin-top: 10px !important;
           }
         }
         @media (min-width: 1024px) {
@@ -303,19 +309,19 @@ export function LoginPage({ onBack, onLogin }) {
       >
         <div
           style={{
-            width: 72,
-            height: 72,
-            borderRadius: 22,
+            width: isMobile ? 58 : 72,
+            height: isMobile ? 58 : 72,
+            borderRadius: isMobile ? 18 : 22,
             background: "linear-gradient(145deg, #0f5579, #1f8e9d)",
             border: "4px solid rgba(255,255,255,0.78)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            margin: "0 auto 16px",
+            margin: isMobile ? "0 auto 10px" : "0 auto 16px",
             boxShadow: "0 16px 28px rgba(15,85,121,0.24)",
           }}
         >
-          <SchoolCrest size={38} />
+          <SchoolCrest size={isMobile ? 30 : 38} />
         </div>
 
         <div className="login-meta-chip">
@@ -334,17 +340,19 @@ export function LoginPage({ onBack, onLogin }) {
         >
           BONDE Secondary School
         </div>
-        <div style={{ fontSize: isMobile ? 24 : 27, fontWeight: 800, color: "#102a43", marginBottom: 8, lineHeight: 1.08 }}>
+        <div style={{ fontSize: isMobile ? 21 : 27, fontWeight: 800, color: "#102a43", marginBottom: isMobile ? 5 : 8, lineHeight: 1.08 }}>
           {t("signIn")}
         </div>
-        <div style={{ fontSize: 12, color: "#52667a", lineHeight: 1.65, marginBottom: 18 }}>
-          {t("loginIntro")}
-        </div>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+        {!isMobile && (
+          <div style={{ fontSize: 12, color: "#52667a", lineHeight: 1.65, marginBottom: 18 }}>
+            {t("loginIntro")}
+          </div>
+        )}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: isMobile ? 10 : 18 }}>
           <LanguageToggle />
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: isMobile ? 12 : 16 }}>
           <label className="login-field-wrap">
             <span className="login-field-label">{t("username")}</span>
             <div className="login-field">
@@ -409,8 +417,8 @@ export function LoginPage({ onBack, onLogin }) {
               alignItems: isMobile ? "flex-start" : "center",
               flexDirection: isMobile ? "column" : "row",
               justifyContent: "space-between",
-              gap: 12,
-              marginTop: 2,
+              gap: isMobile ? 8 : 12,
+              marginTop: isMobile ? 0 : 2,
             }}
           >
             <label
@@ -444,8 +452,8 @@ export function LoginPage({ onBack, onLogin }) {
       </div>
 
       <div className="login-footer-section" style={{ marginTop: 18, textAlign: "center", zIndex: 1 }}>
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.24)", marginBottom: 16 }} />
-        <p style={{ fontSize: 13, color: "rgba(244,247,252,0.92)", lineHeight: 1.7, margin: 0 }}>
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.24)", marginBottom: isMobile ? 8 : 16 }} />
+        <p style={{ fontSize: isMobile ? 11 : 13, color: "rgba(244,247,252,0.92)", lineHeight: isMobile ? 1.45 : 1.7, margin: 0, maxWidth: isMobile ? 300 : "none" }}>
           {t("needAccessFirstTime")}{" "}
           <span
             style={{ fontWeight: 800, color: "#fff", cursor: "pointer", letterSpacing: "0.04em" }}
