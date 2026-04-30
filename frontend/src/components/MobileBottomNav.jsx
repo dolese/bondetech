@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n";
+
 function HomeNavIcon() {
   return (
     <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
@@ -38,18 +40,18 @@ function SettingsNavIcon() {
   );
 }
 
-const ITEMS = [
-  { key: "dashboard", Icon: HomeNavIcon, label: "Home" },
-  { key: "students", Icon: StudentsNavIcon, label: "Students" },
-  { key: "results", Icon: ResultsNavIcon, label: "Results" },
-  { key: "reports", Icon: ReportsNavIcon, label: "Reports" },
-  { key: "settings", Icon: SettingsNavIcon, label: "Settings" },
-];
-
 export function MobileBottomNav({ page, activeClass, styles, onSetPage }) {
+  const { t } = useI18n();
+  const items = [
+    { key: "dashboard", Icon: HomeNavIcon, label: t("home") },
+    { key: "students", Icon: StudentsNavIcon, label: t("students") },
+    { key: "results", Icon: ResultsNavIcon, label: t("results") },
+    { key: "reports", Icon: ReportsNavIcon, label: t("reports") },
+    { key: "settings", Icon: SettingsNavIcon, label: t("settings") },
+  ];
   return (
     <nav style={styles.bottomNav}>
-      {ITEMS.map((item, idx) => {
+      {items.map((item, idx) => {
         const isActive = page === item.key;
         const disabled = item.key !== "dashboard" && !activeClass;
         return (

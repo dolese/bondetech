@@ -1,3 +1,6 @@
+import { useI18n } from "../i18n";
+import { LanguageToggle } from "./LanguageToggle";
+
 export function AppTopBar({
   isMobile,
   page,
@@ -11,6 +14,8 @@ export function AppTopBar({
   onOpenAccount,
   onLogout,
 }) {
+  const { t } = useI18n();
+
   return (
     <div style={{ ...styles.topBar, height: topBarHeight, padding: isMobile ? "0 10px" : "0 16px" }}>
       {showMenu ? (
@@ -18,18 +23,19 @@ export function AppTopBar({
       ) : (
         <div style={{ width: 22 }} />
       )}
-      {!isMobile && <span style={styles.topBrand}>🎓 BONDE SEC SCHOOL - RESULT SYSTEM</span>}
+      {!isMobile && <span style={styles.topBrand}>🎓 {t("topBrand")}</span>}
       {isMobile ? (
         <button
           style={{ ...styles.topCls, fontSize: 10, padding: "3px 8px", cursor: "pointer", background: "rgba(255,255,255,0.16)" }}
           onClick={showMenu ? onOpenSidebar : onOpenAccount}
-          title="Switch class"
+          title={t("switchClass")}
         >
-          {topBarLabel || (showMenu ? "Select class" : "Account")}
+          {topBarLabel || (showMenu ? t("selectClass") : t("account"))}
         </button>
       ) : (
         <span style={styles.topCls}>{topBarLabel}</span>
       )}
+      <LanguageToggle compact dark />
       <button
         style={{
           ...styles.accountBtn,
@@ -37,7 +43,7 @@ export function AppTopBar({
           ...(isMobile ? { padding: "5px 8px", fontSize: 10 } : {}),
         }}
         onClick={onOpenAccount}
-        title="Open account"
+        title={t("openAccount")}
       >
         {accountLabel}
       </button>
@@ -45,7 +51,7 @@ export function AppTopBar({
         style={{ ...styles.logoutBtn, ...(isMobile ? { padding: "5px 8px", fontSize: 10 } : {}) }}
         onClick={onLogout}
       >
-        Log out
+        {t("logout")}
       </button>
     </div>
   );

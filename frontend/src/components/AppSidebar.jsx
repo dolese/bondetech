@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n";
+
 export function AppSidebar({
   isMobile,
   sideOpen,
@@ -20,6 +22,8 @@ export function AppSidebar({
   onPickClass,
   onSetPage,
 }) {
+  const { t } = useI18n();
+
   return (
     <>
       {isMobile && sideOpen && (
@@ -48,7 +52,7 @@ export function AppSidebar({
             <span style={{ fontSize: 24 }}>🎓</span>
             <div>
               <div style={styles.sideTitle}>BONDE SEC</div>
-              <div style={styles.sideSub}>{isMobile ? "Select a class" : "Result System"}</div>
+              <div style={styles.sideSub}>{isMobile ? t("selectAClass") : t("resultSystem")}</div>
             </div>
           </div>
 
@@ -59,10 +63,10 @@ export function AppSidebar({
             }}
             style={{ ...styles.navBtn, ...(page === "dashboard" ? styles.navBtnOn : {}) }}
           >
-            📊 Dashboard
+            📊 {t("dashboard")}
           </button>
 
-          <div style={styles.sideSection}>STUDENTS</div>
+          <div style={styles.sideSection}>{t("studentsSection").toUpperCase()}</div>
           <div style={styles.classList}>
             {classesByYear.map(([year, yearClasses]) => (
               <div key={year}>
@@ -73,7 +77,7 @@ export function AppSidebar({
                   {yearClasses.length < forms.length && (
                     <button
                       style={styles.addYearBtn}
-                      title={`Add new class for ${year}`}
+                      title={`${t("selectClass")} ${year}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         const nextForm = forms.find((form) => !yearClasses.some((cls) => cls.form === form));
@@ -104,7 +108,7 @@ export function AppSidebar({
                             onAddClass({ year, form });
                           }
                         }}
-                        title={cls ? cls.name : `Create ${form} ${year}`}
+                        title={cls ? cls.name : `${t("selectClass")} ${form} ${year}`}
                       >
                         <span style={styles.formLabel}>{form}</span>
                         {cls ? (
@@ -123,7 +127,7 @@ export function AppSidebar({
             {unorganizedClasses.length > 0 && (
               <div>
                 <div style={{ ...styles.yearRow, cursor: "default" }}>
-                  <span style={{ ...styles.yearLabel, color: "rgba(255,255,255,0.3)" }}>Unorganized</span>
+                  <span style={{ ...styles.yearLabel, color: "rgba(255,255,255,0.3)" }}>{t("unorganized")}</span>
                 </div>
                 {unorganizedClasses.map((cls) => (
                   <div
@@ -145,7 +149,7 @@ export function AppSidebar({
             )}
           </div>
 
-          <div style={styles.sideSection}>CLASS</div>
+          <div style={styles.sideSection}>{t("classSection").toUpperCase()}</div>
           {navItems.map((item) => (
             <button
               key={item.key}
@@ -166,7 +170,7 @@ export function AppSidebar({
             </button>
           ))}
 
-          <div style={styles.sideSection}>ACCOUNT</div>
+          <div style={styles.sideSection}>{t("accountSection").toUpperCase()}</div>
           <button
             onClick={() => {
               onSetPage("account");
@@ -180,7 +184,7 @@ export function AppSidebar({
           <div style={styles.sideFooter}>
             <span style={{ color: "#5dbb6b", fontSize: 10, fontWeight: 700 }}>🗄️ Firebase / Firestore</span>
             <br />
-            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 9 }}>Data persists on server</span>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 9 }}>{t("dataPersists")}</span>
           </div>
         </div>
       </div>

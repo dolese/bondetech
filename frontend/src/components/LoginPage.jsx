@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useViewport } from "../utils/useViewport";
+import { useI18n } from "../i18n";
+import { LanguageToggle } from "./LanguageToggle";
 
 function SchoolCrest({ size = 40 }) {
   return (
@@ -50,6 +52,7 @@ function LockIcon({ size = 22, color = "#555" }) {
 }
 
 export function LoginPage({ onBack, onLogin }) {
+  const { t } = useI18n();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -62,7 +65,7 @@ export function LoginPage({ onBack, onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {
-      setError("Enter a username and password");
+      setError(t("enterUsernamePassword"));
       return;
     }
     setError("");
@@ -70,22 +73,22 @@ export function LoginPage({ onBack, onLogin }) {
     try {
       const result = await onLogin?.({ username, password, rememberMe });
       if (result?.bootstrap) {
-        setInfoMsg("First administrator account created successfully.");
+        setInfoMsg(t("firstAdminCreated"));
       }
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError(err.message || t("loginFailed"));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleForgotPassword = () => {
-    setInfoMsg("Please contact the school administrator to reset your password.");
+    setInfoMsg(t("contactAdminReset"));
     setTimeout(() => setInfoMsg(""), 4000);
   };
 
   const handleRegister = () => {
-    setInfoMsg("Registration is managed by the school administrator. Please contact the office.");
+    setInfoMsg(t("registrationManaged"));
     setTimeout(() => setInfoMsg(""), 4000);
   };
 
@@ -284,7 +287,7 @@ export function LoginPage({ onBack, onLogin }) {
       <div className="login-overlay" />
 
       <button className="login-back-btn" onClick={onBack}>
-        {"<-"} Back
+        {"<-"} {t("back")}
       </button>
 
       <div
@@ -314,8 +317,8 @@ export function LoginPage({ onBack, onLogin }) {
         </div>
 
         <div className="login-meta-chip">
-          <span>Academic Portal</span>
-          {isWide && <span>System Online</span>}
+          <span>{t("academicPortal")}</span>
+          {isWide && <span>{t("systemOnline")}</span>}
         </div>
         <div
           style={{
@@ -330,21 +333,24 @@ export function LoginPage({ onBack, onLogin }) {
           BONDE Secondary School
         </div>
         <div style={{ fontSize: 30, fontWeight: 800, color: "#102a43", marginBottom: 10, lineHeight: 1.08 }}>
-          Sign in
+          {t("signIn")}
         </div>
         <div style={{ fontSize: 13, color: "#52667a", lineHeight: 1.7, marginBottom: 24 }}>
-          Continue to the results dashboard to manage classes, students, and report cards securely.
+          {t("loginIntro")}
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+          <LanguageToggle />
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <label className="login-field-wrap">
-            <span className="login-field-label">Username</span>
+            <span className="login-field-label">{t("username")}</span>
             <div className="login-field">
               <PersonIcon size={22} color="#4d6a85" />
               <div className="login-field-divider" />
               <input
                 className="login-input"
-                placeholder="Enter your username"
+                placeholder={t("enterUsername")}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoFocus
@@ -354,14 +360,14 @@ export function LoginPage({ onBack, onLogin }) {
           </label>
 
           <label className="login-field-wrap">
-            <span className="login-field-label">Password</span>
+            <span className="login-field-label">{t("password")}</span>
             <div className="login-field">
               <LockIcon size={22} color="#4d6a85" />
               <div className="login-field-divider" />
               <input
                 className="login-input"
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t("enterPassword")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={submitting}
@@ -392,7 +398,7 @@ export function LoginPage({ onBack, onLogin }) {
           )}
 
           <button type="submit" className="login-submit-btn" style={{ marginTop: 2 }} disabled={submitting}>
-            {submitting ? "SIGNING IN..." : "LOGIN"}
+            {submitting ? t("signingIn").toUpperCase() : t("loginButton").toUpperCase()}
           </button>
 
           <div
@@ -423,13 +429,13 @@ export function LoginPage({ onBack, onLogin }) {
                 disabled={submitting}
                 style={{ width: 15, height: 15, accentColor: "#0f5579", cursor: "pointer" }}
               />
-              Keep me signed in
+              {t("keepSignedIn")}
             </label>
             <span
               style={{ fontSize: 13, color: "#0f5579", cursor: "pointer", fontWeight: 700 }}
               onClick={handleForgotPassword}
             >
-              Forgot password?
+              {t("forgotPassword")}
             </span>
           </div>
         </form>
@@ -438,12 +444,12 @@ export function LoginPage({ onBack, onLogin }) {
       <div className="login-footer-section" style={{ marginTop: 18, textAlign: "center", zIndex: 1 }}>
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.24)", marginBottom: 16 }} />
         <p style={{ fontSize: 13, color: "rgba(244,247,252,0.92)", lineHeight: 1.7, margin: 0 }}>
-          Need access for the first time?{" "}
+          {t("needAccessFirstTime")}{" "}
           <span
             style={{ fontWeight: 800, color: "#fff", cursor: "pointer", letterSpacing: "0.04em" }}
             onClick={handleRegister}
           >
-            CONTACT THE ADMINISTRATOR
+            {t("contactAdministrator")}
           </span>
         </p>
       </div>

@@ -20,15 +20,9 @@ import { MobileBottomNav } from "./components/MobileBottomNav";
 import { useSession } from "./hooks/useSession";
 import { CLASS_FORMS, useClasses } from "./hooks/useClasses";
 import { API } from "./api";
+import { useI18n } from "./i18n";
 
 const MOBILE_NAV_HEIGHT = 94;
-
-const CLASS_NAV_ITEMS = [
-  { key: "students", icon: "S", label: "Students" },
-  { key: "results", icon: "R", label: "Results" },
-  { key: "reports", icon: "P", label: "Reports" },
-  { key: "settings", icon: "C", label: "Settings" },
-];
 
 const CLASS_ACCESS_ROLES = new Set(["admin", "teacher"]);
 
@@ -39,6 +33,7 @@ function getDefaultPageForUser(user) {
 }
 
 export default function App() {
+  const { t } = useI18n();
   const [page, setPage] = useState("dashboard");
   const [sideOpen, setSideOpen] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth >= 720 : true
@@ -56,6 +51,13 @@ export default function App() {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2500);
   }, []);
+
+  const classNavItems = [
+    { key: "students", icon: "S", label: t("students") },
+    { key: "results", icon: "R", label: t("results") },
+    { key: "reports", icon: "P", label: t("reports") },
+    { key: "settings", icon: "C", label: t("settings") },
+  ];
 
   const {
     currentUser,
@@ -76,7 +78,7 @@ export default function App() {
         setSearchProfileIndexNo(user.linkedIndexNo);
       }
     },
-    onAccountSaved: () => showToast("Account updated"),
+    onAccountSaved: () => showToast(t("accountUpdated")),
   });
 
   const role = currentUser?.role || "";
@@ -84,8 +86,8 @@ export default function App() {
   const canManageUsers = role === "admin";
   const canViewSettings = role === "admin";
   const navItems = canViewSettings
-    ? CLASS_NAV_ITEMS
-    : CLASS_NAV_ITEMS.filter((item) => item.key !== "settings");
+    ? classNavItems
+    : classNavItems.filter((item) => item.key !== "settings");
 
   const {
     classes,
@@ -141,9 +143,9 @@ export default function App() {
 
   const handleSaveHomepageContent = useCallback(async (content) => {
     const saved = await API.saveHomepageContent(content);
-    showToast("Homepage content updated");
+    showToast(t("homepageUpdated"));
     return saved;
-  }, [showToast]);
+  }, [showToast, t]);
 
   useEffect(() => {
     if (isMobile) {
@@ -204,23 +206,23 @@ export default function App() {
   }, [confirmDel, deleteClass]);
 
   if (!authReady) {
-    return <Splash text="Checking session..." />;
+    return <Splash text={t("checkingSession")} />;
   }
   if (!loggedIn) {
     return <Landing onLogin={handleLogin} />;
   }
 
-  if (canAccessClassData && loading) return <Splash text="Loading data..." />;
+  if (canAccessClassData && loading) return <Splash text={t("loadingData")} />;
   if (canAccessClassData && error) return <Splash text={error} isError />;
 
   const sidebarWidth = 240;
   const isClassPage = canAccessClassData && ["students", "results", "reports", "settings"].includes(page);
-  const accountLabel = currentUser?.displayName || currentUser?.username || "Account";
+  const accountLabel = currentUser?.displayName || currentUser?.username || t("account");
 
   const topBarLabel = (() => {
-    if (page === "dashboard") return "Dashboard";
-    if (page === "profile") return "Student Profile";
-    if (page === "account") return "Account";
+    if (page === "dashboard") return t("dashboard");
+    if (page === "profile") return t("studentProfile");
+    if (page === "account") return t("account");
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
@@ -246,11 +248,11 @@ export default function App() {
       }}
     >
       <div style={{ fontSize: 52 }}>Classes</div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: "#003366" }}>No class selected</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: "#003366" }}>{t("noClassSelected")}</div>
       <div style={{ fontSize: 13, color: "#555", textAlign: "center", maxWidth: 260, lineHeight: 1.5 }}>
         {isMobile
-          ? "Tap the button below to browse classes."
-          : "Choose a class from the sidebar to get started."}
+          ? `${t("openClasses")}.`
+          : `${t("selectClass")}...`}
       </div>
       {isMobile && (
         <button
@@ -267,7 +269,7 @@ export default function App() {
             boxShadow: "0 4px 12px rgba(0,51,102,0.25)",
           }}
         >
-          Open Classes
+          {t("openClasses")}
         </button>
       )}
     </div>

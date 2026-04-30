@@ -2,22 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { TextInput, SelectInput, TextAreaInput } from "./FormInputs";
 import { formatUserRole, USER_ROLE_OPTIONS } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
-
-const HOMEPAGE_TONE_OPTIONS = [
-  { label: "Info", value: "info" },
-  { label: "Success", value: "success" },
-  { label: "Warning", value: "warning" },
-  { label: "Accent", value: "accent" },
-];
-
-const HOMEPAGE_COLOR_OPTIONS = [
-  { label: "Blue", value: "#2563eb" },
-  { label: "Green", value: "#059669" },
-  { label: "Purple", value: "#7c3aed" },
-  { label: "Orange", value: "#d97706" },
-  { label: "Cyan", value: "#0891b2" },
-  { label: "Red", value: "#dc2626" },
-];
+import { useI18n } from "../i18n";
 
 function blankManagedUser() {
   return {
@@ -65,6 +50,21 @@ export function AccountPage({
   onSaveHomepageContent,
   onLogout,
 }) {
+  const { t } = useI18n();
+  const homepageToneOptions = [
+    { label: t("info"), value: "info" },
+    { label: t("success"), value: "success" },
+    { label: t("warning"), value: "warning" },
+    { label: t("accent"), value: "accent" },
+  ];
+  const homepageColorOptions = [
+    { label: t("blue"), value: "#2563eb" },
+    { label: t("green"), value: "#059669" },
+    { label: t("purple"), value: "#7c3aed" },
+    { label: t("orange"), value: "#d97706" },
+    { label: t("cyan"), value: "#0891b2" },
+    { label: t("red"), value: "#dc2626" },
+  ];
   const { isMobile, isTablet } = useViewport();
   const singleColumn = isMobile;
   const stackedColumns = isMobile || isTablet;
@@ -137,7 +137,7 @@ export function AccountPage({
         });
       })
       .catch((err) => {
-        setHomepageError(err.message || "Unable to load homepage content");
+        setHomepageError(err.message || t("unableToLoadHomepageContent"));
       })
       .finally(() => {
         setHomepageLoading(false);
@@ -196,11 +196,11 @@ export function AccountPage({
     const displayName = form.displayName.trim();
     const email = form.email.trim();
     if (!displayName) {
-      setError("Display name is required");
+      setError(t("displayNameRequired"));
       return;
     }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Enter a valid email address");
+      setError(t("validEmailRequired"));
       return;
     }
 
@@ -214,7 +214,7 @@ export function AccountPage({
         linkedIndexNo: form.linkedIndexNo.trim(),
       });
     } catch (err) {
-      setError(err.message || "Unable to save profile");
+      setError(err.message || t("unableToSaveProfile"));
     } finally {
       setSaving(false);
     }
@@ -222,11 +222,11 @@ export function AccountPage({
 
   const handlePasswordChange = async () => {
     if (!passwordForm.currentPassword || !passwordForm.newPassword) {
-      setPasswordMsg("Enter your current and new password");
+      setPasswordMsg(t("enterCurrentAndNewPassword"));
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordMsg("New password confirmation does not match");
+      setPasswordMsg(t("passwordConfirmationMismatch"));
       return;
     }
     setPasswordSaving(true);
@@ -234,9 +234,9 @@ export function AccountPage({
     try {
       await onChangePassword?.(passwordForm.currentPassword, passwordForm.newPassword);
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setPasswordMsg("Password updated successfully.");
+      setPasswordMsg(t("passwordUpdatedSuccessfully"));
     } catch (err) {
-      setPasswordMsg(err.message || "Unable to update password");
+      setPasswordMsg(err.message || t("unableToUpdatePassword"));
     } finally {
       setPasswordSaving(false);
     }
@@ -246,11 +246,11 @@ export function AccountPage({
     const username = adminForm.username.trim();
     const password = adminForm.password;
     if (!username) {
-      setAdminError("Username is required");
+      setAdminError(t("usernameRequired"));
       return;
     }
     if (!password) {
-      setAdminError("Temporary password is required");
+      setAdminError(t("temporaryPasswordRequired"));
       return;
     }
 
@@ -267,7 +267,7 @@ export function AccountPage({
       });
       setAdminForm(blankManagedUser());
     } catch (err) {
-      setAdminError(err.message || "Unable to create user");
+      setAdminError(err.message || t("unableToCreateUser"));
     } finally {
       setAdminSaving(false);
     }
@@ -298,7 +298,7 @@ export function AccountPage({
   const handleResetManagedPassword = async (username) => {
     const payload = editingUsers[username];
     if (!payload?.password) {
-      setAdminError(`Enter a new password for ${username} first`);
+      setAdminError(t("enterNewPasswordForUser", "", { username }));
       return;
     }
     await handleSaveManagedUser(username);
@@ -316,7 +316,7 @@ export function AccountPage({
       });
       updateManagedField(managedUser.username, "active", !payload.active);
     } catch (err) {
-      setAdminError(err.message || `Unable to update ${managedUser.username}`);
+      setAdminError(err.message || t("unableToUpdateUser", "", { username: managedUser.username }));
     }
   };
 
@@ -371,9 +371,9 @@ export function AccountPage({
         updatedAt: saved?.updatedAt || prev.updatedAt,
         updatedBy: saved?.updatedBy || prev.updatedBy,
       }));
-      setHomepageMessage("Homepage content saved successfully.");
+      setHomepageMessage(t("homepageContentSaved"));
     } catch (err) {
-      setHomepageError(err.message || "Unable to save homepage content");
+      setHomepageError(err.message || t("unableToSaveHomepageContent"));
     } finally {
       setHomepageSaving(false);
     }
@@ -852,7 +852,7 @@ export function AccountPage({
                             label="Tone"
                             value={announcement.tone}
                             onChange={(value) => updateHomepageCollectionItem("announcements", index, "tone", value)}
-                            options={HOMEPAGE_TONE_OPTIONS}
+                            options={homepageToneOptions}
                           />
                         </div>
 
@@ -952,7 +952,7 @@ export function AccountPage({
                             label="Accent Color"
                             value={highlight.color}
                             onChange={(value) => updateHomepageCollectionItem("highlights", index, "color", value)}
-                            options={HOMEPAGE_COLOR_OPTIONS}
+                            options={homepageColorOptions}
                           />
                         </div>
 
