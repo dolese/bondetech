@@ -123,7 +123,7 @@ export function LoginPage({ onBack, onLogin }) {
           position: relative;
           z-index: 1;
           width: 100%;
-          max-width: 460px;
+          max-width: 392px;
         }
         .login-field-wrap {
           display: flex;
@@ -218,15 +218,17 @@ export function LoginPage({ onBack, onLogin }) {
           filter: brightness(1.03);
         }
         .login-card-inner {
-          padding: 32px 28px 26px;
+          padding: 24px 22px 20px;
           width: 100%;
           box-sizing: border-box;
-          border-radius: 28px;
-          background: rgba(242,247,251,0.78);
-          border: 1px solid rgba(255,255,255,0.34);
-          box-shadow: 0 26px 56px rgba(4,18,35,0.26);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
+          border-radius: 26px;
+          background: linear-gradient(180deg, rgba(244,248,252,0.58), rgba(228,238,247,0.34));
+          border: 1px solid rgba(255,255,255,0.42);
+          box-shadow:
+            0 24px 52px rgba(4,18,35,0.24),
+            inset 0 1px 0 rgba(255,255,255,0.48);
+          backdrop-filter: blur(18px) saturate(145%);
+          -webkit-backdrop-filter: blur(18px) saturate(145%);
         }
         .login-footer-section {
           width: 100%;
@@ -253,11 +255,11 @@ export function LoginPage({ onBack, onLogin }) {
             left: 14px;
           }
           .login-panel {
-            max-width: 340px;
+            max-width: 308px;
           }
           .login-card-inner {
-            padding: 18px 14px 16px;
-            border-radius: 20px;
+            padding: 16px 12px 14px;
+            border-radius: 18px;
           }
           .login-meta-chip {
             margin-bottom: 14px;
@@ -276,10 +278,10 @@ export function LoginPage({ onBack, onLogin }) {
         }
         @media (min-width: 1024px) {
           .login-panel {
-            max-width: 490px;
+            max-width: 408px;
           }
           .login-card-inner {
-            padding: 36px 34px 28px;
+            padding: 26px 24px 22px;
           }
         }
       `}</style>
@@ -296,24 +298,24 @@ export function LoginPage({ onBack, onLogin }) {
           position: "relative",
           textAlign: "center",
           zIndex: 1,
-          maxWidth: isMobile ? 340 : 460,
+          maxWidth: isMobile ? 308 : 392,
         }}
       >
         <div
           style={{
-            width: 82,
-            height: 82,
-            borderRadius: 24,
+            width: 72,
+            height: 72,
+            borderRadius: 22,
             background: "linear-gradient(145deg, #0f5579, #1f8e9d)",
             border: "4px solid rgba(255,255,255,0.78)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            margin: "0 auto 20px",
-            boxShadow: "0 18px 34px rgba(15,85,121,0.28)",
+            margin: "0 auto 16px",
+            boxShadow: "0 16px 28px rgba(15,85,121,0.24)",
           }}
         >
-          <SchoolCrest size={44} />
+          <SchoolCrest size={38} />
         </div>
 
         <div className="login-meta-chip">
@@ -332,10 +334,10 @@ export function LoginPage({ onBack, onLogin }) {
         >
           BONDE Secondary School
         </div>
-        <div style={{ fontSize: 30, fontWeight: 800, color: "#102a43", marginBottom: 10, lineHeight: 1.08 }}>
+        <div style={{ fontSize: isMobile ? 24 : 27, fontWeight: 800, color: "#102a43", marginBottom: 8, lineHeight: 1.08 }}>
           {t("signIn")}
         </div>
-        <div style={{ fontSize: 13, color: "#52667a", lineHeight: 1.7, marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: "#52667a", lineHeight: 1.65, marginBottom: 18 }}>
           {t("loginIntro")}
         </div>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>

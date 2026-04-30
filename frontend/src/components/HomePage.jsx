@@ -532,6 +532,102 @@ export function HomePage({ onOpenLogin }) {
         .landing-search-input:focus {
           border-color: #2563eb;
         }
+        .landing-search-select {
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          background:
+            linear-gradient(180deg, #ffffff, #f7faff),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%233f5f85' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat, no-repeat;
+          background-position: center, right 12px center;
+          background-size: auto, 14px;
+          padding-right: 38px;
+          font-weight: 600;
+          color: #17324d;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+        }
+        .landing-search-select:focus {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
+        }
+        .landing-mobile-menu {
+          margin: 10px 14px 14px;
+          padding: 10px;
+          border-radius: 20px;
+          background: linear-gradient(180deg, rgba(247,250,255,0.98), rgba(237,244,255,0.96));
+          border: 1px solid rgba(37,99,235,0.10);
+          box-shadow: 0 18px 38px rgba(15,45,110,0.12);
+        }
+        .landing-mobile-link {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          width: 100%;
+          border: none;
+          background: #fff;
+          border-radius: 14px;
+          padding: 13px 14px;
+          margin-bottom: 8px;
+          color: #17324d;
+          cursor: pointer;
+          font-family: inherit;
+          box-shadow: 0 1px 0 rgba(255,255,255,0.8), 0 6px 16px rgba(15,45,110,0.06);
+        }
+        .landing-mobile-link:last-child {
+          margin-bottom: 0;
+        }
+        .landing-mobile-link-label {
+          display: grid;
+          gap: 3px;
+          text-align: left;
+        }
+        .landing-mobile-link-title {
+          font-size: 13px;
+          font-weight: 800;
+          color: #17324d;
+        }
+        .landing-mobile-link-meta {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #6b7f94;
+        }
+        .landing-mobile-link-arrow {
+          width: 28px;
+          height: 28px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: #eff6ff;
+          color: #2563eb;
+          font-size: 14px;
+          font-weight: 900;
+          flex-shrink: 0;
+        }
+        .landing-mobile-login {
+          width: 100%;
+          margin-top: 10px;
+          background: linear-gradient(135deg, #0f2d6e, #2563eb);
+          color: #fff;
+          border: none;
+          border-radius: 16px;
+          padding: 13px 14px;
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+          box-shadow: 0 14px 28px rgba(37,99,235,0.24);
+        }
+        @media (max-width: 720px) {
+          .landing-search-select {
+            border-radius: 14px;
+            padding-top: 12px;
+            padding-bottom: 12px;
+          }
+        }
       `}</style>
 
       <nav style={{ background: "#fff", borderBottom: "1.5px solid #e8edf5", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
@@ -575,39 +671,43 @@ export function HomePage({ onOpenLogin }) {
                 style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 22, color: navBg, padding: 4 }}
                 aria-label="Menu"
               >
-                {mobileMenuOpen ? "X" : "="}
+                {mobileMenuOpen ? "×" : "☰"}
               </button>
             )}
           </div>
         </div>
 
         {!isDesktop && mobileMenuOpen && (
-          <div style={{ background: "#fff", borderTop: "1px solid #f1f5f9", padding: "8px 0 12px" }}>
+          <div style={{ background: "#fff", borderTop: "1px solid #f1f5f9", padding: "2px 0 10px" }}>
             {[
-              { label: t("home"), action: scrollToTop },
-              { label: t("results"), action: scrollToSearch },
-              { label: t("notices"), action: scrollToAnnouncements },
-              { label: t("aboutUs"), action: scrollToFooter },
-              { label: t("contactUs"), action: scrollToFooter },
-            ].map(({ label, action }) => (
-              <div
+              { label: t("home"), meta: "Start", action: scrollToTop },
+              { label: t("results"), meta: "Portal", action: scrollToSearch },
+              { label: t("notices"), meta: "Updates", action: scrollToAnnouncements },
+              { label: t("aboutUs"), meta: "School", action: scrollToFooter },
+              { label: t("contactUs"), meta: "Support", action: scrollToFooter },
+            ].map(({ label, meta, action }) => (
+              <button
                 key={label}
+                className="landing-mobile-link"
                 onClick={() => {
                   action();
                   setMobileMenuOpen(false);
                 }}
-                style={{ padding: "10px 20px", fontSize: 14, fontWeight: 600, color: "#475569", cursor: "pointer" }}
               >
-                {label}
-              </div>
+                <span className="landing-mobile-link-label">
+                  <span className="landing-mobile-link-title">{label}</span>
+                  <span className="landing-mobile-link-meta">{meta}</span>
+                </span>
+                <span className="landing-mobile-link-arrow">›</span>
+              </button>
             ))}
-            <div style={{ padding: "8px 16px 0" }}>
+            <div className="landing-mobile-menu">
               <button
+                className="landing-mobile-login"
                 onClick={() => {
                   onOpenLogin?.();
                   setMobileMenuOpen(false);
                 }}
-                style={{ width: "100%", background: navBg, color: "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
               >
                 {t("loginButton")}
               </button>
@@ -735,7 +835,7 @@ export function HomePage({ onOpenLogin }) {
                 }}
               >
                 <input className="landing-search-input" placeholder={t("admissionPlaceholder")} value={searchAdmission} onChange={(e) => setSearchAdmission(e.target.value)} />
-                <select className="landing-search-input" value={searchExam} onChange={(e) => setSearchExam(e.target.value)}>
+                <select className="landing-search-input landing-search-select" value={searchExam} onChange={(e) => setSearchExam(e.target.value)}>
                   <option value="">{t("examTypeAll")}</option>
                   {EXAM_TYPES.map((examType) => (
                     <option key={examType.value} value={examType.value}>
@@ -743,14 +843,14 @@ export function HomePage({ onOpenLogin }) {
                     </option>
                   ))}
                 </select>
-                <select className="landing-search-input" value={searchForm} onChange={(e) => setSearchForm(e.target.value)}>
+                <select className="landing-search-input landing-search-select" value={searchForm} onChange={(e) => setSearchForm(e.target.value)}>
                   <option value="">{t("classFormAll")}</option>
                   <option>Form I</option>
                   <option>Form II</option>
                   <option>Form III</option>
                   <option>Form IV</option>
                 </select>
-                <select className="landing-search-input" value={searchYear} onChange={(e) => setSearchYear(e.target.value)}>
+                <select className="landing-search-input landing-search-select" value={searchYear} onChange={(e) => setSearchYear(e.target.value)}>
                   <option value="">{t("yearAll")}</option>
                   {Array.from({ length: 5 }, (_, index) => currentYear - index).map((year) => (
                     <option key={year}>{year}</option>
