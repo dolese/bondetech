@@ -54,6 +54,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       const summaryBlob = await exportElementToPdfBlob(sheetRef.current, {
         format: RESULT_SHEET_PAPER_SIZE,
         orientation: RESULT_SHEET_ORIENTATION,
+        margin: 0,
       });
       if (summaryBlob) {
         zip.file(`${safeClass}-summary.pdf`, summaryBlob);
@@ -63,7 +64,8 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       container.style.position = "fixed";
       container.style.left = "-9999px";
       container.style.top = "0";
-      container.style.width = "800px";
+      container.style.width = "210mm";
+      container.style.background = "#fff";
       document.body.appendChild(container);
       const root = createRoot(container);
 
@@ -81,6 +83,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         const blob = await exportElementToPdfBlob(container.firstChild, {
           format: REPORT_CARD_PAPER_SIZE,
           orientation: REPORT_CARD_ORIENTATION,
+          margin: 0,
         });
         if (blob) {
           zip.file(`${safeName}-report.pdf`, blob);
@@ -242,6 +245,10 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     <div style={styles.panel}>
       <style>{`
         @media print {
+          @page {
+            size: A3 landscape;
+            margin: 0;
+          }
           body { margin: 0; }
           .result-sheet-page {
             width: 420mm;
@@ -275,7 +282,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
           onClick={() => {
             const date = new Date().toISOString().slice(0, 10);
             const name = `${classData.name || "class"}-results-${date}.pdf`;
-            exportElementToPdf(sheetRef.current, name, RESULT_SHEET_ORIENTATION, RESULT_SHEET_PAPER_SIZE);
+            exportElementToPdf(sheetRef.current, name, RESULT_SHEET_ORIENTATION, RESULT_SHEET_PAPER_SIZE, 0);
           }}
           style={{
             ...styles.tabBtn,

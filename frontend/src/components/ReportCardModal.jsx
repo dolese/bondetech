@@ -25,7 +25,8 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
         cardRef.current,
         `${name}-report-${date}.pdf`,
         REPORT_CARD_ORIENTATION,
-        REPORT_CARD_PAPER_SIZE
+        REPORT_CARD_PAPER_SIZE,
+        0
       );
       if (onClose) setTimeout(onClose, 0);
     });
@@ -57,7 +58,8 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
       cardRef.current,
       `${safeName}-report-${date}.pdf`,
       REPORT_CARD_ORIENTATION,
-      REPORT_CARD_PAPER_SIZE
+      REPORT_CARD_PAPER_SIZE,
+      0
     );
   };
 
@@ -65,8 +67,14 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
     <div style={overlayStyle} onClick={silent ? undefined : onClose}>
       <style>{`
         @media print {
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
           body { margin: 0; }
           .report-card-page {
+            width: 210mm;
+            min-height: 297mm;
             margin: 0 auto;
             box-shadow: none !important;
             border-radius: 0 !important;

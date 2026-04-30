@@ -179,6 +179,8 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
       container.style.position = "fixed";
       container.style.left = "-9999px";
       container.style.top = "0";
+      container.style.width = "210mm";
+      container.style.background = "#fff";
       document.body.appendChild(container);
       const root = createRoot(container);
 
@@ -197,6 +199,7 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
             const blob = await exportElementToPdfBlob(container.firstChild, {
               format: REPORT_CARD_PAPER_SIZE,
               orientation: REPORT_CARD_ORIENTATION,
+              margin: 0,
             });
             if (blob) {
               const safeName = (student.name || "student").replace(/[^a-z0-9-_ ]/gi, "").trim() || "student";

@@ -19,11 +19,12 @@ export const exportElementToPdf = (
   element,
   fileName = "result-sheet.pdf",
   orientation = "portrait",
-  format = "a4"
+  format = "a4",
+  margin = 8
 ) => {
   if (!element) return;
 
-  html2pdf().set(buildPdfOptions({ fileName, orientation, format })).from(element).save();
+  html2pdf().set(buildPdfOptions({ fileName, orientation, format, margin })).from(element).save();
 };
 
 export const exportElementToPdfBlob = async (element, options = {}) => {
