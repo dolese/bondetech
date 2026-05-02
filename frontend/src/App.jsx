@@ -45,7 +45,7 @@ export default function App() {
   const [examPickerClass, setExamPickerClass] = useState(null);
   const [searchProfileIndexNo, setSearchProfileIndexNo] = useState(null);
   const { isMobile } = useViewport();
-  const topBarHeight = isMobile ? 52 : 46;
+  const topBarHeight = isMobile ? 64 : 78;
 
   const showToast = useCallback((msg, type = "success") => {
     setToast({ msg, type });
@@ -170,6 +170,12 @@ export default function App() {
     }
   }, [canAccessClassData, canViewSettings, page]);
 
+  useEffect(() => {
+    if (!loggedIn || role !== "admin") return;
+    Promise.resolve(loadUsers()).catch(() => {});
+    Promise.resolve(loadAuthLogs(12)).catch(() => {});
+  }, [loadAuthLogs, loadUsers, loggedIn, role]);
+
   const onShowModal = useCallback((type, studentId = null) => {
     setModalType(type);
     if (studentId) {
@@ -217,7 +223,7 @@ export default function App() {
   if (canAccessClassData && loading) return <Splash text={t("loadingData")} />;
   if (canAccessClassData && error) return <Splash text={error} isError />;
 
-  const sidebarWidth = 240;
+  const sidebarWidth = 248;
   const isClassPage = canAccessClassData && ["students", "results", "reports", "settings"].includes(page);
   const accountLabel = currentUser?.displayName || currentUser?.username || t("account");
 
@@ -323,6 +329,8 @@ export default function App() {
       <div style={S.main}>
         <AppTopBar
           isMobile={isMobile}
+          currentUser={currentUser}
+          authLogs={authLogs}
           page={page}
           topBarHeight={topBarHeight}
           topBarLabel={topBarLabel}
@@ -348,7 +356,12 @@ export default function App() {
           {page === "dashboard" && (
             canAccessClassData ? (
               <Dashboard
+                currentUser={currentUser}
+                managedUsers={managedUsers}
+                authLogs={authLogs}
                 allComputed={allComputed}
+                onLoadUsers={loadUsers}
+                onLoadAuthLogs={loadAuthLogs}
                 onOpenClass={(id) => {
                   setActiveId(id);
                   setPage("students");
@@ -357,6 +370,28 @@ export default function App() {
                   setSearchProfileIndexNo(indexNo);
                   setPage("profile");
                 }}
+                onOpenAccount={() => setPage("account")}
+                onOpenReports={() => {
+                  if (activeClass) {
+                    setPage("reports");
+                  } else if (classes[0]) {
+                    setActiveId(classes[0].id);
+                    setPage("reports");
+                  }
+                }}
+                onOpenSettings={() => {
+                  if (!canViewSettings) {
+                    setPage("account");
+                    return;
+                  }
+                  if (activeClass) {
+                    setPage("settings");
+                  } else if (classes[0]) {
+                    setActiveId(classes[0].id);
+                    setPage("settings");
+                  }
+                }}
+                onExportBackup={onExportBackup}
               />
             ) : (
               <AccountPage

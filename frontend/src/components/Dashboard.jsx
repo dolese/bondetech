@@ -1,1055 +1,1380 @@
-import React, { useMemo, useRef, useState, useCallback } from "react";
-import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL } from "../utils/constants";
-import { getGradePoints } from "../utils/grading";
-import { useViewport } from "../utils/useViewport";
-import { exportElementToPdf } from "../utils/pdfExport";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API } from "../api";
+import { exportElementToPdf } from "../utils/pdfExport";
+import { useViewport } from "../utils/useViewport";
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// DASHBOARD COMPONENT
-// ═══════════════════════════════════════════════════════════════════════════════
+const TONE_STYLES = {
+  info: {
+    background: "linear-gradient(135deg, rgba(37,99,235,0.10), rgba(14,165,233,0.07))",
+    border: "rgba(37,99,235,0.16)",
+    chip: "#2563eb",
+  },
+  success: {
+    background: "linear-gradient(135deg, rgba(5,150,105,0.10), rgba(20,184,166,0.08))",
+    border: "rgba(5,150,105,0.16)",
+    chip: "#059669",
+  },
+  warning: {
+    background: "linear-gradient(135deg, rgba(217,119,6,0.10), rgba(245,158,11,0.08))",
+    border: "rgba(217,119,6,0.18)",
+    chip: "#d97706",
+  },
+  accent: {
+    background: "linear-gradient(135deg, rgba(124,58,237,0.10), rgba(168,85,247,0.08))",
+    border: "rgba(124,58,237,0.16)",
+    chip: "#7c3aed",
+  },
+};
 
-export function Dashboard({ allComputed, onOpenClass, onViewProfile }) {
-  const { isMobile, isTablet, isLarge } = useViewport();
-  const compactView = isMobile || isTablet;
-  const [filterYear, setFilterYear] = useState(String(new Date().getFullYear()));
-  const [filterForm, setFilterForm] = useState("all");
-  const summaryRef = useRef(null);
+const FORMS = ["Form I", "Form II", "Form III", "Form IV"];
 
-  // Global student search state
+function Icon({ children, size = 20, strokeWidth = 1.9 }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+function UserPlusIcon() {
+  return (
+    <Icon>
+      <circle cx="10" cy="8" r="3.2" />
+      <path d="M4.6 18c1.4-3.6 9.4-3.6 10.8 0" />
+      <path d="M18 8v6" />
+      <path d="M15 11h6" />
+    </Icon>
+  );
+}
+
+function TeacherIcon() {
+  return (
+    <Icon>
+      <path d="M3.5 8 12 4l8.5 4-8.5 4-8.5-4Z" />
+      <path d="M7 10.2v4.3c0 1.6 2.2 3 5 3s5-1.4 5-3v-4.3" />
+      <path d="M20 9.5v5" />
+    </Icon>
+  );
+}
+
+function ClipboardIcon() {
+  return (
+    <Icon>
+      <rect x="7" y="5" width="10" height="15" rx="2.5" />
+      <path d="M10 5.2h4" />
+      <path d="M9.5 11h5" />
+      <path d="M9.5 15h5" />
+    </Icon>
+  );
+}
+
+function BookIcon() {
+  return (
+    <Icon>
+      <path d="M5.5 5.5h8a3 3 0 0 1 3 3v10h-8a3 3 0 0 0-3 3Z" />
+      <path d="M18.5 5.5h-8a3 3 0 0 0-3 3v10h8a3 3 0 0 1 3 3Z" />
+    </Icon>
+  );
+}
+
+function PieIcon() {
+  return (
+    <Icon>
+      <path d="M12 3v9h9" />
+      <path d="M20.2 14.2A8.2 8.2 0 1 1 10 3.2" />
+    </Icon>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <Icon>
+      <circle cx="11" cy="11" r="6.8" />
+      <path d="m16.2 16.2 3.8 3.8" />
+    </Icon>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <Icon>
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </Icon>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <Icon>
+      <path d="M12 3.5 19 6v5.2c0 4.3-2.8 8-7 9.3-4.2-1.3-7-5-7-9.3V6l7-2.5Z" />
+      <path d="m9.3 12 1.9 1.9 3.8-4" />
+    </Icon>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <Icon>
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M19 12a7.4 7.4 0 0 0-.1-1.1l2-1.4-2-3.4-2.3.8a7.3 7.3 0 0 0-1.8-1L14.4 3h-4.8L9.2 5.9a7.3 7.3 0 0 0-1.8 1l-2.3-.8-2 3.4 2 1.4a7.4 7.4 0 0 0 0 2.2l-2 1.4 2 3.4 2.3-.8a7.3 7.3 0 0 0 1.8 1l.4 2.9h4.8l.4-2.9a7.3 7.3 0 0 0 1.8-1l2.3.8 2-3.4-2-1.4c.1-.4.1-.8.1-1.1Z" />
+    </Icon>
+  );
+}
+
+function ExportIcon() {
+  return (
+    <Icon>
+      <path d="M12 4v11" />
+      <path d="m8.5 8 3.5-4 3.5 4" />
+      <path d="M5 19h14" />
+    </Icon>
+  );
+}
+
+function ActivityIcon() {
+  return (
+    <Icon>
+      <path d="M3 12h4l2.2-4 4 8 2.3-4H21" />
+    </Icon>
+  );
+}
+
+function BellIcon() {
+  return (
+    <Icon>
+      <path d="M6 17.2V11a6 6 0 1 1 12 0v6.2l1.7 1.5H4.3L6 17.2Z" />
+      <path d="M10 19.3a2.3 2.3 0 0 0 4 0" />
+    </Icon>
+  );
+}
+
+function formatRole(role) {
+  if (!role) return "Staff";
+  if (role === "admin") return "Super Administrator";
+  return `${role.slice(0, 1).toUpperCase()}${role.slice(1)}`;
+}
+
+function normalize(value) {
+  return String(value || "").trim();
+}
+
+function sortYears(values) {
+  return [...values].sort((a, b) => Number(b) - Number(a));
+}
+
+function sortForms(values) {
+  return [...values].sort((a, b) => {
+    const aIndex = FORMS.indexOf(a);
+    const bIndex = FORMS.indexOf(b);
+    if (aIndex === -1 && bIndex === -1) return String(a).localeCompare(String(b));
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
+}
+
+function formatDateTime(value) {
+  if (!value) return "Not available";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not available";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatShortDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function initialsFromUser(user) {
+  const pieces = String(user?.displayName || user?.username || "Admin")
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2);
+  return pieces.map((piece) => piece[0]?.toUpperCase() || "").join("") || "AD";
+}
+
+function calculatePassRate(students) {
+  const completed = students.filter((student) => student?.div !== null && student?.div !== undefined && student?.div !== "");
+  if (!completed.length) return 0;
+  const passed = completed.filter((student) => student.div !== "0").length;
+  return Math.round((passed / completed.length) * 100);
+}
+
+function calculateAverage(students) {
+  const scored = students.filter((student) => typeof student?.avg === "number" || typeof student?.total === "number");
+  if (!scored.length) return 0;
+  const total = scored.reduce((sum, student) => {
+    if (typeof student.avg === "number") return sum + student.avg;
+    return sum + (Number(student.total || 0) / Math.max((student.grades || []).filter((grade) => grade?.score != null).length, 1));
+  }, 0);
+  return Number((total / scored.length).toFixed(1));
+}
+
+function countEnteredScores(classes) {
+  return classes.reduce((sum, cls) => {
+    const students = Array.isArray(cls.computed) ? cls.computed : [];
+    return (
+      sum +
+      students.reduce(
+        (studentSum, student) =>
+          studentSum +
+          (Array.isArray(student.grades)
+            ? student.grades.filter((grade) => grade?.score !== null && grade?.score !== undefined).length
+            : 0),
+        0
+      )
+    );
+  }, 0);
+}
+
+function buildOverviewSeries(classes) {
+  const grouped = sortForms(
+    Array.from(new Set(classes.map((cls) => normalize(cls.form)).filter(Boolean)))
+  ).map((form) => {
+    const formClasses = classes.filter((cls) => normalize(cls.form) === form);
+    const students = formClasses.flatMap((cls) => cls.computed || []).filter((student) => student?.total !== null);
+    return {
+      label: form,
+      value: calculatePassRate(students),
+      average: calculateAverage(students),
+      count: students.length,
+    };
+  });
+
+  return grouped.length
+    ? grouped
+    : FORMS.map((form) => ({ label: form, value: 0, average: 0, count: 0 }));
+}
+
+function buildTrendCaption(current, previous, suffix = "") {
+  if (!previous && current) return `New activity${suffix}`;
+  if (!current && !previous) return "No change";
+  if (current === previous) return "No change";
+  const delta = current - previous;
+  const percent = previous ? Math.round((Math.abs(delta) / previous) * 100) : 100;
+  return `${delta > 0 ? "+" : "-"} ${percent}%${suffix}`;
+}
+
+function scoreActivityTone(item) {
+  if (item.type === "alert") return { color: "#dc2626", bg: "rgba(220,38,38,0.10)" };
+  if (item.type === "success") return { color: "#059669", bg: "rgba(5,150,105,0.12)" };
+  if (item.type === "accent") return { color: "#7c3aed", bg: "rgba(124,58,237,0.12)" };
+  if (item.type === "warning") return { color: "#d97706", bg: "rgba(217,119,6,0.12)" };
+  return { color: "#2563eb", bg: "rgba(37,99,235,0.10)" };
+}
+
+function buildActivities(authLogs, classes) {
+  const items = [];
+
+  authLogs.forEach((log) => {
+    if (!log?.createdAt) return;
+    const failed = log.status === "failed";
+    items.push({
+      id: `auth-${log.id || `${log.username}-${log.createdAt}`}`,
+      title: failed
+        ? `Failed ${log.action || "login"} attempt`
+        : log.action === "bootstrap"
+        ? "Bootstrap administrator created"
+        : `${log.username || "User"} signed in`,
+      subtitle: failed
+        ? log.reason || "Authentication failed"
+        : log.reason || formatRole(log.role),
+      time: log.createdAt,
+      type: failed ? "alert" : log.action === "bootstrap" ? "accent" : "success",
+    });
+  });
+
+  classes.forEach((cls) => {
+    if (cls?.created_at) {
+      items.push({
+        id: `class-created-${cls.id}`,
+        title: `${cls.name || cls.form || "Class"} configured`,
+        subtitle: `${cls.studentCount || cls.student_count || 0} students ready for entry`,
+        time: cls.created_at,
+        type: "info",
+      });
+    }
+    if (cls?.published_at || cls?.published) {
+      items.push({
+        id: `class-published-${cls.id}`,
+        title: `${cls.name || cls.form || "Class"} results published`,
+        subtitle: cls.school_info?.exam || "Latest exam session is public",
+        time: cls.published_at || cls.updated_at || cls.created_at,
+        type: "accent",
+      });
+    }
+  });
+
+  return items
+    .filter((item) => item.time)
+    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+    .slice(0, 6);
+}
+
+function buildChartPath(points, width, height, padding) {
+  const innerWidth = width - padding.left - padding.right;
+  const innerHeight = height - padding.top - padding.bottom;
+  const step = points.length > 1 ? innerWidth / (points.length - 1) : innerWidth;
+  const coords = points.map((point, index) => {
+    const x = padding.left + step * index;
+    const y = padding.top + innerHeight - (Math.max(0, Math.min(100, point.value)) / 100) * innerHeight;
+    return { x, y, value: point.value, label: point.label };
+  });
+
+  const line = coords
+    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+    .join(" ");
+  const area = coords.length
+    ? `${line} L ${coords[coords.length - 1].x.toFixed(2)} ${(height - padding.bottom).toFixed(2)} L ${coords[0].x.toFixed(2)} ${(height - padding.bottom).toFixed(2)} Z`
+    : "";
+
+  return { coords, line, area, innerHeight };
+}
+
+function MetricCard({ item, compact }) {
+  return (
+    <div
+      style={{
+        background: "rgba(255,255,255,0.9)",
+        border: "1px solid rgba(226,232,240,0.9)",
+        borderRadius: 24,
+        padding: compact ? "16px 16px 14px" : "18px 18px 16px",
+        minHeight: compact ? 148 : 162,
+        boxShadow: "0 18px 44px rgba(15,23,42,0.06)",
+        display: "grid",
+        alignContent: "space-between",
+        gap: 12,
+      }}
+    >
+      <div
+        style={{
+          width: 58,
+          height: 58,
+          borderRadius: "50%",
+          display: "grid",
+          placeItems: "center",
+          color: item.color,
+          background: item.iconBackground,
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.65), 0 14px 24px ${item.shadow}`,
+        }}
+      >
+        {item.icon}
+      </div>
+      <div>
+        <div style={{ fontSize: 14, color: "#334155", fontWeight: 700 }}>{item.label}</div>
+        <div style={{ marginTop: 8, fontSize: compact ? 28 : 34, lineHeight: 1, fontWeight: 900, color: "#0f172a" }}>
+          {item.value}
+        </div>
+        <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: item.deltaColor }}>
+          {item.delta}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionTile({ label, icon, color, bg, onClick, disabled = false }) {
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      style={{
+        border: "1px solid rgba(226,232,240,0.85)",
+        background: disabled ? "rgba(248,250,252,0.9)" : "#fff",
+        borderRadius: 20,
+        padding: "14px 14px 12px",
+        display: "grid",
+        gap: 12,
+        justifyItems: "start",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.55 : 1,
+        boxShadow: disabled ? "none" : "0 14px 36px rgba(15,23,42,0.05)",
+        textAlign: "left",
+      }}
+    >
+      <div
+        style={{
+          width: 50,
+          height: 50,
+          borderRadius: 18,
+          display: "grid",
+          placeItems: "center",
+          color,
+          background: bg,
+        }}
+      >
+        {icon}
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a", lineHeight: 1.35 }}>{label}</div>
+    </button>
+  );
+}
+
+export function Dashboard({
+  currentUser,
+  managedUsers = [],
+  authLogs = [],
+  allComputed = [],
+  onLoadUsers,
+  onLoadAuthLogs,
+  onOpenClass,
+  onViewProfile,
+  onOpenAccount,
+  onOpenReports,
+  onOpenSettings,
+  onExportBackup,
+}) {
+  const { isMobile, isTablet } = useViewport();
+  const compact = isMobile || isTablet;
+  const dashboardRef = useRef(null);
+  const [filterYear, setFilterYear] = useState("all");
+  const [overview, setOverview] = useState({ announcements: [], highlights: [], stats: {}, formBreakdown: [] });
+  const [overviewError, setOverviewError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState(null);
   const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState(null);
+  const [searchError, setSearchError] = useState("");
 
-  const handleSearch = useCallback(async (q) => {
-    const trimmed = q.trim();
-    if (!trimmed) { setSearchResults(null); return; }
+  useEffect(() => {
+    if (!managedUsers.length && typeof onLoadUsers === "function") {
+      Promise.resolve(onLoadUsers()).catch(() => {});
+    }
+  }, [managedUsers.length, onLoadUsers]);
+
+  useEffect(() => {
+    if (!authLogs.length && typeof onLoadAuthLogs === "function") {
+      Promise.resolve(onLoadAuthLogs(12)).catch(() => {});
+    }
+  }, [authLogs.length, onLoadAuthLogs]);
+
+  useEffect(() => {
+    let cancelled = false;
+    API.getHomepageOverview()
+      .then((payload) => {
+        if (cancelled) return;
+        setOverview(payload || { announcements: [], highlights: [], stats: {}, formBreakdown: [] });
+        setOverviewError("");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setOverviewError(err.message || "Unable to load homepage overview");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const years = useMemo(
+    () =>
+      sortYears(
+        Array.from(new Set(allComputed.map((cls) => normalize(cls.year)).filter(Boolean)))
+      ),
+    [allComputed]
+  );
+
+  useEffect(() => {
+    if (filterYear === "all" && years.length) {
+      setFilterYear(years[0]);
+      return;
+    }
+    if (filterYear !== "all" && filterYear && !years.includes(filterYear) && years.length) {
+      setFilterYear(years[0]);
+    }
+  }, [filterYear, years]);
+
+  const selectedYear = filterYear === "all" ? years[0] || "" : filterYear;
+
+  const filteredClasses = useMemo(() => {
+    if (!selectedYear) return allComputed;
+    return allComputed.filter((cls) => normalize(cls.year) === selectedYear);
+  }, [allComputed, selectedYear]);
+
+  const previousYear = useMemo(() => years.find((year) => year !== selectedYear) || "", [selectedYear, years]);
+  const previousClasses = useMemo(
+    () => allComputed.filter((cls) => previousYear && normalize(cls.year) === previousYear),
+    [allComputed, previousYear]
+  );
+
+  const allStudents = useMemo(
+    () => filteredClasses.flatMap((cls) => (Array.isArray(cls.computed) ? cls.computed : [])),
+    [filteredClasses]
+  );
+
+  const previousStudents = useMemo(
+    () => previousClasses.flatMap((cls) => (Array.isArray(cls.computed) ? cls.computed : [])),
+    [previousClasses]
+  );
+
+  const uniqueSubjects = useMemo(
+    () => Array.from(new Set(filteredClasses.flatMap((cls) => cls.subjects || []).filter(Boolean))),
+    [filteredClasses]
+  );
+
+  const totalStudents = filteredClasses.reduce(
+    (sum, cls) => sum + Number(cls.studentCount ?? cls.student_count ?? cls.students?.length ?? cls.computed?.length ?? 0),
+    0
+  );
+  const previousStudentCount = previousClasses.reduce(
+    (sum, cls) => sum + Number(cls.studentCount ?? cls.student_count ?? cls.students?.length ?? cls.computed?.length ?? 0),
+    0
+  );
+  const teacherCount = managedUsers.filter((user) => user.role === "teacher" && user.active !== false).length;
+  const totalResults = countEnteredScores(filteredClasses);
+  const previousResults = countEnteredScores(previousClasses);
+  const passRate = calculatePassRate(allStudents.filter((student) => student?.total !== null));
+  const previousPassRate = calculatePassRate(previousStudents.filter((student) => student?.total !== null));
+  const chartSeries = useMemo(() => buildOverviewSeries(filteredClasses), [filteredClasses]);
+  const activities = useMemo(() => buildActivities(authLogs, filteredClasses), [authLogs, filteredClasses]);
+
+  const successfulAuthRate = authLogs.length
+    ? Math.round((authLogs.filter((log) => log.status === "success").length / authLogs.length) * 100)
+    : 100;
+  const publishedClassesCount = filteredClasses.filter((cls) => cls.published || cls.published_at).length;
+  const classCoverage = filteredClasses.length ? Math.round((publishedClassesCount / filteredClasses.length) * 100) : 0;
+  const dataCompleteness = totalStudents && uniqueSubjects.length
+    ? Math.min(100, Math.round((totalResults / (totalStudents * uniqueSubjects.length)) * 100))
+    : 0;
+  const activeFormsCount = new Set(filteredClasses.map((cls) => normalize(cls.form)).filter(Boolean)).size;
+  const loginEventsCount = authLogs.length;
+  const homepageAnnouncementCount = (overview.announcements || []).length;
+
+  const welcomeName = currentUser?.displayName || currentUser?.username || "Administrator";
+  const latestSuccessLog = authLogs.find((log) => log.status === "success" && log.username === currentUser?.username);
+  const lastLogin = currentUser?.lastLoginAt || latestSuccessLog?.createdAt || "";
+
+  const kpiItems = [
+    {
+      label: "Total Students",
+      value: totalStudents.toLocaleString(),
+      icon: <UserPlusIcon />,
+      color: "#0f8b8d",
+      iconBackground: "linear-gradient(145deg, rgba(20,184,166,0.14), rgba(103,232,249,0.18))",
+      shadow: "rgba(15,139,141,0.14)",
+      delta: buildTrendCaption(totalStudents, previousStudentCount, " this year"),
+      deltaColor: "#059669",
+    },
+    {
+      label: "Total Teachers",
+      value: teacherCount.toLocaleString(),
+      icon: <TeacherIcon />,
+      color: "#2563eb",
+      iconBackground: "linear-gradient(145deg, rgba(59,130,246,0.14), rgba(191,219,254,0.24))",
+      shadow: "rgba(37,99,235,0.14)",
+      delta: `${managedUsers.filter((user) => user.active !== false).length.toLocaleString()} active accounts`,
+      deltaColor: "#2563eb",
+    },
+    {
+      label: "Total Subjects",
+      value: uniqueSubjects.length.toLocaleString(),
+      icon: <ClipboardIcon />,
+      color: "#d97706",
+      iconBackground: "linear-gradient(145deg, rgba(251,146,60,0.16), rgba(254,215,170,0.24))",
+      shadow: "rgba(217,119,6,0.16)",
+      delta: `${filteredClasses.length.toLocaleString()} classes configured`,
+      deltaColor: "#b45309",
+    },
+    {
+      label: "Total Results",
+      value: totalResults.toLocaleString(),
+      icon: <BookIcon />,
+      color: "#7c3aed",
+      iconBackground: "linear-gradient(145deg, rgba(167,139,250,0.16), rgba(221,214,254,0.24))",
+      shadow: "rgba(124,58,237,0.14)",
+      delta: buildTrendCaption(totalResults, previousResults, " this year"),
+      deltaColor: "#7c3aed",
+    },
+    {
+      label: "Average Pass Rate",
+      value: `${passRate}%`,
+      icon: <PieIcon />,
+      color: "#ef4444",
+      iconBackground: "linear-gradient(145deg, rgba(252,165,165,0.18), rgba(254,226,226,0.24))",
+      shadow: "rgba(239,68,68,0.14)",
+      delta: buildTrendCaption(passRate, previousPassRate, " from last year"),
+      deltaColor: "#dc2626",
+    },
+  ];
+
+  const { coords, line, area } = useMemo(
+    () =>
+      buildChartPath(chartSeries, 860, 310, {
+        top: 26,
+        right: 26,
+        bottom: 42,
+        left: 46,
+      }),
+    [chartSeries]
+  );
+
+  const quickActions = [
+    {
+      label: "Add Student",
+      icon: <UserPlusIcon />,
+      color: "#0f8b8d",
+      bg: "linear-gradient(145deg, rgba(20,184,166,0.14), rgba(204,251,241,0.5))",
+      onClick: () => {
+        const firstClass = filteredClasses[0] || allComputed[0];
+        if (firstClass) onOpenClass?.(firstClass.id);
+      },
+      disabled: !(filteredClasses[0] || allComputed[0]),
+    },
+    {
+      label: "Manage Users",
+      icon: <TeacherIcon />,
+      color: "#2563eb",
+      bg: "linear-gradient(145deg, rgba(59,130,246,0.14), rgba(219,234,254,0.55))",
+      onClick: onOpenAccount,
+    },
+    {
+      label: "Results Reports",
+      icon: <ClipboardIcon />,
+      color: "#d97706",
+      bg: "linear-gradient(145deg, rgba(251,146,60,0.14), rgba(255,237,213,0.6))",
+      onClick: onOpenReports,
+    },
+    {
+      label: "System Settings",
+      icon: <SettingsIcon />,
+      color: "#7c3aed",
+      bg: "linear-gradient(145deg, rgba(167,139,250,0.14), rgba(237,233,254,0.55))",
+      onClick: onOpenSettings,
+    },
+    {
+      label: "Export Dashboard",
+      icon: <ExportIcon />,
+      color: "#059669",
+      bg: "linear-gradient(145deg, rgba(74,222,128,0.14), rgba(220,252,231,0.55))",
+      onClick: () => exportElementToPdf(dashboardRef.current, `admin-dashboard-${selectedYear || "current"}.pdf`, "portrait", "a4", 6),
+    },
+    {
+      label: "Backup Data",
+      icon: <ShieldIcon />,
+      color: "#ea580c",
+      bg: "linear-gradient(145deg, rgba(251,146,60,0.14), rgba(255,237,213,0.6))",
+      onClick: onExportBackup,
+    },
+  ];
+
+  const handleSearch = useCallback(async () => {
+    const query = searchQuery.trim();
+    if (!query) {
+      setSearchResults(null);
+      setSearchError("");
+      return;
+    }
     setSearching(true);
-    setSearchError(null);
+    setSearchError("");
     try {
-      const results = await API.searchStudents(trimmed, { limit: 30 });
+      const results = await API.searchStudents(query, { limit: compact ? 8 : 10 });
       setSearchResults(results);
-    } catch (e) {
-      setSearchError(e.message);
+    } catch (err) {
+      setSearchError(err.message || "Unable to search students");
       setSearchResults([]);
     } finally {
       setSearching(false);
     }
-  }, []);
-
-  const normalize = (val) => (val ?? "").toString().trim();
-  const yearOptions = useMemo(() => {
-    const years = allComputed.map(c => normalize(c.year)).filter(Boolean);
-    return Array.from(new Set(years)).sort();
-  }, [allComputed]);
-
-  const formOptions = useMemo(() => {
-    const forms = allComputed.map(c => normalize(c.form)).filter(Boolean);
-    return Array.from(new Set(forms)).sort();
-  }, [allComputed]);
-
-  const filtered = useMemo(() => {
-    return allComputed.filter(cl => {
-      const y = normalize(cl.year);
-      const f = normalize(cl.form);
-      if (filterYear !== "all" && y !== filterYear) return false;
-      if (filterForm !== "all" && f !== filterForm) return false;
-      return true;
-    });
-  }, [allComputed, filterYear, filterForm]);
-
-  const allStudents = filtered.flatMap(c => c.computed ?? []);
-  const totalStudentCount = filtered.reduce((sum, c) => sum + (c.studentCount ?? 0), 0);
-  const present = allStudents.filter(s => s.total !== null);
-  const complete = present.filter(s => s.div !== null);
-  
-  const divCounts = { I: 0, II: 0, III: 0, IV: 0, "0": 0 };
-  present.forEach(s => {
-    if (s.div) divCounts[s.div]++;
-  });
-  
-  const top10 = [...present].sort((a, b) => b.total - a.total).slice(0, 10);
-  const passRate = complete.length
-    ? Math.round(complete.filter(s => s.div !== "0").length / complete.length * 100)
-    : 0;
-
-  const subjPerf = {};
-  filtered.forEach(cl => {
-    (cl.subjects ?? []).forEach((subj, si) => {
-      if (!subjPerf[subj]) subjPerf[subj] = { total: 0, count: 0 };
-      (cl.computed ?? []).forEach(s => {
-        const sc = s.grades?.[si]?.score;
-        if (sc != null) {
-          subjPerf[subj].total += sc;
-          subjPerf[subj].count++;
-        }
-      });
-    });
-  });
-  
-  const subjAvg = Object.entries(subjPerf)
-    .filter(([, v]) => v.count > 0)
-    .map(([k, v]) => ({ subj: k, avg: Number((v.total / v.count).toFixed(1)) }))
-    .sort((a, b) => b.avg - a.avg);
-
-  const studentClassMap = {};
-  allComputed.forEach(cl => {
-    (cl.computed ?? []).forEach(s => {
-      studentClassMap[s.id] = cl.name;
-    });
-  });
-
-  // Class ranking by pass rate (for chart)
-  const classRankings = useMemo(() => {
-    return filtered
-      .map(cl => {
-        const scoredStudents = (cl.computed ?? []).filter(s => s.total !== null);
-        const complete = scoredStudents.filter(s => s.div !== null);
-        const pass = complete.length
-          ? Math.round(complete.filter(s => s.div !== "0").length / complete.length * 100)
-          : 0;
-        const avg = scoredStudents.length
-          ? Number((scoredStudents.reduce((s, st) => s + (st.total || 0), 0) / scoredStudents.length).toFixed(1))
-          : 0;
-        return { name: cl.name, passRate: pass, avg, studentCount: scoredStudents.length };
-      })
-      .filter(c => c.studentCount > 0)
-      .sort((a, b) => b.passRate - a.passRate);
-  }, [filtered]);
-
-  // School-wide JSON backup export
-  const exportAllData = () => {
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      classes: allComputed.map(({ computed: _computed, ...rest }) => rest),
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    const date = new Date().toISOString().slice(0, 10);
-    a.download = `school-backup-${date}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const getRankBadge = (position) => {
-    if (position === 0) return "🥇";
-    if (position === 1) return "🥈";
-    if (position === 2) return "🥉";
-    return String(position + 1);
-  };
-
-  const styles = {
-    panel: {
-      flex: 1,
-      overflowY: "auto",
-      overflowX: "hidden",
-      padding: isMobile ? 10 : 14,
-      display: "flex",
-      flexDirection: "column",
-      gap: 12,
-      minHeight: 0,
-      minWidth: 0,
-    },
-    pageTitle: {
-      fontSize: isMobile ? 16 : 18,
-      fontWeight: 900,
-      color: "#003366",
-      margin: "0 0 14px",
-      paddingBottom: 8,
-      borderBottom: "2px solid #d0dcf8",
-    },
-    kpiRow: {
-      display: "flex",
-      gap: isMobile ? 8 : 10,
-      flexWrap: isLarge ? "nowrap" : "wrap",
-      marginBottom: 14,
-    },
-    kpiCard: {
-      flex: 1,
-      minWidth: isLarge ? 0 : compactView ? 140 : 110,
-      background: "#fff",
-      borderRadius: 10,
-      padding: isLarge ? "14px 16px" : "10px 12px",
-      boxShadow: "0 1px 6px rgba(0,51,102,0.08)",
-      display: "flex",
-      flexDirection: "column",
-      gap: 3,
-      borderLeft: "4px solid",
-    },
-    dashGrid: {
-      display: "grid",
-      gridTemplateColumns: isLarge ? "1fr 1fr 1fr" : isMobile ? "1fr" : "1fr 1fr",
-      gap: 12,
-    },
-    card: {
-      background: "#fff",
-      borderRadius: 10,
-      padding: isMobile ? 10 : 12,
-      boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
-    },
-    cardT: {
-      margin: "0 0 10px",
-      fontSize: 13,
-      fontWeight: 800,
-      color: "#003366",
-      borderBottom: "1.5px solid #e4ecff",
-      paddingBottom: 6,
-    },
-    filterRow: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 8,
-      alignItems: "center",
-      margin: "4px 0 10px",
-    },
-    select: {
-      padding: "6px 10px",
-      borderRadius: 8,
-      border: "1px solid #cbd8f3",
-      background: "#fff",
-      fontSize: 11,
-      fontWeight: 700,
-      color: "#003366",
-    },
-    miniBtn: {
-      padding: "6px 10px",
-      borderRadius: 8,
-      border: "1px solid #003366",
-      background: "#003366",
-      color: "#fff",
-      fontSize: 11,
-      fontWeight: 700,
-      cursor: "pointer",
-    },
-  };
-
-  const summaryLabel = `${filterYear === "all" ? "All Years" : filterYear} • ${
-    filterForm === "all" ? "All Forms" : filterForm
-  }`;
+  }, [compact, searchQuery]);
 
   return (
-    <div style={styles.panel}>
-      <h2 style={styles.pageTitle}>📊 School Dashboard</h2>
-      <div style={{ fontSize: 11, color: "#667", marginTop: -8, marginBottom: 6 }}>
-        Overview across selected classes and subjects.
-      </div>
-
-      {/* Global student search */}
-      <div style={{
-        background: "#fff",
-        borderRadius: 10,
-        padding: isMobile ? 10 : 14,
-        boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-      }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>🔍 Search Students</div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <input
-            type="text"
-            placeholder="Name or index number…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleSearch(searchQuery); }}
-            style={{
-              flex: 1,
-                minWidth: 160,
-                width: compactView ? "100%" : "auto",
-                padding: "7px 10px",
-                borderRadius: 7,
-                border: "1px solid #d0dcf8",
-              fontSize: 12,
-            }}
-          />
-          <button
-            onClick={() => handleSearch(searchQuery)}
-            disabled={searching || !searchQuery.trim()}
-            style={{
-              padding: "7px 16px",
-              borderRadius: 7,
-              border: "none",
-              background: searching ? "#999" : "#003366",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: 12,
-              cursor: searching ? "not-allowed" : "pointer",
-            }}
-          >
-            {searching ? "Searching…" : "Search"}
-          </button>
-          {searchResults !== null && (
-            <button
-              onClick={() => { setSearchResults(null); setSearchQuery(""); setSearchError(null); }}
-              style={{
-                padding: "7px 12px",
-                borderRadius: 7,
-                border: "1px solid #d0dcf8",
-                background: "#fff",
-                fontSize: 12,
-                cursor: "pointer",
-                color: "#666",
-              }}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-        {searchError && <div style={{ fontSize: 11, color: "#8b2500" }}>{searchError}</div>}
-        {searchResults !== null && (
-          searchResults.length === 0 ? (
-            <div style={{ fontSize: 11, color: "#888" }}>No students found.</div>
-          ) : compactView ? (
-            /* Mobile search result cards */
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {searchResults.map((s, i) => (
-                <div key={`${s.classId}-${s.studentId}`} style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  background: i % 2 === 0 ? "#fff" : "#f7f9ff",
-                  border: "1px solid #e8eef8", borderRadius: 7, padding: "8px 10px",
-                }}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: "#003366", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
-                    <div style={{ fontSize: 10, color: "#667", marginTop: 1 }}>
-                      <span style={{ fontFamily: "monospace" }}>{s.indexNo}</span>
-                      {" · "}{s.className} · {s.form} {s.year}
-                    </div>
-                  </div>
-                  {onViewProfile && s.indexNo && (
-                    <button
-                      onClick={() => onViewProfile(s.indexNo)}
-                      style={{ padding: "4px 10px", borderRadius: 5, border: "none", background: "#003366", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", flexShrink: 0, marginLeft: 8 }}
-                    >
-                      Profile
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
-                <thead>
-                  <tr>
-                    {["CNO", "Name", "Sex", "Class", "Form", "Year", ""].map(h => (
-                      <th key={h} style={{
-                        padding: "5px 8px",
-                        background: "#003366",
-                        color: "#fff",
-                        fontWeight: 700,
-                        textAlign: "left",
-                        whiteSpace: "nowrap",
-                      }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {searchResults.map((s, i) => (
-                    <tr key={`${s.classId}-${s.studentId}`} style={{ background: i % 2 === 0 ? "#fff" : "#f7f9ff" }}>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8", fontFamily: "monospace" }}>{s.indexNo}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8", fontWeight: 600 }}>{s.name}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.sex}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.className}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.form}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>{s.year}</td>
-                      <td style={{ padding: "5px 8px", borderBottom: "1px solid #e8eef8" }}>
-                        {onViewProfile && s.indexNo && (
-                          <button
-                            onClick={() => onViewProfile(s.indexNo)}
-                            style={{
-                              padding: "3px 10px",
-                              borderRadius: 5,
-                              border: "none",
-                              background: "#003366",
-                              color: "#fff",
-                              fontSize: 10,
-                              fontWeight: 700,
-                              cursor: "pointer",
-                            }}
-                          >
-                            Profile
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        )}
-      </div>
-
-      <div style={{ ...styles.filterRow, ...(isMobile ? { alignItems: "stretch" } : {}) }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: "#003366" }}>Filter:</span>
-        <select
-          style={{ ...styles.select, ...(compactView ? { width: "100%" } : {}) }}
-          value={filterYear}
-          onChange={(e) => setFilterYear(e.target.value)}
-        >
-          <option value="all">All Years</option>
-          {yearOptions.map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
-        <select
-          style={{ ...styles.select, ...(compactView ? { width: "100%" } : {}) }}
-          value={filterForm}
-          onChange={(e) => setFilterForm(e.target.value)}
-        >
-          <option value="all">All Forms</option>
-          {formOptions.map((f) => (
-            <option key={f} value={f}>{f}</option>
-          ))}
-        </select>
-        <button
-          style={{ ...styles.miniBtn, ...(compactView ? { width: "100%" } : {}) }}
-          onClick={() => {
-            const date = new Date().toISOString().slice(0, 10);
-            const name = `summary-${summaryLabel.replace(/\s+/g, "-")}-${date}.pdf`;
-            exportElementToPdf(summaryRef.current, name);
-          }}
-        >
-          📄 Export Summary
-        </button>
-        <button
-          style={{ ...styles.miniBtn, background: "#0b6b3a", borderColor: "#0b6b3a", ...(compactView ? { width: "100%" } : {}) }}
-          onClick={exportAllData}
-          title="Download a full JSON backup of all classes and student data"
-          disabled={!allComputed.length}
-        >
-          💾 Export All Data
-        </button>
-      </div>
-
-      {!allComputed.length && (
+    <div
+      style={{
+        flex: 1,
+        overflowY: "auto",
+        padding: compact ? 14 : 20,
+        background: "linear-gradient(180deg, #f7fafc 0%, #eff5fb 100%)",
+      }}
+    >
+      <div ref={dashboardRef} style={{ maxWidth: 1460, margin: "0 auto", display: "grid", gap: compact ? 16 : 20 }}>
         <div
           style={{
-            background: "#fff",
-            border: "1px dashed #c8d8f8",
-            borderRadius: 8,
-            padding: 16,
-            textAlign: "center",
-            color: "#666",
-            fontSize: 12,
+            display: "grid",
+            gridTemplateColumns: compact ? "1fr" : "minmax(0, 1.25fr) minmax(320px, 0.75fr)",
+            gap: 18,
           }}
         >
-          No classes yet. Create a class to start tracking results.
-        </div>
-      )}
-      
-      <div
-        ref={summaryRef}
-        style={{
-          background: "#fff",
-          borderRadius: 10,
-          padding: isMobile ? 10 : 12,
-          boxShadow: "0 1px 6px rgba(0,51,102,0.06)",
-        }}
-      >
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#003366", marginBottom: 8 }}>
-          📌 Summary: {summaryLabel}
-        </div>
-        <div style={styles.kpiRow}>
-          {[
-            ["🏫", "Classes", filtered.length, "#003366"],
-            ["👥", "Students", totalStudentCount, "#0b6b3a"],
-            ["✅", "Present", present.length, "#0077aa"],
-            ["🏆", "Div I", divCounts["I"], "#b8860b"],
-            ["📈", "Pass Rate", passRate + "%", "#5a2d82"],
-          ].map(([icon, label, val, color]) => (
-            <div
-              key={label}
-              style={{
-                ...styles.kpiCard,
-                borderLeftColor: color,
-                ...(compactView ? { flex: "1 1 45%" } : {}),
-              }}
-            >
-              <div style={{ fontSize: isLarge ? 26 : 22 }}>{icon}</div>
-                <div style={{ fontSize: isLarge ? 30 : compactView ? 22 : 26, fontWeight: 900, color }}>{val}</div>
+          <div
+            style={{
+              background: "rgba(255,255,255,0.9)",
+              borderRadius: 30,
+              border: "1px solid rgba(226,232,240,0.85)",
+              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
+              padding: compact ? 18 : 22,
+              display: "grid",
+              gridTemplateColumns: compact ? "1fr" : "auto 1fr",
+              gap: compact ? 16 : 22,
+              alignItems: "center",
+            }}
+          >
+            <div style={{ display: "grid", justifyItems: compact ? "start" : "center", gap: 12 }}>
               <div
                 style={{
-                  fontSize: isLarge ? 11 : 10,
-                  color: "#888",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
+                  width: compact ? 94 : 122,
+                  height: compact ? 94 : 122,
+                  borderRadius: "50%",
+                  background: "linear-gradient(145deg, #dbeafe, #99f6e4)",
+                  padding: 5,
+                  boxShadow: "0 18px 40px rgba(15,23,42,0.10)",
                 }}
               >
-                {label}
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "50%",
+                    background: "linear-gradient(145deg, #1f3c88, #11998e)",
+                    color: "#fff",
+                    fontWeight: 900,
+                    fontSize: compact ? 28 : 36,
+                    display: "grid",
+                    placeItems: "center",
+                  }}
+                >
+                  {initialsFromUser(currentUser)}
+                </div>
+              </div>
+              <div
+                style={{
+                  width: 46,
+                  height: 46,
+                  borderRadius: "50%",
+                  background: "linear-gradient(145deg, #14b8a6, #0f8b8d)",
+                  color: "#fff",
+                  display: "grid",
+                  placeItems: "center",
+                  boxShadow: "0 16px 30px rgba(15,139,141,0.22)",
+                  marginTop: compact ? -64 : -70,
+                  marginLeft: compact ? 60 : 78,
+                }}
+              >
+                <ShieldIcon />
               </div>
             </div>
+
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: compact ? 16 : 18, color: "#0f172a", fontWeight: 700 }}>Welcome back,</div>
+              <div style={{ fontSize: compact ? 40 : 52, lineHeight: 1, marginTop: 8, fontWeight: 950, color: "#0f172a" }}>
+                {welcomeName}
+              </div>
+              <div style={{ marginTop: 10, fontSize: compact ? 22 : 26, color: "#0f8b8d", fontWeight: 900 }}>
+                {formatRole(currentUser?.role)}
+              </div>
+              <div style={{ marginTop: 6, fontSize: 18, color: "#475569" }}>Bonde Secondary School</div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "rgba(255,255,255,0.9)",
+              borderRadius: 30,
+              border: "1px solid rgba(226,232,240,0.85)",
+              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
+              padding: compact ? 18 : 22,
+              display: "grid",
+              gap: 12,
+            }}
+          >
+            {[
+              ["Last Login", formatDateTime(lastLogin)],
+              ["Role", formatRole(currentUser?.role), { chip: true, chipColor: "#16a34a", chipBg: "rgba(34,197,94,0.10)" }],
+              ["Status", "Online", { dot: true, dotColor: "#16a34a" }],
+            ].map(([label, value, meta]) => (
+              <div
+                key={label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 14,
+                  paddingBottom: 12,
+                  borderBottom: label === "Status" ? "none" : "1px solid rgba(226,232,240,0.9)",
+                }}
+              >
+                <div style={{ color: "#475569", fontSize: 15, fontWeight: 700 }}>{label}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#0f172a", fontWeight: 800, textAlign: "right" }}>
+                  {meta?.dot && (
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: meta.dotColor, boxShadow: "0 0 0 5px rgba(34,197,94,0.12)" }} />
+                  )}
+                  {meta?.chip ? (
+                    <span
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: 999,
+                        background: meta.chipBg,
+                        color: meta.chipColor,
+                        fontSize: 14,
+                        fontWeight: 900,
+                      }}
+                    >
+                      {value}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 15 }}>{value}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: compact ? "1fr" : "repeat(5, minmax(0, 1fr))",
+            gap: 16,
+          }}
+        >
+          {kpiItems.map((item) => (
+            <MetricCard key={item.label} item={item} compact={compact} />
           ))}
         </div>
-      </div>
 
-      <div style={styles.dashGrid}>
-        {/* Classes Overview */}
-        <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isTablet ? "span 2" : "span 1" }}>
-          <h3 style={styles.cardT}>🏫 Classes Overview ({summaryLabel})</h3>
-          {compactView ? (
-            /* Mobile card list */
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {filtered.map((cl) => {
-                const pres = (cl.computed ?? []).filter(s => s.total !== null);
-                const d = dv => pres.filter(s => s.div === dv).length;
-                const clComplete = pres.filter(s => s.div !== null);
-                const pass = clComplete.length
-                  ? Math.round(clComplete.filter(s => s.div !== "0").length / clComplete.length * 100)
-                  : 0;
-                const top = [...pres].sort((a, b) => b.total - a.total)[0];
-                return (
-                  <div key={cl.id} style={{ background: "#f7f9ff", borderRadius: 8, padding: "10px 12px", border: "1px solid #d0dcf8" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontWeight: 800, fontSize: 13, color: "#003366" }}>{cl.name}</span>
-                        {cl.published && (
-                          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 999, background: "#0b6b3a", color: "#fff", fontWeight: 700 }}>Published</span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => onOpenClass(cl.id)}
-                        style={{ background: "#003366", color: "#fff", border: "none", borderRadius: 5, padding: "4px 12px", cursor: "pointer", fontWeight: 700, fontSize: 11 }}
-                      >
-                        Open
-                      </button>
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", fontSize: 11, color: "#444" }}>
-                      <span>👥 <b>{cl.studentCount ?? 0}</b> students</span>
-                      <span>✅ <b>{pres.length}</b> present</span>
-                      <span style={{ color: pass >= 50 ? "#0b6b3a" : "#8b2500", fontWeight: 700 }}>📈 {pass}% pass</span>
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 10px", marginTop: 4, fontSize: 10 }}>
-                      {["I","II","III","IV","0"].map(dv => (
-                        <span key={dv} style={{ color: DIVISION_COLORS[dv], fontWeight: 700 }}>Div {dv}: {d(dv)}</span>
-                      ))}
-                    </div>
-                    {top && (
-                      <div style={{ marginTop: 4, fontSize: 10, color: "#555" }}>🏆 Top: <b>{top.name}</b></div>
-                    )}
-                  </div>
-                );
-              })}
-              {!filtered.length && (
-                <div style={{ padding: 16, textAlign: "center", color: "#aaa", fontSize: 12 }}>No classes yet</div>
-              )}
-            </div>
-          ) : (
-          <div style={{ overflowX: "auto", minWidth: 0 }}>
-            <table
-              style={{
-                borderCollapse: "collapse",
-                width: "100%",
-                fontSize: 11,
-                minWidth: "auto",
-              }}
-            >
-              <thead>
-                <tr style={{ background: "#003366", color: "#fff" }}>
-                  {[
-                    "Class",
-                    "Students",
-                    "Present",
-                    "Div I",
-                    "Div II",
-                    "Div III",
-                    "Div IV",
-                    "Div 0",
-                    "Pass%",
-                    "Top Student",
-                    "",
-                  ].map(h => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: "4px 6px",
-                        textAlign: "center",
-                        fontWeight: 700,
-                        fontSize: 10,
-                        border: "1px solid #224488",
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((cl, ri) => {
-                  const pres = (cl.computed ?? []).filter(
-                    s => s.total !== null
-                  );
-                  const d = dv => pres.filter(s => s.div === dv).length;
-                  const clComplete = pres.filter(s => s.div !== null);
-                  const pass = clComplete.length
-                    ? Math.round(
-                        (clComplete.filter(s => s.div !== "0").length / clComplete.length) *
-                          100
-                      )
-                    : 0;
-                  const top = [...pres].sort((a, b) => b.total - a.total)[0];
-
-                  return (
-                    <tr
-                      key={cl.id}
-                      style={{
-                        background: ri % 2 === 0 ? "#fff" : "#f4f7ff",
-                      }}
-                    >
-                      <td
-                        style={{
-                          padding: "3px 6px",
-                          textAlign: "center",
-                          border: "1px solid #cbd8f3",
-                          fontWeight: 700,
-                          color: "#003366",
-                        }}
-                      >
-                        {cl.name}
-                        {cl.published && (
-                          <span style={{
-                            marginLeft: 5,
-                            fontSize: 8,
-                            padding: "1px 5px",
-                            borderRadius: 999,
-                            background: "#0b6b3a",
-                            color: "#fff",
-                            fontWeight: 700,
-                            verticalAlign: "middle",
-                          }}>
-                            Published
-                          </span>
-                        )}
-                      </td>
-                      <td
-                        style={{
-                          padding: "3px 6px",
-                          textAlign: "center",
-                          border: "1px solid #cbd8f3",
-                        }}
-                      >
-                        {cl.studentCount ?? 0}
-                      </td>
-                      <td
-                        style={{
-                          padding: "3px 6px",
-                          textAlign: "center",
-                          border: "1px solid #cbd8f3",
-                        }}
-                      >
-                        {pres.length}
-                      </td>
-                      {["I", "II", "III", "IV", "0"].map(dv => (
-                        <td
-                          key={dv}
-                          style={{
-                            padding: "3px 6px",
-                            textAlign: "center",
-                            border: "1px solid #cbd8f3",
-                            color: DIVISION_COLORS[dv],
-                            fontWeight: 700,
-                          }}
-                        >
-                          {d(dv)}
-                        </td>
-                      ))}
-                      <td
-                        style={{
-                          padding: "3px 6px",
-                          textAlign: "center",
-                          border: "1px solid #cbd8f3",
-                          fontWeight: 700,
-                          color: pass >= 50 ? "#0b6b3a" : "#8b2500",
-                        }}
-                      >
-                        {pass}%
-                      </td>
-                      <td
-                        style={{
-                          padding: "4px 6px",
-                          textAlign: "center",
-                          border: "1px solid #cbd8f3",
-                          fontSize: 10,
-                        }}
-                      >
-                        {top?.name ?? "–"}
-                      </td>
-                      <td
-                        style={{
-                          padding: "3px 6px",
-                          textAlign: "center",
-                          border: "1px solid #cbd8f3",
-                        }}
-                      >
-                        <button
-                          onClick={() => onOpenClass(cl.id)}
-                          style={{
-                            background: "#003366",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 5,
-                            padding: "3px 10px",
-                            cursor: "pointer",
-                            fontWeight: 700,
-                            fontSize: 11,
-                            height: 24,
-                          }}
-                        >
-                          Open
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {!filtered.length && (
-                  <tr>
-                    <td
-                      colSpan={11}
-                      style={{
-                        padding: 20,
-                        textAlign: "center",
-                        color: "#aaa",
-                      }}
-                    >
-                      No classes yet
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          )}
-        </div>
-
-        {/* Division Distribution */}
-        <div style={styles.card}>
-          <h3 style={styles.cardT}>📊 Division Distribution</h3>
+        <div
+          style={{
+            background: "rgba(255,255,255,0.92)",
+            borderRadius: 30,
+            border: "1px solid rgba(226,232,240,0.85)",
+            boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
+            padding: compact ? 18 : 22,
+          }}
+        >
           <div
             style={{
               display: "flex",
-              alignItems: "flex-end",
-              gap: 18,
-              height: 130,
-              justifyContent: "center",
-              marginTop: 12,
+              alignItems: compact ? "stretch" : "center",
+              flexDirection: compact ? "column" : "row",
+              justifyContent: "space-between",
+              gap: 14,
+              marginBottom: 18,
             }}
           >
-            {Object.entries(divCounts).map(([div, count]) => {
-              const max = Math.max(...Object.values(divCounts), 1);
-              return (
-                <div
-                  key={div}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <span style={{ fontSize: 13, fontWeight: 700, color: DIVISION_COLORS[div] }}>
-                    {count}
-                  </span>
-                  <div
-                    style={{
-                      width: 38,
-                      borderRadius: "4px 4px 0 0",
-                      background: DIVISION_COLORS[div],
-                      height: Math.max((count / max) * 90, 4),
-                      transition: "height 0.5s",
-                    }}
-                  />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: DIVISION_COLORS[div] }}>
-                    Div {div}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Subject Averages */}
-        <div style={styles.card}>
-          <h3 style={styles.cardT}>📚 Subject Averages</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
-            {subjAvg.slice(0, 9).map(({ subj, avg }) => {
-              const col = avg >= 65 ? "#0b6b3a" : avg >= 45 ? "#0077aa" : avg >= 30 ? "#8b2500" : "#6b0000";
-              return (
-                <div key={subj} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span
-                    style={{
-                      fontSize: 9,
-                      width: 66,
-                      textAlign: "right",
-                      fontWeight: 700,
-                      color: "#555",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {subj}
-                  </span>
-                  <div
-                    style={{
-                      flex: 1,
-                      background: "#e8edf5",
-                      borderRadius: 4,
-                      height: 13,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${avg}%`,
-                        height: "100%",
-                        background: col,
-                        borderRadius: 4,
-                      }}
-                    />
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: col,
-                      width: 28,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {avg}
-                  </span>
-                </div>
-              );
-            })}
-            {!subjAvg.length && (
-              <div style={{ color: "#aaa", fontSize: 12, textAlign: "center", padding: 20 }}>
-                No data yet
+            <div>
+              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>Results Overview</div>
+              <div style={{ marginTop: 5, fontSize: 14, color: "#64748b", fontWeight: 600 }}>
+                {selectedYear ? `${selectedYear} academic year` : "Current academic view"}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Top 10 Students */}
-        <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : "span 2" }}>
-          <h3 style={styles.cardT}>🏆 Top 10 Students</h3>
-          {compactView ? (
-            /* Mobile ranked card list */
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {top10.map((s, i) => (
-                <div key={s.id} style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  background: i === 0 ? "#fffbe6" : i % 2 === 0 ? "#fff" : "#f7f9ff",
-                  border: "1px solid #d0dcf8",
-                  borderRadius: 8,
-                  padding: "8px 10px",
-                }}>
-                  <span style={{ fontSize: 18, minWidth: 24, textAlign: "center" }}>
-                    {getRankBadge(i)}
-                  </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: "#003366", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
-                    <div style={{ fontSize: 10, color: "#667" }}>{studentClassMap[s.id] ?? ""} · {s.sex}</div>
-                  </div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-                    <span style={{ fontWeight: 800, fontSize: 13, color: "#003366" }}>{s.total}</span>
-                    <span style={{ fontWeight: 700, fontSize: 11, color: GRADE_COLORS[s.agrd] }}>{s.agrd}</span>
-                    <span style={{ fontWeight: 700, fontSize: 11, color: DIVISION_COLORS[s.div] }}>Div {s.div}</span>
-                  </div>
-                </div>
-              ))}
-              {!top10.length && (
-                <div style={{ padding: 20, textAlign: "center", color: "#aaa", fontSize: 12 }}>No student data yet</div>
-              )}
             </div>
-          ) : (
-          <div style={{ overflowX: "auto", minWidth: 0 }}>
-            <table
+            <select
+              value={filterYear}
+              onChange={(event) => setFilterYear(event.target.value)}
               style={{
-                borderCollapse: "collapse",
-                width: "100%",
-                fontSize: 11,
+                alignSelf: compact ? "stretch" : "center",
+                border: "1px solid rgba(203,213,225,0.95)",
+                background: "#fff",
+                borderRadius: 16,
+                padding: "12px 14px",
+                fontSize: 14,
+                fontWeight: 800,
+                color: "#0f172a",
+                boxShadow: "0 10px 24px rgba(15,23,42,0.04)",
               }}
             >
-              <thead>
-                <tr style={{ background: "#003366", color: "#fff" }}>
-                  {["#", "Name", "Class", "Sex", "Total", "Avg", "Grade", "Division", "Points"].map(
-                    h => (
-                      <th
-                        key={h}
-                        style={{
-                          padding: "5px 6px",
-                          textAlign: "center",
-                          fontWeight: 700,
-                          fontSize: 10,
-                          border: "1px solid #224488",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    )
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {top10.map((s, i) => (
-                  <tr key={s.id} style={{ background: i === 0 ? "#fffbe6" : i % 2 === 0 ? "#fff" : "#f4f7ff" }}>
-                    <td
-                      style={{
-                        padding: "4px 6px",
-                        border: "1px solid #cbd8f3",
-                        fontWeight: 800,
-                        color: i < 3 ? "#b8860b" : "#555",
-                      }}
-                    >
-                      {getRankBadge(i)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "4px 6px",
-                        border: "1px solid #cbd8f3",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {s.name}
-                    </td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3", color: "#003366" }}>
-                      {studentClassMap[s.id] ?? ""}
-                    </td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3" }}>{s.sex}</td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3", fontWeight: 800 }}>
-                      {s.total}
-                    </td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3" }}>{s.avg}</td>
-                    <td
-                      style={{
-                        padding: "4px 6px",
-                        border: "1px solid #cbd8f3",
-                        fontWeight: 800,
-                        color: GRADE_COLORS[s.agrd],
-                      }}
-                    >
-                      {s.agrd}
-                    </td>
-                    <td
-                      style={{
-                        padding: "4px 6px",
-                        border: "1px solid #cbd8f3",
-                        fontWeight: 800,
-                        color: DIVISION_COLORS[s.div],
-                      }}
-                    >
-                      {s.div}
-                    </td>
-                    <td style={{ padding: "4px 6px", border: "1px solid #cbd8f3" }}>{s.points}</td>
-                  </tr>
-                ))}
-                {!top10.length && (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      style={{
-                        padding: 20,
-                        textAlign: "center",
-                        color: "#aaa",
-                      }}
-                    >
-                      No student data yet
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+              {years.length > 1 && <option value="all">All Years</option>}
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
           </div>
-          )}
+
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: compact ? 700 : 0 }}>
+              <svg viewBox="0 0 860 310" width="100%" height={compact ? 300 : 310} role="img" aria-label="Results overview chart">
+                <defs>
+                  <linearGradient id="dashboardArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="rgba(14,165,233,0.22)" />
+                    <stop offset="100%" stopColor="rgba(14,165,233,0.02)" />
+                  </linearGradient>
+                </defs>
+                {[0, 25, 50, 75, 100].map((tick) => {
+                  const y = 26 + (242 - (tick / 100) * 242);
+                  return (
+                    <g key={tick}>
+                      <line x1="46" y1={y} x2="834" y2={y} stroke="rgba(148,163,184,0.22)" strokeDasharray="5 6" />
+                      <text x="0" y={y + 4} fill="#64748b" fontSize="14" fontWeight="700">
+                        {tick}%
+                      </text>
+                    </g>
+                  );
+                })}
+                {area && <path d={area} fill="url(#dashboardArea)" />}
+                {line && <path d={line} fill="none" stroke="#0f8b8d" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" />}
+                {coords.map((point) => (
+                  <g key={point.label}>
+                    <circle cx={point.x} cy={point.y} r="7" fill="#fff" stroke="#0f8b8d" strokeWidth="4" />
+                    <text x={point.x} y={point.y - 18} textAnchor="middle" fill="#0f172a" fontSize="15" fontWeight="900">
+                      {point.value}%
+                    </text>
+                    <text x={point.x} y="292" textAnchor="middle" fill="#334155" fontSize="16" fontWeight="700">
+                      {point.label}
+                    </text>
+                  </g>
+                ))}
+              </svg>
+            </div>
+          </div>
         </div>
 
-        {/* Class Rankings by Pass Rate */}
-        {classRankings.length > 0 && (
-          <div style={{ ...styles.card, gridColumn: isLarge ? "span 3" : isTablet ? "span 2" : "span 1" }}>
-            <h3 style={styles.cardT}>🏫 Class Rankings by Pass Rate</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
-              {classRankings.map(({ name, passRate: rate, avg, studentCount }, i) => {
-                const col = rate >= 75 ? "#0b6b3a" : rate >= 50 ? "#0077aa" : rate >= 30 ? "#8b2500" : "#6b0000";
-                return (
-                  <div key={name} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        color: i < 3 ? "#b8860b" : "#555",
-                        width: 18,
-                        flexShrink: 0,
-                        textAlign: "center",
-                      }}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: compact ? "1fr" : "minmax(0, 1.15fr) minmax(320px, 0.85fr)",
+            gap: 18,
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              borderRadius: 30,
+              border: "1px solid rgba(226,232,240,0.85)",
+              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
+              padding: compact ? 18 : 22,
+            }}
+          >
+            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900, marginBottom: 16 }}>
+              Quick Actions
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))",
+                gap: 14,
+              }}
+            >
+              {quickActions.map((action) => (
+                <ActionTile key={action.label} {...action} />
+              ))}
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              borderRadius: 30,
+              border: "1px solid rgba(226,232,240,0.85)",
+              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
+              padding: compact ? 18 : 22,
+              display: "grid",
+              gap: 18,
+            }}
+          >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>
+                Operational Summary
+                  </div>
+                  <div style={{ fontSize: 14, color: "#64748b", fontWeight: 700 }}>
+                Real-time counts
+                  </div>
+                </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "160px 1fr", gap: 18, alignItems: "center" }}>
+              <div style={{ display: "grid", placeItems: "center" }}>
+                  <div
+                    style={{
+                      width: 160,
+                      height: 160,
+                      borderRadius: "50%",
+                    background: `conic-gradient(#0f8b8d 0 ${classCoverage}%, rgba(226,232,240,0.95) ${classCoverage}% 100%)`,
+                      display: "grid",
+                      placeItems: "center",
+                    }}
+                >
+                  <div
+                    style={{
+                      width: 116,
+                      height: 116,
+                      borderRadius: "50%",
+                      background: "#fff",
+                      boxShadow: "inset 0 4px 18px rgba(15,23,42,0.06)",
+                      display: "grid",
+                      placeItems: "center",
+                      textAlign: "center",
+                    }}
                     >
-                      {getRankBadge(i)}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: "#003366",
-                        width: isMobile ? 80 : 110,
-                        flexShrink: 0,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                      title={name}
-                    >
-                      {name}
-                    </span>
+                      <div>
+                      <div style={{ fontSize: 40, lineHeight: 1, fontWeight: 950, color: "#0f172a" }}>{classCoverage}%</div>
+                        <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", fontWeight: 800 }}>Published Coverage</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gap: 12 }}>
+                  {[
+                  ["Published Classes", `${publishedClassesCount} of ${filteredClasses.length}`, "#16a34a"],
+                  ["Auth Success Rate", `${successfulAuthRate}%`, "#2563eb"],
+                  ["Data Completeness", `${dataCompleteness}%`, "#7c3aed"],
+                    ["Active Forms", `${activeFormsCount}`, "#ea580c"],
+                  ].map(([label, value, color]) => (
+                    <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                      <div style={{ fontSize: 15, color: "#334155", fontWeight: 700 }}>{label}</div>
+                      <div style={{ fontSize: 15, color, fontWeight: 900 }}>{value}</div>
+                    </div>
+                  ))}
+                  <div style={{ marginTop: 10, paddingTop: 12, borderTop: "1px solid rgba(226,232,240,0.88)", display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ fontSize: 14, color: "#64748b", fontWeight: 700 }}>Activity logs / announcements</div>
+                  <div style={{ fontSize: 20, color: "#0f8b8d", fontWeight: 950 }}>{loginEventsCount} / {homepageAnnouncementCount}</div>
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: compact ? "1fr" : "minmax(0, 1.15fr) minmax(340px, 0.85fr)",
+            gap: 18,
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              borderRadius: 30,
+              border: "1px solid rgba(226,232,240,0.85)",
+              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
+              padding: compact ? 18 : 22,
+              display: "grid",
+              gap: 14,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>Recent Activities</div>
+              <button
+                onClick={onOpenAccount}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "#2563eb",
+                  fontSize: 14,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                View All
+              </button>
+            </div>
+
+            {activities.length ? (
+              <div style={{ display: "grid", gap: 12 }}>
+                {activities.map((item) => {
+                  const tone = scoreActivityTone(item);
+                  return (
                     <div
+                      key={item.id}
                       style={{
-                        flex: 1,
-                        background: "#e8edf5",
-                        borderRadius: 4,
-                        height: 14,
-                        overflow: "hidden",
+                        display: "grid",
+                        gridTemplateColumns: "auto 1fr auto",
+                        gap: 12,
+                        alignItems: "start",
+                        paddingBottom: 12,
+                        borderBottom: "1px solid rgba(226,232,240,0.82)",
                       }}
                     >
                       <div
                         style={{
-                          width: `${rate}%`,
-                          height: "100%",
-                          background: col,
-                          borderRadius: 4,
-                          transition: "width 0.5s",
+                          width: 42,
+                          height: 42,
+                          borderRadius: "50%",
+                          background: tone.bg,
+                          color: tone.color,
+                          display: "grid",
+                          placeItems: "center",
                         }}
-                      />
+                      >
+                        <ActivityIcon />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 800 }}>{item.title}</div>
+                        <div style={{ marginTop: 4, fontSize: 13, color: "#64748b", lineHeight: 1.45 }}>{item.subtitle}</div>
+                      </div>
+                      <div style={{ fontSize: 13, color: "#475569", fontWeight: 700, whiteSpace: "nowrap" }}>
+                        {formatDateTime(item.time)}
+                      </div>
                     </div>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: col,
-                        width: 34,
-                        flexShrink: 0,
-                        textAlign: "right",
-                      }}
-                    >
-                      {rate}%
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 9,
-                        color: "#888",
-                        width: isMobile ? 0 : 60,
-                        flexShrink: 0,
-                        display: isMobile ? "none" : "block",
-                      }}
-                    >
-                      avg {avg} · {studentCount} students
-                    </span>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ color: "#64748b", fontSize: 14 }}>No recent activities yet.</div>
+            )}
+          </div>
+
+          <div
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              borderRadius: 30,
+              border: "1px solid rgba(226,232,240,0.85)",
+              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
+              padding: compact ? 18 : 22,
+              display: "grid",
+              gap: 14,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>Announcements</div>
+              <button
+                onClick={onOpenAccount}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "#2563eb",
+                  fontSize: 14,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                View All
+              </button>
+            </div>
+
+            {overviewError && (
+              <div style={{ fontSize: 13, color: "#dc2626", fontWeight: 700 }}>{overviewError}</div>
+            )}
+
+            {(overview.announcements || []).slice(0, 3).map((announcement) => {
+              const tone = TONE_STYLES[announcement.tone] || TONE_STYLES.info;
+              return (
+                <div
+                  key={announcement.id}
+                  style={{
+                    borderRadius: 22,
+                    border: `1px solid ${tone.border}`,
+                    background: tone.background,
+                    padding: "16px 16px 14px",
+                  }}
+                >
+                  <div style={{ color: tone.chip, fontSize: 12, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>
+                    {announcement.tone || "info"}
                   </div>
-                );
-              })}
+                  <div style={{ marginTop: 8, fontSize: 18, color: "#0f172a", fontWeight: 900, lineHeight: 1.25 }}>
+                    {announcement.title}
+                  </div>
+                  <div style={{ marginTop: 8, fontSize: 14, color: "#475569", lineHeight: 1.6 }}>
+                    {announcement.description}
+                  </div>
+                  <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                    <BellIcon />
+                    {formatShortDate(announcement.date)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: compact ? "1fr" : "minmax(0, 1fr) minmax(320px, 0.9fr)",
+            gap: 18,
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              borderRadius: 30,
+              border: "1px solid rgba(226,232,240,0.85)",
+              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
+              padding: compact ? 18 : 22,
+              display: "grid",
+              gap: 14,
+            }}
+          >
+            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>
+              Student Lookup
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: compact ? "1fr" : "1fr auto auto",
+                gap: 10,
+              }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
+                  alignItems: "center",
+                  gap: 10,
+                  borderRadius: 18,
+                  border: "1px solid rgba(203,213,225,0.92)",
+                  padding: "12px 14px",
+                  background: "#fff",
+                }}
+              >
+                <div style={{ color: "#64748b" }}>
+                  <SearchIcon />
+                </div>
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") handleSearch();
+                  }}
+                  placeholder="Search by student name or index number"
+                  style={{
+                    border: "none",
+                    outline: "none",
+                    fontSize: 14,
+                    color: "#0f172a",
+                    background: "transparent",
+                    width: "100%",
+                  }}
+                />
+              </div>
+
+              <button
+                onClick={handleSearch}
+                disabled={searching}
+                style={{
+                  border: "none",
+                  borderRadius: 18,
+                  padding: "0 18px",
+                  background: "linear-gradient(135deg, #1f3c88, #0f8b8d)",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 900,
+                  cursor: searching ? "wait" : "pointer",
+                  minHeight: 50,
+                }}
+              >
+                {searching ? "Searching..." : "Search"}
+              </button>
+
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setSearchResults(null);
+                  setSearchError("");
+                }}
+                style={{
+                  border: "1px solid rgba(203,213,225,0.92)",
+                  borderRadius: 18,
+                  padding: "0 16px",
+                  background: "#fff",
+                  color: "#475569",
+                  fontSize: 14,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  minHeight: 50,
+                }}
+              >
+                Reset
+              </button>
+            </div>
+
+            {searchError && <div style={{ fontSize: 13, color: "#dc2626", fontWeight: 700 }}>{searchError}</div>}
+
+            {searchResults && (
+              searchResults.length ? (
+                <div style={{ display: "grid", gap: 10 }}>
+                  {searchResults.map((student) => (
+                    <button
+                      key={`${student.classId}-${student.studentId}`}
+                      onClick={() => onViewProfile?.(student.indexNo)}
+                      style={{
+                        border: "1px solid rgba(226,232,240,0.92)",
+                        background: "#fff",
+                        borderRadius: 20,
+                        padding: "14px 16px",
+                        display: "grid",
+                        gridTemplateColumns: compact ? "1fr auto" : "minmax(0, 1fr) auto auto",
+                        gap: 10,
+                        alignItems: "center",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        boxShadow: "0 12px 30px rgba(15,23,42,0.04)",
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {student.name}
+                        </div>
+                        <div style={{ marginTop: 5, fontSize: 13, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {student.indexNo} | {student.className} | {student.form} {student.year}
+                        </div>
+                      </div>
+                      {!compact && (
+                        <div style={{ fontSize: 13, color: "#2563eb", fontWeight: 800 }}>
+                          {student.sex || "N/A"}
+                        </div>
+                      )}
+                      <div style={{ color: "#0f8b8d" }}>
+                        <ArrowRightIcon />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: 14, color: "#64748b" }}>No students found for that search.</div>
+              )
+            )}
+          </div>
+
+          <div
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              borderRadius: 30,
+              border: "1px solid rgba(226,232,240,0.85)",
+              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
+              padding: compact ? 18 : 22,
+              display: "grid",
+              gap: 14,
+            }}
+          >
+            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>
+              Portal Highlights
+            </div>
+            <div style={{ display: "grid", gap: 12 }}>
+              {(overview.highlights || []).slice(0, 4).map((highlight) => (
+                <div
+                  key={highlight.key}
+                  style={{
+                    borderRadius: 20,
+                    border: "1px solid rgba(226,232,240,0.88)",
+                    background: "#fff",
+                    padding: "14px 16px",
+                    boxShadow: "0 12px 28px rgba(15,23,42,0.04)",
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 900, color: highlight.color || "#2563eb", textTransform: "uppercase", letterSpacing: 0.8 }}>
+                    {highlight.label}
+                  </div>
+                  <div style={{ marginTop: 6, fontSize: 24, color: "#0f172a", fontWeight: 950 }}>
+                    {highlight.value}
+                  </div>
+                  <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", lineHeight: 1.5 }}>
+                    {highlight.description}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
