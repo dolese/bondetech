@@ -64,10 +64,12 @@ export default function App() {
     loggedIn,
     authReady,
     managedUsers,
+    authLogs,
     handleLogin,
     handleSaveAccount,
     handleChangePassword,
     loadUsers,
+    loadAuthLogs,
     handleCreateUser,
     handleUpdateUser,
     handleLogout: logoutSession,
@@ -360,8 +362,10 @@ export default function App() {
               <AccountPage
                 user={currentUser}
                 users={managedUsers}
+                authLogs={authLogs}
                 canManageUsers={canManageUsers}
                 onLoadUsers={loadUsers}
+                onLoadAuthLogs={loadAuthLogs}
                 onLoadHomepageContent={handleLoadHomepageContent}
                 onSaveProfile={handleSaveAccount}
                 onChangePassword={handleChangePassword}
@@ -377,8 +381,10 @@ export default function App() {
             <AccountPage
               user={currentUser}
               users={managedUsers}
+              authLogs={authLogs}
               canManageUsers={canManageUsers}
               onLoadUsers={loadUsers}
+              onLoadAuthLogs={loadAuthLogs}
               onLoadHomepageContent={handleLoadHomepageContent}
               onSaveProfile={handleSaveAccount}
               onChangePassword={handleChangePassword}

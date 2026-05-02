@@ -20,6 +20,7 @@ export function useSession({
   const [loggedIn, setLoggedIn] = useState(Boolean(getStoredAuthToken()));
   const [authReady, setAuthReady] = useState(false);
   const [managedUsers, setManagedUsers] = useState([]);
+  const [authLogs, setAuthLogs] = useState([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -77,7 +78,11 @@ export function useSession({
   }, [onAccountSaved]);
 
   const handleChangePassword = useCallback(async (currentPassword, newPassword) => {
-    await API.changeMyPassword({ currentPassword, newPassword });
+    const result = await API.changeMyPassword({ currentPassword, newPassword });
+    if (result?.user) {
+      setCurrentUser(result.user);
+    }
+    return result?.user ?? null;
   }, []);
 
   const loadUsers = useCallback(async () => {
@@ -101,9 +106,17 @@ export function useSession({
     return result.user;
   }, [currentUser?.username]);
 
+  const loadAuthLogs = useCallback(async (limit) => {
+    const result = await API.getAuthLogs(limit);
+    const logs = result.logs ?? [];
+    setAuthLogs(logs);
+    return logs;
+  }, []);
+
   const handleLogout = useCallback(() => {
     clearStoredAuthToken();
     setManagedUsers([]);
+    setAuthLogs([]);
     setCurrentUser(null);
     setLoggedIn(false);
   }, []);
@@ -113,10 +126,12 @@ export function useSession({
     loggedIn,
     authReady,
     managedUsers,
+    authLogs,
     handleLogin,
     handleSaveAccount,
     handleChangePassword,
     loadUsers,
+    loadAuthLogs,
     handleCreateUser,
     handleUpdateUser,
     handleLogout,

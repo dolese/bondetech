@@ -4,10 +4,12 @@ const {
   resolveSessionUser,
   loginUser,
   listUsers,
+  listAuthLogs,
   createManagedUser,
   updateManagedUser,
   updateOwnProfile,
   changeOwnPassword,
+  getRequestMeta,
 } = require("../../lib/auth");
 
 module.exports = async (req, res) => {
@@ -17,7 +19,7 @@ module.exports = async (req, res) => {
   try {
     if (action === "login" && req.method === "POST") {
       const body = await readJsonBody(req);
-      const result = await loginUser(db, body);
+      const result = await loginUser(db, body, getRequestMeta(req));
       return sendJson(res, 200, result);
     }
 
@@ -38,8 +40,8 @@ module.exports = async (req, res) => {
 
     if (action === "change-password" && req.method === "POST") {
       const body = await readJsonBody(req);
-      await changeOwnPassword(db, currentUser, body.currentPassword, body.newPassword);
-      return sendJson(res, 200, { success: true });
+      const user = await changeOwnPassword(db, currentUser, body.currentPassword, body.newPassword);
+      return sendJson(res, 200, { success: true, user });
     }
 
     if (action === "users" && req.method === "GET") {
@@ -58,6 +60,11 @@ module.exports = async (req, res) => {
       const body = await readJsonBody(req);
       const user = await updateManagedUser(db, currentUser, username, body);
       return sendJson(res, 200, { user });
+    }
+
+    if (action === "logs" && req.method === "GET") {
+      const logs = await listAuthLogs(db, currentUser, req.query.limit);
+      return sendJson(res, 200, { logs });
     }
 
     return sendJson(res, 405, { error: "Method not allowed" });

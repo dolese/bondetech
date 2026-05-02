@@ -14,6 +14,7 @@ function blankManagedUser() {
     linkedIndexNo: "",
     password: "",
     active: true,
+    mustChangePassword: true,
   };
 }
 
@@ -40,8 +41,10 @@ function blankHomepageHighlight() {
 export function AccountPage({
   user,
   users = [],
+  authLogs = [],
   canManageUsers = false,
   onLoadUsers,
+  onLoadAuthLogs,
   onLoadHomepageContent,
   onSaveProfile,
   onChangePassword,
@@ -120,6 +123,11 @@ export function AccountPage({
   }, [canManageUsers, onLoadUsers]);
 
   useEffect(() => {
+    if (!canManageUsers) return;
+    Promise.resolve(onLoadAuthLogs?.(60)).catch(() => {});
+  }, [canManageUsers, onLoadAuthLogs]);
+
+  useEffect(() => {
     if (!canManageUsers || !onLoadHomepageContent) return;
     setHomepageLoading(true);
     setHomepageError("");
@@ -155,6 +163,7 @@ export function AccountPage({
         linkedIndexNo: managedUser.linkedIndexNo ?? "",
         active: managedUser.active !== false,
         password: "",
+        mustChangePassword: managedUser.mustChangePassword === true,
       };
     });
     setEditingUsers(next);
@@ -264,6 +273,7 @@ export function AccountPage({
         email: adminForm.email.trim(),
         phone: adminForm.phone.trim(),
         linkedIndexNo: adminForm.linkedIndexNo.trim(),
+        mustChangePassword: true,
       });
       setAdminForm(blankManagedUser());
     } catch (err) {
@@ -301,6 +311,7 @@ export function AccountPage({
       setAdminError(t("enterNewPasswordForUser", "", { username }));
       return;
     }
+    updateManagedField(username, "mustChangePassword", true);
     await handleSaveManagedUser(username);
   };
 
@@ -444,6 +455,28 @@ export function AccountPage({
           </div>
         </div>
 
+        {user?.mustChangePassword && (
+          <div
+            style={{
+              ...sectionStyle,
+              border: "1px solid #facc15",
+              background: "linear-gradient(135deg, #fff8db, #fffef5)",
+              display: "grid",
+              gap: 8,
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#9a6700", letterSpacing: 1.1, textTransform: "uppercase" }}>
+              {t("passwordResetRequired")}
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#6b4f00" }}>
+              {t("mustChangePasswordTitle")}
+            </div>
+            <div style={{ fontSize: 14, color: "#7a5d00", lineHeight: 1.7, maxWidth: 720 }}>
+              {t("mustChangePasswordMessage")}
+            </div>
+          </div>
+        )}
+
         <div
           style={{
             display: "grid",
@@ -538,10 +571,10 @@ export function AccountPage({
           <div style={{ ...sectionStyle, display: "grid", gap: 14, alignContent: "start" }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
-                Change Password
+                {t("changePassword")}
               </div>
               <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
-                Update your password for future sign-ins.
+                {user?.mustChangePassword ? t("mustChangePasswordMessage") : t("updatePasswordIntro")}
               </div>
             </div>
 
@@ -565,7 +598,7 @@ export function AccountPage({
             />
 
             {passwordMsg && (
-              <div style={{ fontSize: 12, fontWeight: 700, color: passwordMsg.includes("success") ? "#1a6b2f" : "#b42318" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: passwordMsg === t("passwordUpdatedSuccessfully") ? "#1a6b2f" : "#b42318" }}>
                 {passwordMsg}
               </div>
             )}
@@ -681,6 +714,23 @@ export function AccountPage({
                       </div>
                     </div>
 
+                    {edit.mustChangePassword && (
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: "#9a6700",
+                          background: "#fff7d6",
+                          border: "1px solid #f5d973",
+                          borderRadius: 999,
+                          padding: "6px 10px",
+                          width: "fit-content",
+                        }}
+                      >
+                        {t("passwordResetRequired")}
+                      </div>
+                    )}
+
                     <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : isTablet ? "1fr 1fr" : "repeat(3, 1fr)", gap: 12 }}>
                       <TextInput label="Display Name" value={edit.displayName} onChange={(value) => updateManagedField(managedUser.username, "displayName", value)} />
                       <SelectInput label="Role" value={edit.role} onChange={(value) => updateManagedField(managedUser.username, "role", value)} options={USER_ROLE_OPTIONS} />
@@ -698,6 +748,16 @@ export function AccountPage({
                         style={{ accentColor: "#2563eb" }}
                       />
                       User can sign in
+                    </label>
+
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                      <input
+                        type="checkbox"
+                        checked={edit.mustChangePassword}
+                        onChange={(e) => updateManagedField(managedUser.username, "mustChangePassword", e.target.checked)}
+                        style={{ accentColor: "#d97706" }}
+                      />
+                      {t("requirePasswordChangeNextSignIn")}
                     </label>
 
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -753,6 +813,60 @@ export function AccountPage({
               {!managedUserCards.length && (
                 <div style={{ fontSize: 13, color: "#64748b", border: "1px dashed #d5dfef", borderRadius: 12, padding: 16 }}>
                   No users match the current search and filter.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {canManageUsers && (
+          <div style={{ ...sectionStyle, display: "grid", gap: 18 }}>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+                {t("loginActivity")}
+              </div>
+              <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
+                {t("loginActivityIntro")}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gap: 12 }}>
+              {authLogs.length ? authLogs.map((log) => (
+                <div
+                  key={log.id}
+                  style={{
+                    border: "1px solid #e2ebf7",
+                    borderRadius: 14,
+                    padding: isMobile ? 14 : 16,
+                    background: "#f8fbff",
+                    display: "grid",
+                    gap: 6,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
+                      {log.username || "Unknown user"}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        color: log.status === "success" ? "#1a6b2f" : "#b42318",
+                      }}
+                    >
+                      {log.status === "success" ? t("loginSuccess") : t("loginFailed")}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
+                    {(log.action || "login").toUpperCase()} • {log.role || "n/a"} • {log.createdAt ? new Date(log.createdAt).toLocaleString() : ""}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#425466", lineHeight: 1.6 }}>
+                    {log.reason || t("activityReasonUnavailable")}
+                  </div>
+                </div>
+              )) : (
+                <div style={{ fontSize: 13, color: "#64748b", border: "1px dashed #d5dfef", borderRadius: 12, padding: 16 }}>
+                  {t("noLoginActivity")}
                 </div>
               )}
             </div>

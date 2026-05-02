@@ -1,27 +1,10 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../../lib/http");
-const { sanitizeScores, sanitizeText } = require("../../../../lib/students");
 const { resolveSessionUser, canManageStudents, canDeleteStudents } = require("../../../../lib/auth");
-
-const DEFAULT_EXAM_TYPE = "March Exam";
-
-const parseStudent = (doc, classId) => {
-  const data = doc.data();
-  const examScores = (data.exam_scores && typeof data.exam_scores === "object") ? data.exam_scores : {};
-  const legacyScores = Array.isArray(data.scores) ? data.scores : [];
-  return {
-    id: doc.id,
-    classId,
-    indexNo: data.index_no || "",
-    name: data.name || "",
-    sex: data.sex || "M",
-    status: data.status || "present",
-    scores: Array.isArray(examScores[DEFAULT_EXAM_TYPE]) ? examScores[DEFAULT_EXAM_TYPE] : legacyScores,
-    examScores,
-    remarks: data.remarks || "",
-    createdAt: data.created_at || null,
-  };
-};
+const {
+  updateStudentRecord,
+  deleteStudentRecord,
+} = require("../../../../lib/classStudents");
 
 module.exports = async (req, res) => {
   const db = getDb();
@@ -38,79 +21,17 @@ module.exports = async (req, res) => {
     return sendJson(res, 401, { error: "Authentication required" });
   }
 
-  const classRef = db.collection("classes").doc(classId);
-  const classSnap = await classRef.get();
-  if (!classSnap.exists) {
-    return sendJson(res, 404, { error: "Class not found" });
-  }
-
-  const studentRef = classRef.collection("students").doc(studentId);
-  const studentSnap = await studentRef.get();
-  if (!studentSnap.exists) {
-    return sendJson(res, 404, { error: "Student not found" });
-  }
-
   if (req.method === "PUT") {
     if (!canManageStudents(currentUser.role)) {
       return sendJson(res, 403, { error: "You do not have permission to update students" });
     }
     try {
       const body = await readJsonBody(req);
-      const data = classSnap.data();
-      const subjects = Array.isArray(data.subjects) ? data.subjects : [];
-      const prevData = studentSnap.data();
-
-      const updates = {};
-      if (typeof body.indexNo === "string") updates.index_no = sanitizeText(body.indexNo, prevData.index_no);
-      if (typeof body.name === "string") updates.name = sanitizeText(body.name, prevData.name);
-      if (body.sex) updates.sex = body.sex === "F" ? "F" : "M";
-      if (body.status) {
-        updates.status = ["present", "absent", "incomplete"].includes(body.status) ? body.status : prevData.status;
-      }
-      if (Array.isArray(body.scores)) {
-        const newScores = sanitizeScores(body.scores, subjects.length);
-        const examType = sanitizeText(body.examType || DEFAULT_EXAM_TYPE);
-        const existingExamScores = (prevData.exam_scores && typeof prevData.exam_scores === "object")
-          ? prevData.exam_scores
-          : {};
-        updates.exam_scores = { ...existingExamScores, [examType]: newScores };
-        if (examType === DEFAULT_EXAM_TYPE) {
-          updates.scores = newScores;
-        } else if (Array.isArray(existingExamScores[DEFAULT_EXAM_TYPE])) {
-          updates.scores = existingExamScores[DEFAULT_EXAM_TYPE];
-        }
-      }
-      if (typeof body.remarks === "string") updates.remarks = sanitizeText(body.remarks);
-
-      await studentRef.update(updates);
-
-      // Write audit log entry
-      try {
-        const updatedBy = sanitizeText(body._updatedBy || "");
-        const db2 = studentRef.firestore;
-        const auditEntry = {
-          classId,
-          studentId,
-          studentName: updates.name || prevData.name || "",
-          action: "update",
-          changes: Object.keys(updates).reduce((acc, key) => {
-            if (key !== "exam_scores") {
-              acc[key] = { from: prevData[key] ?? null, to: updates[key] };
-            }
-            return acc;
-          }, {}),
-          updatedBy,
-          updatedAt: new Date().toISOString(),
-        };
-        await db2.collection("audit_logs").add(auditEntry);
-      } catch {
-        // Audit log writes are best-effort — never fail the main request
-      }
-
-      const updated = await studentRef.get();
-      return sendJson(res, 200, parseStudent(updated, classId));
+      const updated = await updateStudentRecord(db, classId, studentId, body);
+      return sendJson(res, 200, updated);
     } catch (err) {
-      return sendJson(res, 500, { error: err.message });
+      const status = /class not found|student not found/i.test(err.message) ? 404 : 500;
+      return sendJson(res, status, { error: err.message });
     }
   }
 
@@ -119,14 +40,11 @@ module.exports = async (req, res) => {
       return sendJson(res, 403, { error: "Only administrators can delete students" });
     }
     try {
-      await studentRef.delete();
-      const data = classSnap.data();
-      await classRef.update({
-        student_count: Math.max(0, Number(data.student_count || 0) - 1),
-      });
-      return sendJson(res, 200, { success: true });
+      const result = await deleteStudentRecord(db, classId, studentId);
+      return sendJson(res, 200, result);
     } catch (err) {
-      return sendJson(res, 500, { error: err.message });
+      const status = /class not found|student not found/i.test(err.message) ? 404 : 500;
+      return sendJson(res, status, { error: err.message });
     }
   }
 

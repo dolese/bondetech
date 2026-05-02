@@ -1,6 +1,7 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { sendJson } = require("../../../../lib/http");
 const { resolveSessionUser, canViewAudit } = require("../../../../lib/auth");
+const { getClassAuditLogs } = require("../../../../lib/classes");
 
 /**
  * GET /api/classes/:id/audit
@@ -32,25 +33,11 @@ module.exports = async (req, res) => {
   }
   const classId = req.query.id;
 
-  const classRef = db.collection("classes").doc(classId);
-  const classSnap = await classRef.get();
-  if (!classSnap.exists) {
-    return sendJson(res, 404, { error: "Class not found" });
-  }
-
-  const limit = Math.min(parseInt(req.query.limit || "100", 10) || 100, 500);
-
   try {
-    const snap = await db
-      .collection("audit_logs")
-      .where("classId", "==", classId)
-      .orderBy("updatedAt", "desc")
-      .limit(limit)
-      .get();
-
-    const logs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const logs = await getClassAuditLogs(db, classId, req.query.limit);
     return sendJson(res, 200, logs);
   } catch (err) {
-    return sendJson(res, 500, { error: err.message });
+    const status = /class not found/i.test(err.message) ? 404 : 500;
+    return sendJson(res, status, { error: err.message });
   }
 };

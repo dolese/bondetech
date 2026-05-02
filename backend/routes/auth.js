@@ -5,15 +5,17 @@ const {
   resolveSessionUser,
   loginUser,
   listUsers,
+  listAuthLogs,
   createManagedUser,
   updateManagedUser,
   updateOwnProfile,
   changeOwnPassword,
+  getRequestMeta,
 } = require("../../lib/auth");
 
 router.post("/login", async (req, res) => {
   try {
-    const result = await loginUser(getDb(), req.body || {});
+    const result = await loginUser(getDb(), req.body || {}, getRequestMeta(req));
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -48,13 +50,13 @@ router.patch("/me", async (req, res) => {
 
 router.post("/change-password", async (req, res) => {
   try {
-    await changeOwnPassword(
+    const user = await changeOwnPassword(
       getDb(),
       req.authUser,
       req.body?.currentPassword,
       req.body?.newPassword
     );
-    res.json({ success: true });
+    res.json({ success: true, user });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -85,6 +87,15 @@ router.put("/users/:username", async (req, res) => {
   } catch (err) {
     const status = /not found/i.test(err.message) ? 404 : /administrator/i.test(err.message) ? 403 : 400;
     res.status(status).json({ error: err.message });
+  }
+});
+
+router.get("/logs", async (req, res) => {
+  try {
+    const logs = await listAuthLogs(getDb(), req.authUser, req.query.limit);
+    res.json({ logs });
+  } catch (err) {
+    res.status(/administrator/i.test(err.message) ? 403 : 400).json({ error: err.message });
   }
 });
 

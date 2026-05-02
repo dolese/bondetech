@@ -1,6 +1,7 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { sendJson } = require("../../../../lib/http");
 const { resolveSessionUser, canManageClasses } = require("../../../../lib/auth");
+const { setClassPublishedState } = require("../../../../lib/classes");
 
 /**
  * POST /api/classes/:id/publish
@@ -30,23 +31,12 @@ module.exports = async (req, res) => {
     return sendJson(res, 403, { error: "Only administrators can publish results" });
   }
   const classId = req.query.id;
-  const classRef = db.collection("classes").doc(classId);
-
-  const snap = await classRef.get();
-  if (!snap.exists) {
-    return sendJson(res, 404, { error: "Class not found" });
-  }
 
   try {
-    if (req.method === "DELETE") {
-      await classRef.update({ published: false, published_at: null });
-      return sendJson(res, 200, { published: false });
-    }
-
-    const published_at = new Date().toISOString();
-    await classRef.update({ published: true, published_at });
-    return sendJson(res, 200, { published: true, published_at });
+    const result = await setClassPublishedState(db, classId, req.method === "POST");
+    return sendJson(res, 200, result);
   } catch (err) {
-    return sendJson(res, 500, { error: err.message });
+    const status = /class not found/i.test(err.message) ? 404 : 500;
+    return sendJson(res, status, { error: err.message });
   }
 };

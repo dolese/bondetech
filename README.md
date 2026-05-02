@@ -50,7 +50,14 @@ cd bonde-results/backend
 copy .env.example .env
 ```
 
-Edit `.env` and set `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`.
+Edit `.env` and set:
+
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY`
+- `BOOTSTRAP_ADMIN_USERNAME`
+- `BOOTSTRAP_ADMIN_PASSWORD`
+- optional: `BOOTSTRAP_ADMIN_DISPLAY_NAME`
 
 ### Step 2 — Install Backend
 
@@ -124,6 +131,9 @@ Populate `backend/.env` (or your deployment environment) with:
 - `FIREBASE_PROJECT_ID` — the `project_id` from your service account JSON
 - `FIREBASE_CLIENT_EMAIL` — the `client_email` from your service account JSON
 - `FIREBASE_PRIVATE_KEY` — the `private_key` from your service account JSON (replace literal newlines with `\n`)
+- `BOOTSTRAP_ADMIN_USERNAME` — the only username allowed to create the first admin on an empty database
+- `BOOTSTRAP_ADMIN_PASSWORD` — the password required for that first-admin bootstrap
+- `BOOTSTRAP_ADMIN_DISPLAY_NAME` — optional display name for the bootstrapped admin account
 
 ---
 
@@ -155,6 +165,9 @@ Set these variables in Vercel → Project → Settings → Environment Variables
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_CLIENT_EMAIL`
 - `FIREBASE_PRIVATE_KEY` (replace newlines with `\n`)
+- `BOOTSTRAP_ADMIN_USERNAME`
+- `BOOTSTRAP_ADMIN_PASSWORD`
+- optional: `BOOTSTRAP_ADMIN_DISPLAY_NAME`
 
 ### 2) Deploy
 - Push the repository to GitHub

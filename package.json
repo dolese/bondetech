@@ -2,6 +2,9 @@
   "name": "bonde-results",
   "private": true,
   "type": "commonjs",
+  "scripts": {
+    "test": "node --test tests/auth.test.js tests/classes.test.js tests/classStudents.test.js tests/studentDirectory.test.js"
+  },
   "dependencies": {
     "firebase-admin": "^12.0.0"
   }

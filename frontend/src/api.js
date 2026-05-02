@@ -119,4 +119,5 @@ export const API = {
   listUsers:       ()           => get("/auth/users"),
   createUser:      (data)       => post("/auth/users", data),
   updateUser:      (username, data) => put(`/auth/users/${encodeURIComponent(username)}`, data),
+  getAuthLogs:     (limit)      => get(`/auth/logs${limit ? `?limit=${limit}` : ""}`),
 };
