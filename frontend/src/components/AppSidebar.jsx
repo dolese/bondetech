@@ -6,39 +6,6 @@ function currentAcademicYear(classesByYear) {
   return years[years.length - 1] || new Date().getFullYear().toString();
 }
 
-function SidebarCrest() {
-  return (
-    <svg viewBox="0 0 120 120" width="112" height="112" aria-hidden="true">
-      <defs>
-        <linearGradient id="crestRing" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ef4444" />
-          <stop offset="100%" stopColor="#1f3c88" />
-        </linearGradient>
-        <linearGradient id="crestBook" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#1f3c88" />
-          <stop offset="100%" stopColor="#0f8b8d" />
-        </linearGradient>
-      </defs>
-      <circle cx="60" cy="60" r="56" fill="#ffffff" />
-      <circle cx="60" cy="60" r="54" fill="none" stroke="url(#crestRing)" strokeWidth="6" />
-      <circle cx="60" cy="60" r="41" fill="#f8fbff" stroke="#dbe7f5" strokeWidth="2" />
-      <path d="M28 26h64" stroke="#ef4444" strokeWidth="8" strokeLinecap="round" />
-      <text x="60" y="24" textAnchor="middle" fontSize="10" fontWeight="900" fill="#ef4444">
-        BONDE SECONDARY SCHOOL
-      </text>
-      <path d="M46 46c-5 0-10 1-14 4v27c4-3 9-4 14-4 5 0 9 1 14 4V50c-5-3-9-4-14-4Z" fill="#ffffff" stroke="url(#crestBook)" strokeWidth="3" />
-      <path d="M74 46c-5 0-9 1-14 4v27c5-3 9-4 14-4s10 1 14 4V50c-4-3-9-4-14-4Z" fill="#ffffff" stroke="url(#crestBook)" strokeWidth="3" />
-      <path d="M60 36c3 0 7 4 7 8 0 3-2 5-4 7l-3 4-3-4c-2-2-4-4-4-7 0-4 4-8 7-8Z" fill="#ef4444" />
-      <path d="M56 43h8" stroke="#fbbf24" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M60 40v7" stroke="#fbbf24" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M26 92h68" stroke="#0f8b8d" strokeWidth="6" strokeLinecap="round" opacity="0.8" />
-      <text x="60" y="101" textAnchor="middle" fontSize="9" fontWeight="700" fill="#1f3c88">
-        Better Future Starts Here
-      </text>
-    </svg>
-  );
-}
-
 function SvgIcon({ children, width = 18, height = 18, strokeWidth = 2 }) {
   return (
     <svg
@@ -206,17 +173,27 @@ export function AppSidebar({
           >
             <div
               style={{
-                width: 118,
-                height: 118,
+                width: 92,
+                height: 92,
                 borderRadius: "50%",
                 background: "linear-gradient(145deg, rgba(255,255,255,0.96), rgba(231,244,255,0.94))",
-                border: "4px solid rgba(255,255,255,0.14)",
-                boxShadow: "0 18px 38px rgba(0,0,0,0.18)",
+                border: "3px solid rgba(255,255,255,0.14)",
+                boxShadow: "0 14px 28px rgba(0,0,0,0.18)",
                 display: "grid",
                 placeItems: "center",
+                overflow: "hidden",
               }}
             >
-              <SidebarCrest />
+              <img
+                src="/asset/bonde.jpg"
+                alt="Bonde Secondary School logo"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "50%",
+                }}
+              />
             </div>
             <div style={{ textAlign: "center" }}>
               <div style={{ color: "#fff", fontWeight: 900, fontSize: 18 }}>{t("resultSystem")}</div>
