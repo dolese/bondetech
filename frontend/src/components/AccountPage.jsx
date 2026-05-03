@@ -937,7 +937,7 @@ export function AccountPage({
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                         <RoleBadge role={managedUser.role} />
                         <StatusBadge active={managedUser.active !== false} />
-                        {edit.mustChangePassword && (
+                        {managedUser.mustChangePassword && (
                           <span
                             style={{
                               display: "inline-flex",
@@ -1135,7 +1135,7 @@ export function AccountPage({
                       </span>
                     </div>
                     <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
-                      {(log.action || "login").toUpperCase()} · {log.role || "n/a"} · {log.createdAt ? new Date(log.createdAt).toLocaleString() : ""}
+                      {(log.action || "login").toUpperCase()} • {log.role || "n/a"} • {log.createdAt ? new Date(log.createdAt).toLocaleString() : ""}
                     </div>
                     {log.reason && (
                       <div style={{ fontSize: 12, color: "#425466", marginTop: 2 }}>{log.reason}</div>
