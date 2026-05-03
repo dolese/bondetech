@@ -17,14 +17,71 @@ const RESULT_SHEET_FOOTER_HEIGHT = "20mm";
 const REPORT_CARD_PAPER_SIZE = "a4";
 const REPORT_CARD_ORIENTATION = "portrait";
 
+// Page-chunking layout constants (CSS pixels at 96 dpi, conservative estimates)
+// Content area height = 297mm - 25mm header - 20mm footer = 252mm ≈ 952px
+const CONTENT_HEIGHT_PX = Math.round(252 * (96 / 25.4));
+const SUMMARY_BOXES_HEIGHT = 95;  // 5-box summary grid incl. marginBottom
+const GRADE_TABLES_HEIGHT = 180;  // grade + division distribution tables incl. marginTop
+const THEAD_HEIGHT = 26;          // column-header <thead> row
+const ROW_HEIGHT = 23;            // each student data row
+const ROWS_ONLY_PAGE = Math.max(1,
+  Math.floor((CONTENT_HEIGHT_PX - SUMMARY_BOXES_HEIGHT - GRADE_TABLES_HEIGHT - THEAD_HEIGHT) / ROW_HEIGHT));
+const ROWS_FIRST_PAGE = Math.max(1,
+  Math.floor((CONTENT_HEIGHT_PX - SUMMARY_BOXES_HEIGHT - THEAD_HEIGHT) / ROW_HEIGHT));
+const ROWS_LAST_PAGE = Math.max(1,
+  Math.floor((CONTENT_HEIGHT_PX - GRADE_TABLES_HEIGHT - THEAD_HEIGHT) / ROW_HEIGHT));
+const ROWS_MID_PAGE = Math.max(1,
+  Math.floor((CONTENT_HEIGHT_PX - THEAD_HEIGHT) / ROW_HEIGHT));
+
+/**
+ * Split a sorted student array into page-sized chunks.
+ * - Chunk 0 (first page) reserves space for the summary boxes.
+ * - Last chunk reserves space for grade/division tables + signature footer.
+ * - When all students fit on a single page both reservations apply (ROWS_ONLY_PAGE).
+ * - If students.length falls in (ROWS_ONLY_PAGE, ROWS_FIRST_PAGE], a second empty
+ *   chunk is appended so grade tables have their own dedicated last page.
+ */
+function buildPageChunks(students) {
+  if (students.length === 0) return [];
+  if (students.length <= ROWS_ONLY_PAGE) return [students];
+
+  const chunks = [];
+  let offset = 0;
+  let isFirstChunk = true;
+
+  while (offset < students.length) {
+    const remaining = students.length - offset;
+    const lastCap = isFirstChunk ? ROWS_ONLY_PAGE : ROWS_LAST_PAGE;
+    const fullCap = isFirstChunk ? ROWS_FIRST_PAGE : ROWS_MID_PAGE;
+
+    if (remaining <= lastCap) {
+      chunks.push(students.slice(offset));
+      break;
+    }
+    chunks.push(students.slice(offset, offset + Math.min(fullCap, remaining)));
+    offset += Math.min(fullCap, remaining);
+    isFirstChunk = false;
+  }
+
+  // Edge case: all students fit on page 1 (no grade-table room) → add empty stats page
+  if (chunks.length === 1 && students.length > ROWS_ONLY_PAGE) {
+    chunks.push([]);
+  }
+
+  return chunks;
+}
+
 export function ResultSheet({ classData, computed, onOpenReportCard }) {
   const subjects = classData.subjects ?? [];
   const present = (computed ?? [])
     .filter(s => s.total !== null)
     .sort((a, b) => (a.posn ?? Infinity) - (b.posn ?? Infinity));
-  const sheetRef = useRef(null);
+  const sheetRef = useRef(null); // wraps ALL page divs for PDF export
   const { isMobile } = useViewport();
   const [exportingZip, setExportingZip] = useState(false);
+
+  // Split students into per-page chunks
+  const pages = buildPageChunks(present);
 
   const divisionCount = {};
   present.forEach(s => {
@@ -253,6 +310,110 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
 
   const hasRemarks = present.some(s => s.remarks && s.remarks.trim());
 
+  // Reusable page header (logo + school info)
+  const PageHeader = () => (
+    <div style={styles.header}>
+      <img src="/asset/Tz.jpg" alt="Tanzania logo" style={styles.logo} />
+      <div style={styles.headerCenter}>
+        <h1 style={styles.schoolName}>{schoolInfo.name || "School Name"}</h1>
+        <p style={styles.className}>Class: <strong>{classData.name}</strong></p>
+        <p style={{ fontSize: 10, color: "#999", margin: "4px 0 0" }}>
+          {schoolInfo.form} · {schoolInfo.term} · {schoolInfo.exam ?? schoolInfo.term} · {schoolInfo.year}
+        </p>
+        <p style={{ fontSize: 10, color: "#999", margin: "4px 0 0" }}>
+          {new Date().toLocaleDateString()}
+        </p>
+      </div>
+      <img src="/asset/bonde.jpg" alt="Bonde logo" style={styles.logo} />
+    </div>
+  );
+
+  // Column header cells for the student table
+  const columnHeaders = [
+    "Pos", "CNO", "Name", "Sex",
+    ...subjects,
+    "Total", "Avg", "Grade", "Division", "Points",
+    ...(hasRemarks ? ["Remarks"] : []),
+  ];
+
+  // Grade/Division summary tables (shown on last page)
+  const GradeDivTables = () => (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+        gap: 16,
+        marginTop: 16,
+      }}
+    >
+      <div>
+        <h3 style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 800, color: "#003366" }}>
+          Grade Distribution
+        </h3>
+        <div style={{ overflowX: "auto", minWidth: 0 }}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Grade</th>
+                <th style={styles.th}>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allGrades.map((g, i) => (
+                <tr key={g} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc" }}>
+                  <td style={{ ...styles.td, fontWeight: 800, color: GRADE_COLORS[g] }}>{g}</td>
+                  <td style={styles.td}>{gradeCount[g] || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h3 style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 800, color: "#003366" }}>
+          Division Distribution
+        </h3>
+        <div style={{ overflowX: "auto", minWidth: 0 }}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Division</th>
+                <th style={styles.th}>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {["I", "II", "III", "IV", "0"].map((d, i) => (
+                <tr key={d} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc" }}>
+                  <td style={{ ...styles.td, fontWeight: 800, color: DIVISION_COLORS[d] }}>Div {d}</td>
+                  <td style={styles.td}>{divisionCount[d] || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Signature footer (shown on last page)
+  const SignatureFooter = () => (
+    <div style={styles.signatureSec}>
+      <div style={styles.signBox}>
+        <div style={{ fontWeight: 800 }}>Class Teacher</div>
+        <div style={{ fontSize: 8, marginTop: 4 }}>Date: __________</div>
+      </div>
+      <div style={styles.signBox}>
+        <div style={{ fontWeight: 800 }}>Head of Department</div>
+        <div style={{ fontSize: 8, marginTop: 4 }}>Date: __________</div>
+      </div>
+      <div style={styles.signBox}>
+        <div style={{ fontWeight: 800 }}>School Principal</div>
+        <div style={{ fontSize: 8, marginTop: 4 }}>Date: __________</div>
+      </div>
+    </div>
+  );
+
   return (
     <div style={styles.panel}>
       <style>{`
@@ -282,11 +443,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       <div style={styles.tabs} className="result-sheet-ui">
         <button
           onClick={() => window.print()}
-          style={{
-            ...styles.tabBtn,
-            background: "#003366",
-            color: "#fff",
-          }}
+          style={{ ...styles.tabBtn, background: "#003366", color: "#fff" }}
         >
           🖨 Print Sheet
         </button>
@@ -296,11 +453,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
             const name = `${classData.name || "class"}-results-${date}.pdf`;
             exportElementToPdf(sheetRef.current, name, RESULT_SHEET_ORIENTATION, RESULT_SHEET_PAPER_SIZE, 0);
           }}
-          style={{
-            ...styles.tabBtn,
-            background: "#8b2500",
-            color: "#fff",
-          }}
+          style={{ ...styles.tabBtn, background: "#8b2500", color: "#fff" }}
         >
           📥 Export PDF
         </button>
@@ -318,233 +471,119 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         </button>
       </div>
 
-      <div
-        style={{
-          overflowX: "auto",
-          paddingBottom: 4,
-        }}
-      >
-      <div ref={sheetRef} style={styles.sheet} className="result-sheet-page">
-        <div style={styles.header}>
-          <img src="/asset/Tz.jpg" alt="Tanzania logo" style={styles.logo} />
-          <div style={styles.headerCenter}>
-            <h1 style={styles.schoolName}>{schoolInfo.name || "School Name"}</h1>
-            <p style={styles.className}>Class: <strong>{classData.name}</strong></p>
-            <p style={{ fontSize: 10, color: "#999", margin: "4px 0 0" }}>
-              {schoolInfo.form} · {schoolInfo.term} · {schoolInfo.exam ?? schoolInfo.term} · {schoolInfo.year}
-            </p>
-            <p style={{ fontSize: 10, color: "#999", margin: "4px 0 0" }}>
-              {new Date().toLocaleDateString()}
-            </p>
-          </div>
-          <img src="/asset/bonde.jpg" alt="Bonde logo" style={styles.logo} />
-        </div>
-
-        {/* Body content — flex-grows to fill the 252 mm between header and footer */}
-        <div style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-
-        {!present.length ? (
-          <div
-            style={{
-              background: "#f7f9ff",
-              border: "1px dashed #c8d8f8",
-              borderRadius: 8,
-              padding: 18,
-              textAlign: "center",
-              color: "#666",
-              fontSize: 12,
-            }}
-          >
-            No results yet. Enter student scores to generate the result sheet.
-          </div>
-        ) : (
-          <>
-            <div style={styles.resultSummary}>
-              {[
-                ["📚", "Total Students", present.length],
-                ["✅", "Passed", passCount],
-                ["📊", "Pass Rate", `${passRate}%`],
-                ["🏆", "Div I", divisionCount["I"] || 0],
-                [
-                  "📈",
-                  "Avg Score",
-                  present.length
-                    ? (
-                        present.reduce((s, st) => s + (st.total || 0), 0) /
-                        present.length
-                      ).toFixed(1)
-                    : 0,
-                ],
-              ].map(([icon, label, val], i) => (
-                <div key={i} style={styles.summaryBox}>
-                  <div style={{ fontSize: 16, marginBottom: 4 }}>{icon}</div>
-                  <div style={styles.summaryValue}>{val}</div>
-                  <div style={styles.summaryLabel}>{label}</div>
+      {/* sheetRef wraps ALL page divs so PDF export captures every page */}
+      <div style={{ overflowX: "auto", paddingBottom: 4 }}>
+        <div ref={sheetRef}>
+          {pages.length === 0 ? (
+            /* Empty state — single page, no student rows */
+            <div style={styles.sheet} className="result-sheet-page">
+              <PageHeader />
+              <div style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                <div
+                  style={{
+                    background: "#f7f9ff",
+                    border: "1px dashed #c8d8f8",
+                    borderRadius: 8,
+                    padding: 18,
+                    textAlign: "center",
+                    color: "#666",
+                    fontSize: 12,
+                  }}
+                >
+                  No results yet. Enter student scores to generate the result sheet.
                 </div>
-              ))}
+              </div>
+              <SignatureFooter />
             </div>
+          ) : (
+            pages.map((chunk, pageIdx) => {
+              const isFirst = pageIdx === 0;
+              const isLast = pageIdx === pages.length - 1;
 
-            <div style={{ overflowX: "auto", minWidth: 0 }}>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    {[
-                      "Pos",
-                      "CNO",
-                      "Name",
-                      "Sex",
-                      ...subjects,
-                      "Total",
-                      "Avg",
-                      "Grade",
-                      "Division",
-                      "Points",
-                      ...(hasRemarks ? ["Remarks"] : []),
-                    ].map(h => (
-                      <th key={h} style={styles.th}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {present.map((s) => (
-                    <tr key={s.id}>
-                      <td style={{ ...styles.td, fontWeight: 800 }}>{s.posn ?? "–"}</td>
-                      <td style={styles.td}>{s.index_no}</td>
-                      <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
-                      <td style={styles.td}>{s.sex}</td>
-                      {subjects.map((_, i) => {
-                        const g = s.grades?.[i];
-                        const display = g?.raw === "ABS" ? "ABS" : (g?.score ?? "–");
-                        return <td key={i} style={styles.td}>{display}</td>;
-                      })}
-                      <td style={styles.td}>{s.total ?? "–"}</td>
-                      <td style={styles.td}>{s.avg ?? "–"}</td>
-                      <td style={{ ...styles.td, color: GRADE_COLORS[s.agrd] }}>{s.agrd ?? "–"}</td>
-                      <td style={{ ...styles.td, color: DIVISION_COLORS[s.div] }}>{s.div ?? "–"}</td>
-                      <td style={styles.td}>{s.points ?? "–"}</td>
-                      {hasRemarks && (
-                        <td style={{ ...styles.td, textAlign: "left", maxWidth: 120, whiteSpace: "normal" }}>
-                          {s.remarks ? s.remarks.trim() : ""}
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+              return (
+                <div key={pageIdx} style={styles.sheet} className="result-sheet-page">
+                  <PageHeader />
 
-        {/* Grade and Division Summary Tables */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-            gap: 16,
-            marginTop: 16,
-          }}
-        >
-          {/* Grade Distribution */}
-          <div>
-            <h3
-              style={{
-                margin: "0 0 8px",
-                fontSize: 11,
-                fontWeight: 800,
-                color: "#003366",
-              }}
-            >
-              Grade Distribution
-            </h3>
-            <div style={{ overflowX: "auto", minWidth: 0 }}>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.th}>Grade</th>
-                    <th style={styles.th}>Count</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {allGrades.map((g, i) => (
-                    <tr key={g} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc" }}>
-                      <td
-                        style={{
-                          ...styles.td,
-                          fontWeight: 800,
-                          color: GRADE_COLORS[g],
-                        }}
-                      >
-                        {g}
-                      </td>
-                      <td style={styles.td}>{gradeCount[g] || 0}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                  {/* Body — grows to fill space between header and footer */}
+                  <div style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
 
-          {/* Division Distribution */}
-          <div>
-            <h3
-              style={{
-                margin: "0 0 8px",
-                fontSize: 11,
-                fontWeight: 800,
-                color: "#003366",
-              }}
-            >
-              Division Distribution
-            </h3>
-            <div style={{ overflowX: "auto", minWidth: 0 }}>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.th}>Division</th>
-                    <th style={styles.th}>Count</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {["I", "II", "III", "IV", "0"].map((d, i) => (
-                    <tr key={d} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc" }}>
-                      <td
-                        style={{
-                          ...styles.td,
-                          fontWeight: 800,
-                          color: DIVISION_COLORS[d],
-                        }}
-                      >
-                        Div {d}
-                      </td>
-                      <td style={styles.td}>{divisionCount[d] || 0}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                    {/* Summary boxes: first page only */}
+                    {isFirst && (
+                      <div style={styles.resultSummary}>
+                        {[
+                          ["📚", "Total Students", present.length],
+                          ["✅", "Passed", passCount],
+                          ["📊", "Pass Rate", `${passRate}%`],
+                          ["🏆", "Div I", divisionCount["I"] || 0],
+                          [
+                            "📈",
+                            "Avg Score",
+                            present.length
+                              ? (present.reduce((s, st) => s + (st.total || 0), 0) / present.length).toFixed(1)
+                              : 0,
+                          ],
+                        ].map(([icon, label, val], i) => (
+                          <div key={i} style={styles.summaryBox}>
+                            <div style={{ fontSize: 16, marginBottom: 4 }}>{icon}</div>
+                            <div style={styles.summaryValue}>{val}</div>
+                            <div style={styles.summaryLabel}>{label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Student rows table (omitted when chunk is an empty stats page) */}
+                    {chunk.length > 0 && (
+                      <div style={{ overflowX: "auto", minWidth: 0 }}>
+                        <table style={styles.table}>
+                          <thead>
+                            <tr>
+                              {columnHeaders.map(h => (
+                                <th key={h} style={styles.th}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {chunk.map((s) => (
+                              <tr key={s.id}>
+                                <td style={{ ...styles.td, fontWeight: 800 }}>{s.posn ?? "–"}</td>
+                                <td style={styles.td}>{s.index_no}</td>
+                                <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
+                                <td style={styles.td}>{s.sex}</td>
+                                {subjects.map((_, i) => {
+                                  const g = s.grades?.[i];
+                                  const display = g?.raw === "ABS" ? "ABS" : (g?.score ?? "–");
+                                  return <td key={i} style={styles.td}>{display}</td>;
+                                })}
+                                <td style={styles.td}>{s.total ?? "–"}</td>
+                                <td style={styles.td}>{s.avg ?? "–"}</td>
+                                <td style={{ ...styles.td, color: GRADE_COLORS[s.agrd] }}>{s.agrd ?? "–"}</td>
+                                <td style={{ ...styles.td, color: DIVISION_COLORS[s.div] }}>{s.div ?? "–"}</td>
+                                <td style={styles.td}>{s.points ?? "–"}</td>
+                                {hasRemarks && (
+                                  <td style={{ ...styles.td, textAlign: "left", maxWidth: 120, whiteSpace: "normal" }}>
+                                    {s.remarks ? s.remarks.trim() : ""}
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* Grade/Division distribution tables: last page only */}
+                    {isLast && <GradeDivTables />}
+
+                  </div>
+
+                  {/* Signature footer: last page only */}
+                  {isLast && <SignatureFooter />}
+                </div>
+              );
+            })
+          )}
         </div>
-
-        </div>
-
-        {/* Signature Section */}
-        <div style={styles.signatureSec}>
-          <div style={styles.signBox}>
-            <div style={{ fontWeight: 800 }}>Class Teacher</div>
-            <div style={{ fontSize: 8, marginTop: 4 }}>Date: __________</div>
-          </div>
-          <div style={styles.signBox}>
-            <div style={{ fontWeight: 800 }}>Head of Department</div>
-            <div style={{ fontSize: 8, marginTop: 4 }}>Date: __________</div>
-          </div>
-          <div style={styles.signBox}>
-            <div style={{ fontWeight: 800 }}>School Principal</div>
-            <div style={{ fontSize: 8, marginTop: 4 }}>Date: __________</div>
-          </div>
-        </div>
-      </div>
       </div>
 
       {/* Button to open individual report cards */}
