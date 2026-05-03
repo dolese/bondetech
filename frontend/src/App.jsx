@@ -16,13 +16,10 @@ import { StudentProfilePage } from "./components/StudentProfilePage";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTopBar } from "./components/AppTopBar";
 import { DeleteClassDialog } from "./components/DeleteClassDialog";
-import { MobileBottomNav } from "./components/MobileBottomNav";
 import { useSession } from "./hooks/useSession";
 import { CLASS_FORMS, useClasses } from "./hooks/useClasses";
 import { API } from "./api";
 import { useI18n } from "./i18n";
-
-const MOBILE_NAV_HEIGHT = 94;
 
 const CLASS_ACCESS_ROLES = new Set(["admin", "teacher"]);
 
@@ -258,28 +255,8 @@ export default function App() {
       <div style={{ fontSize: 52 }}>Classes</div>
       <div style={{ fontSize: 16, fontWeight: 700, color: "#003366" }}>{t("noClassSelected")}</div>
       <div style={{ fontSize: 13, color: "#555", textAlign: "center", maxWidth: 260, lineHeight: 1.5 }}>
-        {isMobile
-          ? `${t("openClasses")}.`
-          : `${t("selectClass")}...`}
+        {`${t("selectClass")}...`}
       </div>
-      {isMobile && (
-        <button
-          onClick={() => setSideOpen(true)}
-          style={{
-            padding: "10px 24px",
-            background: "#003366",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            fontWeight: 700,
-            fontSize: 14,
-            cursor: "pointer",
-            boxShadow: "0 4px 12px rgba(0,51,102,0.25)",
-          }}
-        >
-          {t("openClasses")}
-        </button>
-      )}
     </div>
   );
 
@@ -352,7 +329,7 @@ export default function App() {
           />
         )}
 
-        <div style={{ ...S.content, ...(isMobile ? { paddingBottom: MOBILE_NAV_HEIGHT } : {}) }}>
+        <div style={S.content}>
           {page === "dashboard" && (
             canAccessClassData ? (
               <Dashboard
@@ -548,16 +525,6 @@ export default function App() {
         />
       )}
 
-      {isMobile && (
-        canAccessClassData && (
-        <MobileBottomNav
-          page={page}
-          activeClass={activeClass}
-          styles={S}
-          onSetPage={setPage}
-        />
-        )
-      )}
     </div>
   );
 }
@@ -600,13 +567,4 @@ const S = {
   dialog: { background: "#fff", borderRadius: 12, boxShadow: "0 8px 40px rgba(0,0,0,0.3)", padding: 20, maxWidth: 420, width: "90%" },
   btnGray: { background: "#eee", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
   btnRed: { background: "#cc2222", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
-  bottomNav: { position: "fixed", bottom: 14, left: 14, right: 14, height: 76, background: "#fff", borderRadius: 24, display: "flex", alignItems: "center", zIndex: 30, boxShadow: "0 4px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)", overflow: "visible" },
-  navTabDivider: { width: 1, height: 40, background: "rgba(0,0,0,0.07)", flexShrink: 0 },
-  tabBtn: { flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5, padding: "0 0 4px", position: "relative", height: "100%" },
-  tabBtnDisabled: { opacity: 0.3, cursor: "not-allowed" },
-  tabActiveBar: { position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 36, height: 3, borderRadius: 2, background: "#0da8a8" },
-  tabIconCircle: { width: 52, height: 52, borderRadius: "50%", background: "#eef0f6", display: "flex", alignItems: "center", justifyContent: "center", color: "#3d4f6e", transition: "transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease" },
-  tabIconCircleActive: { background: "linear-gradient(145deg, #1ac8c8, #0a8585)", color: "#fff", transform: "translateY(-16px)", boxShadow: "0 6px 20px rgba(0,168,168,0.45), 0 0 0 6px rgba(0,168,168,0.1)" },
-  tabLabel: { fontSize: 10, fontWeight: 600, color: "#8898aa", letterSpacing: 0.2, lineHeight: 1 },
-  tabLabelActive: { color: "#0da8a8", fontWeight: 700 },
 };
