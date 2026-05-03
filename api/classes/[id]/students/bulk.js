@@ -22,6 +22,7 @@ module.exports = async (req, res) => {
   if (!canManageStudents(currentUser.role)) {
     return sendJson(res, 403, { error: "You do not have permission to import students" });
   }
+
   try {
     const body = await readJsonBody(req);
     const result = await bulkImportStudents(db, classId, body.students, body.examType);

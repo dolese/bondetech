@@ -188,6 +188,7 @@ export function AppSidebar({
             height: "100%",
             display: "flex",
             flexDirection: "column",
+            minHeight: 0,
             overflow: "hidden",
             padding: "18px 14px 16px",
             boxSizing: "border-box",
@@ -223,246 +224,248 @@ export function AppSidebar({
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              onSetPage("dashboard");
-              onClose();
-            }}
-            style={{
-              border: "none",
-              borderRadius: 16,
-              padding: "14px 16px",
-              textAlign: "left",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              background:
-                page === "dashboard"
-                  ? "linear-gradient(135deg, rgba(17,201,194,0.92), rgba(16,152,171,0.92))"
-                  : "rgba(255,255,255,0.06)",
-              color: "#fff",
-              fontSize: 15,
-              fontWeight: 800,
-              boxShadow: page === "dashboard" ? "0 14px 30px rgba(17,201,194,0.22)" : "none",
-              marginBottom: 18,
-            }}
-          >
-            {navIcon("dashboard")}
-            {t("dashboard")}
-          </button>
-
-          <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, fontWeight: 800, letterSpacing: 1.6, marginBottom: 10 }}>
-            MANAGEMENT
-          </div>
-
-          <div style={{ display: "grid", gap: 6, marginBottom: 14 }}>
-            {navItems.map((item) => {
-              const active = page === item.key;
-              const disabled = !activeClass;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => {
-                    if (!disabled) {
-                      onSetPage(item.key);
-                      onClose();
-                    }
-                  }}
-                  disabled={disabled}
-                  style={{
-                    border: "none",
-                    borderRadius: 14,
-                    padding: "11px 12px",
-                    textAlign: "left",
-                    cursor: disabled ? "not-allowed" : "pointer",
-                    opacity: disabled ? 0.42 : 1,
-                    background: active ? "rgba(255,255,255,0.12)" : "transparent",
-                    color: active ? "#fff" : "rgba(255,255,255,0.88)",
-                    fontSize: 14,
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  {navIcon(item.key)}
-                  {item.label}
-                </button>
-              );
-            })}
-
+          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: 2 }}>
             <button
               onClick={() => {
-                onSetPage("account");
+                onSetPage("dashboard");
                 onClose();
               }}
               style={{
                 border: "none",
-                borderRadius: 14,
-                padding: "11px 12px",
+                borderRadius: 16,
+                padding: "14px 16px",
                 textAlign: "left",
                 cursor: "pointer",
-                background: page === "account" ? "rgba(255,255,255,0.12)" : "transparent",
-                color: "#fff",
-                fontSize: 14,
-                fontWeight: 700,
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
+                background:
+                  page === "dashboard"
+                    ? "linear-gradient(135deg, rgba(17,201,194,0.92), rgba(16,152,171,0.92))"
+                    : "rgba(255,255,255,0.06)",
+                color: "#fff",
+                fontSize: 15,
+                fontWeight: 800,
+                boxShadow: page === "dashboard" ? "0 14px 30px rgba(17,201,194,0.22)" : "none",
+                marginBottom: 18,
               }}
             >
-              {navIcon("account")}
-              {accountLabel}
+              {navIcon("dashboard")}
+              {t("dashboard")}
             </button>
-          </div>
 
-          <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, fontWeight: 800, letterSpacing: 1.6, marginBottom: 10 }}>
-            CLASSES
-          </div>
+            <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, fontWeight: 800, letterSpacing: 1.6, marginBottom: 10 }}>
+              MANAGEMENT
+            </div>
 
-          <div style={{ flex: 1, overflowY: "auto", display: "grid", gap: 8, paddingRight: 2 }}>
-            {classesByYear.map(([year, yearClasses]) => (
-              <div
-                key={year}
+            <div style={{ display: "grid", gap: 6, marginBottom: 14 }}>
+              {navItems.map((item) => {
+                const active = page === item.key;
+                const disabled = !activeClass;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => {
+                      if (!disabled) {
+                        onSetPage(item.key);
+                        onClose();
+                      }
+                    }}
+                    disabled={disabled}
+                    style={{
+                      border: "none",
+                      borderRadius: 14,
+                      padding: "11px 12px",
+                      textAlign: "left",
+                      cursor: disabled ? "not-allowed" : "pointer",
+                      opacity: disabled ? 0.42 : 1,
+                      background: active ? "rgba(255,255,255,0.12)" : "transparent",
+                      color: active ? "#fff" : "rgba(255,255,255,0.88)",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                  >
+                    {navIcon(item.key)}
+                    {item.label}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => {
+                  onSetPage("account");
+                  onClose();
+                }}
                 style={{
-                  borderRadius: 18,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  padding: "10px 10px 8px",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "11px 12px",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  background: page === "account" ? "rgba(255,255,255,0.12)" : "transparent",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
                 }}
               >
+                {navIcon("account")}
+                {accountLabel}
+              </button>
+            </div>
+
+            <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, fontWeight: 800, letterSpacing: 1.6, marginBottom: 10 }}>
+              CLASSES
+            </div>
+
+            <div style={{ display: "grid", gap: 8 }}>
+              {classesByYear.map(([year, yearClasses]) => (
                 <div
+                  key={year}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 10,
-                    cursor: "pointer",
-                    marginBottom: expandedYears.has(year) ? 8 : 0,
+                    borderRadius: 18,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    padding: "10px 10px 8px",
                   }}
-                  onClick={() => onToggleYear(year)}
                 >
-                  <span style={{ color: "#fff", fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", gap: 6 }}>
-                    <ChevronIcon open={expandedYears.has(year)} />
-                    {year}
-                  </span>
-                  {yearClasses.length < forms.length && (
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        const nextForm = forms.find((form) => !yearClasses.some((cls) => cls.form === form));
-                        if (nextForm) onAddClass({ year, form: nextForm });
-                      }}
-                      style={{
-                        border: "none",
-                        borderRadius: 999,
-                        width: 22,
-                        height: 22,
-                        background: "rgba(17,201,194,0.18)",
-                        color: "#6ff6ea",
-                        cursor: "pointer",
-                        display: "grid",
-                        placeItems: "center",
-                      }}
-                    >
-                      <PlusIcon />
-                    </button>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      cursor: "pointer",
+                      marginBottom: expandedYears.has(year) ? 8 : 0,
+                    }}
+                    onClick={() => onToggleYear(year)}
+                  >
+                    <span style={{ color: "#fff", fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", gap: 6 }}>
+                      <ChevronIcon open={expandedYears.has(year)} />
+                      {year}
+                    </span>
+                    {yearClasses.length < forms.length && (
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          const nextForm = forms.find((form) => !yearClasses.some((cls) => cls.form === form));
+                          if (nextForm) onAddClass({ year, form: nextForm });
+                        }}
+                        style={{
+                          border: "none",
+                          borderRadius: 999,
+                          width: 22,
+                          height: 22,
+                          background: "rgba(17,201,194,0.18)",
+                          color: "#6ff6ea",
+                          cursor: "pointer",
+                          display: "grid",
+                          placeItems: "center",
+                        }}
+                      >
+                        <PlusIcon />
+                      </button>
+                    )}
+                  </div>
+
+                  {expandedYears.has(year) && (
+                    <div style={{ display: "grid", gap: 4 }}>
+                      {forms.map((form) => {
+                        const cls = yearClasses.find((item) => item.form === form);
+                        const active = cls && cls.id === activeId && isClassPage;
+                        return (
+                          <button
+                            key={form}
+                            onClick={() => {
+                              if (cls) {
+                                onPickClass(cls);
+                              } else {
+                                onAddClass({ year, form });
+                              }
+                            }}
+                            style={{
+                              border: "none",
+                              borderRadius: 12,
+                              padding: "9px 10px",
+                              textAlign: "left",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: 8,
+                              background: active ? "rgba(17,201,194,0.16)" : "rgba(255,255,255,0.04)",
+                              color: cls ? "#fff" : "rgba(255,255,255,0.44)",
+                              outline: active ? "1px solid rgba(111,246,234,0.35)" : "none",
+                            }}
+                            title={cls ? cls.name : `${t("selectClass")} ${form} ${year}`}
+                          >
+                            <span style={{ fontSize: 13, fontWeight: 700 }}>{form}</span>
+                            <span
+                              style={{
+                                borderRadius: 999,
+                                padding: cls ? "3px 8px" : "0 4px",
+                                background: cls ? "rgba(255,255,255,0.08)" : "transparent",
+                                fontSize: 11,
+                                fontWeight: 800,
+                                color: cls ? "#7ef2e8" : "#6ff6ea",
+                              }}
+                            >
+                              {cls ? cls.studentCount ?? cls.students?.length ?? 0 : "+"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
+              ))}
 
-                {expandedYears.has(year) && (
-                  <div style={{ display: "grid", gap: 4 }}>
-                    {forms.map((form) => {
-                      const cls = yearClasses.find((item) => item.form === form);
-                      const active = cls && cls.id === activeId && isClassPage;
-                      return (
-                        <button
-                          key={form}
-                          onClick={() => {
-                            if (cls) {
-                              onPickClass(cls);
-                            } else {
-                              onAddClass({ year, form });
-                            }
-                          }}
-                          style={{
-                            border: "none",
-                            borderRadius: 12,
-                            padding: "9px 10px",
-                            textAlign: "left",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            gap: 8,
-                            background: active ? "rgba(17,201,194,0.16)" : "rgba(255,255,255,0.04)",
-                            color: cls ? "#fff" : "rgba(255,255,255,0.44)",
-                            outline: active ? "1px solid rgba(111,246,234,0.35)" : "none",
-                          }}
-                          title={cls ? cls.name : `${t("selectClass")} ${form} ${year}`}
-                        >
-                          <span style={{ fontSize: 13, fontWeight: 700 }}>{form}</span>
-                          <span
-                            style={{
-                              borderRadius: 999,
-                              padding: cls ? "3px 8px" : "0 4px",
-                              background: cls ? "rgba(255,255,255,0.08)" : "transparent",
-                              fontSize: 11,
-                              fontWeight: 800,
-                              color: cls ? "#7ef2e8" : "#6ff6ea",
-                            }}
-                          >
-                            {cls ? cls.studentCount ?? cls.students?.length ?? 0 : "+"}
-                          </span>
-                        </button>
-                      );
-                    })}
+              {unorganizedClasses.length > 0 && (
+                <div
+                  style={{
+                    borderRadius: 18,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    padding: "10px",
+                  }}
+                >
+                  <div style={{ color: "rgba(255,255,255,0.58)", fontSize: 12, fontWeight: 800, marginBottom: 8 }}>
+                    {t("unorganized")}
                   </div>
-                )}
-              </div>
-            ))}
-
-            {unorganizedClasses.length > 0 && (
-              <div
-                style={{
-                  borderRadius: 18,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  padding: "10px",
-                }}
-              >
-                <div style={{ color: "rgba(255,255,255,0.58)", fontSize: 12, fontWeight: 800, marginBottom: 8 }}>
-                  {t("unorganized")}
+                  <div style={{ display: "grid", gap: 4 }}>
+                    {unorganizedClasses.map((cls) => (
+                      <button
+                        key={cls.id}
+                        onClick={() => onPickClass(cls)}
+                        style={{
+                          border: "none",
+                          borderRadius: 12,
+                          padding: "9px 10px",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 8,
+                          background: cls.id === activeId && isClassPage ? "rgba(17,201,194,0.16)" : "rgba(255,255,255,0.04)",
+                          color: "#fff",
+                        }}
+                      >
+                        <span style={{ fontSize: 13, fontWeight: 700 }}>{cls.name}</span>
+                        <span style={{ color: "#7ef2e8", fontSize: 11, fontWeight: 800 }}>
+                          {cls.studentCount ?? cls.students?.length ?? 0}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ display: "grid", gap: 4 }}>
-                  {unorganizedClasses.map((cls) => (
-                    <button
-                      key={cls.id}
-                      onClick={() => onPickClass(cls)}
-                      style={{
-                        border: "none",
-                        borderRadius: 12,
-                        padding: "9px 10px",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 8,
-                        background: cls.id === activeId && isClassPage ? "rgba(17,201,194,0.16)" : "rgba(255,255,255,0.04)",
-                        color: "#fff",
-                      }}
-                    >
-                      <span style={{ fontSize: 13, fontWeight: 700 }}>{cls.name}</span>
-                      <span style={{ color: "#7ef2e8", fontSize: 11, fontWeight: 800 }}>
-                        {cls.studentCount ?? cls.students?.length ?? 0}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div
