@@ -4,6 +4,111 @@ import { formatUserRole, USER_ROLE_OPTIONS } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
 
+function initialsFrom(user) {
+  const source = String(user?.displayName || user?.username || "?")
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2);
+  return source.map((part) => part[0]?.toUpperCase() || "").join("") || "?";
+}
+
+const ROLE_BADGE_COLORS = {
+  admin:   { bg: "#ede9fe", color: "#6d28d9", border: "#c4b5fd" },
+  teacher: { bg: "#dbeafe", color: "#1d4ed8", border: "#93c5fd" },
+  student: { bg: "#dcfce7", color: "#15803d", border: "#86efac" },
+  parent:  { bg: "#fef9c3", color: "#a16207", border: "#fde047" },
+  default: { bg: "#f1f5f9", color: "#475569", border: "#cbd5e1" },
+};
+
+function RoleBadge({ role }) {
+  const c = ROLE_BADGE_COLORS[role] || ROLE_BADGE_COLORS.default;
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "3px 10px",
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 800,
+        letterSpacing: "0.04em",
+        background: c.bg,
+        color: c.color,
+        border: `1px solid ${c.border}`,
+      }}
+    >
+      {formatUserRole(role)}
+    </span>
+  );
+}
+
+function StatusBadge({ active }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        padding: "3px 10px",
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 800,
+        background: active ? "#dcfce7" : "#fee2e2",
+        color: active ? "#15803d" : "#b91c1c",
+        border: `1px solid ${active ? "#86efac" : "#fca5a5"}`,
+      }}
+    >
+      <span
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          background: active ? "#16a34a" : "#dc2626",
+          display: "inline-block",
+        }}
+      />
+      {active ? "Active" : "Inactive"}
+    </span>
+  );
+}
+
+function ToggleSwitch({ checked, onChange, accentColor = "#2563eb" }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      style={{
+        position: "relative",
+        width: 40,
+        height: 22,
+        borderRadius: 999,
+        border: "none",
+        background: checked ? accentColor : "#cbd5e1",
+        cursor: "pointer",
+        transition: "background 0.2s",
+        flexShrink: 0,
+        padding: 0,
+      }}
+    >
+      <span
+        style={{
+          position: "absolute",
+          top: 3,
+          left: checked ? 21 : 3,
+          width: 16,
+          height: 16,
+          borderRadius: "50%",
+          background: "#fff",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+          transition: "left 0.2s",
+        }}
+      />
+    </button>
+  );
+}
+
 function blankManagedUser() {
   return {
     username: "",
@@ -71,6 +176,7 @@ export function AccountPage({
   const { isMobile, isTablet } = useViewport();
   const singleColumn = isMobile;
   const stackedColumns = isMobile || isTablet;
+  const [activeTab, setActiveTab] = useState("profile");
   const [form, setForm] = useState({
     username: "",
     displayName: "",
@@ -390,6 +496,19 @@ export function AccountPage({
     }
   };
 
+  const failedLogsCount = authLogs.filter((l) => l.status === "failed").length;
+
+  const tabs = [
+    { key: "profile", label: "Profile" },
+    ...(canManageUsers
+      ? [
+          { key: "users",    label: "Users",    badge: users.length || null },
+          { key: "activity", label: "Activity", badge: failedLogsCount || null, badgeDanger: true },
+          { key: "homepage", label: "Homepage" },
+        ]
+      : []),
+  ];
+
   return (
     <div
       style={{
@@ -400,61 +519,78 @@ export function AccountPage({
       }}
     >
       <div style={{ maxWidth: 1120, margin: "0 auto", display: "grid", gap: 18 }}>
+
+        {/* ── Header card ─────────────────────────────── */}
         <div
           style={{
             ...sectionStyle,
-            display: "grid",
-            gridTemplateColumns: stackedColumns ? "1fr" : "1.2fr 0.8fr",
+            background: "linear-gradient(135deg, #0f2d6e 0%, #1a4faa 55%, #2563eb 100%)",
+            border: "none",
+            padding: isMobile ? 18 : 24,
+            display: "flex",
+            alignItems: "center",
             gap: 18,
-            alignItems: "stretch",
+            flexWrap: "wrap",
           }}
         >
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#2563eb", letterSpacing: 1.1, textTransform: "uppercase", marginBottom: 10 }}>
-              Account
-            </div>
-            <div style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, color: "#0f2d6e", lineHeight: 1.1, marginBottom: 10 }}>
-              {user?.displayName || user?.username || "School Account"}
-            </div>
-            <div style={{ fontSize: 14, color: "#52627a", lineHeight: 1.7, maxWidth: 520 }}>
-              Manage your signed-in profile, password, and {canManageUsers ? "school users and role assignments." : "linked student access."}
-            </div>
-          </div>
-
           <div
             style={{
-              background: "linear-gradient(135deg, #0f2d6e, #2563eb)",
-              borderRadius: 16,
-              padding: 18,
+              width: isMobile ? 56 : 72,
+              height: isMobile ? 56 : 72,
+              borderRadius: "50%",
+              background: "linear-gradient(145deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08))",
+              border: "2px solid rgba(255,255,255,0.32)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: isMobile ? 20 : 26,
+              fontWeight: 900,
               color: "#fff",
-              display: "grid",
-              gap: 10,
-              alignContent: "start",
+              flexShrink: 0,
+              boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
+              letterSpacing: 1,
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "rgba(255,255,255,0.72)" }}>
-              Session Details
+            {initialsFrom(user)}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.62)", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>
+              Account
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>
-              Username: {user?.username || "Not set"}
+            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 6 }}>
+              {user?.displayName || user?.username || "School Account"}
             </div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.86)" }}>
-              Role: {formatUserRole(user?.role)}
-            </div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.86)" }}>
-              Last sign in: {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Current session"}
-            </div>
-            {user?.linkedIndexNo && (
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.86)" }}>
-                Linked index no: {user.linkedIndexNo}
-              </div>
-            )}
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.6, marginTop: 4 }}>
-              Authentication is now backed by the server and role-based access control.
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <RoleBadge role={user?.role} />
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+                @{user?.username || "—"}
+              </span>
+              {user?.lastLoginAt && (
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
+                  · Last sign in {new Date(user.lastLoginAt).toLocaleString()}
+                </span>
+              )}
             </div>
           </div>
+          <button
+            onClick={onLogout}
+            style={{
+              background: "rgba(255,255,255,0.12)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.22)",
+              borderRadius: 12,
+              padding: "10px 18px",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            Log Out
+          </button>
         </div>
 
+        {/* ── Password reset warning ───────────────────── */}
         {user?.mustChangePassword && (
           <div
             style={{
@@ -477,159 +613,216 @@ export function AccountPage({
           </div>
         )}
 
+        {/* ── Tab bar ──────────────────────────────────── */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: stackedColumns ? "1fr" : "1.1fr 0.9fr",
-            gap: 18,
+            display: "flex",
+            gap: 6,
+            flexWrap: "wrap",
+            background: "#fff",
+            borderRadius: 16,
+            border: "1px solid #e3ebf7",
+            padding: "6px 8px",
+            boxShadow: "0 4px 12px rgba(0,51,102,0.05)",
           }}
         >
-          <div style={{ ...sectionStyle, display: "grid", gap: 16 }}>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
-                Profile Details
-              </div>
-              <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
-                Update the account information stored on the server.
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 14 }}>
-              <TextInput label="Username" value={form.username} onChange={() => {}} disabled />
-              <TextInput
-                label="Display Name"
-                value={form.displayName}
-                onChange={(value) => updateField("displayName", value)}
-                required
-              />
-              <TextInput label="Role" value={formatUserRole(form.role)} onChange={() => {}} disabled />
-              <TextInput
-                label="Phone"
-                value={form.phone}
-                onChange={(value) => updateField("phone", value)}
-                placeholder="Optional"
-              />
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 14 }}>
-              <TextInput
-                label="Email"
-                value={form.email}
-                onChange={(value) => updateField("email", value)}
-                placeholder="Optional"
-              />
-              <TextInput
-                label="Linked Student Index No"
-                value={form.linkedIndexNo}
-                onChange={(value) => updateField("linkedIndexNo", value)}
-                placeholder="Student/parent accounts only"
-              />
-            </div>
-
-            {error && (
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#b42318" }}>
-                {error}
-              </div>
-            )}
-
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          {tabs.map((tab) => {
+            const active = activeTab === tab.key;
+            return (
               <button
-                onClick={handleSave}
-                disabled={saving}
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
                 style={{
-                  background: saving ? "#7aa3db" : "#2563eb",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  border: "none",
+                  borderRadius: 12,
+                  padding: "9px 16px",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  background: active ? "linear-gradient(135deg, #0f2d6e, #2563eb)" : "transparent",
+                  color: active ? "#fff" : "#52627a",
+                  boxShadow: active ? "0 6px 16px rgba(37,99,235,0.22)" : "none",
+                  transition: "background 0.18s, color 0.18s",
+                }}
+              >
+                {tab.label}
+                {tab.badge != null && (
+                  <span
+                    style={{
+                      minWidth: 18,
+                      height: 18,
+                      borderRadius: 999,
+                      background: active
+                        ? "rgba(255,255,255,0.22)"
+                        : tab.badgeDanger
+                        ? "#ef4444"
+                        : "#e0e9f7",
+                      color: active ? "#fff" : tab.badgeDanger ? "#fff" : "#2563eb",
+                      fontSize: 10,
+                      fontWeight: 900,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0 4px",
+                    }}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ══════════════════════════════════════════════
+            TAB: Profile
+        ══════════════════════════════════════════════ */}
+        {activeTab === "profile" && (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: stackedColumns ? "1fr" : "1.1fr 0.9fr",
+              gap: 18,
+            }}
+          >
+            <div style={{ ...sectionStyle, display: "grid", gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+                  Profile Details
+                </div>
+                <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
+                  Update the account information stored on the server.
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 14 }}>
+                <TextInput label="Username" value={form.username} onChange={() => {}} disabled />
+                <TextInput
+                  label="Display Name"
+                  value={form.displayName}
+                  onChange={(value) => updateField("displayName", value)}
+                  required
+                />
+                <TextInput label="Role" value={formatUserRole(form.role)} onChange={() => {}} disabled />
+                <TextInput
+                  label="Phone"
+                  value={form.phone}
+                  onChange={(value) => updateField("phone", value)}
+                  placeholder="Optional"
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 14 }}>
+                <TextInput
+                  label="Email"
+                  value={form.email}
+                  onChange={(value) => updateField("email", value)}
+                  placeholder="Optional"
+                />
+                <TextInput
+                  label="Linked Student Index No"
+                  value={form.linkedIndexNo}
+                  onChange={(value) => updateField("linkedIndexNo", value)}
+                  placeholder="Student/parent accounts only"
+                />
+              </div>
+
+              {error && (
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#b42318" }}>
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  style={{
+                    background: saving ? "#7aa3db" : "#2563eb",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "10px 18px",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    cursor: saving ? "not-allowed" : "pointer",
+                    boxShadow: "0 10px 22px rgba(37,99,235,0.22)",
+                  }}
+                >
+                  {saving ? "Saving..." : "Save Profile"}
+                </button>
+              </div>
+            </div>
+
+            <div style={{ ...sectionStyle, display: "grid", gap: 14, alignContent: "start" }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+                  {t("changePassword")}
+                </div>
+                <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
+                  {user?.mustChangePassword ? t("mustChangePasswordMessage") : t("updatePasswordIntro")}
+                </div>
+              </div>
+
+              <TextInput
+                label="Current Password"
+                value={passwordForm.currentPassword}
+                onChange={(value) => setPasswordForm((prev) => ({ ...prev, currentPassword: value }))}
+                type="password"
+              />
+              <TextInput
+                label="New Password"
+                value={passwordForm.newPassword}
+                onChange={(value) => setPasswordForm((prev) => ({ ...prev, newPassword: value }))}
+                type="password"
+              />
+              <TextInput
+                label="Confirm New Password"
+                value={passwordForm.confirmPassword}
+                onChange={(value) => setPasswordForm((prev) => ({ ...prev, confirmPassword: value }))}
+                type="password"
+              />
+
+              {passwordMsg && (
+                <div style={{ fontSize: 12, fontWeight: 700, color: passwordMsg === t("passwordUpdatedSuccessfully") ? "#1a6b2f" : "#b42318" }}>
+                  {passwordMsg}
+                </div>
+              )}
+
+              <button
+                onClick={handlePasswordChange}
+                disabled={passwordSaving}
+                style={{
+                  background: passwordSaving ? "#9ca3af" : "#102a43",
                   color: "#fff",
                   border: "none",
                   borderRadius: 10,
                   padding: "10px 18px",
                   fontSize: 13,
                   fontWeight: 800,
-                  cursor: saving ? "not-allowed" : "pointer",
-                  boxShadow: "0 10px 22px rgba(37,99,235,0.22)",
+                  cursor: passwordSaving ? "not-allowed" : "pointer",
                 }}
               >
-                {saving ? "Saving..." : "Save Profile"}
-              </button>
-              <button
-                onClick={onLogout}
-                style={{
-                  background: "#eef2f7",
-                  color: "#102a43",
-                  border: "1px solid #d5dfef",
-                  borderRadius: 10,
-                  padding: "10px 18px",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                Log Out
+                {passwordSaving ? "Updating..." : "Update Password"}
               </button>
             </div>
           </div>
+        )}
 
-          <div style={{ ...sectionStyle, display: "grid", gap: 14, alignContent: "start" }}>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
-                {t("changePassword")}
-              </div>
-              <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
-                {user?.mustChangePassword ? t("mustChangePasswordMessage") : t("updatePasswordIntro")}
-              </div>
-            </div>
-
-            <TextInput
-              label="Current Password"
-              value={passwordForm.currentPassword}
-              onChange={(value) => setPasswordForm((prev) => ({ ...prev, currentPassword: value }))}
-              type="password"
-            />
-            <TextInput
-              label="New Password"
-              value={passwordForm.newPassword}
-              onChange={(value) => setPasswordForm((prev) => ({ ...prev, newPassword: value }))}
-              type="password"
-            />
-            <TextInput
-              label="Confirm New Password"
-              value={passwordForm.confirmPassword}
-              onChange={(value) => setPasswordForm((prev) => ({ ...prev, confirmPassword: value }))}
-              type="password"
-            />
-
-            {passwordMsg && (
-              <div style={{ fontSize: 12, fontWeight: 700, color: passwordMsg === t("passwordUpdatedSuccessfully") ? "#1a6b2f" : "#b42318" }}>
-                {passwordMsg}
-              </div>
-            )}
-
-            <button
-              onClick={handlePasswordChange}
-              disabled={passwordSaving}
-              style={{
-                background: passwordSaving ? "#9ca3af" : "#102a43",
-                color: "#fff",
-                border: "none",
-                borderRadius: 10,
-                padding: "10px 18px",
-                fontSize: 13,
-                fontWeight: 800,
-                cursor: passwordSaving ? "not-allowed" : "pointer",
-              }}
-            >
-              {passwordSaving ? "Updating..." : "Update Password"}
-            </button>
-          </div>
-        </div>
-
-        {canManageUsers && (
+        {/* ══════════════════════════════════════════════
+            TAB: Users (admin-only)
+        ══════════════════════════════════════════════ */}
+        {activeTab === "users" && canManageUsers && (
           <div style={{ ...sectionStyle, display: "grid", gap: 18 }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
-                User Management
+                Create New User
               </div>
               <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
-                Create teachers, parents, students, and additional administrators with server-backed roles.
+                Add teachers, parents, students, and additional administrators with server-backed roles.
               </div>
             </div>
 
@@ -662,25 +855,39 @@ export function AccountPage({
                   fontSize: 13,
                   fontWeight: 800,
                   cursor: adminSaving ? "not-allowed" : "pointer",
+                  boxShadow: "0 8px 18px rgba(37,99,235,0.2)",
                 }}
               >
                 {adminSaving ? "Creating..." : "Create User"}
               </button>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: stackedColumns ? "1fr" : "1.2fr 0.8fr", gap: 12 }}>
-              <TextInput
-                label="Search Users"
-                value={userSearch}
-                onChange={setUserSearch}
-                placeholder="Search username, name, email, phone, or index no"
-              />
-              <SelectInput
-                label="Filter by Role"
-                value={roleFilter}
-                onChange={setRoleFilter}
-                options={[{ label: "All roles", value: "all" }, ...USER_ROLE_OPTIONS]}
-              />
+            <div
+              style={{
+                height: 1,
+                background: "#e3ebf7",
+                margin: "4px 0",
+              }}
+            />
+
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43", marginBottom: 12 }}>
+                Manage Users
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: stackedColumns ? "1fr" : "1.2fr 0.8fr", gap: 12 }}>
+                <TextInput
+                  label="Search Users"
+                  value={userSearch}
+                  onChange={setUserSearch}
+                  placeholder="Search username, name, email, phone, or index no"
+                />
+                <SelectInput
+                  label="Filter by Role"
+                  value={roleFilter}
+                  onChange={setRoleFilter}
+                  options={[{ label: "All roles", value: "all" }, ...USER_ROLE_OPTIONS]}
+                />
+              </div>
             </div>
 
             <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
@@ -699,37 +906,56 @@ export function AccountPage({
                       padding: isMobile ? 14 : 18,
                       background: "#f8fbff",
                       display: "grid",
-                      gap: 12,
+                      gap: 14,
                     }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                      <div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>{managedUser.displayName || managedUser.username}</div>
-                        <div style={{ fontSize: 12, color: "#64748b" }}>
-                          @{managedUser.username} • {formatUserRole(managedUser.role)}
-                        </div>
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: managedUser.active ? "#1a6b2f" : "#b42318" }}>
-                        {managedUser.active ? "Active" : "Inactive"}
-                      </div>
-                    </div>
-
-                    {edit.mustChangePassword && (
+                    {/* Card header with avatar + badges */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                       <div
                         style={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "#9a6700",
-                          background: "#fff7d6",
-                          border: "1px solid #f5d973",
-                          borderRadius: 999,
-                          padding: "6px 10px",
-                          width: "fit-content",
+                          width: 40,
+                          height: 40,
+                          borderRadius: "50%",
+                          background: "linear-gradient(145deg, #1f3c88, #16a3a3)",
+                          color: "#fff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: 900,
+                          fontSize: 14,
+                          flexShrink: 0,
                         }}
                       >
-                        {t("passwordResetRequired")}
+                        {initialsFrom(managedUser)}
                       </div>
-                    )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: "#102a43" }}>
+                          {managedUser.displayName || managedUser.username}
+                        </div>
+                        <div style={{ fontSize: 12, color: "#64748b" }}>@{managedUser.username}</div>
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                        <RoleBadge role={managedUser.role} />
+                        <StatusBadge active={managedUser.active !== false} />
+                        {managedUser.mustChangePassword && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              padding: "3px 10px",
+                              borderRadius: 999,
+                              fontSize: 11,
+                              fontWeight: 800,
+                              background: "#fff7d6",
+                              color: "#9a6700",
+                              border: "1px solid #f5d973",
+                            }}
+                          >
+                            {t("passwordResetRequired")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : isTablet ? "1fr 1fr" : "repeat(3, 1fr)", gap: 12 }}>
                       <TextInput label="Display Name" value={edit.displayName} onChange={(value) => updateManagedField(managedUser.username, "displayName", value)} />
@@ -740,25 +966,24 @@ export function AccountPage({
                       <TextInput label="Reset Password" type="password" value={edit.password} onChange={(value) => updateManagedField(managedUser.username, "password", value)} placeholder="Leave blank to keep current" />
                     </div>
 
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#425466", fontWeight: 600 }}>
-                      <input
-                        type="checkbox"
-                        checked={edit.active}
-                        onChange={(e) => updateManagedField(managedUser.username, "active", e.target.checked)}
-                        style={{ accentColor: "#2563eb" }}
-                      />
-                      User can sign in
-                    </label>
-
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#425466", fontWeight: 600 }}>
-                      <input
-                        type="checkbox"
-                        checked={edit.mustChangePassword}
-                        onChange={(e) => updateManagedField(managedUser.username, "mustChangePassword", e.target.checked)}
-                        style={{ accentColor: "#d97706" }}
-                      />
-                      {t("requirePasswordChangeNextSignIn")}
-                    </label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600, cursor: "pointer" }}>
+                        <ToggleSwitch
+                          checked={edit.active}
+                          onChange={(val) => updateManagedField(managedUser.username, "active", val)}
+                          accentColor="#2563eb"
+                        />
+                        User can sign in
+                      </label>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600, cursor: "pointer" }}>
+                        <ToggleSwitch
+                          checked={edit.mustChangePassword}
+                          onChange={(val) => updateManagedField(managedUser.username, "mustChangePassword", val)}
+                          accentColor="#d97706"
+                        />
+                        {t("requirePasswordChangeNextSignIn")}
+                      </label>
+                    </div>
 
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                       <button
@@ -811,15 +1036,37 @@ export function AccountPage({
                 );
               })}
               {!managedUserCards.length && (
-                <div style={{ fontSize: 13, color: "#64748b", border: "1px dashed #d5dfef", borderRadius: 12, padding: 16 }}>
-                  No users match the current search and filter.
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 10,
+                    padding: "32px 16px",
+                    border: "1px dashed #d5dfef",
+                    borderRadius: 14,
+                    color: "#64748b",
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width={36} height={36} fill="none" stroke="#cbd5e1" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="8" r="3" />
+                    <path d="M3.5 18c1.2-3.1 9.8-3.1 11 0" />
+                    <path d="M18 7v6" />
+                    <path d="M15 10h6" />
+                  </svg>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>No users match your search</div>
+                  <div style={{ fontSize: 12 }}>Try adjusting the search or role filter</div>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {canManageUsers && (
+        {/* ══════════════════════════════════════════════
+            TAB: Activity (admin-only)
+        ══════════════════════════════════════════════ */}
+        {activeTab === "activity" && canManageUsers && (
           <div style={{ ...sectionStyle, display: "grid", gap: 18 }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
@@ -830,42 +1077,73 @@ export function AccountPage({
               </div>
             </div>
 
-            <div style={{ display: "grid", gap: 12 }}>
+            <div style={{ display: "grid", gap: 10 }}>
               {authLogs.length ? authLogs.map((log) => (
                 <div
                   key={log.id}
                   style={{
-                    border: "1px solid #e2ebf7",
-                    borderRadius: 14,
-                    padding: isMobile ? 14 : 16,
-                    background: "#f8fbff",
-                    display: "grid",
-                    gap: 6,
+                    border: `1px solid ${log.status === "success" ? "#bbf7d0" : "#fecdd3"}`,
+                    borderLeft: `4px solid ${log.status === "success" ? "#16a34a" : "#dc2626"}`,
+                    borderRadius: 12,
+                    padding: isMobile ? 12 : 14,
+                    background: log.status === "success" ? "#f0fdf4" : "#fff5f5",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    flexWrap: "wrap",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
-                      {log.username || "Unknown user"}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 800,
-                        color: log.status === "success" ? "#1a6b2f" : "#b42318",
-                      }}
-                    >
-                      {log.status === "success" ? t("loginSuccess") : t("loginFailed")}
-                    </div>
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: "50%",
+                      background: log.status === "success" ? "#dcfce7" : "#fee2e2",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {log.status === "success" ? (
+                      <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="#16a34a" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="#dc2626" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    )}
                   </div>
-                  <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
-                    {(log.action || "login").toUpperCase()} • {log.role || "n/a"} • {log.createdAt ? new Date(log.createdAt).toLocaleString() : ""}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#425466", lineHeight: 1.6 }}>
-                    {log.reason || t("activityReasonUnavailable")}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
+                        {log.username || "Unknown user"}
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          padding: "2px 8px",
+                          borderRadius: 999,
+                          background: log.status === "success" ? "#dcfce7" : "#fee2e2",
+                          color: log.status === "success" ? "#16a34a" : "#dc2626",
+                        }}
+                      >
+                        {log.status === "success" ? t("loginSuccess") : t("loginFailed")}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
+                      {(log.action || "login").toUpperCase()} • {log.role || "n/a"} • {log.createdAt ? new Date(log.createdAt).toLocaleString() : ""}
+                    </div>
+                    {log.reason && (
+                      <div style={{ fontSize: 12, color: "#425466", marginTop: 2 }}>{log.reason}</div>
+                    )}
                   </div>
                 </div>
               )) : (
-                <div style={{ fontSize: 13, color: "#64748b", border: "1px dashed #d5dfef", borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 13, color: "#64748b", border: "1px dashed #d5dfef", borderRadius: 12, padding: 20, textAlign: "center" }}>
                   {t("noLoginActivity")}
                 </div>
               )}
@@ -873,7 +1151,10 @@ export function AccountPage({
           </div>
         )}
 
-        {canManageUsers && (
+        {/* ══════════════════════════════════════════════
+            TAB: Homepage (admin-only)
+        ══════════════════════════════════════════════ */}
+        {activeTab === "homepage" && canManageUsers && (
           <div style={{ ...sectionStyle, display: "grid", gap: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
               <div>
