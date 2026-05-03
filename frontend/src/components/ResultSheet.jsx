@@ -11,6 +11,9 @@ const RESULT_SHEET_PAPER_SIZE = "a3";
 const RESULT_SHEET_ORIENTATION = "landscape";
 const RESULT_SHEET_PREVIEW_WIDTH = "420mm";
 const RESULT_SHEET_PREVIEW_HEIGHT = "297mm";
+const RESULT_SHEET_MARGIN_H = "20mm";
+const RESULT_SHEET_HEADER_HEIGHT = "25mm";
+const RESULT_SHEET_FOOTER_HEIGHT = "20mm";
 const REPORT_CARD_PAPER_SIZE = "a4";
 const REPORT_CARD_ORIENTATION = "portrait";
 
@@ -113,15 +116,18 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     },
     sheet: {
       background: "#fff",
-      padding: isMobile ? 12 : 18,
+      paddingLeft: RESULT_SHEET_MARGIN_H,
+      paddingRight: RESULT_SHEET_MARGIN_H,
       borderRadius: 10,
       boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
       border: "1px solid #d6e0f5",
       pageBreakAfter: "always",
       width: RESULT_SHEET_PREVIEW_WIDTH,
-      minHeight: RESULT_SHEET_PREVIEW_HEIGHT,
+      height: RESULT_SHEET_PREVIEW_HEIGHT,
       boxSizing: "border-box",
       flexShrink: 0,
+      display: "flex",
+      flexDirection: "column",
     },
     header: {
       display: "flex",
@@ -129,8 +135,10 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       gap: isMobile ? 8 : 12,
       flexDirection: isMobile ? "column" : "row",
       borderBottom: "2px solid #003366",
-      paddingBottom: 10,
-      marginBottom: 16,
+      paddingBottom: 6,
+      height: RESULT_SHEET_HEADER_HEIGHT,
+      flexShrink: 0,
+      boxSizing: "border-box",
     },
     headerCenter: {
       textAlign: "center",
@@ -210,12 +218,16 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       display: "grid",
       gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
       gap: isMobile ? 16 : 40,
-      marginTop: 30,
+      height: RESULT_SHEET_FOOTER_HEIGHT,
+      flexShrink: 0,
+      boxSizing: "border-box",
+      alignItems: "end",
+      marginTop: 0,
+      borderTop: "1px solid #ccc",
+      paddingTop: 6,
     },
     signBox: {
-      height: 80,
-      borderTop: "1px solid #333",
-      paddingTop: 6,
+      paddingTop: 4,
       textAlign: "center",
       fontSize: 9,
       color: "#555",
@@ -327,6 +339,9 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
           </div>
           <img src="/asset/bonde.jpg" alt="Bonde logo" style={styles.logo} />
         </div>
+
+        {/* Body content — flex-grows to fill the 252 mm between header and footer */}
+        <div style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
 
         {!present.length ? (
           <div
@@ -510,6 +525,8 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
               </table>
             </div>
           </div>
+        </div>
+
         </div>
 
         {/* Signature Section */}
