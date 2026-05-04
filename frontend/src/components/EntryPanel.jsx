@@ -224,7 +224,9 @@ export function EntryPanel({
         s.posn !== null && s.posn !== undefined ? Number(s.posn) : "",
       ];
     });
-    exportXlsx(`${classData.name || "class"}-students`, headers, rows);
+    exportXlsx(`${classData.name || "class"}-students`, headers, rows).catch((err) => {
+      console.error("XLSX export failed:", err);
+    });
   };
 
   const cleanSubject = (value) => String(value ?? "").trim();

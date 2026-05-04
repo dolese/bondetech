@@ -842,7 +842,11 @@ export function Dashboard({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : isTablet ? "repeat(3, minmax(0, 1fr))" : "repeat(5, minmax(0, 1fr))",
+            gridTemplateColumns: isMobile
+              ? "repeat(2, minmax(0, 1fr))"
+              : isTablet
+              ? "repeat(3, minmax(0, 1fr))"
+              : "repeat(5, minmax(0, 1fr))",
             gap: 16,
           }}
         >
