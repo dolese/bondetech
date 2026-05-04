@@ -15,6 +15,16 @@ import { TextInput, NumberInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { exportXlsx } from "../utils/xlsxExport";
 
+// Return the appropriate display value for a grade cell in view mode.
+// In composite mode grade.raw holds the current-exam entry; fall back to grade.score.
+function gradeDisplayValue(grade) {
+  if (!grade) return "–";
+  if (grade.raw === "ABS") return "ABS";
+  if (grade.raw != null) return grade.raw;
+  if (grade.score != null) return grade.score;
+  return "–";
+}
+
 export function EntryPanel({
   classId,
   classData,
@@ -1601,12 +1611,7 @@ export function EntryPanel({
                     const editInitial = (rawVal != null && rawVal !== "ABS") ? rawVal : "";
                     const score = isEditing
                       ? editData.grades?.[si]?.score ?? ""
-                      : (() => {
-                          const g = s.grades?.[si];
-                          if (!g) return "–";
-                          if (g.raw === "ABS") return "ABS";
-                          return g.raw ?? g.score ?? "–";
-                        })();
+                      : gradeDisplayValue(s.grades?.[si]);
                     const viewGrade = s.grades?.[si]?.grade ?? null;
                     const editGrade = isEditing ? (editData.grades?.[si]?.grade ?? null) : null;
                     return (

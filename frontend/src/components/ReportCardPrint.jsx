@@ -2,6 +2,13 @@ import React from "react";
 import { GRADE_COLORS, getCompositeEntry } from "../utils/constants";
 import { getGradePoints } from "../utils/grading";
 
+// Return a display-safe string for a raw score value (numeric, "ABS", null, or undefined).
+function formatScoreDisplay(rawValue, fallback = "-") {
+  if (rawValue === "ABS") return "ABS";
+  if (rawValue != null) return rawValue;
+  return fallback;
+}
+
 const PAPER_DIMENSIONS = {
   a4: { width: "210mm", minHeight: "297mm" },
   a3: { width: "297mm", minHeight: "420mm" },
@@ -255,12 +262,8 @@ export function ReportCardPrint({
             {subjects.map((subj, i) => {
               const grade = grades[i];
               const combinedDisplay = grade?.raw === "ABS" ? "ABS" : (grade?.score != null ? Number(grade.score).toFixed(1) : "-");
-              const currentDisplay = grade?.raw === "ABS" ? "ABS" : (grade?.raw != null ? grade.raw : "-");
-              const partnerDisplay = (() => {
-                if (grade?.partnerRaw === "ABS") return "ABS";
-                if (grade?.partnerRaw != null) return grade.partnerRaw;
-                return "-";
-              })();
+              const currentDisplay = formatScoreDisplay(grade?.raw === "ABS" ? "ABS" : grade?.raw);
+              const partnerDisplay = formatScoreDisplay(grade?.partnerRaw);
               const pointDisplay = grade?.grade ? getGradePoints(grade.grade) : "-";
               return (
                 <tr key={subj}>
