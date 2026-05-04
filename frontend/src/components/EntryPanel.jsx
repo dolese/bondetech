@@ -12,6 +12,7 @@ import { getGrade, getDivision, computeStudent } from "../utils/grading";
 import { validateStudent, validateSchoolInfo } from "../utils/validation";
 import { TextInput, NumberInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
+import { exportXlsx } from "../utils/xlsxExport";
 
 export function EntryPanel({
   classId,
@@ -196,6 +197,36 @@ export function EntryPanel({
     a.download = `${classData.name || "class"}-students.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleExportXlsx = () => {
+    const headers = [
+      "CNO", "Name", "Sex", "Status",
+      ...subjects,
+      "Total", "Average", "Grade", "Division", "Points", "Position",
+    ];
+    const rows = (computed ?? []).map((s) => {
+      const scores = subjects.map((_, si) => {
+        const v = s.grades?.[si]?.score;
+        return (v !== null && v !== undefined) ? Number(v) : "";
+      });
+      return [
+        s.index_no ?? "",
+        s.name ?? "",
+        s.sex ?? "",
+        s.status ?? "",
+        ...scores,
+        s.total !== null && s.total !== undefined ? Number(s.total) : "",
+        s.avg !== null && s.avg !== undefined ? Number(s.avg) : "",
+        s.agrd ?? "",
+        s.div ?? "",
+        s.pts !== null && s.pts !== undefined ? Number(s.pts) : "",
+        s.posn !== null && s.posn !== undefined ? Number(s.posn) : "",
+      ];
+    });
+    exportXlsx(`${classData.name || "class"}-students`, headers, rows).catch((err) => {
+      console.error("XLSX export failed:", err);
+    });
   };
 
   const cleanSubject = (value) => String(value ?? "").trim();
@@ -630,6 +661,22 @@ export function EntryPanel({
               }}
             >
               ⬇ Export JSON
+            </button>
+            <button
+              onClick={handleExportXlsx}
+              title="Export students and results as Excel (XLSX)"
+              style={{
+                padding: "6px 12px",
+                background: "#1a7336",
+                color: "#fff",
+                border: "none",
+                borderRadius: 5,
+                cursor: "pointer",
+                fontWeight: 700,
+                height: 30,
+              }}
+            >
+              📊 Export XLSX
             </button>
           </div>
           <div style={styles.tlbDivider} />

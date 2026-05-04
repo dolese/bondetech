@@ -46,7 +46,7 @@ function averageOf(values) {
 }
 
 export function ReportsPage({ classData, computed, allClasses = [], onOpenReportCard }) {
-  const { isMobile } = useViewport();
+  const { isMobile, isTablet } = useViewport();
   const [exportingZip, setExportingZip] = useState(false);
   const [template, setTemplate] = useState("official");
   const schoolInfo = classData.school_info ?? DEFAULT_SCHOOL;
@@ -314,7 +314,7 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
           </button>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(0, 1fr))", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))", gap: 12 }}>
           <div style={styles.metricCard}>
             <div style={{ fontSize: 11, color: "#516074", fontWeight: 800, textTransform: "uppercase" }}>Students Reported</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: "#102a43" }}>{present.length}</div>
@@ -339,7 +339,7 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))", gap: 12 }}>
           <div>
             <label style={styles.controlLabel}>Template</label>
             <select value={template} onChange={(event) => setTemplate(event.target.value)} style={styles.select}>
@@ -363,14 +363,14 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.1fr 0.9fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile || isTablet ? "1fr" : "1.1fr 0.9fr", gap: 12 }}>
         <div style={{ ...styles.section, display: "grid", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>Ranking History</div>
               <div style={{ fontSize: 12, color: "#64748b" }}>Track rank changes across all recorded exam types in this class.</div>
             </div>
-            <div style={{ minWidth: isMobile ? "100%" : 220 }}>
+            <div style={{ minWidth: isMobile || isTablet ? "100%" : 220 }}>
               <label style={styles.controlLabel}>Selected Student</label>
               <select value={selectedStudentId} onChange={(event) => setSelectedStudentId(event.target.value)} style={styles.select}>
                 {present.map((student) => (
