@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL } from "../utils/constants";
+import { GRADE_COLORS, DIVISION_COLORS, DEFAULT_SCHOOL, getCompositeEntry } from "../utils/constants";
 import { exportElementToPdf, exportElementToPdfBlob } from "../utils/pdfExport";
 import { useViewport } from "../utils/useViewport";
 import JSZip from "jszip";
@@ -79,6 +79,12 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
   const sheetRef = useRef(null); // wraps ALL page divs for PDF export
   const { isMobile } = useViewport();
   const [exportingZip, setExportingZip] = useState(false);
+
+  // Composite mode: detect from classData's exam setting
+  const compositeEntry = getCompositeEntry(
+    classData.school_info?.exam,
+    classData.composite_config ?? {}
+  );
 
   // Split students into per-page chunks
   const pages = buildPageChunks(present);
@@ -320,6 +326,11 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         <p style={{ fontSize: 10, color: "#999", margin: "4px 0 0" }}>
           {schoolInfo.form} · {schoolInfo.term} · {schoolInfo.exam ?? schoolInfo.term} · {schoolInfo.year}
         </p>
+        {compositeEntry && (
+          <p style={{ fontSize: 9, color: "#7a5800", margin: "3px 0 0", fontWeight: 700 }}>
+            🔗 Combined Result: ({compositeEntry.partnerExam} + {schoolInfo.exam ?? schoolInfo.term}) ÷ 2
+          </p>
+        )}
         <p style={{ fontSize: 10, color: "#999", margin: "4px 0 0" }}>
           {new Date().toLocaleDateString()}
         </p>

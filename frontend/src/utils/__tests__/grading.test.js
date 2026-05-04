@@ -308,3 +308,93 @@ describe("getPassRates", () => {
     expect(passRate).toBe(0);
   });
 });
+
+// ─── computeStudent — composite mode ─────────────────────────────────────────
+
+describe("computeStudent composite mode", () => {
+  const mkComposite = (scores, partnerScores, overrides = {}) => ({
+    id: "s1",
+    name: "Test Student",
+    sex: "M",
+    status: "present",
+    scores,
+    partnerScores,
+    ...overrides,
+  });
+
+  it("averages current and partner scores per subject", () => {
+    // 7 subjects: current=80, partner=60 → combined=70
+    const scores = Array(7).fill(80);
+    const partner = Array(7).fill(60);
+    const result = computeStudent(mkComposite(scores, partner), SUBJECTS_7);
+    expect(result.grades[0].score).toBe(70);
+    expect(result.grades[0].raw).toBe(80);        // current exam's raw score
+    expect(result.grades[0].partnerRaw).toBe(60); // partner exam's raw score
+    expect(result.grades[0].grade).toBe("B");     // 70 → B
+    expect(result.total).toBe(490); // 7 × 70
+    expect(result.avg).toBe(70);
+  });
+
+  it("uses only current score when partner score is absent", () => {
+    const scores = [80, 80, 80, 80, 80, 80, 80];
+    const partner = ["ABS", 60, 60, 60, 60, 60, 60];
+    const result = computeStudent(mkComposite(scores, partner), SUBJECTS_7);
+    // Subject 0: partner absent → uses current score only (80)
+    expect(result.grades[0].score).toBe(80);
+    expect(result.grades[0].partnerRaw).toBe("ABS");
+    // Subject 1: both present → average (80+60)/2=70
+    expect(result.grades[1].score).toBe(70);
+  });
+
+  it("uses only partner score when current score is absent", () => {
+    const scores = ["ABS", 80, 80, 80, 80, 80, 80];
+    const partner = [60, 60, 60, 60, 60, 60, 60];
+    const result = computeStudent(mkComposite(scores, partner), SUBJECTS_7);
+    // Subject 0: current absent → uses partner score only (60)
+    expect(result.grades[0].score).toBe(60);
+    expect(result.grades[0].raw).toBe("ABS");
+    expect(result.grades[0].partnerRaw).toBe(60);
+  });
+
+  it("counts subject as absent when both sittings are absent", () => {
+    const scores = ["ABS", 80, 80, 80, 80, 80, 80];
+    const partner = ["ABS", 60, 60, 60, 60, 60, 60];
+    const result = computeStudent(mkComposite(scores, partner), SUBJECTS_7);
+    expect(result.grades[0].score).toBeNull();
+    expect(result.grades[0].raw).toBe("ABS");
+    expect(result.grades[0].partnerRaw).toBe("ABS");
+    // 6 subjects with data → INCOMPLETE
+    expect(result.resultStatus).toBe("INCOMPLETE");
+  });
+
+  it("marks ABSENT when all subjects absent in both sittings", () => {
+    const scores = Array(7).fill("ABS");
+    const partner = Array(7).fill("ABS");
+    const result = computeStudent(mkComposite(scores, partner), SUBJECTS_7);
+    expect(result.resultStatus).toBe("ABSENT");
+    expect(result.total).toBeNull();
+  });
+
+  it("handles missing partner scores array (falls back to current only)", () => {
+    const scores = [80, 80, 80, 80, 80, 80, 80];
+    const partner = []; // shorter than scores
+    const result = computeStudent(mkComposite(scores, partner), SUBJECTS_7);
+    // Partner scores[0] is undefined → treated as absent → use currentScore only
+    expect(result.grades[0].score).toBe(80);
+  });
+
+  it("computes correct division in full composite scenario", () => {
+    // All 7 subjects: current=80 (A), partner=80 (A) → combined=80 (A)
+    // Points = 7 × 1 = 7 → Division I
+    const scores = Array(7).fill(80);
+    const partner = Array(7).fill(80);
+    const result = computeStudent(mkComposite(scores, partner), SUBJECTS_7);
+    expect(result.div).toBe("I");
+    expect(result.points).toBe(7);
+  });
+
+  it("does not attach partnerRaw when not in composite mode", () => {
+    const result = computeStudent(mkStudent([80]), ["MATH"]);
+    expect("partnerRaw" in result.grades[0]).toBe(false);
+  });
+});

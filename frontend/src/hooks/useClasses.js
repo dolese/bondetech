@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { API } from "../api";
-import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE } from "../utils/constants";
+import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE, getCompositeEntry } from "../utils/constants";
 import { withPositions } from "../utils/grading";
 
 export const CLASS_FORMS = ["Form I", "Form II", "Form III", "Form IV"];
@@ -35,6 +35,7 @@ const normalizeClass = (cls) => ({
     : Array.isArray(cls.monthlyExams)
     ? cls.monthlyExams
     : [],
+  composite_config: cls.composite_config ?? cls.compositeConfig ?? {},
 });
 
 const toApiStudent = (student) => ({
@@ -130,10 +131,15 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
   const allComputed = useMemo(() => {
     return classes.map((cls) => {
       const examType = cls.school_info?.exam || DEFAULT_EXAM_TYPE;
-      const studentsWithExamScores = (cls.students ?? []).map((student) => ({
-        ...student,
-        scores: resolveExamScores(student, examType),
-      }));
+      const compositeEntry = getCompositeEntry(examType, cls.composite_config ?? {});
+      const studentsWithExamScores = (cls.students ?? []).map((student) => {
+        const scores = resolveExamScores(student, examType);
+        if (compositeEntry) {
+          const partnerScores = resolveExamScores(student, compositeEntry.partnerExam);
+          return { ...student, scores, partnerScores };
+        }
+        return { ...student, scores };
+      });
       return {
         ...cls,
         computed: withPositions(studentsWithExamScores, cls.subjects ?? DEFAULT_SUBJECTS),
@@ -143,10 +149,15 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
 
   const activeComputed = useMemo(() => {
     if (!activeClass) return [];
-    const studentsWithExamScores = (activeClass.students ?? []).map((student) => ({
-      ...student,
-      scores: resolveExamScores(student, activeExam),
-    }));
+    const compositeEntry = getCompositeEntry(activeExam, activeClass.composite_config ?? {});
+    const studentsWithExamScores = (activeClass.students ?? []).map((student) => {
+      const scores = resolveExamScores(student, activeExam);
+      if (compositeEntry) {
+        const partnerScores = resolveExamScores(student, compositeEntry.partnerExam);
+        return { ...student, scores, partnerScores };
+      }
+      return { ...student, scores };
+    });
     return withPositions(studentsWithExamScores, activeClass.subjects ?? DEFAULT_SUBJECTS);
   }, [activeClass, activeExam, resolveExamScores]);
 
@@ -458,6 +469,21 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
     saveExamForClass(activeClass, exam);
   }, [activeClass, saveExamForClass]);
 
+  const onUpdateCompositeConfig = useCallback(async (compositeConfig) => {
+    if (!activeClass) return;
+    try {
+      await API.updateClass(activeClass.id, { compositeConfig });
+      setClasses((prev) =>
+        prev.map((cls) =>
+          cls.id === activeClass.id ? { ...cls, composite_config: compositeConfig } : cls
+        )
+      );
+      showToast?.("Composite exam settings updated");
+    } catch (err) {
+      showToast?.(err.message, "error");
+    }
+  }, [activeClass, showToast]);
+
   return {
     classes,
     activeId,
@@ -493,6 +519,7 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
     onImportBackup,
     onLoadAuditLog,
     onChangeExam,
+    onUpdateCompositeConfig,
     resetClassesState,
   };
 }
