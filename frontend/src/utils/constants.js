@@ -95,6 +95,32 @@ export const GRADE_POINTS = {
   F: 5,
 };
 
+// Composite exam config: exam types that combine two sittings ((midterm + exam) / 2).
+// Keys are the composite exam values; values define the default midterm partner.
+export const COMPOSITE_EXAM_CONFIG = {
+  "Terminal Exam": {
+    partnerExam: "March Exam",
+    label: "March + Terminal",
+  },
+  "September Exam": {
+    partnerExam: "Pre-Mock Exam",
+    label: "Pre-Mock + September",
+  },
+  "Annual Exam": {
+    partnerExam: "September Exam",
+    label: "September + Annual",
+  },
+};
+
+// Returns the composite config entry for an exam type, merging any per-class overrides.
+// Returns null when the exam type is not a composite exam.
+export const getCompositeEntry = (examType, classCompositeConfig = {}) => {
+  const defaults = COMPOSITE_EXAM_CONFIG[examType];
+  if (!defaults) return null;
+  const override = classCompositeConfig[examType] ?? {};
+  return { ...defaults, ...override };
+};
+
 // API endpoints
 export const API_BASE = "/api";
 
