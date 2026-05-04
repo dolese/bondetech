@@ -1,6 +1,13 @@
 import React from "react";
-import { GRADE_COLORS } from "../utils/constants";
+import { GRADE_COLORS, getCompositeEntry } from "../utils/constants";
 import { getGradePoints } from "../utils/grading";
+
+// Return a display-safe string for a raw score value (numeric, "ABS", null, or undefined).
+function formatScoreDisplay(rawValue, fallback = "-") {
+  if (rawValue === "ABS") return "ABS";
+  if (rawValue !== null && rawValue !== undefined) return rawValue;
+  return fallback;
+}
 
 const PAPER_DIMENSIONS = {
   a4: { width: "210mm", minHeight: "297mm" },
@@ -29,6 +36,13 @@ export function ReportCardPrint({
   const subjects = classData.subjects ?? [];
   const grades = student.grades ?? [];
   const schoolInfo = classData.school_info ?? {};
+
+  // Composite mode: some grades carry a `partnerRaw` value
+  const compositeEntry = getCompositeEntry(
+    schoolInfo.exam,
+    classData.composite_config ?? {}
+  );
+  const isComposite = compositeEntry !== null && grades.some((g) => g && "partnerRaw" in g);
   const numericGrades = grades.filter((grade) => grade?.score !== null && grade?.score !== undefined);
   const totalScore = numericGrades.reduce((sum, grade) => sum + (grade?.score || 0), 0);
   const avgScore = numericGrades.length > 0 ? (totalScore / numericGrades.length).toFixed(1) : "0.0";
@@ -227,12 +241,19 @@ export function ReportCardPrint({
       </div>
 
       <div style={styles.sectionTitle}>SUBJECT PERFORMANCE</div>
+      {isComposite && (
+        <div style={{ fontSize: isCompact ? 10 : 11, color: "#7a5800", fontWeight: 700, marginBottom: 6 }}>
+          🔗 Combined Result: ({compositeEntry.partnerExam} + {schoolInfo.exam}) ÷ 2
+        </div>
+      )}
       <div style={styles.scoreWrap}>
         <table style={styles.scoreTable}>
           <thead>
             <tr>
               <th style={styles.th}>Subject</th>
-              <th style={styles.th}>Score</th>
+              {isComposite && <th style={styles.th}>{compositeEntry.partnerExam.split(" ")[0]}</th>}
+              {isComposite && <th style={styles.th}>{schoolInfo.exam?.split(" ")[0] ?? "Exam"}</th>}
+              <th style={styles.th}>{isComposite ? "Combined" : "Score"}</th>
               <th style={styles.th}>Grade</th>
               <th style={styles.th}>Points</th>
             </tr>
@@ -240,12 +261,16 @@ export function ReportCardPrint({
           <tbody>
             {subjects.map((subj, i) => {
               const grade = grades[i];
-              const scoreDisplay = grade?.raw === "ABS" ? "ABS" : grade?.score ?? "-";
+              const combinedDisplay = grade?.raw === "ABS" ? "ABS" : (grade?.score != null ? Number(grade.score).toFixed(1) : "-");
+              const currentDisplay = formatScoreDisplay(grade?.raw);
+              const partnerDisplay = formatScoreDisplay(grade?.partnerRaw);
               const pointDisplay = grade?.grade ? getGradePoints(grade.grade) : "-";
               return (
                 <tr key={subj}>
                   <td style={{ ...styles.td, textAlign: "left" }}>{subj}</td>
-                  <td style={styles.td}>{scoreDisplay}</td>
+                  {isComposite && <td style={styles.td}>{partnerDisplay}</td>}
+                  {isComposite && <td style={styles.td}>{currentDisplay}</td>}
+                  <td style={styles.td}>{isComposite ? combinedDisplay : currentDisplay}</td>
                   <td style={{ ...styles.td, fontWeight: 800, color: GRADE_COLORS[grade?.grade] || "#999" }}>
                     {grade?.grade ?? "-"}
                   </td>

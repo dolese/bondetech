@@ -7,12 +7,23 @@ import {
   EXAM_TYPES,
   DEFAULT_EXAM_TYPE,
   getMonthlyExamKey,
+  getCompositeEntry,
 } from "../utils/constants";
 import { getGrade, getDivision, computeStudent } from "../utils/grading";
 import { validateStudent, validateSchoolInfo } from "../utils/validation";
 import { TextInput, NumberInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { exportXlsx } from "../utils/xlsxExport";
+
+// Return the appropriate display value for a grade cell in view mode.
+// In composite mode grade.raw holds the current-exam entry; fall back to grade.score.
+function gradeDisplayValue(grade) {
+  if (!grade) return "–";
+  if (grade.raw === "ABS") return "ABS";
+  if (grade.raw != null) return grade.raw;
+  if (grade.score != null) return grade.score;
+  return "–";
+}
 
 export function EntryPanel({
   classId,
@@ -32,6 +43,8 @@ export function EntryPanel({
   const subjects = classData.subjects ?? [];
   // Determine the effective active exam: prefer the prop, fall back to schoolInfo
   const effectiveExam = activeExam || classData.school_info?.exam || DEFAULT_EXAM_TYPE;
+  // Composite exam: combines current + partner exam scores as (current + partner) / 2
+  const compositeEntry = getCompositeEntry(effectiveExam, classData.composite_config ?? {});
   const monthlyExamOptions = Array.isArray(classData.monthly_exams)
     ? classData.monthly_exams.map((month) => ({
         value: getMonthlyExamKey(month),
@@ -96,7 +109,14 @@ export function EntryPanel({
     if (!bulkMode) return;
     const next = {};
     (computed ?? []).forEach((s) => {
-      next[s.id] = subjects.map((_, i) => s.grades?.[i]?.score ?? "");
+      // Use raw score (current exam's entered value) so teachers edit what they entered,
+      // not the combined average produced in composite mode.
+      next[s.id] = subjects.map((_, i) => {
+        const g = s.grades?.[i];
+        if (!g) return "";
+        if (g.raw === "ABS") return "";
+        return g.raw ?? g.score ?? "";
+      });
     });
     setBulkScores(next);
   }, [bulkMode, computed, subjects]);
@@ -127,7 +147,13 @@ export function EntryPanel({
       setErrors(validation.errors);
       return;
     }
-    const scores = (classData.subjects ?? []).map((_, i) => editData.grades?.[i]?.score ?? null);
+    // Use grade.raw when available (avoids saving the combined average in composite mode).
+    const scores = (classData.subjects ?? []).map((_, i) => {
+      const g = editData.grades?.[i];
+      if (!g) return null;
+      if (g.raw === "ABS") return "ABS";
+      return g.raw ?? g.score ?? null;
+    });
     await onUpdateStudent({
       ...editData,
       scores,
@@ -516,6 +542,31 @@ export function EntryPanel({
         <div style={{ fontSize: 11, color: "#667", marginBottom: 8 }}>
           Add, edit, and score students for this class.
         </div>
+
+        {/* Composite exam banner */}
+        {compositeEntry && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            background: "#fffbe6",
+            border: "1.5px solid #e0b800",
+            borderRadius: 7,
+            padding: "7px 12px",
+            marginBottom: 10,
+            fontSize: 11,
+            color: "#7a5800",
+            fontWeight: 700,
+          }}>
+            <span>🔗</span>
+            <span>
+              <strong>Composite Mode — {compositeEntry.label} ÷ 2</strong>
+              {" "}— Grades use the average of <em>{compositeEntry.partnerExam}</em> and <em>{effectiveExam}</em>.
+              Score columns show the current exam's entry; totals reflect the combined average.
+            </span>
+          </div>
+        )}
+
         <div style={styles.tlbx}>
           {/* Row 1: Exam selector + Search (always full-width on mobile) */}
           <div style={{ ...styles.tlbGroup, flex: "1 1 100%" }}>
@@ -1554,7 +1605,13 @@ export function EntryPanel({
 
                   {/* Score inputs */}
                   {(classData.subjects ?? []).map((subj, si) => {
-                    const score = isEditing ? editData.grades?.[si]?.score ?? "" : s.grades?.[si]?.score ?? "–";
+                    // In composite mode use grade.raw (current exam's entry) so teachers
+                    // see and edit what they typed, not the combined average.
+                    const rawVal = isEditing ? editData.grades?.[si]?.raw : s.grades?.[si]?.raw;
+                    const editInitial = (rawVal != null && rawVal !== "ABS") ? rawVal : "";
+                    const score = isEditing
+                      ? editData.grades?.[si]?.score ?? ""
+                      : gradeDisplayValue(s.grades?.[si]);
                     const viewGrade = s.grades?.[si]?.grade ?? null;
                     const editGrade = isEditing ? (editData.grades?.[si]?.grade ?? null) : null;
                     return (
@@ -1573,13 +1630,14 @@ export function EntryPanel({
                               type="number"
                               min="0"
                               max="100"
-                              value={score === "" ? "" : score}
+                              value={editInitial === "" ? "" : editInitial}
                               onChange={e => {
                                 const v = parseInt(e.target.value, 10) || null;
                                 const newGrades = [...(editData.grades ?? [])];
                                 newGrades[si] = {
                                   ...newGrades[si],
                                   score: v,
+                                  raw: v,
                                   grade: v != null ? getGrade(v) : null,
                                 };
                                 setEditData({ ...editData, grades: newGrades });

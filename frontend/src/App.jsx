@@ -123,6 +123,7 @@ export default function App() {
     onImportBackup,
     onLoadAuditLog,
     onChangeExam,
+    onUpdateCompositeConfig,
     resetClassesState,
   } = useClasses({
     loggedIn: loggedIn && canAccessClassData,
@@ -457,6 +458,7 @@ export default function App() {
                 onUpdateSchool={onUpdateSchool}
                 onUpdateSubjects={onUpdateSubjects}
                 onUpdateMonthlyExams={onUpdateMonthlyExams}
+                onUpdateCompositeConfig={onUpdateCompositeConfig}
                 onDeleteClass={() => setConfirmDel(activeClass.id)}
                 onArchiveClass={onArchiveClass}
                 onRestoreClass={onRestoreClass}

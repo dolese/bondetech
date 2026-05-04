@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DEFAULT_SCHOOL, EXAM_TYPES, MONTHS } from "../utils/constants";
+import { DEFAULT_SCHOOL, EXAM_TYPES, MONTHS, COMPOSITE_EXAM_CONFIG } from "../utils/constants";
 import { validateSchoolInfo } from "../utils/validation";
 import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
@@ -10,6 +10,7 @@ export function SettingsPage({
   onUpdateSchool,
   onUpdateSubjects,
   onUpdateMonthlyExams,
+  onUpdateCompositeConfig,
   onDeleteClass,
   onArchiveClass,
   onRestoreClass,
@@ -49,6 +50,10 @@ export function SettingsPage({
   );
   const [updatingMonthlyExams, setUpdatingMonthlyExams] = useState(false);
 
+  // Composite exam config state — keyed by composite exam value, value is partnerExam string
+  const [compositeConfig, setCompositeConfig] = useState(classData.composite_config ?? {});
+  const [updatingComposite, setUpdatingComposite] = useState(false);
+
   const [auditOpen, setAuditOpen] = useState(false);
   const [loadingAudit, setLoadingAudit] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -64,6 +69,7 @@ export function SettingsPage({
     setSchoolErrors({});
     setMetaError("");
     setMonthlyExams(Array.isArray(classData.monthly_exams) ? classData.monthly_exams : []);
+    setCompositeConfig(classData.composite_config ?? {});
   }, [classData.id]);
 
   const handleUpdateMeta = async () => {
@@ -147,6 +153,14 @@ export function SettingsPage({
     await onUpdateMonthlyExams?.(ordered);
     setUpdatingMonthlyExams(false);
   };
+
+  const handleUpdateCompositeConfig = async () => {
+    setUpdatingComposite(true);
+    await onUpdateCompositeConfig?.(compositeConfig);
+    setUpdatingComposite(false);
+  };
+
+  const compositeExamKeys = Object.keys(COMPOSITE_EXAM_CONFIG);
 
   const styles = {
     panel: {
@@ -521,6 +535,60 @@ export function SettingsPage({
             {monthlyExams.join(", ")}
           </div>
         )}
+      </div>
+
+      {/* Composite Exam Settings */}
+      <div style={styles.section}>
+        <div>
+          <div style={styles.sectionTitle}>🔗 Composite Exam Settings</div>
+          <div style={styles.sectionSub}>
+            Terminal, September, and Annual exams combine two sittings: (Midterm Score + Exam Score) ÷ 2.
+            Choose which earlier exam acts as the midterm partner for each composite exam type.
+          </div>
+        </div>
+        {compositeExamKeys.map((examKey) => {
+          const defaultPartner = COMPOSITE_EXAM_CONFIG[examKey].partnerExam;
+          const currentPartner = compositeConfig[examKey]?.partnerExam ?? defaultPartner;
+          return (
+            <div key={examKey} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#003366", minWidth: 120 }}>{examKey}</span>
+              <span style={{ fontSize: 11, color: "#667" }}>partner:</span>
+              <select
+                value={currentPartner}
+                onChange={(e) =>
+                  setCompositeConfig((prev) => ({
+                    ...prev,
+                    [examKey]: { ...(prev[examKey] ?? {}), partnerExam: e.target.value },
+                  }))
+                }
+                style={styles.select}
+              >
+                {EXAM_TYPES.map((et) => (
+                  <option key={et.value} value={et.value}>{et.label}</option>
+                ))}
+              </select>
+              {currentPartner !== defaultPartner && (
+                <button
+                  style={{ ...styles.saveBtn, background: "#667", fontSize: 10, padding: "4px 8px", height: "auto" }}
+                  onClick={() =>
+                    setCompositeConfig((prev) => {
+                      const next = { ...prev };
+                      delete next[examKey];
+                      return next;
+                    })
+                  }
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          );
+        })}
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <button style={styles.saveBtn} onClick={handleUpdateCompositeConfig} disabled={updatingComposite}>
+            {updatingComposite ? "Saving…" : "Save"}
+          </button>
+        </div>
       </div>
 
       {/* Publish / Unpublish */}

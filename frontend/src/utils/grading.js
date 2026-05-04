@@ -48,17 +48,48 @@ export const getGradeDescription = (grade) => {
   return descriptions[grade] || "";
 };
 
-// Compute student performance
+// Compute student performance.
+// When student.partnerScores is defined (composite exam mode), each subject score is
+// averaged with the corresponding partner (midterm) score: (current + partner) / 2.
+// grade.raw always holds the current exam's raw value; grade.partnerRaw holds the partner's.
 export const computeStudent = (student, subjects = []) => {
+  const rawPartner = student.partnerScores; // undefined when not in composite mode
+
   const grades = (student.scores || []).map((sc, i) => {
     const raw = typeof sc === "string" ? sc.trim() : sc;
     const isAbsent = typeof raw === "string" && raw.toUpperCase() === "ABS";
-    const score = isAbsent || raw === "" || raw === null || raw === undefined ? null : Number(raw);
+    const current = isAbsent || raw === "" || raw === null || raw === undefined ? null : Number(raw);
+    const currentScore = Number.isFinite(current) ? current : null;
+
+    let effectiveScore;
+    let partnerRaw;
+
+    if (rawPartner !== undefined) {
+      // Composite mode: resolve the partner (midterm) score for this subject
+      const ps = rawPartner[i];
+      const praw = typeof ps === "string" ? ps.trim() : ps;
+      const pIsAbsent = typeof praw === "string" && praw.toUpperCase() === "ABS";
+      const pNum = pIsAbsent || praw === "" || praw === null || praw === undefined ? null : Number(praw);
+      const partnerScore = Number.isFinite(pNum) ? pNum : null;
+      partnerRaw = pIsAbsent ? "ABS" : partnerScore;
+
+      if (currentScore !== null && partnerScore !== null) {
+        // Both sittings present: take the average
+        effectiveScore = (currentScore + partnerScore) / 2;
+      } else {
+        // Only one sitting available: use whichever is present
+        effectiveScore = currentScore ?? partnerScore;
+      }
+    } else {
+      effectiveScore = currentScore;
+    }
+
     return {
       subj: subjects[i] ?? `Subject ${i + 1}`,
-      score: Number.isFinite(score) ? score : null,
-      grade: getGrade(score),
-      raw: isAbsent ? "ABS" : score,
+      score: Number.isFinite(effectiveScore) ? effectiveScore : null,
+      grade: getGrade(effectiveScore),
+      raw: isAbsent ? "ABS" : currentScore,
+      ...(rawPartner !== undefined ? { partnerRaw } : {}),
     };
   });
 
