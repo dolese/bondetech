@@ -5,7 +5,7 @@ import { getGradePoints } from "../utils/grading";
 // Return a display-safe string for a raw score value (numeric, "ABS", null, or undefined).
 function formatScoreDisplay(rawValue, fallback = "-") {
   if (rawValue === "ABS") return "ABS";
-  if (rawValue != null) return rawValue;
+  if (rawValue !== null && rawValue !== undefined) return rawValue;
   return fallback;
 }
 
@@ -262,7 +262,7 @@ export function ReportCardPrint({
             {subjects.map((subj, i) => {
               const grade = grades[i];
               const combinedDisplay = grade?.raw === "ABS" ? "ABS" : (grade?.score != null ? Number(grade.score).toFixed(1) : "-");
-              const currentDisplay = formatScoreDisplay(grade?.raw === "ABS" ? "ABS" : grade?.raw);
+              const currentDisplay = formatScoreDisplay(grade?.raw);
               const partnerDisplay = formatScoreDisplay(grade?.partnerRaw);
               const pointDisplay = grade?.grade ? getGradePoints(grade.grade) : "-";
               return (
