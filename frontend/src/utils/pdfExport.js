@@ -5,6 +5,7 @@ function buildPdfOptions({
   orientation = "portrait",
   format = "a4",
   margin = 8,
+  pagebreak,
 } = {}) {
   return {
     margin,
@@ -12,6 +13,7 @@ function buildPdfOptions({
     image: { type: "jpeg", quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: "mm", format, orientation },
+    pagebreak: pagebreak ?? { mode: ["css", "legacy"] },
   };
 }
 

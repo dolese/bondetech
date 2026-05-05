@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DEFAULT_SCHOOL, EXAM_TYPES, MONTHS, COMPOSITE_EXAM_CONFIG } from "../utils/constants";
+import { updateExportBranding } from "../utils/exportBranding";
 import { validateSchoolInfo } from "../utils/validation";
 import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
@@ -418,6 +419,39 @@ export function SettingsPage({
             value={schoolInfo.year}
             onChange={(v) => setSchoolInfo({ ...schoolInfo, year: v })}
             error={schoolErrors.year}
+          />
+        </div>
+        <div>
+          <div style={styles.sectionTitle}>Export Branding</div>
+          <div style={styles.sectionSub}>
+            Controls the logos and header text used by result sheet and report card exports.
+          </div>
+        </div>
+        <div style={styles.grid2}>
+          <TextInput
+            label="Left Logo URL"
+            value={schoolInfo.export_branding?.leftLogoSrc ?? ""}
+            onChange={(v) => setSchoolInfo(updateExportBranding(schoolInfo, { leftLogoSrc: v }))}
+          />
+          <TextInput
+            label="Right Logo URL"
+            value={schoolInfo.export_branding?.rightLogoSrc ?? ""}
+            onChange={(v) => setSchoolInfo(updateExportBranding(schoolInfo, { rightLogoSrc: v }))}
+          />
+          <TextInput
+            label="Header Name Override"
+            value={schoolInfo.export_branding?.headerName ?? ""}
+            onChange={(v) => setSchoolInfo(updateExportBranding(schoolInfo, { headerName: v }))}
+          />
+          <TextInput
+            label="Header Subtitle Override"
+            value={schoolInfo.export_branding?.headerSubtitle ?? ""}
+            onChange={(v) => setSchoolInfo(updateExportBranding(schoolInfo, { headerSubtitle: v }))}
+          />
+          <TextInput
+            label="Header Address Override"
+            value={schoolInfo.export_branding?.headerAddress ?? ""}
+            onChange={(v) => setSchoolInfo(updateExportBranding(schoolInfo, { headerAddress: v }))}
           />
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>

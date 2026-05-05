@@ -48,6 +48,13 @@ export const DEFAULT_SCHOOL = {
   term: "I",
   exam: "March Exam",
   year: String(new Date().getFullYear()),
+  export_branding: {
+    leftLogoSrc: "/asset/Tz.jpg",
+    rightLogoSrc: "/asset/bonde.jpg",
+    headerName: "",
+    headerSubtitle: "",
+    headerAddress: "",
+  },
 };
 
 export const USER_ROLE_OPTIONS = [

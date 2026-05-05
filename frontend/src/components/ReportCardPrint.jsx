@@ -1,6 +1,7 @@
 import React from "react";
 import { GRADE_COLORS, getCompositeEntry } from "../utils/constants";
 import { getGradePoints } from "../utils/grading";
+import { getExportBranding } from "../utils/exportBranding";
 
 // Return a display-safe string for a raw score value (numeric, "ABS", null, or undefined).
 function formatScoreDisplay(rawValue, fallback = "-") {
@@ -36,8 +37,7 @@ export function ReportCardPrint({
   const subjects = classData.subjects ?? [];
   const grades = student.grades ?? [];
   const schoolInfo = classData.school_info ?? {};
-
-  // Composite mode: some grades carry a `partnerRaw` value
+  const branding = getExportBranding(schoolInfo);
   const compositeEntry = getCompositeEntry(
     schoolInfo.exam,
     classData.composite_config ?? {}
@@ -198,15 +198,13 @@ export function ReportCardPrint({
   return (
     <div style={styles.card}>
       <div style={styles.cardHeader}>
-        <img src="/asset/Tz.jpg" alt="Tanzania crest" style={styles.crest} />
+        <img src={branding.leftLogoSrc} alt="Left crest" style={styles.crest} />
         <div style={styles.schoolTitle}>
-          <div style={styles.schoolName}>{schoolInfo.name || "BONDE SECONDARY SCHOOL"}</div>
-          <div style={styles.schoolSub}>{schoolInfo.authority || "MUHEZA DISTRICT COUNCIL"}</div>
-          <div style={styles.schoolSub}>
-            {schoolInfo.district ? `P.O. BOX 03, ${schoolInfo.district}` : "P.O. BOX 03, MUHEZA"}
-          </div>
+          <div style={styles.schoolName}>{branding.headerName}</div>
+          <div style={styles.schoolSub}>{branding.headerSubtitle}</div>
+          <div style={styles.schoolSub}>{branding.headerAddress}</div>
         </div>
-        <img src="/asset/bonde.jpg" alt="School crest" style={styles.crest} />
+        <img src={branding.rightLogoSrc} alt="Right crest" style={styles.crest} />
       </div>
       <div style={styles.rule} />
       <div style={styles.title}>{isCompact ? "ACADEMIC PERFORMANCE SUMMARY" : "STUDENT REPORT CARD"}</div>
