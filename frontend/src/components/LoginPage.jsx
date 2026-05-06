@@ -94,8 +94,9 @@ export function LoginPage({ onBack, onLogin }) {
 
   return (
     <div
+      className="login-shell"
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -107,7 +108,8 @@ export function LoginPage({ onBack, onLogin }) {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
       }}
     >
       <style>{`
@@ -316,6 +318,31 @@ export function LoginPage({ onBack, onLogin }) {
           }
           .login-footer-section {
             margin-top: 10px !important;
+          }
+        }
+        @media (max-height: 860px) and (min-width: 721px) {
+          .login-shell {
+            justify-content: flex-start !important;
+            padding-top: 40px !important;
+            padding-bottom: 24px !important;
+          }
+          .login-back-btn {
+            top: 14px;
+          }
+          .login-footer-section {
+            margin-top: 12px !important;
+          }
+        }
+        @media (max-height: 740px) and (min-width: 721px) {
+          .login-shell {
+            padding-top: 24px !important;
+            padding-bottom: 18px !important;
+          }
+          .login-panel {
+            max-width: 384px;
+          }
+          .login-card-inner {
+            padding: 20px 18px 16px;
           }
         }
         @media (min-width: 1024px) {
