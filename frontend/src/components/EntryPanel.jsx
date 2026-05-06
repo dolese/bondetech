@@ -74,6 +74,8 @@ export function EntryPanel({
   });
   const [schoolErrors, setSchoolErrors] = useState({});
   const [updatingSchool, setUpdatingSchool] = useState(false);
+  const [savingInstruction, setSavingInstruction] = useState(false);
+  const [instructionNotice, setInstructionNotice] = useState("");
   const [classYear, setClassYear] = useState(classData.year ?? "");
   const [classForm, setClassForm] = useState(classData.form ?? "Form I");
   const [metaError, setMetaError] = useState("");
@@ -95,6 +97,7 @@ export function EntryPanel({
       ...(classData.school_info ?? {}),
     });
     setSchoolErrors({});
+    setInstructionNotice("");
   }, [classData.id, classData.year, classData.form]);
 
   useEffect(() => {
@@ -310,6 +313,26 @@ export function EntryPanel({
     setUpdatingSchool(false);
   };
 
+  const handleSaveReportInstruction = async () => {
+    const nextSchoolInfo = {
+      ...schoolInfo,
+      reportInstruction: String(schoolInfo.reportInstruction ?? "").trim(),
+    };
+    setSchoolInfo(nextSchoolInfo);
+    setSavingInstruction(true);
+    setInstructionNotice("");
+    try {
+      await onUpdateSchool?.(nextSchoolInfo);
+      setInstructionNotice(
+        nextSchoolInfo.reportInstruction
+          ? "Maagizo yamehifadhiwa kwa darasa hili."
+          : "Maagizo yameondolewa kwa darasa hili."
+      );
+    } finally {
+      setSavingInstruction(false);
+    }
+  };
+
   const handleBulkScoreChange = (studentId, subjectIdx, value) => {
     setBulkScores(prev => ({
       ...prev,
@@ -461,6 +484,37 @@ export function EntryPanel({
       flexDirection: "column",
       gap: 10,
     },
+    instructionPanel: {
+      background: "#fff",
+      border: "1px solid #d0dcf8",
+      borderRadius: 8,
+      padding: compactLayout ? 10 : 12,
+      display: "grid",
+      gap: 8,
+    },
+    instructionTextarea: {
+      width: "100%",
+      minHeight: compactLayout ? 74 : 82,
+      resize: "vertical",
+      padding: "8px 10px",
+      borderRadius: 6,
+      border: "1px solid #d0dcf8",
+      fontSize: 12,
+      lineHeight: 1.5,
+      boxSizing: "border-box",
+      fontFamily: "inherit",
+      background: "#fbfcff",
+    },
+    instructionSaveBtn: {
+      padding: "7px 12px",
+      borderRadius: 6,
+      border: "none",
+      background: "#0b6b3a",
+      color: "#fff",
+      fontWeight: 700,
+      cursor: "pointer",
+      justifySelf: "start",
+    },
     subjectRow: {
       display: "flex",
       gap: 8,
@@ -566,6 +620,44 @@ export function EntryPanel({
             </span>
           </div>
         )}
+
+        <div style={styles.instructionPanel}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>
+                Maagizo ya Ripoti ya Mwanafunzi
+              </div>
+              <div style={{ fontSize: 11, color: "#667", marginTop: 2 }}>
+                Haya yatachukuliwa moja kwa moja kwenye report card ya kila mwanafunzi wa darasa hili.
+              </div>
+            </div>
+            <button
+              onClick={handleSaveReportInstruction}
+              disabled={savingInstruction}
+              style={{
+                ...styles.instructionSaveBtn,
+                background: savingInstruction ? "#9ca3af" : styles.instructionSaveBtn.background,
+                cursor: savingInstruction ? "not-allowed" : "pointer",
+              }}
+            >
+              {savingInstruction ? "Saving..." : "Save Maagizo"}
+            </button>
+          </div>
+          <textarea
+            value={schoolInfo.reportInstruction ?? ""}
+            onChange={(e) => {
+              setSchoolInfo({ ...schoolInfo, reportInstruction: e.target.value });
+              setInstructionNotice("");
+            }}
+            placeholder="Andika maagizo ya jumla yatakayoonekana kwenye report card za darasa hili..."
+            style={styles.instructionTextarea}
+          />
+          {instructionNotice && (
+            <div style={{ fontSize: 11, color: "#0b6b3a", fontWeight: 700 }}>
+              {instructionNotice}
+            </div>
+          )}
+        </div>
 
         <div style={styles.tlbx}>
           {/* Row 1: Exam selector + Search (always full-width on mobile) */}

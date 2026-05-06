@@ -60,26 +60,17 @@ function getAverageGradeLabel(student) {
   return `${student.agrd} - ${getGradeDescriptionSw(student.agrd)}`;
 }
 
-function getTeacherRemark(student) {
-  if (student?.remarks && student.remarks.trim()) return student.remarks.trim();
-  if (student?.resultStatus === "ABSENT") return "Hakuhudhuria mtihani huu; afuatiliwe kwa karibu.";
-  if (student?.resultStatus === "INCOMPLETE") return "Matokeo hayajakamilika; alama zilizobaki zijazwe.";
-  if (student?.agrd === "A") return "Amefanya vizuri sana. Aendelee hivi.";
-  if (student?.agrd === "B") return "Amefanya vizuri. Aongeze bidii zaidi.";
-  if (student?.agrd === "C") return "Aongeze umakini ili kuboresha ufaulu.";
-  if (student?.agrd === "D") return "Anahitaji usimamizi na juhudi zaidi.";
-  return "Aongeze juhudi katika masomo yote.";
-}
-
-function getHeadRemark(student) {
-  if (student?.resultStatus === "ABSENT") return "Afanyiwe ufuatiliaji wa mahudhurio na nidhamu.";
-  if (student?.resultStatus === "INCOMPLETE") return "Akamilishe matokeo ili tathmini ya mwisho itolewe.";
-  if (student?.div === "I") return "Hongera kwa ufaulu mzuri sana. Endelea hivi.";
-  if (student?.div === "II") return "Umefanya vizuri. Endelea kuongeza juhudi.";
-  if (student?.div === "III") return "Matokeo ni mazuri. Ongeza bidii zaidi.";
-  if (student?.div === "IV") return "Ongeza juhudi ili kuboresha ufaulu.";
-  if (student?.div === "0") return "Ufaulu hauridhishi; ongeza usimamizi wa karibu.";
-  return "Endelea kujituma katika masomo na nidhamu ya shule.";
+function renderDottedLines(count) {
+  return Array.from({ length: count }, (_, index) => (
+    <div
+      key={`dotted-line-${index}`}
+      style={{
+        borderBottom: "1px dotted #555",
+        minHeight: 18,
+        marginBottom: index === count - 1 ? 0 : 7,
+      }}
+    />
+  ));
 }
 
 function buildSummarySentence(student, totalStudents) {
@@ -135,6 +126,9 @@ export function ReportCardPrint({
   const isCompact = template === "compact";
   const totalStudents = (classData.students ?? []).length || null;
   const classLabel = classData.form ?? schoolInfo.form ?? classData.name ?? "-";
+  const reportInstruction = String(
+    schoolInfo.reportInstruction ?? schoolInfo.report_instruction ?? ""
+  ).trim();
 
   const styles = {
     card: {
@@ -321,10 +315,8 @@ export function ReportCardPrint({
       lineHeight: 1.35,
     },
     remarkText: {
-      borderBottom: "1px dotted #555",
-      minHeight: 20,
+      minHeight: 58,
       lineHeight: 1.35,
-      paddingBottom: 3,
     },
     signLabel: {
       color: "#163f97",
@@ -497,14 +489,14 @@ export function ReportCardPrint({
 
         <div style={styles.remarkRow}>
           <div style={styles.remarkLabel}>Maoni ya Mwalimu wa Darasa:</div>
-          <div style={styles.remarkText}>{getTeacherRemark(student)}</div>
+          <div style={styles.remarkText}>{renderDottedLines(2)}</div>
           <div style={styles.signLabel}>Saini</div>
           <div style={styles.signLine} />
         </div>
 
         <div style={styles.remarkRow}>
           <div style={styles.remarkLabel}>Maoni ya Mkuu wa Shule:</div>
-          <div style={styles.remarkText}>{getHeadRemark(student)}</div>
+          <div style={styles.remarkText}>{renderDottedLines(2)}</div>
           <div style={styles.signLabel}>Saini na Muhuri</div>
           <div style={styles.signLine} />
         </div>
@@ -512,9 +504,11 @@ export function ReportCardPrint({
         <div style={styles.instructionRow}>
           <div style={styles.remarkLabel}>Maagizo:</div>
           <div style={styles.remarkText}>
-            {student.resultStatus === "COMPLETE"
-              ? "Aendelee kujituma katika masomo yote na kudumisha nidhamu nzuri."
-              : "Akamilishe mahitaji yote ya kitaaluma na afuate maelekezo ya walimu kwa karibu."}
+            {reportInstruction ? (
+              <div style={{ lineHeight: 1.5 }}>{reportInstruction}</div>
+            ) : (
+              renderDottedLines(4)
+            )}
           </div>
         </div>
 

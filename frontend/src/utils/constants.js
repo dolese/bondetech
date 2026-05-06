@@ -55,6 +55,7 @@ export const DEFAULT_SCHOOL = {
     headerSubtitle: "",
     headerAddress: "",
   },
+  reportInstruction: "",
 };
 
 export const USER_ROLE_OPTIONS = [

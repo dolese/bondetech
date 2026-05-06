@@ -71,20 +71,51 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
             size: A4 portrait;
             margin: 0;
           }
-          body { margin: 0; }
-          .report-card-page {
-            width: 210mm;
-            min-height: 297mm;
-            margin: 0 auto;
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+          }
+          .report-card-print-overlay,
+          .report-card-print-shell,
+          .report-card-print-scroll,
+          .report-card-print-preview {
+            position: static !important;
+            inset: auto !important;
+            width: auto !important;
+            max-height: none !important;
+            height: auto !important;
+            overflow: visible !important;
+            background: #fff !important;
             box-shadow: none !important;
             border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .report-card-page {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            height: 297mm !important;
+            margin: 0 auto !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            overflow: hidden !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+          .report-card-page > div {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            margin: 0 !important;
+            box-shadow: none !important;
           }
           .report-card-ui {
             display: none !important;
           }
         }
       `}</style>
-      <div style={shellStyle} onClick={(event) => event.stopPropagation()}>
+      <div className="report-card-print-overlay" style={overlayStyle} onClick={silent ? undefined : onClose}>
+      <div className="report-card-print-shell" style={shellStyle} onClick={(event) => event.stopPropagation()}>
         {!silent && (
           <div
             className="report-card-ui"
@@ -159,6 +190,7 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
         )}
 
         <div
+          className="report-card-print-scroll"
           style={{
             overflow: "auto",
             padding: silent ? 0 : 16,
@@ -166,6 +198,7 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
           }}
         >
           <div
+            className="report-card-print-preview"
             style={{
               width: silent ? "auto" : `min(100%, ${previewWidth}px)`,
               margin: "0 auto",
@@ -183,6 +216,7 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
