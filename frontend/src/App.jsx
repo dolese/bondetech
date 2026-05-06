@@ -9,6 +9,7 @@ import { AccountPage } from "./components/AccountPage";
 import { ReportCardModal } from "./components/ReportCardModal";
 import { CSVImportModal } from "./components/CSVImportModal";
 import { JSONImportModal } from "./components/JSONImportModal";
+import { XLSXImportModal } from "./components/XLSXImportModal";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 import { ExamPickerScreen } from "./components/ExamPickerScreen";
@@ -494,6 +495,15 @@ export default function App() {
 
       {modalType === "json-import" && activeClass && (
         <JSONImportModal
+          classId={activeClass.id}
+          subjects={activeClass.subjects ?? []}
+          onImport={onBulkImport}
+          onClose={onCloseModal}
+        />
+      )}
+
+      {modalType === "xlsx-import" && activeClass && (
+        <XLSXImportModal
           classId={activeClass.id}
           subjects={activeClass.subjects ?? []}
           onImport={onBulkImport}

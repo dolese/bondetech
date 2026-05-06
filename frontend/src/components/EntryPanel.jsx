@@ -714,6 +714,22 @@ export function EntryPanel({
               ⬇ Export JSON
             </button>
             <button
+              onClick={() => onShowModal("xlsx-import")}
+              title="Import students from Excel (XLSX)"
+              style={{
+                padding: "6px 12px",
+                background: "#1a7336",
+                color: "#fff",
+                border: "none",
+                borderRadius: 5,
+                cursor: "pointer",
+                fontWeight: 700,
+                height: 30,
+              }}
+            >
+              📊 Import XLSX
+            </button>
+            <button
               onClick={handleExportXlsx}
               title="Export students and results as Excel (XLSX)"
               style={{
