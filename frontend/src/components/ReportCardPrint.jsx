@@ -62,23 +62,23 @@ function getAverageGradeLabel(student) {
 
 function getTeacherRemark(student) {
   if (student?.remarks && student.remarks.trim()) return student.remarks.trim();
-  if (student?.resultStatus === "ABSENT") return "Mwanafunzi hakuhudhuria mtihani huu. Tafadhali fuatilia mahudhurio yake.";
-  if (student?.resultStatus === "INCOMPLETE") return "Matokeo hayajakamilika. Hakikisha alama za masomo yote muhimu zinaingizwa.";
-  if (student?.agrd === "A") return "Amefanya vizuri sana. Aendelee kudumisha juhudi hizi.";
-  if (student?.agrd === "B") return "Amefanya vizuri. Aongeze bidii ili afikie daraja A.";
-  if (student?.agrd === "C") return "Anafanya vizuri kwa kiwango cha kati. Aongeze umakini na mazoezi.";
-  if (student?.agrd === "D") return "Ana uwezo wa kufanya vizuri zaidi. Anahitaji usimamizi na bidii ya ziada.";
-  return "Anahitaji kuongeza juhudi zaidi katika masomo yote.";
+  if (student?.resultStatus === "ABSENT") return "Hakuhudhuria mtihani huu; afuatiliwe kwa karibu.";
+  if (student?.resultStatus === "INCOMPLETE") return "Matokeo hayajakamilika; alama zilizobaki zijazwe.";
+  if (student?.agrd === "A") return "Amefanya vizuri sana. Aendelee hivi.";
+  if (student?.agrd === "B") return "Amefanya vizuri. Aongeze bidii zaidi.";
+  if (student?.agrd === "C") return "Aongeze umakini ili kuboresha ufaulu.";
+  if (student?.agrd === "D") return "Anahitaji usimamizi na juhudi zaidi.";
+  return "Aongeze juhudi katika masomo yote.";
 }
 
 function getHeadRemark(student) {
-  if (student?.resultStatus === "ABSENT") return "Fuatilia sababu za kutohudhuria na hakikisha mwanafunzi anarudi kwenye utaratibu wa shule.";
-  if (student?.resultStatus === "INCOMPLETE") return "Kamilisha taarifa za alama ili tathmini ya mwisho iweze kutolewa kwa usahihi.";
-  if (student?.div === "I") return "Hongera kwa ufaulu mzuri sana. Endelea kulinda kiwango hiki.";
-  if (student?.div === "II") return "Umefanya vizuri. Endelea kuongeza juhudi ili kupanda zaidi.";
-  if (student?.div === "III") return "Matokeo ni mazuri. Ongeza bidii kwenye masomo yenye changamoto.";
-  if (student?.div === "IV") return "Unahitaji kuongeza juhudi ili kuboresha kiwango cha ufaulu.";
-  if (student?.div === "0") return "Ufaulu bado hauridhishi. Ni muhimu kuongeza usimamizi na mazoezi ya karibu.";
+  if (student?.resultStatus === "ABSENT") return "Afanyiwe ufuatiliaji wa mahudhurio na nidhamu.";
+  if (student?.resultStatus === "INCOMPLETE") return "Akamilishe matokeo ili tathmini ya mwisho itolewe.";
+  if (student?.div === "I") return "Hongera kwa ufaulu mzuri sana. Endelea hivi.";
+  if (student?.div === "II") return "Umefanya vizuri. Endelea kuongeza juhudi.";
+  if (student?.div === "III") return "Matokeo ni mazuri. Ongeza bidii zaidi.";
+  if (student?.div === "IV") return "Ongeza juhudi ili kuboresha ufaulu.";
+  if (student?.div === "0") return "Ufaulu hauridhishi; ongeza usimamizi wa karibu.";
   return "Endelea kujituma katika masomo na nidhamu ya shule.";
 }
 
@@ -89,14 +89,14 @@ function buildSummarySentence(student, totalStudents) {
   const grade = student?.agrd ?? "-";
 
   if (student?.resultStatus === "ABSENT") {
-    return "Mwanafunzi hakuhudhuria mtihani huu, hivyo tathmini ya jumla haikukamilika.";
+    return "Mwanafunzi hakuhudhuria mtihani huu; tathmini ya jumla haikukamilika.";
   }
 
   if (student?.resultStatus === "INCOMPLETE") {
-    return `Mwanafunzi ana matokeo yasiyokamilika. Kwa sasa ana wastani wa ${avg} sawa na daraja ${grade}, lakini tathmini ya mwisho itategemea ukamilishaji wa alama zote.`;
+    return `Mwanafunzi ana matokeo yasiyokamilika. Kwa sasa ana wastani wa ${avg} sawa na daraja ${grade}.`;
   }
 
-  return `Amekuwa wa ${position} kati ya wanafunzi ${total}. Akiwa na Divisheni ${student?.div ?? "-"} ya pointi ${student?.points ?? "-"} na amepata wastani wa ${avg} sawa na daraja ${grade}.`;
+  return `Amekuwa wa ${position} kati ya wanafunzi ${total}, akiwa na Divisheni ${student?.div ?? "-"}, pointi ${student?.points ?? "-"} na wastani wa ${avg} sawa na daraja ${grade}.`;
 }
 
 const PAPER_DIMENSIONS = {
@@ -140,7 +140,7 @@ export function ReportCardPrint({
     card: {
       background: "#fff",
       border: "1.8px solid #163f97",
-      padding: isCompact ? 12 : 16,
+      padding: isCompact ? 10 : 12,
       fontFamily: "'Arial', 'Helvetica', sans-serif",
       color: "#111827",
       width: isLandscape ? dimension.minHeight : dimension.width,
@@ -151,13 +151,13 @@ export function ReportCardPrint({
     },
     header: {
       display: "grid",
-      gridTemplateColumns: "68px 1fr 68px",
+      gridTemplateColumns: "62px 1fr 62px",
       alignItems: "center",
-      gap: 10,
+      gap: 8,
     },
     crest: {
-      width: 60,
-      height: 60,
+      width: 54,
+      height: 54,
       objectFit: "contain",
       justifySelf: "center",
     },
@@ -182,42 +182,42 @@ export function ReportCardPrint({
       lineHeight: 1.25,
     },
     titlePill: {
-      margin: "10px auto 8px",
+      margin: "8px auto 6px",
       maxWidth: isCompact ? 420 : 520,
       background: "#163f97",
       color: "#fff",
       borderRadius: 999,
       textAlign: "center",
-      padding: isCompact ? "9px 18px" : "12px 24px",
-      fontSize: isCompact ? 15 : 17,
+      padding: isCompact ? "7px 16px" : "9px 20px",
+      fontSize: isCompact ? 14 : 16,
       fontWeight: 900,
       letterSpacing: 0.3,
       textTransform: "uppercase",
     },
     rule: {
       borderTop: "1.5px solid #111827",
-      margin: "8px 0 10px",
+      margin: "6px 0 8px",
     },
     classStrip: {
       textAlign: "center",
       fontSize: isCompact ? 12 : 13,
       fontWeight: 700,
       color: "#111827",
-      marginBottom: 10,
+      marginBottom: 8,
       textTransform: "uppercase",
     },
     infoGrid: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
-      gap: "10px 24px",
-      marginBottom: 12,
+      gap: "7px 20px",
+      marginBottom: 8,
     },
     infoItem: {
       display: "grid",
       gridTemplateColumns: isCompact ? "100px 1fr" : "126px 1fr",
       alignItems: "end",
-      gap: 10,
-      fontSize: isCompact ? 11 : 12,
+      gap: 8,
+      fontSize: isCompact ? 10 : 11,
     },
     infoLabel: {
       color: "#163f97",
@@ -225,95 +225,95 @@ export function ReportCardPrint({
     },
     infoValue: {
       borderBottom: "1px dotted #444",
-      minHeight: 20,
-      paddingBottom: 2,
+      minHeight: 16,
+      paddingBottom: 1,
       fontWeight: 600,
     },
     doubleRule: {
       borderTop: "2px solid #163f97",
       borderBottom: "4px solid #163f97",
-      height: 6,
-      margin: "8px 0 12px",
+      height: 5,
+      margin: "6px 0 8px",
     },
     bodyGrid: {
       display: "grid",
       gridTemplateColumns: isCompact ? "1.45fr 0.95fr" : "1.7fr 0.9fr",
-      gap: 14,
+      gap: 10,
       alignItems: "start",
     },
     sectionHeading: {
       color: "#163f97",
-      fontSize: isCompact ? 14 : 15,
+      fontSize: isCompact ? 13 : 14,
       fontWeight: 900,
-      margin: "0 0 8px",
+      margin: "0 0 6px",
       textTransform: "uppercase",
     },
     table: {
       width: "100%",
       borderCollapse: "collapse",
-      fontSize: isCompact ? 10 : 11,
+      fontSize: isCompact ? 9 : 10,
     },
     th: {
       background: "#163f97",
       color: "#fff",
       border: "1px solid #a9b6d5",
-      padding: isCompact ? "6px 4px" : "7px 5px",
+      padding: isCompact ? "4px 3px" : "5px 4px",
       fontWeight: 800,
       textAlign: "center",
     },
     td: {
       border: "1px solid #cbd5e1",
-      padding: isCompact ? "6px 5px" : "7px 6px",
+      padding: isCompact ? "4px 4px" : "5px 5px",
       textAlign: "center",
     },
     sideBox: {
       border: "1px solid #9fb2dd",
       borderRadius: 4,
       overflow: "hidden",
-      marginBottom: 12,
+      marginBottom: 8,
     },
     sideHead: {
       background: "#fff",
       color: "#163f97",
       borderBottom: "1px solid #9fb2dd",
       fontWeight: 900,
-      fontSize: isCompact ? 13 : 14,
+      fontSize: isCompact ? 12 : 13,
       textAlign: "center",
-      padding: "10px 8px",
+      padding: "7px 6px",
       textTransform: "uppercase",
     },
     sideRow: {
       display: "grid",
       gridTemplateColumns: "1fr auto",
       gap: 10,
-      padding: "8px 10px",
+      padding: "6px 8px",
       borderTop: "1px solid #d7e1f0",
-      fontSize: isCompact ? 10 : 11,
+      fontSize: isCompact ? 9 : 10,
       alignItems: "center",
     },
     scaleTable: {
       width: "100%",
       borderCollapse: "collapse",
-      fontSize: isCompact ? 10 : 11,
+      fontSize: isCompact ? 9 : 10,
     },
     summarySentence: {
       borderTop: "1px dotted #333",
       borderBottom: "1px dotted #333",
-      padding: "10px 4px",
-      marginTop: 12,
-      fontSize: isCompact ? 11 : 12,
-      lineHeight: 1.65,
+      padding: "7px 4px",
+      marginTop: 8,
+      fontSize: isCompact ? 10 : 11,
+      lineHeight: 1.45,
     },
     remarksSection: {
-      marginTop: 12,
+      marginTop: 8,
     },
     remarkRow: {
       display: "grid",
       gridTemplateColumns: isCompact ? "116px 1fr 70px 90px" : "145px 1fr 82px 110px",
       gap: 10,
       alignItems: "start",
-      marginBottom: 10,
-      fontSize: isCompact ? 11 : 12,
+      marginBottom: 7,
+      fontSize: isCompact ? 10 : 11,
     },
     remarkLabel: {
       color: "#163f97",
@@ -322,9 +322,9 @@ export function ReportCardPrint({
     },
     remarkText: {
       borderBottom: "1px dotted #555",
-      minHeight: 26,
-      lineHeight: 1.55,
-      paddingBottom: 4,
+      minHeight: 20,
+      lineHeight: 1.35,
+      paddingBottom: 3,
     },
     signLabel: {
       color: "#163f97",
@@ -334,7 +334,7 @@ export function ReportCardPrint({
     },
     signLine: {
       borderBottom: "1px dotted #555",
-      minHeight: 26,
+      minHeight: 20,
     },
     instructionRow: {
       display: "grid",
@@ -342,14 +342,14 @@ export function ReportCardPrint({
       gap: 10,
       alignItems: "start",
       marginTop: 4,
-      fontSize: isCompact ? 11 : 12,
+      fontSize: isCompact ? 10 : 11,
     },
     footerDate: {
-      marginTop: 8,
+      marginTop: 5,
       display: "flex",
       justifyContent: "flex-end",
       gap: 8,
-      fontSize: isCompact ? 11 : 12,
+      fontSize: isCompact ? 10 : 11,
       alignItems: "center",
     },
     dateLine: {
