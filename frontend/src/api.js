@@ -82,6 +82,7 @@ export const API = {
   },
   addStudent:     (cid, data)   => post(`/classes/${cid}/students`, data),
   bulkImport:     (cid, students, examType) => post(`/classes/${cid}/students/bulk`, { students, examType }),
+  reorderStudentCnos: (cid)     => patch(`/classes/${cid}/students`, { action: "reorder-cnos" }),
   updateStudent:  (cid, sid, data) => put(`/classes/${cid}/students/${sid}`, data),
   deleteStudent:  (cid, sid)    => del(`/classes/${cid}/students/${sid}`),
 

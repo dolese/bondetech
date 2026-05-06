@@ -33,6 +33,7 @@ export function EntryPanel({
   onUpdateStudent,
   onDeleteStudent,
   onAddStudent,
+  onReorderStudentCnos,
   onUpdateSchool,
   onUpdateSubjects,
   onUpdateClassMeta,
@@ -76,6 +77,7 @@ export function EntryPanel({
   const [updatingSchool, setUpdatingSchool] = useState(false);
   const [savingInstruction, setSavingInstruction] = useState(false);
   const [instructionNotice, setInstructionNotice] = useState("");
+  const [reorderingCnos, setReorderingCnos] = useState(false);
   const [classYear, setClassYear] = useState(classData.year ?? "");
   const [classForm, setClassForm] = useState(classData.form ?? "Form I");
   const [metaError, setMetaError] = useState("");
@@ -365,6 +367,20 @@ export function EntryPanel({
       );
     } finally {
       setBulkSaving(false);
+    }
+  };
+
+  const handleReorderStudentCnos = async () => {
+    if (!onReorderStudentCnos || reorderingCnos) return;
+    const confirmed = window.confirm(
+      "This will reorder the whole class as Female first, then Male, and regenerate all CNO numbers. Continue?"
+    );
+    if (!confirmed) return;
+    setReorderingCnos(true);
+    try {
+      await onReorderStudentCnos();
+    } finally {
+      setReorderingCnos(false);
     }
   };
 
@@ -837,6 +853,44 @@ export function EntryPanel({
             >
               📊 Export XLSX
             </button>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: compactLayout ? "column" : "row",
+              gap: 8,
+              alignItems: compactLayout ? "stretch" : "center",
+              justifyContent: "space-between",
+              background: "#fff8e6",
+              border: "1px solid #f2d48f",
+              borderRadius: 8,
+              padding: compactLayout ? "8px 10px" : "8px 12px",
+            }}
+          >
+            <div style={{ fontSize: 11, color: "#7a5a00", lineHeight: 1.5 }}>
+              Import updates existing students by CNO and adds only new rows. Existing CNO values stay unchanged unless an administrator explicitly runs the reorder action.
+            </div>
+            {onReorderStudentCnos && (
+              <button
+                onClick={handleReorderStudentCnos}
+                disabled={reorderingCnos || !(computed ?? []).length}
+                title="Reorder the class as Female first, then Male, and regenerate all CNO values"
+                style={{
+                  padding: "8px 12px",
+                  background: reorderingCnos ? "#6b7280" : "#9a3412",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 7,
+                  cursor: reorderingCnos || !(computed ?? []).length ? "not-allowed" : "pointer",
+                  fontSize: 11,
+                  fontWeight: 800,
+                  whiteSpace: "nowrap",
+                  opacity: !(computed ?? []).length ? 0.65 : 1,
+                }}
+              >
+                {reorderingCnos ? "Reordering CNO..." : "Reorder Female -> Male CNO"}
+              </button>
+            )}
           </div>
           <div style={styles.tlbDivider} />
           {/* Row 3: Bulk Scores + New Student — side-by-side always */}

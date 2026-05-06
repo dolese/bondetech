@@ -286,6 +286,21 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
     }
   }, [activeClass, activeExam, refreshClass, showToast]);
 
+  const onReorderStudentCnos = useCallback(async () => {
+    if (!activeClass) return;
+    try {
+      const result = await API.reorderStudentCnos(activeClass.id);
+      await refreshClass(activeClass.id);
+      showToast?.(
+        `CNO order updated: ${result.femaleCount} female, ${result.maleCount} male, ${result.updated} CNO changed`
+      );
+      return result;
+    } catch (err) {
+      showToast?.(err.message, "error");
+      throw err;
+    }
+  }, [activeClass, refreshClass, showToast]);
+
   const onUpdateSchool = useCallback(async (schoolInfo) => {
     if (!activeClass) return;
     try {
@@ -507,6 +522,7 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
     onUpdateStudent,
     onDeleteStudent,
     onBulkImport,
+    onReorderStudentCnos,
     onUpdateSchool,
     onUpdateSubjects,
     onUpdateMonthlyExams,

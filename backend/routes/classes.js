@@ -29,6 +29,7 @@ const {
   bulkImportStudents,
   updateStudentRecord,
   deleteStudentRecord,
+  reorderStudentsBySexAndRegenerateCnos,
 } = require("../../lib/classStudents");
 
 const requireAuth = async (req, res, next) => {
@@ -175,6 +176,22 @@ router.post("/:id/students/bulk", requireRole(canManageStudents, "You do not hav
     res.status(status).json({ error: err.message });
   }
 });
+
+router.patch(
+  "/:id/students",
+  requireRole(canManageClasses, "Only administrators can reorder CNOs"),
+  async (req, res) => {
+    if ((req.body?.action || "") !== "reorder-cnos") {
+      return res.status(400).json({ error: "Unsupported student action" });
+    }
+    try {
+      const result = await reorderStudentsBySexAndRegenerateCnos(getDb(), req.params.id);
+      res.json(result);
+    } catch (err) {
+      res.status(/class not found/i.test(err.message) ? 404 : 500).json({ error: err.message });
+    }
+  }
+);
 
 router.put(
   "/:id/students/:sid",

@@ -112,6 +112,7 @@ export default function App() {
     onUpdateStudent,
     onDeleteStudent,
     onBulkImport,
+    onReorderStudentCnos,
     onUpdateSchool,
     onUpdateSubjects,
     onUpdateMonthlyExams,
@@ -418,6 +419,7 @@ export default function App() {
                 onUpdateStudent={onUpdateStudent}
                 onDeleteStudent={onDeleteStudent}
                 onAddStudent={onAddStudent}
+                onReorderStudentCnos={role === "admin" ? onReorderStudentCnos : null}
                 activeExam={activeExam}
                 onChangeExam={onChangeExam}
               />

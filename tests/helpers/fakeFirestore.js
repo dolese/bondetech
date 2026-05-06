@@ -321,6 +321,8 @@ function matchesFilter(actual, op, expected) {
       return compareValues(actual, expected) >= 0;
     case "<":
       return compareValues(actual, expected) < 0;
+    case "in":
+      return Array.isArray(expected) ? expected.includes(actual) : false;
     default:
       throw new Error(`Unsupported operator: ${op}`);
   }

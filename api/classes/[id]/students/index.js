@@ -1,9 +1,15 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../../lib/http");
-const { resolveSessionUser, canManageStudents, canReadClassData } = require("../../../../lib/auth");
+const {
+  resolveSessionUser,
+  canManageStudents,
+  canReadClassData,
+  canManageClasses,
+} = require("../../../../lib/auth");
 const {
   listStudents,
   createStudentRecord,
+  reorderStudentsBySexAndRegenerateCnos,
 } = require("../../../../lib/classStudents");
 
 module.exports = async (req, res) => {
@@ -47,6 +53,23 @@ module.exports = async (req, res) => {
         : /student name is required/i.test(err.message)
         ? 400
         : 500;
+      return sendJson(res, status, { error: err.message });
+    }
+  }
+
+  if (req.method === "PATCH") {
+    if (!canManageClasses(currentUser.role)) {
+      return sendJson(res, 403, { error: "Only administrators can reorder CNOs" });
+    }
+    try {
+      const body = await readJsonBody(req);
+      if ((body?.action || "") !== "reorder-cnos") {
+        return sendJson(res, 400, { error: "Unsupported student action" });
+      }
+      const result = await reorderStudentsBySexAndRegenerateCnos(db, classId);
+      return sendJson(res, 200, result);
+    } catch (err) {
+      const status = /class not found/i.test(err.message) ? 404 : 500;
       return sendJson(res, status, { error: err.message });
     }
   }
