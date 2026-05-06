@@ -167,8 +167,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     const hNorm = headers.map(norm);
 
     // Recognised exact and prefix/suffix patterns for each identity column.
-    const CNO_HEADERS = new Set(["cno", "admission_no", "admissionno", "index_no", "indexno", "candidate_no", "candidateno"]);
-    const cnoIdx = hNorm.findIndex(h => CNO_HEADERS.has(h));
+    const STUDENT_ID_HEADERS = new Set(["cno", "admission_no", "admissionno", "index_no", "indexno", "candidate_no", "candidateno"]);
+    const cnoIdx = hNorm.findIndex(h => STUDENT_ID_HEADERS.has(h));
     const nameIdx = hNorm.findIndex(h => h === "name" || h === "student_name" || h === "studentname");
     const sexIdx = hNorm.findIndex(h => h === "sex" || h === "gender");
     const statusIdx = hNorm.findIndex(h => h === "status");
@@ -217,7 +217,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
 
       const validation = validateStudent(mapped);
       if (!validation.valid) {
-        errs.push({ row: i + 2, errors: Object.values(validation.errors) });
+        errs.push({ row: i + DATA_ROW_OFFSET, errors: Object.values(validation.errors) });
       } else {
         validRows.push(mapped);
       }
