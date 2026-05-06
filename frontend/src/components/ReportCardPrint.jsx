@@ -145,15 +145,18 @@ export function ReportCardPrint({
     },
     header: {
       display: "grid",
-      gridTemplateColumns: "62px 1fr 62px",
+      gridTemplateColumns: isCompact ? "72px 1fr 72px" : "80px 1fr 80px",
       alignItems: "center",
-      gap: 8,
+      gap: isCompact ? 8 : 10,
     },
     crest: {
-      width: 54,
-      height: 54,
+      width: isCompact ? 64 : 72,
+      height: isCompact ? 64 : 72,
       objectFit: "contain",
       justifySelf: "center",
+      maxWidth: "100%",
+      maxHeight: "100%",
+      display: "block",
     },
     schoolTitle: {
       textAlign: "center",
@@ -163,7 +166,7 @@ export function ReportCardPrint({
     },
     schoolName: {
       margin: 0,
-      fontSize: isCompact ? 19 : 22,
+      fontSize: isCompact ? 18 : 21,
       fontWeight: 900,
       lineHeight: 1.1,
       textTransform: "uppercase",
@@ -171,12 +174,12 @@ export function ReportCardPrint({
     },
     schoolSub: {
       margin: 0,
-      fontSize: isCompact ? 10 : 11,
+      fontSize: isCompact ? 9.5 : 10.5,
       fontWeight: 700,
       lineHeight: 1.25,
     },
     titlePill: {
-      margin: "8px auto 6px",
+      margin: "7px auto 6px",
       maxWidth: isCompact ? 420 : 520,
       background: "#163f97",
       color: "#fff",
