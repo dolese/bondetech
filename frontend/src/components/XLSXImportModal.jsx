@@ -37,7 +37,7 @@ async function parseXlsxFile(file) {
       while ((tMatch = tRe.exec(inner)) !== null) {
         combined += tMatch[1];
       }
-      sharedStrings.push(combined.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'"));
+      sharedStrings.push(combined.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&"));
     }
   }
 
@@ -166,10 +166,15 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     const norm = (s) => String(s ?? "").trim().toLowerCase();
     const hNorm = headers.map(norm);
 
-    const cnoIdx = hNorm.findIndex(h => h === "cno" || h === "admission_no" || h.includes("candidate") || h.includes("index") || h.includes("admission"));
-    const nameIdx = hNorm.findIndex(h => h === "name" || h.includes("student"));
+    // Recognised exact and prefix/suffix patterns for each identity column.
+    const CNO_HEADERS = new Set(["cno", "admission_no", "admissionno", "index_no", "indexno", "candidate_no", "candidateno"]);
+    const cnoIdx = hNorm.findIndex(h => CNO_HEADERS.has(h));
+    const nameIdx = hNorm.findIndex(h => h === "name" || h === "student_name" || h === "studentname");
     const sexIdx = hNorm.findIndex(h => h === "sex" || h === "gender");
     const statusIdx = hNorm.findIndex(h => h === "status");
+
+    // The first row of data in the spreadsheet is row 2 (row 1 is the header).
+    const DATA_ROW_OFFSET = 2;
 
     // Map each class subject to a column index
     const subjectCols = subjects.map((subj) => {
@@ -190,7 +195,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
       const rawSex = sexIdx >= 0 ? String(row[headers[sexIdx]] ?? "").trim().toUpperCase() : "M";
       const sexVal = rawSex === "F" ? "F" : "M";
       if (rawSex && rawSex !== "M" && rawSex !== "F") {
-        coercionWarnings.push(`Row ${i + 2}: sex "${rawSex}" defaulted to M`);
+        coercionWarnings.push(`Row ${i + DATA_ROW_OFFSET}: sex "${rawSex}" defaulted to M`);
       }
 
       const rawStatus = statusIdx >= 0 ? String(row[headers[statusIdx]] ?? "").trim().toLowerCase() : "present";
