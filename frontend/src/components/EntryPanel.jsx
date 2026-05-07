@@ -725,6 +725,86 @@ export function EntryPanel({
           </div>
         )}
 
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+            marginBottom: 10,
+          }}
+        >
+          <div
+            style={styles.infoBadge}
+            title="Safe import updates existing students by CNO and adds only new rows. Existing CNO values remain unchanged unless an administrator uses the reorder action."
+          >
+            Safe Import ⓘ
+          </div>
+          <button
+            onClick={() => setBulkMode(!bulkMode)}
+            title="Bulk score entry"
+            style={{
+              padding: "6px 12px",
+              background: bulkMode ? "#8b2500" : "#003366",
+              color: "#fff",
+              border: "none",
+              borderRadius: 5,
+              cursor: "pointer",
+              fontWeight: 700,
+              height: 30,
+              flex: compactLayout ? 1 : "0 0 auto",
+            }}
+          >
+            {bulkMode ? "✕ Bulk Mode" : "🧮 Bulk Scores"}
+          </button>
+          <button
+            onClick={() => setAddingNew(!addingNew)}
+            title="Add a new student"
+            style={{
+              padding: "6px 12px",
+              background: "#0b6b3a",
+              color: "#fff",
+              border: "none",
+              borderRadius: 5,
+              cursor: "pointer",
+              fontWeight: 700,
+              height: 30,
+              flex: compactLayout ? 1 : "0 0 auto",
+            }}
+          >
+            ➕ New
+          </button>
+          {onReorderStudentCnos && (
+            <div style={styles.dropdownWrap}>
+              <button
+                onClick={() => setShowAdvancedMenu((prev) => !prev)}
+                style={{ ...styles.actionBtn, background: "#9a3412" }}
+                title="Advanced student actions"
+              >
+                Advanced ▾
+              </button>
+              {showAdvancedMenu && (
+                <div style={styles.dropdownMenu}>
+                  <button
+                    onClick={() => {
+                      setShowAdvancedMenu(false);
+                      handleReorderStudentCnos();
+                    }}
+                    disabled={reorderingCnos || !(computed ?? []).length}
+                    style={{
+                      ...styles.dropdownItem,
+                      color: reorderingCnos || !(computed ?? []).length ? "#9ca3af" : "#9a3412",
+                      cursor: reorderingCnos || !(computed ?? []).length ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {reorderingCnos ? "Reordering CNO..." : "Reorder Female → Male CNO"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {showInstructionPanel && (
         <div style={styles.instructionPanel}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
@@ -933,79 +1013,6 @@ export function EntryPanel({
               >
                 {reorderingCnos ? "Reordering CNO..." : "Reorder Female -> Male CNO"}
               </button>
-            )}
-          </div>
-          <div style={styles.tlbDivider} />
-          {/* Row 2: Primary actions + compact safety badge */}
-          <div style={{ ...styles.tlbGroup, ...(compactLayout ? { flex: "1 1 100%" } : {}) }}>
-            <div
-              style={styles.infoBadge}
-              title="Safe import updates existing students by CNO and adds only new rows. Existing CNO values remain unchanged unless an administrator uses the reorder action."
-            >
-              Safe Import ⓘ
-            </div>
-            <button
-              onClick={() => setBulkMode(!bulkMode)}
-              title="Bulk score entry"
-              style={{
-                padding: "6px 12px",
-                background: bulkMode ? "#8b2500" : "#003366",
-                color: "#fff",
-                border: "none",
-                borderRadius: 5,
-                cursor: "pointer",
-                fontWeight: 700,
-                height: 30,
-                flex: compactLayout ? 1 : "0 0 auto",
-              }}
-            >
-              {bulkMode ? "✕ Bulk Mode" : "🧮 Bulk Scores"}
-            </button>
-            <button
-              onClick={() => setAddingNew(!addingNew)}
-              title="Add a new student"
-              style={{
-                padding: "6px 12px",
-                background: "#0b6b3a",
-                color: "#fff",
-                border: "none",
-                borderRadius: 5,
-                cursor: "pointer",
-                fontWeight: 700,
-                height: 30,
-                flex: compactLayout ? 1 : "0 0 auto",
-              }}
-            >
-              ➕ New
-            </button>
-            {onReorderStudentCnos && (
-              <div style={styles.dropdownWrap}>
-                <button
-                  onClick={() => setShowAdvancedMenu((prev) => !prev)}
-                  style={{ ...styles.actionBtn, background: "#9a3412" }}
-                  title="Advanced student actions"
-                >
-                  Advanced ▾
-                </button>
-                {showAdvancedMenu && (
-                  <div style={styles.dropdownMenu}>
-                    <button
-                      onClick={() => {
-                        setShowAdvancedMenu(false);
-                        handleReorderStudentCnos();
-                      }}
-                      disabled={reorderingCnos || !(computed ?? []).length}
-                      style={{
-                        ...styles.dropdownItem,
-                        color: reorderingCnos || !(computed ?? []).length ? "#9ca3af" : "#9a3412",
-                        cursor: reorderingCnos || !(computed ?? []).length ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      {reorderingCnos ? "Reordering CNO..." : "Reorder Female → Male CNO"}
-                    </button>
-                  </div>
-                )}
-              </div>
             )}
           </div>
         </div>
