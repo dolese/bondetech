@@ -80,6 +80,7 @@ export function EntryPanel({
   const [showInstructionPanel, setShowInstructionPanel] = useState(false);
   const [showImportMenu, setShowImportMenu] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showAdvancedMenu, setShowAdvancedMenu] = useState(false);
   const [reorderingCnos, setReorderingCnos] = useState(false);
   const [classYear, setClassYear] = useState(classData.year ?? "");
   const [classForm, setClassForm] = useState(classData.form ?? "Form I");
@@ -106,6 +107,7 @@ export function EntryPanel({
     setShowInstructionPanel(false);
     setShowImportMenu(false);
     setShowExportMenu(false);
+    setShowAdvancedMenu(false);
   }, [classData.id, classData.year, classData.form]);
 
   useEffect(() => {
@@ -592,6 +594,20 @@ export function EntryPanel({
       fontWeight: 700,
       fontSize: 11,
     },
+    infoBadge: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "7px 10px",
+      borderRadius: 999,
+      background: "#fff8e6",
+      border: "1px solid #f2d48f",
+      color: "#7a5a00",
+      fontSize: 11,
+      fontWeight: 800,
+      flexShrink: 0,
+      whiteSpace: "nowrap",
+    },
     subjectRow: {
       display: "flex",
       gap: 8,
@@ -920,8 +936,14 @@ export function EntryPanel({
             )}
           </div>
           <div style={styles.tlbDivider} />
-          {/* Row 2: Bulk Scores + New Student — side-by-side always */}
+          {/* Row 2: Primary actions + compact safety badge */}
           <div style={{ ...styles.tlbGroup, ...(compactLayout ? { flex: "1 1 100%" } : {}) }}>
+            <div
+              style={styles.infoBadge}
+              title="Safe import updates existing students by CNO and adds only new rows. Existing CNO values remain unchanged unless an administrator uses the reorder action."
+            >
+              Safe Import ⓘ
+            </div>
             <button
               onClick={() => setBulkMode(!bulkMode)}
               title="Bulk score entry"
@@ -956,6 +978,35 @@ export function EntryPanel({
             >
               ➕ New
             </button>
+            {onReorderStudentCnos && (
+              <div style={styles.dropdownWrap}>
+                <button
+                  onClick={() => setShowAdvancedMenu((prev) => !prev)}
+                  style={{ ...styles.actionBtn, background: "#9a3412" }}
+                  title="Advanced student actions"
+                >
+                  Advanced ▾
+                </button>
+                {showAdvancedMenu && (
+                  <div style={styles.dropdownMenu}>
+                    <button
+                      onClick={() => {
+                        setShowAdvancedMenu(false);
+                        handleReorderStudentCnos();
+                      }}
+                      disabled={reorderingCnos || !(computed ?? []).length}
+                      style={{
+                        ...styles.dropdownItem,
+                        color: reorderingCnos || !(computed ?? []).length ? "#9ca3af" : "#9a3412",
+                        cursor: reorderingCnos || !(computed ?? []).length ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      {reorderingCnos ? "Reordering CNO..." : "Reorder Female → Male CNO"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
