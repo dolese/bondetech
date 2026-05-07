@@ -44,6 +44,8 @@ export const DEFAULT_SCHOOL = {
   authority: "PRIME MINISTER'S OFFICE",
   region: "TANGA",
   district: "MUHEZA DC",
+  academicPhone: "",
+  headmasterPhone: "",
   form: "Form I",
   term: "I",
   exam: "March Exam",

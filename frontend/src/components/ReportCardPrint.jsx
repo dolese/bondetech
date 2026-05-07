@@ -157,6 +157,14 @@ const GRADE_SCALE_ROWS = [
   ["0-29", "F", "Feli"],
 ];
 
+const DIVISION_EXPLANATION_ROWS = [
+  ["I", "7 - 17", "75 - 100", "A - Pointi 1", "Bora Sana"],
+  ["II", "18 - 21", "60 - 74", "B - Pointi 2", "Nzuri Sana"],
+  ["III", "22 - 25", "45 - 59", "C - Pointi 3", "Nzuri"],
+  ["IV", "26 - 33", "30 - 44", "D - Pointi 4", "Inaridhisha"],
+  ["0", "34 - 35", "0 - 29", "F - Pointi 5", "Feli"],
+];
+
 export function ReportCardPrint({
   student,
   classData,
@@ -327,9 +335,9 @@ export function ReportCardPrint({
     },
     sectionHeading: {
       color: "#163f97",
-      fontSize: isCompact ? 13 : 14,
+      fontSize: isCompact ? 12 : 13,
       fontWeight: 900,
-      margin: "0 0 5px",
+      margin: "0 0 4px",
       textTransform: "uppercase",
     },
     table: {
@@ -380,24 +388,55 @@ export function ReportCardPrint({
       borderCollapse: "collapse",
       fontSize: isCompact ? 9 : 10,
     },
+    explanationSection: {
+      marginTop: 7,
+    },
+    explanationTitle: {
+      fontSize: isCompact ? 11 : 12,
+      fontWeight: 900,
+      color: "#163f97",
+      textTransform: "uppercase",
+      margin: "0 0 4px",
+      letterSpacing: 0.2,
+    },
+    explanationTable: {
+      width: "100%",
+      borderCollapse: "collapse",
+      fontSize: isCompact ? 7.4 : 8.1,
+    },
+    explanationHeadCell: {
+      border: "1px solid #9fb2dd",
+      background: "#eef3ff",
+      color: "#163f97",
+      fontWeight: 900,
+      padding: isCompact ? "3px 3px" : "4px 4px",
+      textAlign: "center",
+      lineHeight: 1.2,
+    },
+    explanationCell: {
+      border: "1px solid #cbd5e1",
+      padding: isCompact ? "3px 3px" : "4px 4px",
+      textAlign: "center",
+      lineHeight: 1.2,
+    },
     summarySentence: {
       borderTop: "1px dotted #333",
       borderBottom: "1px dotted #333",
-      padding: "6px 4px",
-      marginTop: 7,
-      fontSize: isCompact ? 10 : 11,
-      lineHeight: 1.45,
+      padding: "5px 4px",
+      marginTop: 6,
+      fontSize: isCompact ? 9.5 : 10.5,
+      lineHeight: 1.35,
     },
     remarksSection: {
-      marginTop: 7,
+      marginTop: 6,
     },
     remarkRow: {
       display: "grid",
       gridTemplateColumns: isCompact ? "116px 1fr 70px 90px" : "145px 1fr 82px 110px",
       gap: 10,
       alignItems: "start",
-      marginBottom: 6,
-      fontSize: isCompact ? 10 : 11,
+      marginBottom: 5,
+      fontSize: isCompact ? 9.5 : 10.5,
     },
     remarkLabel: {
       color: "#163f97",
@@ -405,8 +444,8 @@ export function ReportCardPrint({
       lineHeight: 1.35,
     },
     remarkText: {
-      minHeight: 58,
-      lineHeight: 1.35,
+      minHeight: 48,
+      lineHeight: 1.25,
     },
     signLabel: {
       color: "#163f97",
@@ -424,14 +463,27 @@ export function ReportCardPrint({
       gap: 10,
       alignItems: "start",
       marginTop: 4,
-      fontSize: isCompact ? 10 : 11,
+      fontSize: isCompact ? 9.5 : 10.5,
+    },
+    phoneGrid: {
+      display: "grid",
+      gridTemplateColumns: isCompact ? "1fr" : "1fr 1fr",
+      gap: 10,
+      marginTop: 5,
+      fontSize: isCompact ? 9.5 : 10.5,
+    },
+    phoneItem: {
+      display: "grid",
+      gridTemplateColumns: isCompact ? "110px 1fr" : "145px 1fr",
+      gap: 8,
+      alignItems: "center",
     },
     footerDate: {
-      marginTop: 4,
+      marginTop: 3,
       display: "flex",
       justifyContent: "flex-end",
       gap: 8,
-      fontSize: isCompact ? 10 : 11,
+      fontSize: isCompact ? 9.5 : 10.5,
       alignItems: "center",
     },
     dateLine: {
@@ -553,11 +605,37 @@ export function ReportCardPrint({
               })}
             </tbody>
           </table>
+
+          <div style={styles.explanationSection}>
+            <div style={styles.sectionHeading}>B. Maelezo ya Mgawanyo wa Alama</div>
+            <table style={styles.explanationTable}>
+              <thead>
+                <tr>
+                  <th style={styles.explanationHeadCell}>Daraja</th>
+                  <th style={styles.explanationHeadCell}>Pointi</th>
+                  <th style={styles.explanationHeadCell}>Alama</th>
+                  <th style={styles.explanationHeadCell}>Ufafanuzi</th>
+                  <th style={styles.explanationHeadCell}>Maelezo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {DIVISION_EXPLANATION_ROWS.map(([division, points, scoreRange, breakdown, description]) => (
+                  <tr key={division}>
+                    <td style={{ ...styles.explanationCell, fontWeight: 800 }}>{division}</td>
+                    <td style={styles.explanationCell}>{points}</td>
+                    <td style={styles.explanationCell}>{scoreRange}</td>
+                    <td style={styles.explanationCell}>{breakdown}</td>
+                    <td style={{ ...styles.explanationCell, textAlign: "left", fontWeight: 700 }}>{description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div>
           <div style={styles.sideBox}>
-            <div style={styles.sideHead}>B. Muhtasari wa Ufaulu</div>
+            <div style={styles.sideHead}>C. Muhtasari wa Ufaulu</div>
             {[
               ["Jumla ya Alama", formatNumeric(totalScore, isComposite ? 1 : 0)],
               ["Wastani", formatNumeric(avgScore, 1)],
@@ -575,27 +653,6 @@ export function ReportCardPrint({
             ))}
           </div>
 
-          <div style={styles.sideBox}>
-            <div style={styles.sideHead}>Tafsiri ya Viwango vya Ufaulu</div>
-            <table style={styles.scaleTable}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>Alama</th>
-                  <th style={styles.th}>Daraja</th>
-                  <th style={styles.th}>Maelezo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {GRADE_SCALE_ROWS.map(([range, grade, description]) => (
-                  <tr key={grade}>
-                    <td style={styles.td}>{range}</td>
-                    <td style={{ ...styles.td, fontWeight: 800, color: GRADE_COLORS[grade] }}>{grade}</td>
-                    <td style={{ ...styles.td, textAlign: "left" }}>{description}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
 
@@ -604,7 +661,7 @@ export function ReportCardPrint({
       </div>
 
       <div style={styles.remarksSection}>
-        <div style={styles.sectionHeading}>C. Maoni na Maagizo</div>
+        <div style={styles.sectionHeading}>D. Maoni, Maagizo na Mawasiliano</div>
 
         <div style={styles.remarkRow}>
           <div style={styles.remarkLabel}>Maoni ya Mwalimu wa Darasa:</div>
@@ -628,6 +685,17 @@ export function ReportCardPrint({
             ) : (
               renderDottedLines(4)
             )}
+          </div>
+        </div>
+
+        <div style={styles.phoneGrid}>
+          <div style={styles.phoneItem}>
+            <div style={styles.remarkLabel}>Namba ya simu ya Mtaaluma:</div>
+            <div style={styles.infoValue}>{schoolInfo.academicPhone || ""}</div>
+          </div>
+          <div style={styles.phoneItem}>
+            <div style={styles.remarkLabel}>Namba ya simu ya Mkuu wa Shule:</div>
+            <div style={styles.infoValue}>{schoolInfo.headmasterPhone || ""}</div>
           </div>
         </div>
 

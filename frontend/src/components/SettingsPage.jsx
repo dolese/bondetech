@@ -396,6 +396,16 @@ export function SettingsPage({
             error={schoolErrors.district}
           />
           <TextInput
+            label="Academic Officer Phone"
+            value={schoolInfo.academicPhone ?? ""}
+            onChange={(v) => setSchoolInfo({ ...schoolInfo, academicPhone: v })}
+          />
+          <TextInput
+            label="Headmaster Phone"
+            value={schoolInfo.headmasterPhone ?? ""}
+            onChange={(v) => setSchoolInfo({ ...schoolInfo, headmasterPhone: v })}
+          />
+          <TextInput
             label="Form (for report card)"
             value={schoolInfo.form}
             onChange={(v) => setSchoolInfo({ ...schoolInfo, form: v })}
