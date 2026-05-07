@@ -731,6 +731,7 @@ export function EntryPanel({
             gap: 8,
             flexWrap: "wrap",
             alignItems: "center",
+            justifyContent: "center",
             marginBottom: 10,
           }}
         >
@@ -976,44 +977,6 @@ export function EntryPanel({
             >
               {sortAsc ? "⬆" : "⬇"}
             </button>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: compactLayout ? "column" : "row",
-              gap: 8,
-              alignItems: compactLayout ? "stretch" : "center",
-              justifyContent: "space-between",
-              background: "#fff8e6",
-              border: "1px solid #f2d48f",
-              borderRadius: 8,
-              padding: compactLayout ? "8px 10px" : "8px 12px",
-            }}
-          >
-            <div style={{ fontSize: 11, color: "#7a5a00", lineHeight: 1.5 }}>
-              Import updates existing students by CNO and adds only new rows. Existing CNO values stay unchanged unless an administrator explicitly runs the reorder action.
-            </div>
-            {onReorderStudentCnos && (
-              <button
-                onClick={handleReorderStudentCnos}
-                disabled={reorderingCnos || !(computed ?? []).length}
-                title="Reorder the class as Female first, then Male, and regenerate all CNO values"
-                style={{
-                  padding: "8px 12px",
-                  background: reorderingCnos ? "#6b7280" : "#9a3412",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 7,
-                  cursor: reorderingCnos || !(computed ?? []).length ? "not-allowed" : "pointer",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  whiteSpace: "nowrap",
-                  opacity: !(computed ?? []).length ? 0.65 : 1,
-                }}
-              >
-                {reorderingCnos ? "Reordering CNO..." : "Reorder Female -> Male CNO"}
-              </button>
-            )}
           </div>
         </div>
       </div>
