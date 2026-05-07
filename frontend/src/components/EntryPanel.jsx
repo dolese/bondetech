@@ -683,22 +683,115 @@ export function EntryPanel({
   return (
     <div style={styles.panel}>
       <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
-          <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800 }}>
-            📝 Student Entry
-          </h3>
-          <button
-            onClick={() => setShowInstructionPanel((prev) => !prev)}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: compactLayout ? "1fr" : "minmax(220px,1fr) auto minmax(220px,1fr)",
+            alignItems: "center",
+            gap: compactLayout ? 8 : 12,
+            marginBottom: 10,
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800 }}>
+              📝 Student Entry
+            </h3>
+            <div style={{ fontSize: 11, color: "#667", marginTop: 4 }}>
+              Add, edit, and score students for this class.
+            </div>
+          </div>
+
+          <div
             style={{
-              ...styles.actionBtn,
-              background: showInstructionPanel ? "#8b2500" : "#0b6b3a",
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            {showInstructionPanel ? "Hide Maagizo" : "Maagizo"}
-          </button>
-        </div>
-        <div style={{ fontSize: 11, color: "#667", marginBottom: 8 }}>
-          Add, edit, and score students for this class.
+            <div
+              style={styles.infoBadge}
+              title="Safe import updates existing students by CNO and adds only new rows. Existing CNO values remain unchanged unless an administrator uses the reorder action."
+            >
+              Safe Import ⓘ
+            </div>
+            <button
+              onClick={() => setBulkMode(!bulkMode)}
+              title="Bulk score entry"
+              style={{
+                padding: "6px 12px",
+                background: bulkMode ? "#8b2500" : "#003366",
+                color: "#fff",
+                border: "none",
+                borderRadius: 5,
+                cursor: "pointer",
+                fontWeight: 700,
+                height: 30,
+                flex: compactLayout ? 1 : "0 0 auto",
+              }}
+            >
+              {bulkMode ? "✕ Bulk Mode" : "🧮 Bulk Scores"}
+            </button>
+            <button
+              onClick={() => setAddingNew(!addingNew)}
+              title="Add a new student"
+              style={{
+                padding: "6px 12px",
+                background: "#0b6b3a",
+                color: "#fff",
+                border: "none",
+                borderRadius: 5,
+                cursor: "pointer",
+                fontWeight: 700,
+                height: 30,
+                flex: compactLayout ? 1 : "0 0 auto",
+              }}
+            >
+              ➕ New
+            </button>
+            {onReorderStudentCnos && (
+              <div style={styles.dropdownWrap}>
+                <button
+                  onClick={() => setShowAdvancedMenu((prev) => !prev)}
+                  style={{ ...styles.actionBtn, background: "#9a3412" }}
+                  title="Advanced student actions"
+                >
+                  Advanced ▾
+                </button>
+                {showAdvancedMenu && (
+                  <div style={styles.dropdownMenu}>
+                    <button
+                      onClick={() => {
+                        setShowAdvancedMenu(false);
+                        handleReorderStudentCnos();
+                      }}
+                      disabled={reorderingCnos || !(computed ?? []).length}
+                      style={{
+                        ...styles.dropdownItem,
+                        color: reorderingCnos || !(computed ?? []).length ? "#9ca3af" : "#9a3412",
+                        cursor: reorderingCnos || !(computed ?? []).length ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      {reorderingCnos ? "Reordering CNO..." : "Reorder Female → Male CNO"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: compactLayout ? "flex-start" : "flex-end" }}>
+            <button
+              onClick={() => setShowInstructionPanel((prev) => !prev)}
+              style={{
+                ...styles.actionBtn,
+                background: showInstructionPanel ? "#8b2500" : "#0b6b3a",
+              }}
+            >
+              {showInstructionPanel ? "Hide Maagizo" : "Maagizo"}
+            </button>
+          </div>
         </div>
 
         {/* Composite exam banner */}
@@ -724,87 +817,6 @@ export function EntryPanel({
             </span>
           </div>
         )}
-
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 10,
-          }}
-        >
-          <div
-            style={styles.infoBadge}
-            title="Safe import updates existing students by CNO and adds only new rows. Existing CNO values remain unchanged unless an administrator uses the reorder action."
-          >
-            Safe Import ⓘ
-          </div>
-          <button
-            onClick={() => setBulkMode(!bulkMode)}
-            title="Bulk score entry"
-            style={{
-              padding: "6px 12px",
-              background: bulkMode ? "#8b2500" : "#003366",
-              color: "#fff",
-              border: "none",
-              borderRadius: 5,
-              cursor: "pointer",
-              fontWeight: 700,
-              height: 30,
-              flex: compactLayout ? 1 : "0 0 auto",
-            }}
-          >
-            {bulkMode ? "✕ Bulk Mode" : "🧮 Bulk Scores"}
-          </button>
-          <button
-            onClick={() => setAddingNew(!addingNew)}
-            title="Add a new student"
-            style={{
-              padding: "6px 12px",
-              background: "#0b6b3a",
-              color: "#fff",
-              border: "none",
-              borderRadius: 5,
-              cursor: "pointer",
-              fontWeight: 700,
-              height: 30,
-              flex: compactLayout ? 1 : "0 0 auto",
-            }}
-          >
-            ➕ New
-          </button>
-          {onReorderStudentCnos && (
-            <div style={styles.dropdownWrap}>
-              <button
-                onClick={() => setShowAdvancedMenu((prev) => !prev)}
-                style={{ ...styles.actionBtn, background: "#9a3412" }}
-                title="Advanced student actions"
-              >
-                Advanced ▾
-              </button>
-              {showAdvancedMenu && (
-                <div style={styles.dropdownMenu}>
-                  <button
-                    onClick={() => {
-                      setShowAdvancedMenu(false);
-                      handleReorderStudentCnos();
-                    }}
-                    disabled={reorderingCnos || !(computed ?? []).length}
-                    style={{
-                      ...styles.dropdownItem,
-                      color: reorderingCnos || !(computed ?? []).length ? "#9ca3af" : "#9a3412",
-                      cursor: reorderingCnos || !(computed ?? []).length ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    {reorderingCnos ? "Reordering CNO..." : "Reorder Female → Male CNO"}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
 
         {showInstructionPanel && (
         <div style={styles.instructionPanel}>
