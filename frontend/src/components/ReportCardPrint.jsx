@@ -16,6 +16,12 @@ function formatNumeric(value, digits = 1) {
   return number.toFixed(digits);
 }
 
+function toNumericScore(rawValue) {
+  if (rawValue === null || rawValue === undefined || rawValue === "" || rawValue === "ABS") return null;
+  const number = Number(rawValue);
+  return Number.isFinite(number) ? number : null;
+}
+
 function getTermLabel(term) {
   const raw = String(term ?? "").trim();
   if (!raw) return "-";
@@ -90,6 +96,54 @@ function buildSummarySentence(student, totalStudents) {
   return `Amekuwa wa ${position} kati ya wanafunzi ${total}, akiwa na Divisheni ${student?.div ?? "-"}, pointi ${student?.points ?? "-"} na wastani wa ${avg} sawa na daraja ${grade}.`;
 }
 
+function formatReportDate() {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const year = String(now.getFullYear());
+  return `${day}-${month}-${year}`;
+}
+
+function getSwahiliHeaderTitles(branding, schoolInfo) {
+  const authorityRaw = String(branding.headerSubtitle || schoolInfo.authority || "").trim();
+  const schoolRaw = String(branding.headerName || schoolInfo.name || "").trim();
+  const officeLine = /prime minister/i.test(authorityRaw)
+    ? "OFISI YA WAZIRI MKUU"
+    : authorityRaw.toUpperCase() || "OFISI YA ELIMU";
+  const authorityLine = /prime minister/i.test(authorityRaw)
+    ? "TAWALA ZA MIKOA NA SERIKALI ZA MITAA"
+    : (schoolInfo.region ? `MKOA WA ${String(schoolInfo.region).toUpperCase()}` : authorityRaw.toUpperCase() || "ELIMU YA SEKONDARI");
+  const strippedSchool = schoolRaw.replace(/secondary school/i, "").trim();
+  const schoolLine = strippedSchool
+    ? `SHULE YA SEKONDARI ${strippedSchool.toUpperCase()}`
+    : schoolRaw.toUpperCase() || "SHULE YA SEKONDARI";
+
+  return { officeLine, authorityLine, schoolLine };
+}
+
+function getCompositeTableMeta(examName, compositeEntry) {
+  if (!compositeEntry) return null;
+  if (examName === "Terminal Exam") {
+    return {
+      partnerLabel: "Midterm",
+      currentLabel: "Terminal",
+      currentLabelShort: "Terminal",
+    };
+  }
+  if (examName === "Annual Exam") {
+    return {
+      partnerLabel: "Midterm-September",
+      currentLabel: "Annual",
+      currentLabelShort: "Annual",
+    };
+  }
+  return {
+    partnerLabel: compositeEntry.partnerExam,
+    currentLabel: examName,
+    currentLabelShort: examName,
+  };
+}
+
 const PAPER_DIMENSIONS = {
   a4: { width: "210mm", minHeight: "297mm" },
   a3: { width: "297mm", minHeight: "420mm" },
@@ -129,12 +183,19 @@ export function ReportCardPrint({
   const reportInstruction = String(
     schoolInfo.reportInstruction ?? schoolInfo.report_instruction ?? ""
   ).trim();
+  const examName = String(schoolInfo.exam ?? schoolInfo.term ?? "-");
+  const compositeTableMeta = getCompositeTableMeta(examName, compositeEntry);
+  const showCustomCompositeTable = Boolean(
+    compositeEntry && (examName === "Terminal Exam" || examName === "Annual Exam")
+  );
+  const reportDate = formatReportDate();
+  const headerTitles = getSwahiliHeaderTitles(branding, schoolInfo);
 
   const styles = {
     card: {
       background: "#fff",
-      border: "1.8px solid #163f97",
-      padding: isCompact ? 10 : 12,
+      border: "1.8px solid #111",
+      padding: isCompact ? 8 : 10,
       fontFamily: "'Arial', 'Helvetica', sans-serif",
       color: "#111827",
       width: isLandscape ? dimension.minHeight : dimension.width,
@@ -143,15 +204,20 @@ export function ReportCardPrint({
       margin: "0 auto",
       boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
     },
+    headerFrame: {
+      border: "2px solid #111",
+      padding: isCompact ? "8px 10px 0" : "10px 12px 0",
+      marginBottom: 6,
+    },
     header: {
       display: "grid",
-      gridTemplateColumns: isCompact ? "72px 1fr 72px" : "80px 1fr 80px",
-      alignItems: "center",
-      gap: isCompact ? 8 : 10,
+      gridTemplateColumns: isCompact ? "70px 1fr 70px" : "76px 1fr 76px",
+      alignItems: "start",
+      gap: isCompact ? 6 : 8,
     },
     crest: {
-      width: isCompact ? 64 : 72,
-      height: isCompact ? 64 : 72,
+      width: isCompact ? 58 : 64,
+      height: isCompact ? 58 : 64,
       objectFit: "contain",
       justifySelf: "center",
       maxWidth: "100%",
@@ -160,54 +226,75 @@ export function ReportCardPrint({
     },
     schoolTitle: {
       textAlign: "center",
-      color: "#163f97",
+      color: "#111",
       display: "grid",
-      gap: 3,
+      gap: 2,
+    },
+    officeTitle: {
+      margin: 0,
+      fontSize: isCompact ? 11 : 12,
+      fontWeight: 800,
+      lineHeight: 1.15,
+      textTransform: "uppercase",
+      letterSpacing: 0.4,
+      fontFamily: "'Georgia', 'Times New Roman', serif",
+    },
+    authorityTitle: {
+      margin: 0,
+      fontSize: isCompact ? 22 : 25,
+      fontWeight: 900,
+      lineHeight: 1.08,
+      textTransform: "uppercase",
+      letterSpacing: 0.2,
+      fontFamily: "'Georgia', 'Times New Roman', serif",
     },
     schoolName: {
-      margin: 0,
-      fontSize: isCompact ? 18 : 21,
+      margin: "2px 0 0",
+      fontSize: isCompact ? 18 : 20,
       fontWeight: 900,
       lineHeight: 1.1,
       textTransform: "uppercase",
       letterSpacing: 0.2,
+      fontFamily: "'Georgia', 'Times New Roman', serif",
     },
-    schoolSub: {
-      margin: 0,
+    headerMetaRow: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 12,
+      alignItems: "start",
+      marginTop: isCompact ? 8 : 10,
+      paddingBottom: isCompact ? 6 : 8,
+    },
+    headerMetaBlock: {
       fontSize: isCompact ? 9.5 : 10.5,
+      lineHeight: 1.35,
       fontWeight: 700,
-      lineHeight: 1.25,
+      whiteSpace: "pre-line",
     },
-    titlePill: {
-      margin: "7px auto 6px",
-      maxWidth: isCompact ? 420 : 520,
-      background: "#163f97",
-      color: "#fff",
-      borderRadius: 999,
+    headerBottomBand: {
+      borderTop: "2px solid #111",
       textAlign: "center",
-      padding: isCompact ? "7px 16px" : "9px 20px",
-      fontSize: isCompact ? 14 : 16,
+      padding: isCompact ? "8px 8px 9px" : "10px 10px 11px",
+      fontSize: isCompact ? 13 : 15,
       fontWeight: 900,
-      letterSpacing: 0.3,
+      lineHeight: 1.15,
       textTransform: "uppercase",
-    },
-    rule: {
-      borderTop: "1.5px solid #111827",
-      margin: "6px 0 8px",
+      letterSpacing: 0.2,
+      fontFamily: "'Georgia', 'Times New Roman', serif",
     },
     classStrip: {
       textAlign: "center",
-      fontSize: isCompact ? 12 : 13,
+      fontSize: isCompact ? 11 : 12,
       fontWeight: 700,
       color: "#111827",
-      marginBottom: 8,
+      marginBottom: 6,
       textTransform: "uppercase",
     },
     infoGrid: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
-      gap: "7px 20px",
-      marginBottom: 8,
+      gap: "6px 18px",
+      marginBottom: 6,
     },
     infoItem: {
       display: "grid",
@@ -230,44 +317,44 @@ export function ReportCardPrint({
       borderTop: "2px solid #163f97",
       borderBottom: "4px solid #163f97",
       height: 5,
-      margin: "6px 0 8px",
+      margin: "5px 0 7px",
     },
     bodyGrid: {
       display: "grid",
       gridTemplateColumns: isCompact ? "1.45fr 0.95fr" : "1.7fr 0.9fr",
-      gap: 10,
+      gap: 9,
       alignItems: "start",
     },
     sectionHeading: {
       color: "#163f97",
       fontSize: isCompact ? 13 : 14,
       fontWeight: 900,
-      margin: "0 0 6px",
+      margin: "0 0 5px",
       textTransform: "uppercase",
     },
     table: {
       width: "100%",
       borderCollapse: "collapse",
-      fontSize: isCompact ? 9 : 10,
+      fontSize: isCompact ? 8.5 : 9.5,
     },
     th: {
       background: "#163f97",
       color: "#fff",
       border: "1px solid #a9b6d5",
-      padding: isCompact ? "4px 3px" : "5px 4px",
+      padding: isCompact ? "3px 2px" : "4px 3px",
       fontWeight: 800,
       textAlign: "center",
     },
     td: {
       border: "1px solid #cbd5e1",
-      padding: isCompact ? "4px 4px" : "5px 5px",
+      padding: isCompact ? "3px 3px" : "4px 4px",
       textAlign: "center",
     },
     sideBox: {
       border: "1px solid #9fb2dd",
       borderRadius: 4,
       overflow: "hidden",
-      marginBottom: 8,
+      marginBottom: 7,
     },
     sideHead: {
       background: "#fff",
@@ -276,14 +363,14 @@ export function ReportCardPrint({
       fontWeight: 900,
       fontSize: isCompact ? 12 : 13,
       textAlign: "center",
-      padding: "7px 6px",
+      padding: "6px 6px",
       textTransform: "uppercase",
     },
     sideRow: {
       display: "grid",
       gridTemplateColumns: "1fr auto",
       gap: 10,
-      padding: "6px 8px",
+      padding: "5px 7px",
       borderTop: "1px solid #d7e1f0",
       fontSize: isCompact ? 9 : 10,
       alignItems: "center",
@@ -296,20 +383,20 @@ export function ReportCardPrint({
     summarySentence: {
       borderTop: "1px dotted #333",
       borderBottom: "1px dotted #333",
-      padding: "7px 4px",
-      marginTop: 8,
+      padding: "6px 4px",
+      marginTop: 7,
       fontSize: isCompact ? 10 : 11,
       lineHeight: 1.45,
     },
     remarksSection: {
-      marginTop: 8,
+      marginTop: 7,
     },
     remarkRow: {
       display: "grid",
       gridTemplateColumns: isCompact ? "116px 1fr 70px 90px" : "145px 1fr 82px 110px",
       gap: 10,
       alignItems: "start",
-      marginBottom: 7,
+      marginBottom: 6,
       fontSize: isCompact ? 10 : 11,
     },
     remarkLabel: {
@@ -340,7 +427,7 @@ export function ReportCardPrint({
       fontSize: isCompact ? 10 : 11,
     },
     footerDate: {
-      marginTop: 5,
+      marginTop: 4,
       display: "flex",
       justifyContent: "flex-end",
       gap: 8,
@@ -356,20 +443,33 @@ export function ReportCardPrint({
 
   return (
     <div style={styles.card}>
-      <div style={styles.header}>
-        <img src={branding.leftLogoSrc} alt="Left crest" style={styles.crest} />
-        <div style={styles.schoolTitle}>
-          <h1 style={styles.schoolName}>{branding.headerName}</h1>
-          <p style={styles.schoolSub}>{branding.headerSubtitle}</p>
-          <p style={styles.schoolSub}>{branding.headerAddress}</p>
+      <div style={styles.headerFrame}>
+        <div style={styles.header}>
+          <img src={branding.leftLogoSrc} alt="Left crest" style={styles.crest} />
+          <div style={styles.schoolTitle}>
+            <p style={styles.officeTitle}>{headerTitles.officeLine}</p>
+            <h2 style={styles.authorityTitle}>{headerTitles.authorityLine}</h2>
+            <h1 style={styles.schoolName}>{headerTitles.schoolLine}</h1>
+          </div>
+          <img src={branding.rightLogoSrc} alt="Right crest" style={styles.crest} />
         </div>
-        <img src={branding.rightLogoSrc} alt="Right crest" style={styles.crest} />
+
+        <div style={styles.headerMetaRow}>
+          <div style={styles.headerMetaBlock}>
+            {`MAMLAKA: ${schoolInfo.authority || "-"}\nMKOA: ${schoolInfo.region || "-"}\nWILAYA: ${schoolInfo.district || "-"}`}
+          </div>
+          <div style={{ ...styles.headerMetaBlock, textAlign: "right" }}>
+            {`ANWANI: ${branding.headerAddress || "-"}\nMTIHANI: ${examName}\nTAREHE: ${reportDate}`}
+          </div>
+        </div>
+
+        <div style={styles.headerBottomBand}>
+          Taarifa ya Maendeleo ya Mwanafunzi Katika Masomo na Tabia ya Kazi
+        </div>
       </div>
 
-      <div style={styles.titlePill}>Ripoti ya Maendeleo ya Mwanafunzi</div>
-      <div style={styles.rule} />
       <div style={styles.classStrip}>
-        {`${classLabel}  |  ${String(schoolInfo.exam ?? schoolInfo.term ?? "-").toUpperCase()}  |  MWAKA ${schoolInfo.year ?? "-"}`}
+        {`${classLabel}  |  ${examName.toUpperCase()}  |  MWAKA ${schoolInfo.year ?? "-"}`}
       </div>
 
       <div style={styles.infoGrid}>
@@ -404,9 +504,13 @@ export function ReportCardPrint({
             <thead>
               <tr>
                 <th style={{ ...styles.th, textAlign: "left" }}>Somo</th>
-                {isComposite && <th style={styles.th}>Awali</th>}
-                {isComposite && <th style={styles.th}>Sasa</th>}
-                <th style={styles.th}>{isComposite ? "Wastani" : "Alama"}</th>
+                {showCustomCompositeTable && <th style={styles.th}>{compositeTableMeta?.partnerLabel || "Midterm"}</th>}
+                {showCustomCompositeTable && <th style={styles.th}>{compositeTableMeta?.currentLabelShort || "Terminal"}</th>}
+                {showCustomCompositeTable && <th style={styles.th}>Jumla</th>}
+                {showCustomCompositeTable && <th style={styles.th}>Wastani</th>}
+                {!showCustomCompositeTable && isComposite && <th style={styles.th}>Awali</th>}
+                {!showCustomCompositeTable && isComposite && <th style={styles.th}>Sasa</th>}
+                {!showCustomCompositeTable && <th style={styles.th}>{isComposite ? "Wastani" : "Alama"}</th>}
                 <th style={styles.th}>Daraja</th>
                 <th style={styles.th}>Pointi</th>
                 <th style={styles.th}>Maelezo</th>
@@ -420,13 +524,25 @@ export function ReportCardPrint({
                 const currentDisplay = formatScoreDisplay(grade?.raw);
                 const partnerDisplay = formatScoreDisplay(grade?.partnerRaw);
                 const pointsDisplay = grade?.grade ? getGradePoints(grade.grade) : "-";
+                const currentNumeric = toNumericScore(grade?.raw);
+                const partnerNumeric = toNumericScore(grade?.partnerRaw);
+                const totalDisplay =
+                  currentNumeric !== null && partnerNumeric !== null
+                    ? formatNumeric(currentNumeric + partnerNumeric, 0)
+                    : "-";
 
                 return (
                   <tr key={subject}>
                     <td style={{ ...styles.td, textAlign: "left", fontWeight: 700 }}>{subject}</td>
-                    {isComposite && <td style={styles.td}>{partnerDisplay}</td>}
-                    {isComposite && <td style={styles.td}>{currentDisplay}</td>}
-                    <td style={styles.td}>{isComposite ? combinedDisplay : currentDisplay}</td>
+                    {showCustomCompositeTable && <td style={styles.td}>{partnerDisplay}</td>}
+                    {showCustomCompositeTable && <td style={styles.td}>{currentDisplay}</td>}
+                    {showCustomCompositeTable && <td style={styles.td}>{totalDisplay}</td>}
+                    {showCustomCompositeTable && <td style={styles.td}>{combinedDisplay}</td>}
+                    {!showCustomCompositeTable && isComposite && <td style={styles.td}>{partnerDisplay}</td>}
+                    {!showCustomCompositeTable && isComposite && <td style={styles.td}>{currentDisplay}</td>}
+                    {!showCustomCompositeTable && (
+                      <td style={styles.td}>{isComposite ? combinedDisplay : currentDisplay}</td>
+                    )}
                     <td style={{ ...styles.td, fontWeight: 800, color: GRADE_COLORS[grade?.grade] || "#555" }}>
                       {grade?.grade ?? "-"}
                     </td>
