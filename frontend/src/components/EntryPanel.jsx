@@ -77,6 +77,9 @@ export function EntryPanel({
   const [updatingSchool, setUpdatingSchool] = useState(false);
   const [savingInstruction, setSavingInstruction] = useState(false);
   const [instructionNotice, setInstructionNotice] = useState("");
+  const [showInstructionPanel, setShowInstructionPanel] = useState(false);
+  const [showImportMenu, setShowImportMenu] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const [reorderingCnos, setReorderingCnos] = useState(false);
   const [classYear, setClassYear] = useState(classData.year ?? "");
   const [classForm, setClassForm] = useState(classData.form ?? "Form I");
@@ -100,6 +103,9 @@ export function EntryPanel({
     });
     setSchoolErrors({});
     setInstructionNotice("");
+    setShowInstructionPanel(false);
+    setShowImportMenu(false);
+    setShowExportMenu(false);
   }, [classData.id, classData.year, classData.form]);
 
   useEffect(() => {
@@ -384,6 +390,18 @@ export function EntryPanel({
     }
   };
 
+  const importActions = [
+    { label: "Import CSV", onClick: () => onShowModal("csv-import") },
+    { label: "Import JSON", onClick: () => onShowModal("json-import") },
+    { label: "Import XLSX", onClick: () => onShowModal("xlsx-import") },
+  ];
+
+  const exportActions = [
+    { label: "Export CSV", onClick: exportCsv },
+    { label: "Export JSON", onClick: exportJson },
+    { label: "Export XLSX", onClick: handleExportXlsx },
+  ];
+
   const gradeBadgeStyle = (grade) => ({
     fontWeight: 700,
     fontSize: 9,
@@ -531,6 +549,49 @@ export function EntryPanel({
       cursor: "pointer",
       justifySelf: "start",
     },
+    actionBtn: {
+      padding: "6px 12px",
+      height: 30,
+      borderRadius: 5,
+      border: "none",
+      color: "#fff",
+      fontWeight: 700,
+      cursor: "pointer",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      flexShrink: 0,
+    },
+    dropdownWrap: {
+      position: "relative",
+      display: "inline-flex",
+      flexShrink: 0,
+    },
+    dropdownMenu: {
+      position: "absolute",
+      top: "calc(100% + 6px)",
+      left: 0,
+      minWidth: 148,
+      background: "#fff",
+      border: "1px solid #d0dcf8",
+      borderRadius: 8,
+      boxShadow: "0 10px 30px rgba(0,51,102,0.15)",
+      padding: 6,
+      zIndex: 20,
+      display: "grid",
+      gap: 4,
+    },
+    dropdownItem: {
+      padding: "8px 10px",
+      border: "none",
+      borderRadius: 6,
+      background: "#f8fbff",
+      color: "#003366",
+      textAlign: "left",
+      cursor: "pointer",
+      fontWeight: 700,
+      fontSize: 11,
+    },
     subjectRow: {
       display: "flex",
       gap: 8,
@@ -606,9 +667,20 @@ export function EntryPanel({
   return (
     <div style={styles.panel}>
       <div>
-        <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 800 }}>
-          📝 Student Entry
-        </h3>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
+          <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800 }}>
+            📝 Student Entry
+          </h3>
+          <button
+            onClick={() => setShowInstructionPanel((prev) => !prev)}
+            style={{
+              ...styles.actionBtn,
+              background: showInstructionPanel ? "#8b2500" : "#0b6b3a",
+            }}
+          >
+            {showInstructionPanel ? "Hide Maagizo" : "Maagizo"}
+          </button>
+        </div>
         <div style={{ fontSize: 11, color: "#667", marginBottom: 8 }}>
           Add, edit, and score students for this class.
         </div>
@@ -637,6 +709,7 @@ export function EntryPanel({
           </div>
         )}
 
+        {showInstructionPanel && (
         <div style={styles.instructionPanel}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             <div>
@@ -674,6 +747,7 @@ export function EntryPanel({
             </div>
           )}
         </div>
+        )}
 
         <div style={styles.tlbx}>
           {/* Row 1: Exam selector + Search (always full-width on mobile) */}
@@ -703,6 +777,62 @@ export function EntryPanel({
                   <option key={et.value} value={et.value}>{et.label}</option>
                 ))}
               </select>
+            </div>
+            <div style={styles.dropdownWrap}>
+              <button
+                onClick={() => {
+                  setShowImportMenu((prev) => !prev);
+                  setShowExportMenu(false);
+                }}
+                style={{ ...styles.actionBtn, background: "#0077aa" }}
+                title="Import student data"
+              >
+                Import ▾
+              </button>
+              {showImportMenu && (
+                <div style={styles.dropdownMenu}>
+                  {importActions.map((action) => (
+                    <button
+                      key={action.label}
+                      onClick={() => {
+                        setShowImportMenu(false);
+                        action.onClick();
+                      }}
+                      style={styles.dropdownItem}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div style={styles.dropdownWrap}>
+              <button
+                onClick={() => {
+                  setShowExportMenu((prev) => !prev);
+                  setShowImportMenu(false);
+                }}
+                style={{ ...styles.actionBtn, background: "#1a7336" }}
+                title="Export student data"
+              >
+                Export ▾
+              </button>
+              {showExportMenu && (
+                <div style={styles.dropdownMenu}>
+                  {exportActions.map((action) => (
+                    <button
+                      key={action.label}
+                      onClick={() => {
+                        setShowExportMenu(false);
+                        action.onClick();
+                      }}
+                      style={styles.dropdownItem}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <input
               type="text"
@@ -751,109 +881,6 @@ export function EntryPanel({
               {sortAsc ? "⬆" : "⬇"}
             </button>
           </div>
-          <div style={styles.tlbDivider} />
-          {/* Row 2: Import/Export buttons — 2 per row on mobile */}
-          <div style={{
-            ...styles.tlbGroup,
-            ...(compactLayout ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 } : {}),
-          }}>
-            <button
-              onClick={() => onShowModal("csv-import")}
-              title="Import students from CSV"
-              style={{
-                padding: "6px 12px",
-                background: "#0077aa",
-                color: "#fff",
-                border: "none",
-                borderRadius: 5,
-                cursor: "pointer",
-                fontWeight: 700,
-                height: 30,
-              }}
-            >
-              📤 Import CSV
-            </button>
-            <button
-              onClick={exportCsv}
-              title="Export students as CSV"
-              style={{
-                padding: "6px 12px",
-                background: "#003366",
-                color: "#fff",
-                border: "none",
-                borderRadius: 5,
-                cursor: "pointer",
-                fontWeight: 700,
-                height: 30,
-              }}
-            >
-              ⬇ Export CSV
-            </button>
-            <button
-              onClick={() => onShowModal("json-import")}
-              title="Import students from JSON"
-              style={{
-                padding: "6px 12px",
-                background: "#5a2d82",
-                color: "#fff",
-                border: "none",
-                borderRadius: 5,
-                cursor: "pointer",
-                fontWeight: 700,
-                height: 30,
-              }}
-            >
-              📥 Import JSON
-            </button>
-            <button
-              onClick={exportJson}
-              title="Export students as JSON"
-              style={{
-                padding: "6px 12px",
-                background: "#5a2d82",
-                color: "#fff",
-                border: "none",
-                borderRadius: 5,
-                cursor: "pointer",
-                fontWeight: 700,
-                height: 30,
-              }}
-            >
-              ⬇ Export JSON
-            </button>
-            <button
-              onClick={() => onShowModal("xlsx-import")}
-              title="Import students from Excel (XLSX)"
-              style={{
-                padding: "6px 12px",
-                background: "#1a7336",
-                color: "#fff",
-                border: "none",
-                borderRadius: 5,
-                cursor: "pointer",
-                fontWeight: 700,
-                height: 30,
-              }}
-            >
-              📊 Import XLSX
-            </button>
-            <button
-              onClick={handleExportXlsx}
-              title="Export students and results as Excel (XLSX)"
-              style={{
-                padding: "6px 12px",
-                background: "#1a7336",
-                color: "#fff",
-                border: "none",
-                borderRadius: 5,
-                cursor: "pointer",
-                fontWeight: 700,
-                height: 30,
-              }}
-            >
-              📊 Export XLSX
-            </button>
-          </div>
           <div
             style={{
               display: "flex",
@@ -893,7 +920,7 @@ export function EntryPanel({
             )}
           </div>
           <div style={styles.tlbDivider} />
-          {/* Row 3: Bulk Scores + New Student — side-by-side always */}
+          {/* Row 2: Bulk Scores + New Student — side-by-side always */}
           <div style={{ ...styles.tlbGroup, ...(compactLayout ? { flex: "1 1 100%" } : {}) }}>
             <button
               onClick={() => setBulkMode(!bulkMode)}
