@@ -12,6 +12,7 @@ import {
   normalizeClassTimetable,
   normalizeTimetableSettings,
 } from "../utils/timetable";
+import { AITimetableAssistant } from "./AITimetableAssistant";
 
 function Icon({ children, size = 18, strokeWidth = 1.9 }) {
   return (
@@ -362,6 +363,27 @@ export function TimetablePage({
       } else {
         nextEntries[slotKey] = nextEntry;
       }
+      return { ...prev, entries: nextEntries };
+    });
+  };
+
+  const applyClassEntries = (entriesPatch = {}) => {
+    setClassTimetable((prev) => {
+      const nextEntries = { ...(prev.entries || {}) };
+      Object.entries(entriesPatch || {}).forEach(([slotKey, entry]) => {
+        const normalizedEntry = {
+          subject: String(entry?.subject || "").trim(),
+          teacherName: String(entry?.teacherName || "").trim(),
+          teacherUsername: String(entry?.teacherUsername || "").trim(),
+          room: String(entry?.room || "").trim(),
+          note: String(entry?.note || "").trim(),
+        };
+        if (!normalizedEntry.subject && !normalizedEntry.teacherName && !normalizedEntry.teacherUsername && !normalizedEntry.room && !normalizedEntry.note) {
+          delete nextEntries[slotKey];
+        } else {
+          nextEntries[slotKey] = normalizedEntry;
+        }
+      });
       return { ...prev, entries: nextEntries };
     });
   };
@@ -1578,6 +1600,19 @@ export function TimetablePage({
             <option key={`${teacher.value}-${teacher.label}`} value={teacher.label || teacher.value} />
           ))}
         </datalist>
+
+        {canEditClass && (
+          <AITimetableAssistant
+            classData={classData}
+            classTimetable={classTimetable}
+            unmetSubjectTargets={unmetSubjectTargets}
+            allClasses={allClasses}
+            days={days}
+            periods={periods}
+            onApplyEntries={applyClassEntries}
+            globalTimetable={normalizedGlobalTimetable}
+          />
+        )}
 
         <div style={styles.classBoard}>
           {days.map((day) => (
