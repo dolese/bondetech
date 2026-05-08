@@ -143,6 +143,22 @@ function blankHomepageHighlight() {
   };
 }
 
+function blankHomepageSlide(index = 0) {
+  return {
+    id: "",
+    imageSrc: `/asset/slider${Math.min(index + 1, 3)}.png`,
+    badge: "",
+    badgeSw: "",
+    title: "",
+    titleSw: "",
+    description: "",
+    descriptionSw: "",
+    primaryAction: "results",
+    secondaryAction: "login",
+    backgroundPosition: "center",
+  };
+}
+
 export function AccountPage({
   user,
   users = [],
@@ -172,6 +188,12 @@ export function AccountPage({
     { label: t("orange"), value: "#d97706" },
     { label: t("cyan"), value: "#0891b2" },
     { label: t("red"), value: "#dc2626" },
+  ];
+  const slideActionOptions = [
+    { label: "Check Results", value: "results" },
+    { label: "Login", value: "login" },
+    { label: "Announcements", value: "announcements" },
+    { label: "Contact", value: "contact" },
   ];
   const { isXs, isMobile, isTablet } = useViewport();
   const singleColumn = isMobile;
@@ -203,6 +225,7 @@ export function AccountPage({
   const [homepageForm, setHomepageForm] = useState({
     announcements: [],
     highlights: [],
+    slides: [],
     updatedAt: "",
     updatedBy: "",
   });
@@ -246,6 +269,9 @@ export function AccountPage({
           highlights: Array.isArray(content?.highlights) && content.highlights.length
             ? content.highlights
             : [blankHomepageHighlight()],
+          slides: Array.isArray(content?.slides) && content.slides.length
+            ? content.slides
+            : [blankHomepageSlide(0), blankHomepageSlide(1), blankHomepageSlide(2)],
           updatedAt: content?.updatedAt || "",
           updatedBy: content?.updatedBy || "",
         });
@@ -458,11 +484,15 @@ export function AccountPage({
   const addHomepageCollectionItem = (collection) => {
     setHomepageForm((prev) => ({
       ...prev,
-      [collection]: [
-        ...prev[collection],
-        collection === "announcements" ? blankHomepageAnnouncement() : blankHomepageHighlight(),
-      ],
-    }));
+        [collection]: [
+          ...prev[collection],
+          collection === "announcements"
+            ? blankHomepageAnnouncement()
+            : collection === "highlights"
+            ? blankHomepageHighlight()
+            : blankHomepageSlide(prev[collection].length),
+        ],
+      }));
   };
 
   const removeHomepageCollectionItem = (collection, index) => {
@@ -472,7 +502,13 @@ export function AccountPage({
         ...prev,
         [collection]: nextItems.length
           ? nextItems
-          : [collection === "announcements" ? blankHomepageAnnouncement() : blankHomepageHighlight()],
+          : [
+              collection === "announcements"
+                ? blankHomepageAnnouncement()
+                : collection === "highlights"
+                ? blankHomepageHighlight()
+                : blankHomepageSlide(0),
+            ],
       };
     });
   };
@@ -485,6 +521,7 @@ export function AccountPage({
       const saved = await onSaveHomepageContent?.({
         announcements: homepageForm.announcements,
         highlights: homepageForm.highlights,
+        slides: homepageForm.slides,
       });
       setHomepageForm((prev) => ({
         ...prev,
@@ -494,6 +531,9 @@ export function AccountPage({
         highlights: Array.isArray(saved?.highlights)
           ? (saved.highlights.length ? saved.highlights : [blankHomepageHighlight()])
           : prev.highlights,
+        slides: Array.isArray(saved?.slides)
+          ? (saved.slides.length ? saved.slides : [blankHomepageSlide(0), blankHomepageSlide(1), blankHomepageSlide(2)])
+          : prev.slides,
         updatedAt: saved?.updatedAt || prev.updatedAt,
         updatedBy: saved?.updatedBy || prev.updatedBy,
       }));
@@ -1210,6 +1250,144 @@ export function AccountPage({
             ) : (
               <>
                 <div style={{ display: "grid", gap: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>Hero Slides</div>
+                      <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
+                        Control the three homepage background slides, titles, and call-to-action buttons.
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => homepageForm.slides.length < 3 && addHomepageCollectionItem("slides")}
+                      disabled={homepageForm.slides.length >= 3}
+                      style={{
+                        background: homepageForm.slides.length >= 3 ? "#e2e8f0" : "#eff6ff",
+                        color: homepageForm.slides.length >= 3 ? "#94a3b8" : "#1d4ed8",
+                        border: `1px solid ${homepageForm.slides.length >= 3 ? "#cbd5e1" : "#bfdbfe"}`,
+                        borderRadius: 10,
+                        padding: "10px 16px",
+                        fontSize: 12,
+                        fontWeight: 800,
+                        cursor: homepageForm.slides.length >= 3 ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      Add Slide
+                    </button>
+                  </div>
+
+                  <div style={{ display: "grid", gap: 14 }}>
+                    {homepageForm.slides.map((slide, index) => (
+                      <div
+                        key={`slide-${index}`}
+                        style={{
+                          ...softGlassStyle,
+                          borderRadius: 14,
+                          padding: isMobile ? 14 : 18,
+                          display: "grid",
+                          gap: 12,
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
+                            Slide {index + 1}
+                          </div>
+                          <button
+                            onClick={() => removeHomepageCollectionItem("slides", index)}
+                            style={{
+                              background: "#fff1f2",
+                              color: "#b42318",
+                              border: "1px solid #fecdd3",
+                              borderRadius: 10,
+                              padding: "8px 14px",
+                              fontSize: 12,
+                              fontWeight: 800,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1.15fr 0.85fr", gap: 12 }}>
+                          <TextInput
+                            label="Image URL"
+                            value={slide.imageSrc}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "imageSrc", value)}
+                            placeholder="/asset/slider1.png"
+                          />
+                          <TextInput
+                            label="Background Position"
+                            value={slide.backgroundPosition || "center"}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "backgroundPosition", value)}
+                            placeholder="center"
+                          />
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 12 }}>
+                          <TextInput
+                            label="Badge (EN)"
+                            value={slide.badge || ""}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "badge", value)}
+                            placeholder="Live Portal Overview"
+                          />
+                          <TextInput
+                            label="Badge (SW)"
+                            value={slide.badgeSw || ""}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "badgeSw", value)}
+                            placeholder="Muhtasari Hai wa Tovuti"
+                          />
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 12 }}>
+                          <TextInput
+                            label="Title (EN)"
+                            value={slide.title || ""}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "title", value)}
+                            placeholder="Academic Results Made Simple"
+                          />
+                          <TextInput
+                            label="Title (SW)"
+                            value={slide.titleSw || ""}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "titleSw", value)}
+                            placeholder="Matokeo ya Taaluma Yamefanywa Rahisi"
+                          />
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 12 }}>
+                          <TextAreaInput
+                            label="Description (EN)"
+                            value={slide.description || ""}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "description", value)}
+                            placeholder="Short supporting description for the hero slide."
+                            rows={3}
+                          />
+                          <TextAreaInput
+                            label="Description (SW)"
+                            value={slide.descriptionSw || ""}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "descriptionSw", value)}
+                            placeholder="Maelezo mafupi ya slaidi ya juu."
+                            rows={3}
+                          />
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 12 }}>
+                          <SelectInput
+                            label="Primary Button Action"
+                            value={slide.primaryAction || "results"}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "primaryAction", value)}
+                            options={slideActionOptions}
+                          />
+                          <SelectInput
+                            label="Secondary Button Action"
+                            value={slide.secondaryAction || "login"}
+                            onChange={(value) => updateHomepageCollectionItem("slides", index, "secondaryAction", value)}
+                            options={slideActionOptions}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>Announcements</div>

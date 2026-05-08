@@ -6,6 +6,7 @@ import { useViewport } from "../utils/useViewport";
 import { StudentProfilePage } from "./StudentProfilePage";
 import { useI18n } from "../i18n";
 import { LanguageToggle } from "./LanguageToggle";
+import { HeroSlider } from "./HeroSlider";
 
 const ANNOUNCEMENT_TONES = {
   info: { bg: "#dbeafe", color: "#2563eb", label: "Live" },
@@ -13,6 +14,48 @@ const ANNOUNCEMENT_TONES = {
   warning: { bg: "#fef3c7", color: "#d97706", label: "Schedule" },
   accent: { bg: "#ede9fe", color: "#7c3aed", label: "Portal" },
 };
+
+const DEFAULT_HERO_SLIDES = [
+  {
+    id: "hero-1",
+    imageSrc: "/asset/slider1.png",
+    badge: "Live Portal Overview",
+    badgeSw: "Muhtasari Hai wa Tovuti",
+    title: "Academic Results Made Simple",
+    titleSw: "Matokeo ya Taaluma Yamefanywa Rahisi",
+    description: "Get instant access to school results, announcements, and academic performance updates.",
+    descriptionSw: "Pata matokeo ya shule, matangazo, na taarifa za maendeleo ya kitaaluma kwa haraka.",
+    primaryAction: "results",
+    secondaryAction: "login",
+    backgroundPosition: "center",
+  },
+  {
+    id: "hero-2",
+    imageSrc: "/asset/slider2.png",
+    badge: "Published Classes",
+    badgeSw: "Madarasa Yaliyochapishwa",
+    title: "Track School Performance With Confidence",
+    titleSw: "Fuatilia Utendaji wa Shule Kwa Uhakika",
+    description: "Monitor classes, published results, and active academic sessions from one secure portal.",
+    descriptionSw: "Fuatilia madarasa, matokeo yaliyochapishwa, na vipindi vya masomo kutoka tovuti moja salama.",
+    primaryAction: "announcements",
+    secondaryAction: "results",
+    backgroundPosition: "center",
+  },
+  {
+    id: "hero-3",
+    imageSrc: "/asset/slider3.png",
+    badge: "School Support",
+    badgeSw: "Msaada wa Shule",
+    title: "Stay Connected With Students, Parents, and Staff",
+    titleSw: "Baki Umeunganishwa na Wanafunzi, Wazazi, na Watumishi",
+    description: "Use the portal to search results quickly and guide families through official school updates.",
+    descriptionSw: "Tumia tovuti kutafuta matokeo kwa haraka na kuongoza familia kupitia taarifa rasmi za shule.",
+    primaryAction: "login",
+    secondaryAction: "contact",
+    backgroundPosition: "center",
+  },
+];
 
 function createFallbackOverview(t) {
   return {
@@ -38,7 +81,14 @@ function createFallbackOverview(t) {
         date: new Date().toISOString(),
       },
     ],
+    slides: DEFAULT_HERO_SLIDES,
   };
+}
+
+function resolveHeroText(slide, language, enKey, swKey) {
+  if (!slide) return "";
+  if (language === "sw") return slide[swKey] || slide[enKey] || "";
+  return slide[enKey] || slide[swKey] || "";
 }
 
 function formatDateLabel(value, language, t) {
@@ -385,6 +435,7 @@ export function HomePage({ onOpenLogin }) {
   const [homepageData, setHomepageData] = useState(fallbackOverview);
   const [homepageStatus, setHomepageStatus] = useState("loading");
   const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const { isXs, isMobile, isTablet, isDesktop } = useViewport();
   const searchSectionRef = useRef(null);
   const announcementsSectionRef = useRef(null);
@@ -457,6 +508,30 @@ export function HomePage({ onOpenLogin }) {
     }
   }, [profileIndexNo]);
 
+  const resolvedHeroSlides = useMemo(() => {
+    const source = Array.isArray(homepageData?.slides) && homepageData.slides.length
+      ? homepageData.slides
+      : DEFAULT_HERO_SLIDES;
+    return source.slice(0, 3).map((slide, index) => ({
+      ...DEFAULT_HERO_SLIDES[index % DEFAULT_HERO_SLIDES.length],
+      ...slide,
+    }));
+  }, [homepageData?.slides]);
+
+  useEffect(() => {
+    if (resolvedHeroSlides.length <= 1) return undefined;
+    const interval = window.setInterval(() => {
+      setCurrentHeroIndex((prev) => (prev + 1) % resolvedHeroSlides.length);
+    }, 5000);
+    return () => window.clearInterval(interval);
+  }, [resolvedHeroSlides]);
+
+  useEffect(() => {
+    if (currentHeroIndex >= resolvedHeroSlides.length) {
+      setCurrentHeroIndex(0);
+    }
+  }, [currentHeroIndex, resolvedHeroSlides.length]);
+
   const scrollToSearch = () => {
     searchSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -472,6 +547,38 @@ export function HomePage({ onOpenLogin }) {
   const scrollToFooter = () => {
     footerRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const runHeroAction = useCallback((action) => {
+    switch (action) {
+      case "login":
+        onOpenLogin?.();
+        break;
+      case "announcements":
+        scrollToAnnouncements();
+        break;
+      case "contact":
+        scrollToFooter();
+        break;
+      case "results":
+      default:
+        scrollToSearch();
+        break;
+    }
+  }, [onOpenLogin, scrollToAnnouncements, scrollToFooter, scrollToSearch]);
+
+  const getHeroActionLabel = useCallback((action) => {
+    switch (action) {
+      case "login":
+        return t("loginButton");
+      case "announcements":
+        return t("announcements");
+      case "contact":
+        return t("contactUs");
+      case "results":
+      default:
+        return t("checkResults");
+    }
+  }, [t]);
 
   const handleSearch = useCallback(async (e) => {
     if (e) e.preventDefault();
@@ -541,6 +648,17 @@ export function HomePage({ onOpenLogin }) {
         value: Number(item.students || 0),
       }))
     : [];
+  const currentHeroSlide = resolvedHeroSlides[currentHeroIndex] || DEFAULT_HERO_SLIDES[0];
+  const heroBadge = resolveHeroText(currentHeroSlide, language, "badge", "badgeSw")
+    || (homepageStatus === "loading"
+      ? (language === "sw" ? "Inapakia Data za Tovuti" : "Loading Portal Data")
+      : homepageStatus === "fallback"
+      ? (language === "sw" ? "Muhtasari wa Tovuti" : "Portal Snapshot")
+      : (language === "sw" ? "Muhtasari Hai wa Tovuti" : "Live Portal Overview"));
+  const heroTitle = resolveHeroText(currentHeroSlide, language, "title", "titleSw")
+    || (language === "sw" ? "Matokeo ya Taaluma Yamefanywa Rahisi" : "Academic Results Made Simple");
+  const heroDescription = resolveHeroText(currentHeroSlide, language, "description", "descriptionSw")
+    || t("getInstantResults");
   const navBg = "#0f2d6e";
   const font = "'Poppins', 'Segoe UI', sans-serif";
   const containerStyle = { maxWidth: 1140, margin: "0 auto", padding: isMobile ? "0 16px" : "0 32px" };
@@ -804,14 +922,15 @@ export function HomePage({ onOpenLogin }) {
 
       <section
         style={{
-          background: "linear-gradient(135deg, #0c2461 0%, #1a3a8f 45%, #1e52b8 100%)",
+          backgroundColor: "#0c2461",
           padding: isMobile ? "32px 0 36px" : "56px 0 64px",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        <div style={{ position: "absolute", top: -60, right: -60, width: 300, height: 300, borderRadius: "50%", background: "rgba(255,255,255,0.04)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: -80, left: -40, width: 240, height: 240, borderRadius: "50%", background: "rgba(255,255,255,0.03)", pointerEvents: "none" }} />
+        <HeroSlider slides={resolvedHeroSlides} currentIndex={currentHeroIndex} onSelect={setCurrentHeroIndex} />
+        <div style={{ position: "absolute", top: -60, right: -60, width: 300, height: 300, borderRadius: "50%", background: "rgba(255,255,255,0.04)", pointerEvents: "none", zIndex: 2 }} />
+        <div style={{ position: "absolute", bottom: -80, left: -40, width: 240, height: 240, borderRadius: "50%", background: "rgba(255,255,255,0.03)", pointerEvents: "none", zIndex: 2 }} />
 
         <div
           style={{
@@ -821,24 +940,28 @@ export function HomePage({ onOpenLogin }) {
             flexDirection: isDesktop ? undefined : "column",
             gap: isMobile ? 28 : 40,
             alignItems: "center",
+            position: "relative",
+            zIndex: 2,
           }}
         >
           <div style={{ color: "#fff" }}>
             <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: "5px 14px", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 18 }}>
-              {homepageStatus === "loading" ? (language === "sw" ? "Inapakia Data za Tovuti" : "Loading Portal Data") : homepageStatus === "fallback" ? (language === "sw" ? "Muhtasari wa Tovuti" : "Portal Snapshot") : (language === "sw" ? "Muhtasari Hai wa Tovuti" : "Live Portal Overview")}
+              {heroBadge}
             </div>
-            <h1 style={{ fontSize: isMobile ? 28 : 42, fontWeight: 800, lineHeight: 1.2, margin: "0 0 16px", letterSpacing: -0.5 }}>
-              {t("academicResults")}
-              <br />
-              {language === "sw" ? <>Yamefanywa <span style={{ color: "#f59e0b" }}>Rahisi</span></> : <>Made <span style={{ color: "#f59e0b" }}>Simple</span></>}
+            <h1 style={{ fontSize: isMobile ? 28 : 42, fontWeight: 800, lineHeight: 1.2, margin: "0 0 16px", letterSpacing: -0.5, maxWidth: 560 }}>
+              {heroTitle}
             </h1>
             <p style={{ fontSize: isMobile ? 13 : 15, color: "rgba(255,255,255,0.80)", lineHeight: 1.7, marginBottom: 28, maxWidth: 460 }}>
-              {t("getInstantResults")}
+              {heroDescription}
             </p>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
-              <button className="landing-btn-outline" onClick={scrollToSearch}>{t("checkResults")}</button>
-              <button className="landing-btn-outline" onClick={onOpenLogin}>{t("loginButton")}</button>
+              <button className="landing-btn-outline" onClick={() => runHeroAction(currentHeroSlide.primaryAction)}>
+                {getHeroActionLabel(currentHeroSlide.primaryAction)}
+              </button>
+              <button className="landing-btn-outline" onClick={() => runHeroAction(currentHeroSlide.secondaryAction)}>
+                {getHeroActionLabel(currentHeroSlide.secondaryAction)}
+              </button>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: "rgba(255,255,255,0.70)", flexWrap: "wrap" }}>
