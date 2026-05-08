@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useViewport } from "./utils/useViewport";
 import { Dashboard } from "./components/Dashboard";
 import { StudentsPage } from "./components/StudentsPage";
@@ -6,6 +6,7 @@ import { ResultsPage } from "./components/ResultsPage";
 import { ReportsPage } from "./components/ReportsPage";
 import { SettingsPage } from "./components/SettingsPage";
 import { AccountPage } from "./components/AccountPage";
+import { PeopleDirectoryPage } from "./components/PeopleDirectoryPage";
 import { ReportCardModal } from "./components/ReportCardModal";
 import { CSVImportModal } from "./components/CSVImportModal";
 import { JSONImportModal } from "./components/JSONImportModal";
@@ -30,6 +31,61 @@ function getDefaultPageForUser(user) {
   return user.linkedIndexNo ? "profile" : "account";
 }
 
+function buildParentDirectory(classes) {
+  const parentMap = new Map();
+  classes.forEach((cls) => {
+    (cls.students || []).forEach((student) => {
+      const name = String(student.parentName || "").trim();
+      const phone = String(student.parentPhone || "").trim();
+      const address = String(student.address || "").trim();
+      if (!name && !phone) return;
+      const key = (phone || name).toLowerCase();
+      const existing = parentMap.get(key) || {
+        key,
+        name: name || phone || "Guardian",
+        phone,
+        address,
+        subtitle: "Guardian record from student registration",
+        badge: "",
+        students: [],
+      };
+      if (!existing.phone && phone) existing.phone = phone;
+      if (!existing.address && address) existing.address = address;
+      existing.students.push({
+        key: `${cls.id}-${student.id}`,
+        name: student.name || "Unnamed Student",
+        indexNo: student.index_no || student.indexNo || "",
+        classLabel: [cls.form, cls.year].filter(Boolean).join(" "),
+      });
+      parentMap.set(key, existing);
+    });
+  });
+
+  return Array.from(parentMap.values())
+    .map((entry) => ({
+      ...entry,
+      badge: `${entry.students.length} student${entry.students.length === 1 ? "" : "s"}`,
+      students: entry.students.sort((a, b) => a.name.localeCompare(b.name, "en")),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "en"));
+}
+
+function buildTeacherDirectory(users) {
+  return users
+    .filter((user) => user.role === "teacher")
+    .map((user) => ({
+      key: user.id || user.username,
+      name: user.displayName || user.username || "Teacher",
+      username: user.username || "",
+      phone: user.phone || "",
+      email: user.email || "",
+      lastSeen: user.lastLoginAt || "",
+      badge: user.active === false ? "Inactive" : "Active",
+      subtitle: "Teacher account created and managed by admin",
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "en"));
+}
+
 export default function App() {
   const { t } = useI18n();
   const [page, setPage] = useState("dashboard");
@@ -51,10 +107,10 @@ export default function App() {
   }, []);
 
   const classNavItems = [
-    { key: "students", icon: "S", label: t("students") },
-    { key: "results", icon: "R", label: t("results") },
-    { key: "reports", icon: "P", label: t("reports") },
-    { key: "settings", icon: "C", label: t("settings") },
+    { key: "students", icon: "S", label: t("students"), requiresClass: true },
+    { key: "results", icon: "R", label: t("results"), requiresClass: true },
+    { key: "reports", icon: "P", label: t("reports"), requiresClass: true },
+    { key: "settings", icon: "C", label: t("settings"), requiresClass: true },
   ];
 
   const {
@@ -85,9 +141,17 @@ export default function App() {
   const canAccessClassData = CLASS_ACCESS_ROLES.has(role);
   const canManageUsers = role === "admin";
   const canViewSettings = role === "admin";
-  const navItems = canViewSettings
-    ? classNavItems
-    : classNavItems.filter((item) => item.key !== "settings");
+  const navItems = [
+    ...classNavItems.filter((item) => canViewSettings || item.key !== "settings"),
+    ...(canManageUsers
+      ? [
+          { key: "teachers", label: "Teachers", requiresClass: false },
+          { key: "parents", label: "Parents", requiresClass: false },
+        ]
+      : []),
+  ];
+  const teacherDirectory = useMemo(() => buildTeacherDirectory(managedUsers), [managedUsers]);
+  const parentDirectory = useMemo(() => buildParentDirectory(classes), [classes]);
 
   const {
     classes,
@@ -231,6 +295,8 @@ export default function App() {
     if (page === "dashboard") return t("dashboard");
     if (page === "profile") return t("studentProfile");
     if (page === "account") return t("account");
+    if (page === "teachers") return "Teachers";
+    if (page === "parents") return "Parents";
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
@@ -420,12 +486,31 @@ export default function App() {
                 onDeleteStudent={onDeleteStudent}
                 onAddStudent={onAddStudent}
                 onReorderStudentCnos={role === "admin" ? onReorderStudentCnos : null}
+                canDeleteStudents={role === "admin" || role === "teacher"}
                 activeExam={activeExam}
                 onChangeExam={onChangeExam}
               />
             ) : (
               noClassBlock
             )
+          )}
+
+          {page === "teachers" && canManageUsers && (
+            <PeopleDirectoryPage
+              title="Teachers"
+              description="These are the real teacher accounts created by the administrator in the system."
+              entries={teacherDirectory}
+              tone="teal"
+            />
+          )}
+
+          {page === "parents" && canManageUsers && (
+            <PeopleDirectoryPage
+              title="Parents"
+              description="These parent records are picked automatically from guardian details saved during student registration."
+              entries={parentDirectory}
+              tone="amber"
+            />
           )}
 
           {page === "results" && (

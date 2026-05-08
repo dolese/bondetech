@@ -206,7 +206,7 @@ router.put(
   }
 });
 
-router.delete("/:id/students/:sid", requireRole(canDeleteStudents, "Only administrators can delete students"), async (req, res) => {
+router.delete("/:id/students/:sid", requireRole(canDeleteStudents, "Only administrators and teachers can delete students"), async (req, res) => {
   try {
     const result = await deleteStudentRecord(getDb(), req.params.id, req.params.sid);
     res.json(result);

@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
 
   if (req.method === "DELETE") {
     if (!canDeleteStudents(currentUser.role)) {
-      return sendJson(res, 403, { error: "Only administrators can delete students" });
+      return sendJson(res, 403, { error: "Only administrators and teachers can delete students" });
     }
     try {
       const result = await deleteStudentRecord(db, classId, studentId);

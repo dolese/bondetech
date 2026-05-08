@@ -44,6 +44,7 @@ export function EntryPanel({
   onDeleteStudent,
   onAddStudent,
   onReorderStudentCnos,
+  canDeleteStudents = false,
   onUpdateSchool,
   onUpdateSubjects,
   onUpdateClassMeta,
@@ -98,9 +99,15 @@ export function EntryPanel({
   const [updatingMeta, setUpdatingMeta] = useState(false);
   const [newStudent, setNewStudent] = useState({
     index_no: "",
-    name: "",
+    firstName: "",
+    lastName: "",
     sex: "M",
     status: "present",
+    dateOfBirth: "",
+    parentName: "",
+    parentPhone: "",
+    address: "",
+    previousSchool: "",
     conduct: { ...DEFAULT_CONDUCT },
   });
   const { isMobile, isTablet } = useViewport();
@@ -189,18 +196,46 @@ export function EntryPanel({
   };
 
   const handleAddNew = async () => {
-    const validation = validateStudent(newStudent);
+    const registrationName = [newStudent.firstName, newStudent.lastName]
+      .map((value) => String(value || "").trim())
+      .filter(Boolean)
+      .join(" ");
+    const validation = validateStudent({
+      ...newStudent,
+      name: registrationName || newStudent.name,
+    });
     if (!validation.valid) {
       setErrors(validation.errors);
+      return;
+    }
+    if (!registrationName) {
+      setErrors((prev) => ({ ...prev, name: "Student name is required" }));
+      return;
+    }
+    if (!String(newStudent.parentName || "").trim()) {
+      setErrors((prev) => ({ ...prev, parentName: "Guardian name is required" }));
       return;
     }
     const scores = (classData.subjects ?? []).map(() => null);
     await onAddStudent({
       ...newStudent,
+      name: registrationName,
       scores,
       examType: effectiveExam,
     });
-    setNewStudent({ index_no: "", name: "", sex: "M", status: "present", conduct: { ...DEFAULT_CONDUCT } });
+    setNewStudent({
+      index_no: "",
+      firstName: "",
+      lastName: "",
+      sex: "M",
+      status: "present",
+      dateOfBirth: "",
+      parentName: "",
+      parentPhone: "",
+      address: "",
+      previousSchool: "",
+      conduct: { ...DEFAULT_CONDUCT },
+    });
     setAddingNew(false);
     setErrors({});
   };
@@ -1195,49 +1230,123 @@ export function EntryPanel({
         <div
           style={{
             background: "#fff",
-            border: "2px dashed #0b6b3a",
-            borderRadius: 8,
-            padding: isMobile ? 10 : 12,
+            border: "1px solid #d8e4fb",
+            borderRadius: 14,
+            padding: isMobile ? 14 : 18,
+            boxShadow: "0 10px 26px rgba(0,51,102,0.06)",
           }}
         >
-          <h4 style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 800 }}>Add Student</h4>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr 1fr",
-              gap: 10,
-            }}
-          >
-            <TextInput
-              label="CNO (Auto)"
-              value={newStudent.index_no}
-              onChange={v => setNewStudent({ ...newStudent, index_no: v })}
-              error={errors.index_no}
-            />
-            <TextInput
-              label="Name"
-              value={newStudent.name}
-              onChange={v => setNewStudent({ ...newStudent, name: v })}
-              error={errors.name}
-            />
-            <SelectInput
-              label="Sex"
-              value={newStudent.sex}
-              onChange={v => setNewStudent({ ...newStudent, sex: v })}
-              options={[
-                { label: "Male", value: "M" },
-                { label: "Female", value: "F" },
-              ]}
-            />
-            <SelectInput
-              label="Status"
-              value={newStudent.status}
-              onChange={v => setNewStudent({ ...newStudent, status: v })}
-              options={[
-                { label: "Present", value: "present" },
-                { label: "Absent", value: "absent" },
-              ]}
-            />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+            <div>
+              <h4 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 900, color: "#0f2d6e" }}>Student Registration</h4>
+              <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5 }}>
+                Register a student with guardian details. Parents will appear automatically in management from the guardian information you save here.
+              </div>
+            </div>
+            <div style={{ fontSize: 10, fontWeight: 800, color: "#0b6b3a", background: "#dcfce7", border: "1px solid #86efac", borderRadius: 999, padding: "5px 10px" }}>
+              Real student data
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gap: 18 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
+                Student Details
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(0, 1fr))",
+                  gap: 10,
+                }}
+              >
+                <TextInput
+                  label="CNO (Auto)"
+                  value={newStudent.index_no}
+                  onChange={v => setNewStudent({ ...newStudent, index_no: v })}
+                  error={errors.index_no}
+                />
+                <TextInput
+                  label="First Name"
+                  value={newStudent.firstName ?? ""}
+                  onChange={v => setNewStudent({ ...newStudent, firstName: v })}
+                  error={errors.name}
+                  required
+                />
+                <TextInput
+                  label="Last Name"
+                  value={newStudent.lastName ?? ""}
+                  onChange={v => setNewStudent({ ...newStudent, lastName: v })}
+                  required
+                />
+                <TextInput
+                  label="Date of Birth"
+                  type="date"
+                  value={newStudent.dateOfBirth ?? ""}
+                  onChange={v => setNewStudent({ ...newStudent, dateOfBirth: v })}
+                />
+                <SelectInput
+                  label="Sex"
+                  value={newStudent.sex}
+                  onChange={v => setNewStudent({ ...newStudent, sex: v })}
+                  options={[
+                    { label: "Male", value: "M" },
+                    { label: "Female", value: "F" },
+                  ]}
+                  required
+                />
+                <SelectInput
+                  label="Status"
+                  value={newStudent.status}
+                  onChange={v => setNewStudent({ ...newStudent, status: v })}
+                  options={[
+                    { label: "Present", value: "present" },
+                    { label: "Absent", value: "absent" },
+                    { label: "Incomplete", value: "incomplete" },
+                  ]}
+                  required
+                />
+                <TextInput
+                  label="Previous School"
+                  value={newStudent.previousSchool ?? ""}
+                  onChange={v => setNewStudent({ ...newStudent, previousSchool: v })}
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
+                Guardian Information
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
+                  gap: 10,
+                }}
+              >
+                <TextInput
+                  label="Guardian Name"
+                  value={newStudent.parentName ?? ""}
+                  onChange={v => setNewStudent({ ...newStudent, parentName: v })}
+                  placeholder="Required for parent list"
+                  error={errors.parentName}
+                  required
+                />
+                <TextInput
+                  label="Guardian Phone"
+                  value={newStudent.parentPhone ?? ""}
+                  onChange={v => setNewStudent({ ...newStudent, parentPhone: v })}
+                  placeholder="+255..."
+                />
+                <TextInput
+                  label="Address"
+                  value={newStudent.address ?? ""}
+                  onChange={v => setNewStudent({ ...newStudent, address: v })}
+                />
+              </div>
+            </div>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "flex-end" }}>
             <button
@@ -1454,8 +1563,53 @@ export function EntryPanel({
                       >
                         <option value="present">Present</option>
                         <option value="absent">Absent</option>
+                        <option value="incomplete">Incomplete</option>
                       </select>
                     </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Date of Birth</div>
+                      <input
+                        type="date"
+                        value={editData.dateOfBirth ?? ""}
+                        onChange={e => setEditData({ ...editData, dateOfBirth: e.target.value })}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Previous School</div>
+                      <input
+                        type="text"
+                        value={editData.previousSchool ?? ""}
+                        onChange={e => setEditData({ ...editData, previousSchool: e.target.value })}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>Guardian Information</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <input
+                        type="text"
+                        value={editData.parentName ?? ""}
+                        onChange={e => setEditData({ ...editData, parentName: e.target.value })}
+                        placeholder="Guardian name"
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
+                      />
+                      <input
+                        type="text"
+                        value={editData.parentPhone ?? ""}
+                        onChange={e => setEditData({ ...editData, parentPhone: e.target.value })}
+                        placeholder="Guardian phone"
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={editData.address ?? ""}
+                      onChange={e => setEditData({ ...editData, address: e.target.value })}
+                      placeholder="Address"
+                      style={{ width: "100%", marginTop: 8, padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
+                    />
                   </div>
                   {/* Subject scores grid */}
                   {subjects.length > 0 && (
@@ -1570,11 +1724,13 @@ export function EntryPanel({
                       style={{ padding: "4px 8px", background: "#003366", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
                       title="Export report card"
                     >📥</button>
-                    <button
-                      onClick={() => { if (window.confirm(`Delete ${s.name || "this student"}?`)) onDeleteStudent(s.id); }}
-                      style={{ padding: "4px 8px", background: "#8b2500", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      title="Delete student"
-                    >🗑</button>
+                    {canDeleteStudents && (
+                      <button
+                        onClick={() => { if (window.confirm(`Delete ${s.name || "this student"}?`)) onDeleteStudent(s.id); }}
+                        style={{ padding: "4px 8px", background: "#8b2500", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                        title="Delete student"
+                      >🗑</button>
+                    )}
                   </div>
                 </div>
                 {/* Subject scores */}
@@ -2117,6 +2273,108 @@ export function EntryPanel({
                       colSpan={(classData.subjects ?? []).length + 10}
                       style={{ padding: "10px 12px", border: "1px solid #d2def5" }}
                     >
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>
+                        Student & Guardian Details
+                      </div>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: isTablet ? "1fr 1fr" : "repeat(3, minmax(0, 1fr))",
+                          gap: 8,
+                          marginBottom: 12,
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
+                            Date of Birth
+                          </div>
+                          <input
+                            type="date"
+                            value={editData.dateOfBirth ?? ""}
+                            onChange={e => setEditData({ ...editData, dateOfBirth: e.target.value })}
+                            style={{
+                              width: "100%",
+                              padding: "5px 6px",
+                              borderRadius: 4,
+                              border: "1px solid #d0dcf8",
+                              fontSize: 10,
+                              boxSizing: "border-box",
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
+                            Previous School
+                          </div>
+                          <input
+                            type="text"
+                            value={editData.previousSchool ?? ""}
+                            onChange={e => setEditData({ ...editData, previousSchool: e.target.value })}
+                            style={{
+                              width: "100%",
+                              padding: "5px 6px",
+                              borderRadius: 4,
+                              border: "1px solid #d0dcf8",
+                              fontSize: 10,
+                              boxSizing: "border-box",
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
+                            Guardian Name
+                          </div>
+                          <input
+                            type="text"
+                            value={editData.parentName ?? ""}
+                            onChange={e => setEditData({ ...editData, parentName: e.target.value })}
+                            style={{
+                              width: "100%",
+                              padding: "5px 6px",
+                              borderRadius: 4,
+                              border: "1px solid #d0dcf8",
+                              fontSize: 10,
+                              boxSizing: "border-box",
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
+                            Guardian Phone
+                          </div>
+                          <input
+                            type="text"
+                            value={editData.parentPhone ?? ""}
+                            onChange={e => setEditData({ ...editData, parentPhone: e.target.value })}
+                            style={{
+                              width: "100%",
+                              padding: "5px 6px",
+                              borderRadius: 4,
+                              border: "1px solid #d0dcf8",
+                              fontSize: 10,
+                              boxSizing: "border-box",
+                            }}
+                          />
+                        </div>
+                        <div style={{ gridColumn: isTablet ? "1 / -1" : "span 2" }}>
+                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
+                            Address
+                          </div>
+                          <input
+                            type="text"
+                            value={editData.address ?? ""}
+                            onChange={e => setEditData({ ...editData, address: e.target.value })}
+                            style={{
+                              width: "100%",
+                              padding: "5px 6px",
+                              borderRadius: 4,
+                              border: "1px solid #d0dcf8",
+                              fontSize: 10,
+                              boxSizing: "border-box",
+                            }}
+                          />
+                        </div>
+                      </div>
                       <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>
                         Tabia na Mwenendo
                       </div>

@@ -91,6 +91,23 @@ function navIcon(key) {
           <path d="M5 19c1.5-4 12.5-4 14 0" />
         </SvgIcon>
       );
+    case "teachers":
+      return (
+        <SvgIcon>
+          <path d="M3.5 8 12 4l8.5 4-8.5 4-8.5-4Z" />
+          <path d="M7 10.2v4.3c0 1.6 2.2 3 5 3s5-1.4 5-3v-4.3" />
+          <path d="M20 9.5v5" />
+        </SvgIcon>
+      );
+    case "parents":
+      return (
+        <SvgIcon>
+          <circle cx="8" cy="8" r="2.5" />
+          <circle cx="16" cy="8" r="2.5" />
+          <path d="M3.8 18c1-2.7 7.4-2.7 8.4 0" />
+          <path d="M11.8 18c1-2.7 7.4-2.7 8.4 0" />
+        </SvgIcon>
+      );
     default:
       return (
         <SvgIcon>
@@ -238,7 +255,7 @@ export function AppSidebar({
             <div style={{ display: "grid", gap: 6, marginBottom: 14 }}>
               {navItems.map((item) => {
                 const active = page === item.key;
-                const disabled = !activeClass;
+                const disabled = item.requiresClass !== false && !activeClass;
                 return (
                   <button
                     key={item.key}

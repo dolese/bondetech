@@ -24,6 +24,11 @@ const normalizeStudent = (student) => {
   return {
     ...student,
     index_no: student.index_no ?? student.indexNo ?? "",
+    dateOfBirth: student.dateOfBirth ?? student.date_of_birth ?? "",
+    parentName: student.parentName ?? student.parent_name ?? "",
+    parentPhone: student.parentPhone ?? student.parent_phone ?? "",
+    address: student.address ?? "",
+    previousSchool: student.previousSchool ?? student.previous_school ?? "",
     remarks: student.remarks ?? "",
     conduct:
       student.conduct && typeof student.conduct === "object"
@@ -55,6 +60,11 @@ const toApiStudent = (student) => ({
   name: student.name ?? "",
   sex: student.sex ?? "M",
   status: student.status ?? "present",
+  dateOfBirth: student.dateOfBirth ?? student.date_of_birth ?? "",
+  parentName: student.parentName ?? student.parent_name ?? "",
+  parentPhone: student.parentPhone ?? student.parent_phone ?? "",
+  address: student.address ?? "",
+  previousSchool: student.previousSchool ?? student.previous_school ?? "",
   remarks: student.remarks ?? "",
   conduct:
     student.conduct && typeof student.conduct === "object"
