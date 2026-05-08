@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API } from "../api";
-import { EXAM_TYPES } from "../utils/constants";
+import { EXAM_TYPES, DEFAULT_SCHOOL } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
 import { StudentProfilePage } from "./StudentProfilePage";
 import { useI18n } from "../i18n";
@@ -215,9 +215,17 @@ function QuickCard({ bg, badge, title, desc, onClick }) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick && onClick();
+        }
+      }}
       style={{
         background: hovered ? "#f0f4ff" : "#fff",
         border: "1px solid #e8edf5",
@@ -306,9 +314,17 @@ function CategoryChip({ label, color, bg, onClick }) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick && onClick();
+        }
+      }}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -397,6 +413,17 @@ export function HomePage({ onOpenLogin }) {
     };
   }, [fallbackOverview]);
 
+  // Body scroll lock when profile is open
+  useEffect(() => {
+    if (profileIndexNo) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [profileIndexNo]);
+
   const scrollToSearch = () => {
     searchSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -413,7 +440,7 @@ export function HomePage({ onOpenLogin }) {
     footerRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSearch = async (e) => {
+  const handleSearch = useCallback(async (e) => {
     if (e) e.preventDefault();
     if (!searchAdmission.trim()) {
       setSearchError(language === "sw" ? "Tafadhali weka namba ya kujiunga au jina la mwanafunzi." : "Please enter an admission number or student name.");
@@ -442,7 +469,19 @@ export function HomePage({ onOpenLogin }) {
     } finally {
       setSearching(false);
     }
-  };
+  }, [language, searchAdmission, searchForm, searchYear, t]);
+
+  // Debounced auto-search
+  useEffect(() => {
+    const term = searchAdmission.trim();
+    if (term.length < 2) {
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      handleSearch();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [handleSearch, searchAdmission, searchExam, searchForm, searchYear]);
 
   const handleCategoryClick = (label) => {
     const normalized = label.replace(/\n/g, " ");
@@ -845,10 +884,9 @@ export function HomePage({ onOpenLogin }) {
                 </select>
                 <select className="landing-search-input landing-search-select" value={searchForm} onChange={(e) => setSearchForm(e.target.value)}>
                   <option value="">{t("classFormAll")}</option>
-                  <option>Form I</option>
-                  <option>Form II</option>
-                  <option>Form III</option>
-                  <option>Form IV</option>
+                  {["Form I", "Form II", "Form III", "Form IV"].map((form) => (
+                    <option key={form}>{form}</option>
+                  ))}
                 </select>
                 <select className="landing-search-input landing-search-select" value={searchYear} onChange={(e) => setSearchYear(e.target.value)}>
                   <option value="">{t("yearAll")}</option>
@@ -896,8 +934,16 @@ export function HomePage({ onOpenLogin }) {
                 </div>
                 {searchResults.map((result) => (
                   <div
+                    role="button"
+                    tabIndex={0}
                     key={`${result.classId}-${result.id}`}
                     onClick={() => setProfileIndexNo(result.indexNo)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setProfileIndexNo(result.indexNo);
+                      }
+                    }}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -1080,9 +1126,9 @@ export function HomePage({ onOpenLogin }) {
               </div>
             </div>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: 260 }}>
-              Muheza District Council,
+              {DEFAULT_SCHOOL.district},
               <br />
-              P.O. Box 03 Muheza
+              {DEFAULT_SCHOOL.postal}
             </p>
           </div>
 
@@ -1104,13 +1150,13 @@ export function HomePage({ onOpenLogin }) {
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 14 }}>{t("contactUs")}</div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Phone</span> +255 123 456 789
+              <span>Phone</span> {DEFAULT_SCHOOL.headmasterPhone}
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Email</span> info@bondessecondary.sc.tz
+              <span>Email</span> {DEFAULT_SCHOOL.email}
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Office</span> Muheza, Tanga, Tanzania
+              <span>Office</span> {DEFAULT_SCHOOL.address}
             </div>
           </div>
         </div>
