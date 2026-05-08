@@ -37,7 +37,7 @@ function normalizePeriod(period = {}, fallback = {}) {
     shortLabel: String(source.shortLabel || source.short_label || fallback.shortLabel || fallback.short_label || "").trim(),
     start: String(source.start || fallback.start || "").trim(),
     end: String(source.end || fallback.end || "").trim(),
-    type: type === "break" ? "break" : "lesson",
+    type: type === "break" || type === "shared" ? type : "lesson",
   };
 }
 
@@ -45,6 +45,12 @@ export function normalizeTimetableSettings(input = {}) {
   const source = input && typeof input === "object" ? input : {};
   const inputDays = Array.isArray(source.days) ? source.days : [];
   const inputPeriods = Array.isArray(source.periods) ? source.periods : [];
+  const rawTeacherAvailability =
+    source.teacherAvailability && typeof source.teacherAvailability === "object"
+      ? source.teacherAvailability
+      : source.teacher_availability && typeof source.teacher_availability === "object"
+      ? source.teacher_availability
+      : {};
 
   const days = DEFAULT_TIMETABLE_DAYS.map((fallback) => {
     const override = inputDays.find((item) => String(item?.id || "").trim() === fallback.id);
@@ -69,6 +75,14 @@ export function normalizeTimetableSettings(input = {}) {
   return {
     days: [...days, ...extraDays],
     periods: [...periods, ...extraPeriods],
+    teacherAvailability: Object.fromEntries(
+      Object.entries(rawTeacherAvailability).map(([teacherKey, slots]) => [
+        String(teacherKey || "").trim().toLowerCase(),
+        Array.isArray(slots)
+          ? slots.map((slot) => String(slot || "").trim()).filter(Boolean)
+          : [],
+      ])
+    ),
   };
 }
 
@@ -87,9 +101,26 @@ export function normalizeTimetableEntry(entry = {}) {
   };
 }
 
+export function normalizeSubjectTarget(target = {}, fallback = {}) {
+  const source = target && typeof target === "object" ? target : {};
+  const periodsPerWeek = Number(source.periodsPerWeek ?? source.periods_per_week ?? fallback.periodsPerWeek ?? 0);
+  return {
+    subject: String(source.subject || fallback.subject || "").trim(),
+    periodsPerWeek: Number.isFinite(periodsPerWeek) && periodsPerWeek > 0 ? periodsPerWeek : 0,
+    teacherName: String(source.teacherName || source.teacher_name || fallback.teacherName || "").trim(),
+    teacherUsername: String(source.teacherUsername || source.teacher_username || fallback.teacherUsername || "").trim(),
+    room: String(source.room || fallback.room || "").trim(),
+  };
+}
+
 export function normalizeClassTimetable(input = {}) {
   const source = input && typeof input === "object" ? input : {};
   const rawEntries = source.entries && typeof source.entries === "object" ? source.entries : {};
+  const rawSubjectTargets = Array.isArray(source.subjectTargets)
+    ? source.subjectTargets
+    : Array.isArray(source.subject_targets)
+    ? source.subject_targets
+    : [];
   const entries = {};
   Object.entries(rawEntries).forEach(([slotKey, value]) => {
     const normalized = normalizeTimetableEntry(value);
@@ -97,7 +128,10 @@ export function normalizeClassTimetable(input = {}) {
       entries[String(slotKey).trim()] = normalized;
     }
   });
-  return { entries };
+  const subjectTargets = rawSubjectTargets
+    .map((target) => normalizeSubjectTarget(target))
+    .filter((target) => target.subject);
+  return { entries, subjectTargets };
 }
 
 export function getEnabledTimetableDays(settings = {}) {
@@ -105,7 +139,11 @@ export function getEnabledTimetableDays(settings = {}) {
 }
 
 export function getLessonPeriods(settings = {}) {
-  return normalizeTimetableSettings(settings).periods.filter((period) => period.type !== "break");
+  return normalizeTimetableSettings(settings).periods.filter((period) => period.type === "lesson");
+}
+
+export function isSharedTimetablePeriod(period = {}) {
+  return String(period?.type || "").trim().toLowerCase() !== "lesson";
 }
 
 export function detectTeacherConflicts(classes = []) {
@@ -139,4 +177,110 @@ export function detectTeacherConflicts(classes = []) {
         classes: entries,
       };
     });
+}
+
+export function detectRoomConflicts(classes = []) {
+  const slotRoomMap = new Map();
+
+  classes.forEach((cls) => {
+    const timetable = normalizeClassTimetable(cls?.timetable);
+    Object.entries(timetable.entries).forEach(([slotKey, entry]) => {
+      const roomKey = String(entry.room || "").trim().toLowerCase();
+      if (!roomKey) return;
+      const combinedKey = `${slotKey}::${roomKey}`;
+      const items = slotRoomMap.get(combinedKey) || [];
+      items.push({
+        classId: cls.id,
+        classLabel: [cls.form, cls.year].filter(Boolean).join(" "),
+        subject: entry.subject,
+        room: entry.room,
+      });
+      slotRoomMap.set(combinedKey, items);
+    });
+  });
+
+  return Array.from(slotRoomMap.entries())
+    .filter(([, entries]) => entries.length > 1)
+    .map(([combinedKey, entries]) => {
+      const [slotKey] = combinedKey.split("::");
+      return {
+        type: "room",
+        slotKey,
+        room: entries[0].room,
+        classes: entries,
+      };
+    });
+}
+
+export function buildTeacherLoadSummary(classes = []) {
+  const map = new Map();
+  classes.forEach((cls) => {
+    const timetable = normalizeClassTimetable(cls?.timetable);
+    Object.values(timetable.entries).forEach((entry) => {
+      const key = String(entry.teacherUsername || entry.teacherName || "").trim().toLowerCase();
+      if (!key) return;
+      const current = map.get(key) || {
+        teacherKey: key,
+        teacherName: entry.teacherName || entry.teacherUsername,
+        periods: 0,
+        classes: new Map(),
+      };
+      current.periods += 1;
+      const classLabel = [cls.form, cls.year].filter(Boolean).join(" ");
+      current.classes.set(classLabel, (current.classes.get(classLabel) || 0) + 1);
+      map.set(key, current);
+    });
+  });
+
+  return Array.from(map.values())
+    .map((entry) => ({
+      teacherKey: entry.teacherKey,
+      teacherName: entry.teacherName,
+      periods: entry.periods,
+      classes: Array.from(entry.classes.entries()).map(([classLabel, count]) => ({ classLabel, count })),
+    }))
+    .sort((a, b) => b.periods - a.periods || a.teacherName.localeCompare(b.teacherName));
+}
+
+export function buildSubjectLoadSummary(classData) {
+  const timetable = normalizeClassTimetable(classData?.timetable);
+  const assignedCounts = {};
+  Object.values(timetable.entries).forEach((entry) => {
+    const subject = String(entry.subject || "").trim();
+    if (!subject) return;
+    assignedCounts[subject] = (assignedCounts[subject] || 0) + 1;
+  });
+
+  return (timetable.subjectTargets || [])
+    .map((target) => ({
+      subject: target.subject,
+      target: target.periodsPerWeek || 0,
+      assigned: assignedCounts[target.subject] || 0,
+      teacherName: target.teacherName || target.teacherUsername || "",
+      room: target.room || "",
+    }))
+    .sort((a, b) => a.subject.localeCompare(b.subject));
+}
+
+export function detectTeacherAvailabilityConflicts(classes = [], settings = {}) {
+  const availability = normalizeTimetableSettings(settings).teacherAvailability || {};
+  const conflicts = [];
+
+  classes.forEach((cls) => {
+    const timetable = normalizeClassTimetable(cls?.timetable);
+    Object.entries(timetable.entries).forEach(([slotKey, entry]) => {
+      const teacherKey = String(entry.teacherUsername || entry.teacherName || "").trim().toLowerCase();
+      if (!teacherKey || !Array.isArray(availability[teacherKey])) return;
+      if (!availability[teacherKey].includes(slotKey)) return;
+      conflicts.push({
+        type: "availability",
+        slotKey,
+        teacherName: entry.teacherName || entry.teacherUsername,
+        classLabel: [cls.form, cls.year].filter(Boolean).join(" "),
+        subject: entry.subject,
+      });
+    });
+  });
+
+  return conflicts;
 }
