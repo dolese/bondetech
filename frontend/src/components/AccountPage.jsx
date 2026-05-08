@@ -173,7 +173,7 @@ export function AccountPage({
     { label: t("cyan"), value: "#0891b2" },
     { label: t("red"), value: "#dc2626" },
   ];
-  const { isMobile, isTablet } = useViewport();
+  const { isXs, isMobile, isTablet } = useViewport();
   const singleColumn = isMobile;
   const stackedColumns = isMobile || isTablet;
   const [activeTab, setActiveTab] = useState("profile");
@@ -513,7 +513,7 @@ export function AccountPage({
     <div
       style={{
         flex: 1,
-        padding: isMobile ? 14 : 24,
+        padding: isXs ? 10 : isMobile ? 14 : 24,
         background: "#f3f7fc",
         overflowY: "auto",
       }}
@@ -526,49 +526,58 @@ export function AccountPage({
             ...sectionStyle,
             background: "linear-gradient(135deg, #0f2d6e 0%, #1a4faa 55%, #2563eb 100%)",
             border: "none",
-            padding: isMobile ? 18 : 24,
+            padding: isXs ? 14 : isMobile ? 18 : 24,
             display: "flex",
-            alignItems: "center",
-            gap: 18,
-            flexWrap: "wrap",
+            flexDirection: isXs ? "column" : "row",
+            alignItems: isXs ? "stretch" : "center",
+            gap: isXs ? 12 : 18,
+            flexWrap: isXs ? "nowrap" : "wrap",
           }}
         >
-          <div
-            style={{
-              width: isMobile ? 56 : 72,
-              height: isMobile ? 56 : 72,
-              borderRadius: "50%",
-              background: "linear-gradient(145deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08))",
-              border: "2px solid rgba(255,255,255,0.32)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: isMobile ? 20 : 26,
-              fontWeight: 900,
-              color: "#fff",
-              flexShrink: 0,
-              boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
-              letterSpacing: 1,
-            }}
-          >
-            {initialsFrom(user)}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.62)", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>
-              Account
+          {/* Avatar + info row */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                width: isXs ? 48 : isMobile ? 56 : 72,
+                height: isXs ? 48 : isMobile ? 56 : 72,
+                borderRadius: "50%",
+                background: "linear-gradient(145deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08))",
+                border: "2px solid rgba(255,255,255,0.32)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: isXs ? 17 : isMobile ? 20 : 26,
+                fontWeight: 900,
+                color: "#fff",
+                flexShrink: 0,
+                boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
+                letterSpacing: 1,
+              }}
+            >
+              {initialsFrom(user)}
             </div>
-            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 6 }}>
-              {user?.displayName || user?.username || "School Account"}
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-              <RoleBadge role={user?.role} />
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
-                @{user?.username || "—"}
-              </span>
-              {user?.lastLoginAt && (
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
-                  · Last sign in {new Date(user.lastLoginAt).toLocaleString()}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.62)", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>
+                Account
+              </div>
+              <div style={{ fontSize: isXs ? 18 : isMobile ? 22 : 28, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {user?.displayName || user?.username || "School Account"}
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                <RoleBadge role={user?.role} />
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+                  @{user?.username || "—"}
                 </span>
+                {!isXs && user?.lastLoginAt && (
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
+                    · Last sign in {new Date(user.lastLoginAt).toLocaleString()}
+                  </span>
+                )}
+              </div>
+              {isXs && user?.lastLoginAt && (
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 4 }}>
+                  Last sign in {new Date(user.lastLoginAt).toLocaleString()}
+                </div>
               )}
             </div>
           </div>
@@ -579,11 +588,13 @@ export function AccountPage({
               color: "#fff",
               border: "1px solid rgba(255,255,255,0.22)",
               borderRadius: 12,
-              padding: "10px 18px",
+              padding: isXs ? "10px 14px" : "10px 18px",
               fontSize: 13,
               fontWeight: 800,
               cursor: "pointer",
               flexShrink: 0,
+              width: isXs ? "100%" : "auto",
+              textAlign: "center",
             }}
           >
             Log Out
@@ -617,13 +628,17 @@ export function AccountPage({
         <div
           style={{
             display: "flex",
-            gap: 6,
-            flexWrap: "wrap",
+            gap: 4,
+            flexWrap: "nowrap",
+            overflowX: "auto",
             background: "#fff",
             borderRadius: 16,
             border: "1px solid #e3ebf7",
             padding: "6px 8px",
             boxShadow: "0 4px 12px rgba(0,51,102,0.05)",
+            WebkitOverflowScrolling: "touch",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
           {tabs.map((tab) => {
@@ -638,14 +653,16 @@ export function AccountPage({
                   gap: 6,
                   border: "none",
                   borderRadius: 12,
-                  padding: "9px 16px",
-                  fontSize: 13,
+                  padding: isXs ? "8px 12px" : "9px 16px",
+                  fontSize: isXs ? 12 : 13,
                   fontWeight: 800,
                   cursor: "pointer",
                   background: active ? "linear-gradient(135deg, #0f2d6e, #2563eb)" : "transparent",
                   color: active ? "#fff" : "#52627a",
                   boxShadow: active ? "0 6px 16px rgba(37,99,235,0.22)" : "none",
                   transition: "background 0.18s, color 0.18s",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
                 }}
               >
                 {tab.label}
@@ -750,6 +767,7 @@ export function AccountPage({
                     fontWeight: 800,
                     cursor: saving ? "not-allowed" : "pointer",
                     boxShadow: "0 10px 22px rgba(37,99,235,0.22)",
+                    width: isMobile ? "100%" : "auto",
                   }}
                 >
                   {saving ? "Saving..." : "Save Profile"}
@@ -804,6 +822,7 @@ export function AccountPage({
                   fontSize: 13,
                   fontWeight: 800,
                   cursor: passwordSaving ? "not-allowed" : "pointer",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 {passwordSaving ? "Updating..." : "Update Password"}
@@ -856,6 +875,7 @@ export function AccountPage({
                   fontWeight: 800,
                   cursor: adminSaving ? "not-allowed" : "pointer",
                   boxShadow: "0 8px 18px rgba(37,99,235,0.2)",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 {adminSaving ? "Creating..." : "Create User"}
@@ -966,8 +986,8 @@ export function AccountPage({
                       <TextInput label="Reset Password" type="password" value={edit.password} onChange={(value) => updateManagedField(managedUser.username, "password", value)} placeholder="Leave blank to keep current" />
                     </div>
 
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>
-                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600, cursor: "pointer" }}>
+                    <div style={{ display: "flex", flexWrap: isMobile ? "wrap" : "wrap", gap: isMobile ? 8 : 18 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: isXs ? 12 : 13, color: "#425466", fontWeight: 600, cursor: "pointer", flex: isMobile ? "1 1 auto" : "none" }}>
                         <ToggleSwitch
                           checked={edit.active}
                           onChange={(val) => updateManagedField(managedUser.username, "active", val)}
@@ -975,7 +995,7 @@ export function AccountPage({
                         />
                         User can sign in
                       </label>
-                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600, cursor: "pointer" }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: isXs ? 12 : 13, color: "#425466", fontWeight: 600, cursor: "pointer", flex: isMobile ? "1 1 auto" : "none" }}>
                         <ToggleSwitch
                           checked={edit.mustChangePassword}
                           onChange={(val) => updateManagedField(managedUser.username, "mustChangePassword", val)}
@@ -985,7 +1005,7 @@ export function AccountPage({
                       </label>
                     </div>
 
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "auto auto auto", gap: 8, justifyContent: isMobile ? "stretch" : "start" }}>
                       <button
                         onClick={() => handleSaveManagedUser(managedUser.username)}
                         style={{
@@ -1027,6 +1047,7 @@ export function AccountPage({
                           fontSize: 13,
                           fontWeight: 800,
                           cursor: "pointer",
+                          gridColumn: isMobile ? "1 / -1" : "auto",
                         }}
                       >
                         {edit.active ? "Deactivate" : "Reactivate"}
@@ -1118,7 +1139,7 @@ export function AccountPage({
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
+                      <div style={{ fontSize: isXs ? 13 : 14, fontWeight: 800, color: "#102a43", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: isXs ? 100 : "none" }}>
                         {log.username || "Unknown user"}
                       </div>
                       <span
@@ -1129,12 +1150,13 @@ export function AccountPage({
                           borderRadius: 999,
                           background: log.status === "success" ? "#dcfce7" : "#fee2e2",
                           color: log.status === "success" ? "#16a34a" : "#dc2626",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {log.status === "success" ? t("loginSuccess") : t("loginFailed")}
                       </span>
                     </div>
-                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
+                    <div style={{ fontSize: isXs ? 11 : 12, color: "#64748b", marginTop: 3 }}>
                       {(log.action || "login").toUpperCase()} • {log.role || "n/a"} • {log.createdAt ? new Date(log.createdAt).toLocaleString() : ""}
                     </div>
                     {log.reason && (
@@ -1251,7 +1273,7 @@ export function AccountPage({
                           />
                         </div>
 
-                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 220px", gap: 12 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 200px", gap: 12 }}>
                           <TextAreaInput
                             label="Description"
                             value={announcement.description}
@@ -1388,6 +1410,7 @@ export function AccountPage({
                       fontSize: 13,
                       fontWeight: 800,
                       cursor: homepageSaving ? "not-allowed" : "pointer",
+                      width: isMobile ? "100%" : "auto",
                     }}
                   >
                     {homepageSaving ? "Saving..." : "Save Homepage Content"}

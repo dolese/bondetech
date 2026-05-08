@@ -16,7 +16,7 @@ import { useViewport } from "../utils/useViewport";
  *   onBack   – called when the user clicks "Back"
  */
 export function StudentProfilePage({ indexNo, onBack }) {
-  const { isMobile } = useViewport();
+  const { isXs, isMobile } = useViewport();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,7 +35,7 @@ export function StudentProfilePage({ indexNo, onBack }) {
     panel: {
       flex: 1,
       overflowY: "auto",
-      padding: isMobile ? 10 : 16,
+      padding: isXs ? 8 : isMobile ? 10 : 16,
       display: "flex",
       flexDirection: "column",
       gap: 14,
@@ -56,13 +56,13 @@ export function StudentProfilePage({ indexNo, onBack }) {
       background: "#fff",
       border: "1px solid #d0dcf8",
       borderRadius: 10,
-      padding: isMobile ? 12 : 16,
+      padding: isXs ? 10 : isMobile ? 12 : 16,
       display: "flex",
       flexDirection: "column",
       gap: 10,
     },
     cardTitle: {
-      fontSize: 13,
+      fontSize: isXs ? 12 : 13,
       fontWeight: 800,
       color: "#003366",
       borderBottom: "1.5px solid #e4ecff",
@@ -70,18 +70,18 @@ export function StudentProfilePage({ indexNo, onBack }) {
       marginBottom: 4,
     },
     th: {
-      padding: "6px 8px",
+      padding: isXs ? "5px 5px" : "6px 8px",
       background: "#003366",
       color: "#fff",
       fontWeight: 700,
-      fontSize: 10,
+      fontSize: isXs ? 9 : 10,
       textAlign: "center",
       border: "1px solid #003366",
     },
     td: {
-      padding: "5px 7px",
+      padding: isXs ? "4px 5px" : "5px 7px",
       border: "1px solid #e0e8f8",
-      fontSize: 10,
+      fontSize: isXs ? 9 : 10,
       textAlign: "center",
     },
   };
@@ -112,7 +112,7 @@ export function StudentProfilePage({ indexNo, onBack }) {
 
       <div style={styles.card}>
         <div>
-          <h2 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 900, color: "#003366" }}>
+          <h2 style={{ margin: "0 0 4px", fontSize: isXs ? 16 : 18, fontWeight: 900, color: "#003366" }}>
             {profile.name || "Unknown Student"}
           </h2>
           <div style={{ fontSize: 12, color: "#666" }}>
@@ -148,12 +148,21 @@ export function StudentProfilePage({ indexNo, onBack }) {
 
                   return (
                     <div key={examType} style={{ marginBottom: 8 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#555", marginBottom: 6 }}>
-                        Exam: {examType}
+                      <div style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "#555",
+                        marginBottom: 6,
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        gap: isXs ? 4 : 0,
+                      }}>
+                        <span>Exam: {examType}</span>
                         {computed.div && (
                           <span
                             style={{
-                              marginLeft: 8,
+                              marginLeft: isXs ? 0 : 8,
                               padding: "2px 8px",
                               borderRadius: 999,
                               background: DIVISION_COLORS[computed.div] ?? "#999",
@@ -166,12 +175,15 @@ export function StudentProfilePage({ indexNo, onBack }) {
                           </span>
                         )}
                         {computed.total !== null && (
-                          <span style={{ marginLeft: 8, fontSize: 10, color: "#888" }}>
+                          <span style={{ marginLeft: isXs ? 0 : 8, fontSize: 10, color: "#888" }}>
                             Total: {computed.total} · Avg: {computed.avg}
                           </span>
                         )}
                       </div>
-                      <div style={{ overflowX: "auto" }}>
+                      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+                        {isMobile && (
+                          <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>← Scroll to see all subjects →</div>
+                        )}
                         <table style={{ borderCollapse: "collapse", fontSize: 10, minWidth: 400 }}>
                           <thead>
                             <tr>
