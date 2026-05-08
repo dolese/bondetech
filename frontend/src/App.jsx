@@ -150,8 +150,6 @@ export default function App() {
         ]
       : []),
   ];
-  const teacherDirectory = useMemo(() => buildTeacherDirectory(managedUsers), [managedUsers]);
-  const parentDirectory = useMemo(() => buildParentDirectory(classes), [classes]);
 
   const {
     classes,
@@ -196,6 +194,8 @@ export default function App() {
     showToast,
     onNavigate: setPage,
   });
+  const teacherDirectory = useMemo(() => buildTeacherDirectory(managedUsers), [managedUsers]);
+  const parentDirectory = useMemo(() => buildParentDirectory(classes), [classes]);
 
   const handleLogout = useCallback(() => {
     logoutSession();
