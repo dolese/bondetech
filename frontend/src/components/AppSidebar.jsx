@@ -68,6 +68,18 @@ function navIcon(key) {
           <path d="M8 16h5" />
         </SvgIcon>
       );
+    case "timetable":
+      return (
+        <SvgIcon>
+          <rect x="4.5" y="5" width="15" height="14" rx="2.4" />
+          <path d="M8 3.8v3" />
+          <path d="M16 3.8v3" />
+          <path d="M4.5 9.2h15" />
+          <path d="M8 12.4h3" />
+          <path d="M13.2 12.4h2.8" />
+          <path d="M8 15.8h2.8" />
+        </SvgIcon>
+      );
     case "reports":
       return (
         <SvgIcon>

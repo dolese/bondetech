@@ -4,6 +4,7 @@ import { Dashboard } from "./components/Dashboard";
 import { StudentsPage } from "./components/StudentsPage";
 import { ResultsPage } from "./components/ResultsPage";
 import { ReportsPage } from "./components/ReportsPage";
+import { TimetablePage } from "./components/TimetablePage";
 import { SettingsPage } from "./components/SettingsPage";
 import { AccountPage } from "./components/AccountPage";
 import { PeopleDirectoryPage } from "./components/PeopleDirectoryPage";
@@ -112,6 +113,7 @@ export default function App() {
   const classNavItems = [
     { key: "students", icon: "S", label: t("students"), requiresClass: true },
     { key: "results", icon: "R", label: t("results"), requiresClass: true },
+    { key: "timetable", icon: "T", label: t("timetable", "Timetable"), requiresClass: true },
     { key: "reports", icon: "P", label: t("reports"), requiresClass: true },
     { key: "settings", icon: "C", label: t("settings"), requiresClass: true },
   ];
@@ -191,6 +193,7 @@ export default function App() {
     onLoadAuditLog,
     onChangeExam,
     onUpdateCompositeConfig,
+    onUpdateTimetable,
     resetClassesState,
   } = useClasses({
     loggedIn: loggedIn && canAccessClassData,
@@ -275,7 +278,7 @@ export default function App() {
     if (!loggedIn || !currentUser) return;
     if (canAccessClassData) return;
     setSearchProfileIndexNo(currentUser.linkedIndexNo || null);
-    if (["dashboard", "students", "results", "reports", "settings"].includes(page)) {
+    if (["dashboard", "students", "results", "timetable", "reports", "settings"].includes(page)) {
       setPage(getDefaultPageForUser(currentUser));
     }
   }, [canAccessClassData, currentUser, loggedIn, page]);
@@ -340,7 +343,7 @@ export default function App() {
   if (canAccessClassData && error) return <Splash text={error} isError />;
 
   const sidebarWidth = 248;
-  const isClassPage = canAccessClassData && ["students", "results", "reports", "settings"].includes(page);
+  const isClassPage = canAccessClassData && ["students", "results", "timetable", "reports", "settings"].includes(page);
   const accountLabel = currentUser?.displayName || currentUser?.username || t("account");
 
   const topBarLabel = (() => {
@@ -571,6 +574,22 @@ export default function App() {
                 classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
                 computed={activeComputed}
                 onOpenReportCard={onOpenReportCard}
+              />
+            ) : (
+              noClassBlock
+            )
+          )}
+
+          {page === "timetable" && (
+            activeClass ? (
+              <TimetablePage
+                classData={activeClass}
+                allClasses={classes}
+                schoolSettings={normalizedSchoolSettings}
+                teacherEntries={teacherDirectory}
+                role={role}
+                onSaveSchoolSettings={handleSaveSchoolSettings}
+                onUpdateTimetable={onUpdateTimetable}
               />
             ) : (
               noClassBlock

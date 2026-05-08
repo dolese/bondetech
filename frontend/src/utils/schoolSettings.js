@@ -1,4 +1,5 @@
 import { DEFAULT_EXAM_TYPE, DEFAULT_SCHOOL } from "./constants";
+import { normalizeTimetableSettings } from "./timetable";
 
 const CLASS_REPORT_KEYS = ["form", "term", "exam", "year", "reportInstruction"];
 const LEGACY_BONDE_LOGO = "/asset/bonde.jpg";
@@ -28,6 +29,7 @@ export function normalizeSchoolSettings(input = {}) {
     ...input,
     export_branding: exportBranding,
     reportInstruction: String(input.reportInstruction ?? DEFAULT_SCHOOL.reportInstruction ?? "").trim(),
+    timetable: normalizeTimetableSettings(input.timetable),
   };
 }
 

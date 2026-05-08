@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { API } from "../api";
 import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE, getCompositeEntry } from "../utils/constants";
 import { extractClassSchoolInfoOverrides } from "../utils/schoolSettings";
+import { normalizeClassTimetable } from "../utils/timetable";
 import { withPositions } from "../utils/grading";
 
 export const CLASS_FORMS = ["Form I", "Form II", "Form III", "Form IV"];
@@ -44,6 +45,7 @@ const normalizeClass = (cls) => ({
   ...cls,
   school_info: cls.school_info ?? cls.schoolInfo ?? {},
   subjects: cls.subjects ?? DEFAULT_SUBJECTS,
+  timetable: normalizeClassTimetable(cls.timetable),
   students: (cls.students ?? []).map(normalizeStudent),
   archived: cls.archived ?? false,
   published: cls.published ?? false,
@@ -532,6 +534,22 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, showToast]);
 
+  const onUpdateTimetable = useCallback(async (timetable) => {
+    if (!activeClass) return;
+    try {
+      await API.updateClass(activeClass.id, { timetable });
+      setClasses((prev) =>
+        prev.map((cls) =>
+          cls.id === activeClass.id ? { ...cls, timetable: normalizeClassTimetable(timetable) } : cls
+        )
+      );
+      await refreshClass(activeClass.id);
+      showToast?.("Timetable updated");
+    } catch (err) {
+      showToast?.(err.message, "error");
+    }
+  }, [activeClass, refreshClass, showToast]);
+
   return {
     classes,
     activeId,
@@ -569,6 +587,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onLoadAuditLog,
     onChangeExam,
     onUpdateCompositeConfig,
+    onUpdateTimetable,
     resetClassesState,
   };
 }

@@ -61,6 +61,26 @@ export const DEFAULT_SCHOOL = {
     headerAddress: "",
   },
   reportInstruction: "",
+  timetable: {
+    days: [
+      { id: "monday", label: "Monday", shortLabel: "Mon", enabled: true },
+      { id: "tuesday", label: "Tuesday", shortLabel: "Tue", enabled: true },
+      { id: "wednesday", label: "Wednesday", shortLabel: "Wed", enabled: true },
+      { id: "thursday", label: "Thursday", shortLabel: "Thu", enabled: true },
+      { id: "friday", label: "Friday", shortLabel: "Fri", enabled: true },
+    ],
+    periods: [
+      { id: "period-1", label: "Period 1", shortLabel: "P1", start: "07:30", end: "08:10", type: "lesson" },
+      { id: "period-2", label: "Period 2", shortLabel: "P2", start: "08:10", end: "08:50", type: "lesson" },
+      { id: "short-break", label: "Break", shortLabel: "BR", start: "08:50", end: "09:10", type: "break" },
+      { id: "period-3", label: "Period 3", shortLabel: "P3", start: "09:10", end: "09:50", type: "lesson" },
+      { id: "period-4", label: "Period 4", shortLabel: "P4", start: "09:50", end: "10:30", type: "lesson" },
+      { id: "lunch", label: "Lunch", shortLabel: "LN", start: "10:30", end: "11:00", type: "break" },
+      { id: "period-5", label: "Period 5", shortLabel: "P5", start: "11:00", end: "11:40", type: "lesson" },
+      { id: "period-6", label: "Period 6", shortLabel: "P6", start: "11:40", end: "12:20", type: "lesson" },
+      { id: "period-7", label: "Period 7", shortLabel: "P7", start: "12:20", end: "13:00", type: "lesson" },
+    ],
+  },
 };
 
 export const USER_ROLE_OPTIONS = [
