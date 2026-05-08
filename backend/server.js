@@ -3,6 +3,7 @@ const cors = require("cors");
 const path = require("path");
 const dns = require("node:dns").promises;
 const { initDb, getDb } = require("./db");
+const { getSchoolSettings, saveSchoolSettings } = require("../lib/schoolSettings");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,10 +18,23 @@ const DEFAULT_SCHOOL = {
   authority: "PRIME MINISTER'S OFFICE",
   region: "TANGA",
   district: "MUHEZA DC",
+  academicPhone: "",
+  headmasterPhone: "+255 123 456 789",
+  email: "info@bondessecondary.sc.tz",
+  address: "Muheza, Tanga, Tanzania",
+  postal: "P.O. Box 03 Muheza",
   form: "Form I",
   term: "I",
-  exam: "Mid-Term Exam",
-  year: "2026",
+  exam: "March Exam",
+  year: String(new Date().getFullYear()),
+  export_branding: {
+    leftLogoSrc: "/asset/Tz.jpg",
+    rightLogoSrc: "/asset/bonde.png",
+    headerName: "",
+    headerSubtitle: "",
+    headerAddress: "",
+  },
+  reportInstruction: "",
 };
 
 async function seedIfEmpty() {
@@ -52,6 +66,12 @@ app.use("/api/auth", require("./routes/auth"));
 app.get("/api/stats", async (req, res) => {
   try {
     const db = getDb();
+
+    if (req.query.schoolSettings === "1") {
+      const schoolSettings = await getSchoolSettings(db);
+      return res.json(schoolSettings);
+    }
+
     const classesSnap = await db.collection("classes").get();
 
     let totalStudents = 0;
@@ -70,6 +90,18 @@ app.get("/api/stats", async (req, res) => {
       totalClasses: classesSnap.size,
       latestYear,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/stats", async (req, res) => {
+  if (req.query.schoolSettings !== "1") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+  try {
+    const saved = await saveSchoolSettings(getDb(), req.body || {});
+    res.json(saved);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

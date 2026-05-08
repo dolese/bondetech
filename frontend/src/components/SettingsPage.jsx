@@ -7,8 +7,10 @@ import { useViewport } from "../utils/useViewport";
 
 export function SettingsPage({
   classData,
+  schoolSettings,
   onUpdateClassMeta,
   onUpdateSchool,
+  onSaveSchoolSettings,
   onUpdateSubjects,
   onUpdateMonthlyExams,
   onUpdateCompositeConfig,
@@ -35,10 +37,16 @@ export function SettingsPage({
   // School info state
   const [schoolInfo, setSchoolInfo] = useState({
     ...DEFAULT_SCHOOL,
-    ...(classData.school_info ?? {}),
+    ...(schoolSettings ?? {}),
   });
   const [schoolErrors, setSchoolErrors] = useState({});
   const [updatingSchool, setUpdatingSchool] = useState(false);
+  const [reportContext, setReportContext] = useState({
+    term: classData.school_info?.term ?? DEFAULT_SCHOOL.term,
+    exam: classData.school_info?.exam ?? DEFAULT_SCHOOL.exam,
+    year: classData.school_info?.year ?? classData.year ?? DEFAULT_SCHOOL.year,
+  });
+  const [updatingReportContext, setUpdatingReportContext] = useState(false);
 
   // Subjects state
   const [subjectInput, setSubjectInput] = useState("");
@@ -66,12 +74,17 @@ export function SettingsPage({
     setClassName(classData.name ?? "");
     setClassYear(classData.year ?? "");
     setClassForm(classData.form ?? "Form I");
-    setSchoolInfo({ ...DEFAULT_SCHOOL, ...(classData.school_info ?? {}) });
+    setSchoolInfo({ ...DEFAULT_SCHOOL, ...(schoolSettings ?? {}) });
     setSchoolErrors({});
     setMetaError("");
     setMonthlyExams(Array.isArray(classData.monthly_exams) ? classData.monthly_exams : []);
     setCompositeConfig(classData.composite_config ?? {});
-  }, [classData.id]);
+    setReportContext({
+      term: classData.school_info?.term ?? DEFAULT_SCHOOL.term,
+      exam: classData.school_info?.exam ?? DEFAULT_SCHOOL.exam,
+      year: classData.school_info?.year ?? classData.year ?? DEFAULT_SCHOOL.year,
+    });
+  }, [classData.id, schoolSettings]);
 
   const handleUpdateMeta = async () => {
     const yearStr = String(classYear).trim();
@@ -102,8 +115,19 @@ export function SettingsPage({
     }
     setSchoolErrors({});
     setUpdatingSchool(true);
-    await onUpdateSchool?.(schoolInfo);
+    await onSaveSchoolSettings?.(schoolInfo);
     setUpdatingSchool(false);
+  };
+
+  const handleUpdateReportContext = async () => {
+    setUpdatingReportContext(true);
+    await onUpdateSchool?.({
+      ...classData.school_info,
+      term: reportContext.term,
+      exam: reportContext.exam,
+      year: reportContext.year,
+    });
+    setUpdatingReportContext(false);
   };
 
   const cleanSubject = (value) => String(value ?? "").trim();
@@ -362,12 +386,12 @@ export function SettingsPage({
         </div>
       </div>
 
-      {/* School information */}
+      {/* Global school settings */}
       <div style={styles.section}>
         <div>
-          <div style={styles.sectionTitle}>School Information</div>
+          <div style={styles.sectionTitle}>School Settings</div>
           <div style={styles.sectionSub}>
-            Appears on report cards and result sheets.
+            Whole-school identity, contacts, and export branding used across the project.
           </div>
         </div>
         <div style={styles.grid2}>
@@ -405,31 +429,6 @@ export function SettingsPage({
             value={schoolInfo.headmasterPhone ?? ""}
             onChange={(v) => setSchoolInfo({ ...schoolInfo, headmasterPhone: v })}
           />
-          <TextInput
-            label="Form (for report card)"
-            value={schoolInfo.form}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, form: v })}
-            error={schoolErrors.form}
-          />
-          <TextInput
-            label="Term"
-            value={schoolInfo.term}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, term: v })}
-            error={schoolErrors.term}
-          />
-          <SelectInput
-            label="Exam"
-            value={schoolInfo.exam}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, exam: v })}
-            options={EXAM_TYPES}
-            error={schoolErrors.exam}
-          />
-          <TextInput
-            label="Year (for report card)"
-            value={schoolInfo.year}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, year: v })}
-            error={schoolErrors.year}
-          />
         </div>
         <div>
           <div style={styles.sectionTitle}>Export Branding</div>
@@ -466,7 +465,39 @@ export function SettingsPage({
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button style={styles.saveBtn} onClick={handleUpdateSchool} disabled={updatingSchool}>
-            {updatingSchool ? "Saving…" : "Save"}
+            {updatingSchool ? "Saving…" : "Save School Settings"}
+          </button>
+        </div>
+      </div>
+
+      <div style={styles.section}>
+        <div>
+          <div style={styles.sectionTitle}>Report Context</div>
+          <div style={styles.sectionSub}>
+            These values stay with this class only and control its current report session.
+          </div>
+        </div>
+        <div style={styles.grid2}>
+          <TextInput
+            label="Term"
+            value={reportContext.term}
+            onChange={(v) => setReportContext((prev) => ({ ...prev, term: v }))}
+          />
+          <SelectInput
+            label="Exam"
+            value={reportContext.exam}
+            onChange={(v) => setReportContext((prev) => ({ ...prev, exam: v }))}
+            options={EXAM_TYPES}
+          />
+          <TextInput
+            label="Academic Year"
+            value={reportContext.year}
+            onChange={(v) => setReportContext((prev) => ({ ...prev, year: v }))}
+          />
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <button style={styles.saveBtn} onClick={handleUpdateReportContext} disabled={updatingReportContext}>
+            {updatingReportContext ? "Saving…" : "Save Report Context"}
           </button>
         </div>
       </div>

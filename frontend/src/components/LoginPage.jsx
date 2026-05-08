@@ -6,7 +6,7 @@ import { LanguageToggle } from "./LanguageToggle";
 function SchoolCrest({ size = 40 }) {
   return (
     <img
-      src="/asset/bonde.jpg"
+      src="/asset/bonde.png"
       alt="BONDE Secondary School Logo"
       width={size}
       height={size}

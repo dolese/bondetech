@@ -55,7 +55,7 @@ export const DEFAULT_SCHOOL = {
   year: String(new Date().getFullYear()),
   export_branding: {
     leftLogoSrc: "/asset/Tz.jpg",
-    rightLogoSrc: "/asset/bonde.jpg",
+    rightLogoSrc: "/asset/bonde.png",
     headerName: "",
     headerSubtitle: "",
     headerAddress: "",

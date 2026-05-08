@@ -47,6 +47,36 @@ async function request(method, url, body) {
   return data ?? {};
 }
 
+async function requestBinary(method, url, body) {
+  const opts = {
+    method,
+    headers: { "Content-Type": "application/json" },
+  };
+  const token = getStoredAuthToken();
+  if (token) {
+    opts.headers.Authorization = `Bearer ${token}`;
+  }
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(BASE + url, opts);
+  const buffer = await res.arrayBuffer();
+  if (!res.ok) {
+    let message = "Server error";
+    try {
+      const text = new TextDecoder().decode(buffer);
+      const maybeJson = JSON.parse(text);
+      message = maybeJson?.error || maybeJson?.message || text || message;
+    } catch {
+      // ignore parse failures and keep generic error
+    }
+    throw new Error(message);
+  }
+  return {
+    buffer,
+    contentType: res.headers.get("content-type") || "",
+    contentLength: res.headers.get("content-length") || "",
+  };
+}
+
 const get  = (url)        => request("GET",    url);
 const post = (url, body)  => request("POST",   url, body);
 const put  = (url, body)  => request("PUT",    url, body);
@@ -102,6 +132,7 @@ export const API = {
 
   // Utilities
   fetchCsvFromUrl: (url)        => post("/proxy-csv", { url }),
+  fetchFileFromUrl: (url)       => requestBinary("POST", "/proxy-csv", { url }),
 
   // Health
   health:          ()           => get("/health"),
@@ -111,6 +142,8 @@ export const API = {
   getHomepageOverview: ()       => get("/stats?overview=1"),
   getHomepageContent: ()        => get("/stats?homepageContent=1"),
   saveHomepageContent: (data)   => put("/stats?homepageContent=1", data),
+  getSchoolSettings: ()         => get("/stats?schoolSettings=1"),
+  saveSchoolSettings: (data)    => put("/stats?schoolSettings=1", data),
 
   // Auth
   login:           (data)       => post("/auth/login", data),

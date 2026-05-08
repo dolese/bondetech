@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { API } from "../api";
 import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE, getCompositeEntry } from "../utils/constants";
+import { extractClassSchoolInfoOverrides } from "../utils/schoolSettings";
 import { withPositions } from "../utils/grading";
 
 export const CLASS_FORMS = ["Form I", "Form II", "Form III", "Form IV"];
@@ -41,7 +42,7 @@ const normalizeStudent = (student) => {
 
 const normalizeClass = (cls) => ({
   ...cls,
-  school_info: cls.school_info ?? cls.schoolInfo ?? DEFAULT_SCHOOL,
+  school_info: cls.school_info ?? cls.schoolInfo ?? {},
   subjects: cls.subjects ?? DEFAULT_SUBJECTS,
   students: (cls.students ?? []).map(normalizeStudent),
   archived: cls.archived ?? false,
@@ -76,7 +77,7 @@ const toApiStudent = (student) => ({
   examType: student.examType,
 });
 
-export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
+export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } = {}) {
   const [classes, setClasses] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [activeExam, setActiveExam] = useState(DEFAULT_EXAM_TYPE);
@@ -226,7 +227,13 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
       }
       const created = await API.createClass({
         name: `${form} ${year}`,
-        schoolInfo: DEFAULT_SCHOOL,
+        schoolInfo: extractClassSchoolInfoOverrides({
+          form,
+          term: schoolSettings?.term || DEFAULT_SCHOOL.term,
+          exam: schoolSettings?.exam || DEFAULT_EXAM_TYPE,
+          year,
+          reportInstruction: "",
+        }),
         subjects: DEFAULT_SUBJECTS,
         year,
         form,
@@ -239,7 +246,7 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
     } catch (err) {
       showToast?.(err.message, "error");
     }
-  }, [classes, onNavigate, showToast]);
+  }, [classes, onNavigate, schoolSettings, showToast]);
 
   const deleteClass = useCallback(async (id) => {
     try {
@@ -330,9 +337,9 @@ export function useClasses({ loggedIn, showToast, onNavigate } = {}) {
   const onUpdateSchool = useCallback(async (schoolInfo) => {
     if (!activeClass) return;
     try {
-      await API.updateClass(activeClass.id, { schoolInfo });
+      await API.updateClass(activeClass.id, { schoolInfo: extractClassSchoolInfoOverrides(schoolInfo) });
       await refreshClass(activeClass.id);
-      showToast?.("School info updated");
+      showToast?.("Class report settings updated");
     } catch (err) {
       showToast?.(err.message, "error");
     }

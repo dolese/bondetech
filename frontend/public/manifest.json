@@ -9,9 +9,9 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "asset/bonde.jpg",
+      "src": "asset/bonde.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     }
   ],

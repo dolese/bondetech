@@ -22,6 +22,8 @@ import { useSession } from "./hooks/useSession";
 import { CLASS_FORMS, useClasses } from "./hooks/useClasses";
 import { API } from "./api";
 import { useI18n } from "./i18n";
+import { DEFAULT_SCHOOL } from "./utils/constants";
+import { mergeClassSchoolInfo, normalizeSchoolSettings } from "./utils/schoolSettings";
 
 const CLASS_ACCESS_ROLES = new Set(["admin", "teacher"]);
 
@@ -98,6 +100,7 @@ export default function App() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [examPickerClass, setExamPickerClass] = useState(null);
   const [searchProfileIndexNo, setSearchProfileIndexNo] = useState(null);
+  const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
   const { isMobile } = useViewport();
   const topBarHeight = isMobile ? 64 : 78;
 
@@ -193,7 +196,31 @@ export default function App() {
     loggedIn: loggedIn && canAccessClassData,
     showToast,
     onNavigate: setPage,
+    schoolSettings,
   });
+  const normalizedSchoolSettings = useMemo(
+    () => normalizeSchoolSettings(schoolSettings),
+    [schoolSettings]
+  );
+  const mergeDisplayClass = useCallback(
+    (cls) => (
+      cls
+        ? {
+            ...cls,
+            school_info: mergeClassSchoolInfo(cls.school_info ?? {}, normalizedSchoolSettings),
+          }
+        : cls
+    ),
+    [normalizedSchoolSettings]
+  );
+  const displayActiveClass = useMemo(
+    () => mergeDisplayClass(activeClass),
+    [activeClass, mergeDisplayClass]
+  );
+  const displayAllComputed = useMemo(
+    () => allComputed.map((cls) => mergeDisplayClass(cls)),
+    [allComputed, mergeDisplayClass]
+  );
   const teacherDirectory = useMemo(() => buildTeacherDirectory(managedUsers), [managedUsers]);
   const parentDirectory = useMemo(() => buildParentDirectory(classes), [classes]);
 
@@ -213,11 +240,36 @@ export default function App() {
     return saved;
   }, [showToast, t]);
 
+  const handleLoadSchoolSettings = useCallback(async () => {
+    const loaded = await API.getSchoolSettings();
+    const normalized = normalizeSchoolSettings(loaded);
+    setSchoolSettings(normalized);
+    return normalized;
+  }, []);
+
+  const handleSaveSchoolSettings = useCallback(async (nextSettings) => {
+    const saved = await API.saveSchoolSettings(nextSettings);
+    const normalized = normalizeSchoolSettings(saved);
+    setSchoolSettings(normalized);
+    showToast("School settings updated");
+    return normalized;
+  }, [showToast]);
+
   useEffect(() => {
     if (isMobile) {
       setSideOpen(false);
     }
   }, [isMobile]);
+
+  useEffect(() => {
+    if (!loggedIn) {
+      setSchoolSettings(DEFAULT_SCHOOL);
+      return;
+    }
+    Promise.resolve(handleLoadSchoolSettings()).catch(() => {
+      setSchoolSettings(DEFAULT_SCHOOL);
+    });
+  }, [handleLoadSchoolSettings, loggedIn]);
 
   useEffect(() => {
     if (!loggedIn || !currentUser) return;
@@ -405,7 +457,7 @@ export default function App() {
                 currentUser={currentUser}
                 managedUsers={managedUsers}
                 authLogs={authLogs}
-                allComputed={allComputed}
+                allComputed={displayAllComputed}
                 onLoadUsers={loadUsers}
                 onLoadAuthLogs={loadAuthLogs}
                 onOpenClass={(id) => {
@@ -516,7 +568,7 @@ export default function App() {
           {page === "results" && (
             activeClass ? (
               <ResultsPage
-                classData={{ ...activeClass, school_info: { ...(activeClass.school_info ?? {}), exam: activeExam } }}
+                classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
                 computed={activeComputed}
                 onOpenReportCard={onOpenReportCard}
               />
@@ -528,9 +580,9 @@ export default function App() {
           {page === "reports" && (
             activeClass ? (
               <ReportsPage
-                classData={{ ...activeClass, school_info: { ...(activeClass.school_info ?? {}), exam: activeExam } }}
+                classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
                 computed={activeComputed}
-                allClasses={allComputed}
+                allClasses={displayAllComputed}
                 onOpenReportCard={onOpenReportCard}
               />
             ) : (
@@ -542,8 +594,10 @@ export default function App() {
             activeClass ? (
               <SettingsPage
                 classData={activeClass}
+                schoolSettings={normalizedSchoolSettings}
                 onUpdateClassMeta={onUpdateClassMeta}
                 onUpdateSchool={onUpdateSchool}
+                onSaveSchoolSettings={handleSaveSchoolSettings}
                 onUpdateSubjects={onUpdateSubjects}
                 onUpdateMonthlyExams={onUpdateMonthlyExams}
                 onUpdateCompositeConfig={onUpdateCompositeConfig}
@@ -601,7 +655,7 @@ export default function App() {
       {modalType === "report-card" && activeClass && (
         <ReportCardModal
           student={selectedStudent}
-          classData={{ ...activeClass, school_info: { ...(activeClass.school_info ?? {}), exam: activeExam } }}
+          classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
           onClose={onCloseModal}
         />
       )}
@@ -609,7 +663,7 @@ export default function App() {
       {modalType === "report-card-export" && activeClass && (
         <ReportCardModal
           student={selectedStudent}
-          classData={{ ...activeClass, school_info: { ...(activeClass.school_info ?? {}), exam: activeExam } }}
+          classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
           onClose={onCloseModal}
           autoExport
           silent

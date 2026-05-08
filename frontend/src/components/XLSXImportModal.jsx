@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import JSZip from "jszip";
 import { validateStudent } from "../utils/validation";
 import { useViewport } from "../utils/useViewport";
+import { API } from "../api";
 
 /**
  * Parse a minimal XLSX file (as produced by the app's own XLSX export) into
@@ -16,8 +17,7 @@ import { useViewport } from "../utils/useViewport";
  *     - Numbers (no t attr)             → numeric value
  *  4. First row  → headers.  Remaining rows → data objects keyed by header.
  */
-async function parseXlsxFile(file) {
-  const arrayBuffer = await file.arrayBuffer();
+async function parseXlsxBuffer(arrayBuffer) {
   const zip = await JSZip.loadAsync(arrayBuffer);
 
   // ── Shared strings ──────────────────────────────────────────────────────────
@@ -119,10 +119,18 @@ async function parseXlsxFile(file) {
   return { headers, data };
 }
 
+async function parseXlsxFile(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  return parseXlsxBuffer(arrayBuffer);
+}
+
 // ---------------------------------------------------------------------------
 
 export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
   const [fileName, setFileName] = useState("");
+  const [syncUrl, setSyncUrl] = useState("");
+  const [fetchingUrl, setFetchingUrl] = useState(false);
+  const [fetchError, setFetchError] = useState("");
   const [preview, setPreview] = useState([]);
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
@@ -147,6 +155,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     setWarnings([]);
     setPreview([]);
     setParsed(null);
+    setFetchError("");
     setFileName(file.name);
 
     let headers, data;
@@ -240,6 +249,111 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     const file = e.target.files?.[0];
     if (file) handleFile(file);
     e.target.value = "";
+  };
+
+  const handleFetchUrl = async () => {
+    const url = syncUrl.trim();
+    if (!url) return;
+    setFetchingUrl(true);
+    setFetchError("");
+    setParseError("");
+    setErrors([]);
+    setWarnings([]);
+    setPreview([]);
+    setParsed(null);
+    try {
+      const result = await API.fetchFileFromUrl(url);
+      const contentType = String(result?.contentType || "").toLowerCase();
+      const looksLikeXlsx =
+        contentType.includes("spreadsheetml") ||
+        contentType.includes("application/octet-stream") ||
+        /\.xlsx(?:$|[?#])/i.test(url);
+      if (!looksLikeXlsx) {
+        throw new Error("That link did not return an XLSX file.");
+      }
+      const fileLabel = (() => {
+        try {
+          const parsedUrl = new URL(url);
+          const last = parsedUrl.pathname.split("/").filter(Boolean).pop();
+          return last || "online-import.xlsx";
+        } catch {
+          return "online-import.xlsx";
+        }
+      })();
+      setFileName(fileLabel);
+      const parsedWorkbook = await parseXlsxBuffer(result.buffer);
+
+      const { headers, data } = parsedWorkbook;
+      if (headers.length === 0 || data.length === 0) {
+        throw new Error("The online XLSX file is empty or has no data rows.");
+      }
+
+      const norm = (s) => String(s ?? "").trim().toLowerCase();
+      const hNorm = headers.map(norm);
+      const STUDENT_ID_HEADERS = new Set(["cno", "admission_no", "admissionno", "index_no", "indexno", "candidate_no", "candidateno"]);
+      const cnoIdx = hNorm.findIndex((h) => STUDENT_ID_HEADERS.has(h));
+      const nameIdx = hNorm.findIndex((h) => h === "name" || h === "student_name" || h === "studentname");
+      const sexIdx = hNorm.findIndex((h) => h === "sex" || h === "gender");
+      const statusIdx = hNorm.findIndex((h) => h === "status");
+      const DATA_ROW_OFFSET = 2;
+      const subjectCols = subjects.map((subj) => hNorm.findIndex((h) => h === norm(subj)));
+      const unmappedSubjects = subjects.filter((_, i) => subjectCols[i] === -1);
+      if (unmappedSubjects.length > 0) {
+        setWarnings([`Some subjects were not found in the XLSX and will be blank: ${unmappedSubjects.join(", ")}`]);
+      }
+
+      const validRows = [];
+      const errs = [];
+      const coercionWarnings = [];
+
+      data.forEach((row, i) => {
+        const rawSex = sexIdx >= 0 ? String(row[headers[sexIdx]] ?? "").trim().toUpperCase() : "M";
+        const sexVal = rawSex === "F" ? "F" : "M";
+        if (rawSex && rawSex !== "M" && rawSex !== "F") {
+          coercionWarnings.push(`Row ${i + DATA_ROW_OFFSET}: sex "${rawSex}" defaulted to M`);
+        }
+
+        const rawStatus = statusIdx >= 0 ? String(row[headers[statusIdx]] ?? "").trim().toLowerCase() : "present";
+        const validStatuses = ["present", "absent", "incomplete"];
+        const statusVal = validStatuses.includes(rawStatus) ? rawStatus : "present";
+
+        const scores = subjects.map((_, si) => {
+          if (subjectCols[si] === -1) return "";
+          return parseScore(row[headers[subjectCols[si]]] ?? "");
+        });
+
+        const mapped = {
+          indexNo: cnoIdx >= 0 ? String(row[headers[cnoIdx]] ?? "").trim() : "",
+          name: nameIdx >= 0 ? String(row[headers[nameIdx]] ?? "").trim() : "",
+          sex: sexVal,
+          status: statusVal,
+          scores,
+        };
+
+        const validation = validateStudent(mapped);
+        if (!validation.valid) {
+          errs.push({ row: i + DATA_ROW_OFFSET, errors: Object.values(validation.errors) });
+        } else {
+          validRows.push(mapped);
+        }
+      });
+
+      if (coercionWarnings.length > 0) {
+        setWarnings((prev) => [...prev, ...coercionWarnings.slice(0, 5)]);
+      }
+
+      setParsed({ students: validRows });
+      setPreview(validRows.slice(0, 5));
+      if (errs.length > 0) {
+        const shown = errs.slice(0, 5);
+        if (errs.length > 5) shown.push({ row: "…", errors: [`and ${errs.length - 5} more invalid rows skipped`] });
+        setErrors(shown);
+      }
+    } catch (err) {
+      setFetchError(err.message || "Failed to fetch XLSX URL.");
+    } finally {
+      setFetchingUrl(false);
+    }
   };
 
   const handleImport = async () => {
@@ -394,6 +508,54 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
             <strong> CNO</strong>, <strong>Name</strong>, <strong>Sex</strong>, and one column per
             subject (matching this class's subjects). Additional columns like Total, Grade, etc. are
             ignored. The first row must be a header row.
+          </div>
+
+          <div style={styles.section}>
+            <div style={styles.label}>Sync from Online XLSX</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <input
+                type="url"
+                value={syncUrl}
+                onChange={(e) => {
+                  setSyncUrl(e.target.value);
+                  setFetchError("");
+                }}
+                onKeyDown={(e) => e.key === "Enter" && handleFetchUrl()}
+                placeholder="Paste a direct .xlsx link or shared workbook download URL…"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  border: "1px solid rgba(191,219,254,0.46)",
+                  fontSize: 12,
+                  background: "rgba(255,255,255,0.74)",
+                }}
+              />
+              <button
+                onClick={handleFetchUrl}
+                disabled={!syncUrl.trim() || fetchingUrl}
+                style={{
+                  padding: "8px 14px",
+                  background: !syncUrl.trim() || fetchingUrl ? "#94a3b8" : "#1a7336",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 10,
+                  cursor: !syncUrl.trim() || fetchingUrl ? "not-allowed" : "pointer",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {fetchingUrl ? "Fetching…" : "⬇ Fetch & Preview"}
+              </button>
+            </div>
+            {fetchError && (
+              <div style={{ fontSize: 11, color: "#c00", marginTop: 4 }}>⚠ {fetchError}</div>
+            )}
+            <div style={{ fontSize: 10, color: "#666", background: "#f4f7ff", padding: 8, borderRadius: 6, borderLeft: "3px solid #1a7336" }}>
+              Tip: use a direct downloadable workbook link. The online file goes through the same validation as a browsed local XLSX file.
+            </div>
           </div>
 
           <div style={styles.section}>

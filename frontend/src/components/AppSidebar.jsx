@@ -202,7 +202,7 @@ export function AppSidebar({
               }}
             >
               <img
-                src="/asset/bonde.jpg"
+                src="/asset/bonde.png"
                 alt="Bonde Secondary School logo"
                 style={{
                   width: "100%",

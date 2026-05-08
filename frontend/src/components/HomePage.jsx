@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API } from "../api";
 import { EXAM_TYPES, DEFAULT_SCHOOL } from "../utils/constants";
+import { normalizeSchoolSettings } from "../utils/schoolSettings";
 import { useViewport } from "../utils/useViewport";
 import { StudentProfilePage } from "./StudentProfilePage";
 import { useI18n } from "../i18n";
@@ -201,7 +202,7 @@ function MiniBarChart({ bars }) {
 function SchoolCrest({ size = 40 }) {
   return (
     <img
-      src="/asset/bonde.jpg"
+      src="/asset/bonde.png"
       alt="BONDE Secondary School Logo"
       width={size}
       height={size}
@@ -383,6 +384,7 @@ export function HomePage({ onOpenLogin }) {
   const [profileIndexNo, setProfileIndexNo] = useState(null);
   const [homepageData, setHomepageData] = useState(fallbackOverview);
   const [homepageStatus, setHomepageStatus] = useState("loading");
+  const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
   const { isXs, isMobile, isTablet, isDesktop } = useViewport();
   const searchSectionRef = useRef(null);
   const announcementsSectionRef = useRef(null);
@@ -427,6 +429,22 @@ export function HomePage({ onOpenLogin }) {
       active = false;
     };
   }, [fallbackOverview]);
+
+  useEffect(() => {
+    let active = true;
+    API.getSchoolSettings()
+      .then((settings) => {
+        if (!active) return;
+        setSchoolSettings(normalizeSchoolSettings(settings));
+      })
+      .catch(() => {
+        if (!active) return;
+        setSchoolSettings(DEFAULT_SCHOOL);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Body scroll lock when profile is open
   useEffect(() => {
@@ -1151,9 +1169,9 @@ export function HomePage({ onOpenLogin }) {
               </div>
             </div>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: 260 }}>
-              {DEFAULT_SCHOOL.district},
+              {schoolSettings.district},
               <br />
-              {DEFAULT_SCHOOL.postal}
+              {schoolSettings.postal}
             </p>
           </div>
 
@@ -1175,13 +1193,13 @@ export function HomePage({ onOpenLogin }) {
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 14 }}>{t("contactUs")}</div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Phone</span> {DEFAULT_SCHOOL.headmasterPhone}
+              <span>Phone</span> {schoolSettings.headmasterPhone}
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Email</span> {DEFAULT_SCHOOL.email}
+              <span>Email</span> {schoolSettings.email}
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Office</span> {DEFAULT_SCHOOL.address}
+              <span>Office</span> {schoolSettings.address}
             </div>
           </div>
         </div>
