@@ -14,6 +14,16 @@ import { validateStudent, validateSchoolInfo } from "../utils/validation";
 import { TextInput, NumberInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { exportXlsx } from "../utils/xlsxExport";
+import { DEFAULT_CONDUCT } from "../hooks/useClasses";
+
+const CONDUCT_FIELDS = [
+  ["utendajiKazi", "UTENDAJI KAZI"],
+  ["nidhamNaUtii", "NIDHAM NA UTII"],
+  ["utunzajiMali", "UTUNZAJI MALI"],
+  ["uongozi", "UONGOZI"],
+  ["michezo", "MICHEZO"],
+  ["ushirikiano", "USHIRIKIANO"],
+];
 
 // Return the appropriate display value for a grade cell in view mode.
 // In composite mode grade.raw holds the current-exam entry; fall back to grade.score.
@@ -91,6 +101,7 @@ export function EntryPanel({
     name: "",
     sex: "M",
     status: "present",
+    conduct: { ...DEFAULT_CONDUCT },
   });
   const { isMobile, isTablet } = useViewport();
   const compactLayout = isMobile || isTablet;
@@ -150,7 +161,7 @@ export function EntryPanel({
 
   const handleEdit = s => {
     setEditId(s.id);
-    setEditData({ ...s });
+    setEditData({ ...s, conduct: { ...DEFAULT_CONDUCT, ...(s.conduct ?? {}) } });
     setErrors({});
   };
 
@@ -189,9 +200,20 @@ export function EntryPanel({
       scores,
       examType: effectiveExam,
     });
-    setNewStudent({ index_no: "", name: "", sex: "M", status: "present" });
+    setNewStudent({ index_no: "", name: "", sex: "M", status: "present", conduct: { ...DEFAULT_CONDUCT } });
     setAddingNew(false);
     setErrors({});
+  };
+
+  const updateEditConduct = (key, value) => {
+    setEditData((prev) => ({
+      ...prev,
+      conduct: {
+        ...DEFAULT_CONDUCT,
+        ...(prev?.conduct ?? {}),
+        [key]: value,
+      },
+    }));
   };
 
   const csvEscape = (value) => {
@@ -1479,6 +1501,23 @@ export function EntryPanel({
                       style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
                     />
                   </div>
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>Tabia na Mwenendo</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                      {CONDUCT_FIELDS.map(([key, label]) => (
+                        <div key={key}>
+                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>{label}</div>
+                          <input
+                            type="text"
+                            value={editData.conduct?.[key] ?? ""}
+                            onChange={e => updateEditConduct(key, e.target.value)}
+                            placeholder="Jaza hapa"
+                            style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 11, boxSizing: "border-box" }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   {/* Save/cancel */}
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button
@@ -1711,8 +1750,8 @@ export function EntryPanel({
             {filtered.map((s, i) => {
               const isEditing = editId === s.id;
               return (
+                <React.Fragment key={s.id}>
                 <tr
-                  key={s.id}
                   style={{
                     background: isEditing
                       ? "#e8f4ff"
@@ -2072,6 +2111,48 @@ export function EntryPanel({
                     )}
                   </td>
                 </tr>
+                {isEditing && (
+                  <tr style={{ background: "#f6fbff" }}>
+                    <td
+                      colSpan={(classData.subjects ?? []).length + 10}
+                      style={{ padding: "10px 12px", border: "1px solid #d2def5" }}
+                    >
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>
+                        Tabia na Mwenendo
+                      </div>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: isTablet ? "1fr 1fr" : "repeat(3, minmax(0, 1fr))",
+                          gap: 8,
+                        }}
+                      >
+                        {CONDUCT_FIELDS.map(([key, label]) => (
+                          <div key={key}>
+                            <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
+                              {label}
+                            </div>
+                            <input
+                              type="text"
+                              value={editData.conduct?.[key] ?? ""}
+                              onChange={e => updateEditConduct(key, e.target.value)}
+                              placeholder="Jaza hapa"
+                              style={{
+                                width: "100%",
+                                padding: "5px 6px",
+                                borderRadius: 4,
+                                border: "1px solid #d0dcf8",
+                                fontSize: 10,
+                                boxSizing: "border-box",
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </React.Fragment>
               );
             })}
             {!filtered.length && (

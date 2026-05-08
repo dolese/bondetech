@@ -4,6 +4,14 @@ import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE, getCompositeEntry 
 import { withPositions } from "../utils/grading";
 
 export const CLASS_FORMS = ["Form I", "Form II", "Form III", "Form IV"];
+export const DEFAULT_CONDUCT = {
+  utendajiKazi: "",
+  nidhamNaUtii: "",
+  utunzajiMali: "",
+  uongozi: "",
+  michezo: "",
+  ushirikiano: "",
+};
 
 const normalizeStudent = (student) => {
   const legacyScores = Array.isArray(student.scores) ? student.scores : [];
@@ -17,6 +25,10 @@ const normalizeStudent = (student) => {
     ...student,
     index_no: student.index_no ?? student.indexNo ?? "",
     remarks: student.remarks ?? "",
+    conduct:
+      student.conduct && typeof student.conduct === "object"
+        ? { ...DEFAULT_CONDUCT, ...student.conduct }
+        : { ...DEFAULT_CONDUCT },
     scores,
     examScores,
   };
@@ -44,6 +56,10 @@ const toApiStudent = (student) => ({
   sex: student.sex ?? "M",
   status: student.status ?? "present",
   remarks: student.remarks ?? "",
+  conduct:
+    student.conduct && typeof student.conduct === "object"
+      ? { ...DEFAULT_CONDUCT, ...student.conduct }
+      : { ...DEFAULT_CONDUCT },
   scores: Array.isArray(student.scores)
     ? student.scores
     : (student.grades ?? []).map((grade) => grade?.score ?? ""),

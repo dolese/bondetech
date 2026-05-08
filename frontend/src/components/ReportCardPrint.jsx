@@ -66,6 +66,15 @@ function getAverageGradeLabel(student) {
   return `${student.agrd} - ${getGradeDescriptionSw(student.agrd)}`;
 }
 
+const CONDUCT_ROWS = [
+  ["utendajiKazi", "UTENDAJI KAZI"],
+  ["nidhamNaUtii", "NIDHAM NA UTII"],
+  ["utunzajiMali", "UTUNZAJI MALI"],
+  ["uongozi", "UONGOZI"],
+  ["michezo", "MICHEZO"],
+  ["ushirikiano", "USHIRIKIANO"],
+];
+
 function renderDottedLines(count) {
   return Array.from({ length: count }, (_, index) => (
     <div
@@ -388,6 +397,26 @@ export function ReportCardPrint({
       borderCollapse: "collapse",
       fontSize: isCompact ? 9 : 10,
     },
+    conductTable: {
+      width: "100%",
+      borderCollapse: "collapse",
+      fontSize: isCompact ? 8.8 : 9.6,
+    },
+    conductLabelCell: {
+      border: "1px solid #cbd5e1",
+      padding: isCompact ? "4px 4px" : "5px 6px",
+      textAlign: "left",
+      fontWeight: 800,
+      color: "#163f97",
+      width: "56%",
+    },
+    conductValueCell: {
+      border: "1px solid #cbd5e1",
+      padding: isCompact ? "4px 4px" : "5px 6px",
+      textAlign: "left",
+      minHeight: 18,
+      lineHeight: 1.2,
+    },
     explanationSection: {
       marginTop: 7,
     },
@@ -428,7 +457,7 @@ export function ReportCardPrint({
       lineHeight: 1.35,
     },
     remarksSection: {
-      marginTop: 6,
+      marginTop: 5,
     },
     remarkRow: {
       display: "grid",
@@ -653,6 +682,25 @@ export function ReportCardPrint({
             ))}
           </div>
 
+          <div style={styles.sideBox}>
+            <div style={styles.sideHead}>D. Tabia na Mwenendo</div>
+            <table style={styles.conductTable}>
+              <tbody>
+                {CONDUCT_ROWS.map(([key, label]) => {
+                  const value = student?.conduct?.[key] ?? "";
+                  return (
+                    <tr key={key}>
+                      <td style={styles.conductLabelCell}>{label}</td>
+                      <td style={styles.conductValueCell}>
+                        {value ? value : "\u00a0"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
 
@@ -661,7 +709,7 @@ export function ReportCardPrint({
       </div>
 
       <div style={styles.remarksSection}>
-        <div style={styles.sectionHeading}>D. Maoni, Maagizo na Mawasiliano</div>
+        <div style={styles.sectionHeading}>E. Maoni, Maagizo na Mawasiliano</div>
 
         <div style={styles.remarkRow}>
           <div style={styles.remarkLabel}>Maoni ya Mwalimu wa Darasa:</div>
