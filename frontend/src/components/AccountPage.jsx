@@ -296,11 +296,20 @@ export function AccountPage({
   }, [roleFilter, userSearch, users]);
 
   const sectionStyle = {
-    background: "#fff",
-    borderRadius: 16,
-    border: "1px solid #e3ebf7",
-    boxShadow: "0 8px 24px rgba(0,51,102,0.06)",
+    background: "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.62))",
+    borderRadius: 20,
+    border: "1px solid rgba(191,219,254,0.45)",
+    boxShadow: "0 18px 38px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.78)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
     padding: isMobile ? 18 : 24,
+  };
+  const softGlassStyle = {
+    background: "rgba(255,255,255,0.58)",
+    border: "1px solid rgba(191,219,254,0.42)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
   };
 
   const updateField = (key, value) => {
@@ -514,7 +523,7 @@ export function AccountPage({
       style={{
         flex: 1,
         padding: isXs ? 10 : isMobile ? 14 : 24,
-        background: "#f3f7fc",
+        background: "radial-gradient(circle at top left, rgba(191,219,254,0.32), transparent 24%), radial-gradient(circle at top right, rgba(167,243,208,0.24), transparent 22%), linear-gradient(180deg, #f6f9fd 0%, #edf4fb 100%)",
         overflowY: "auto",
       }}
     >
@@ -631,11 +640,13 @@ export function AccountPage({
             gap: 4,
             flexWrap: "nowrap",
             overflowX: "auto",
-            background: "#fff",
-            borderRadius: 16,
-            border: "1px solid #e3ebf7",
+            background: "rgba(255,255,255,0.56)",
+            borderRadius: 18,
+            border: "1px solid rgba(191,219,254,0.4)",
             padding: "6px 8px",
-            boxShadow: "0 4px 12px rgba(0,51,102,0.05)",
+            boxShadow: "0 10px 26px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,0.82)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
             WebkitOverflowScrolling: "touch",
             scrollbarWidth: "thin",
             scrollbarColor: "#d0dcf8 transparent",
@@ -921,10 +932,9 @@ export function AccountPage({
                   <div
                     key={managedUser.username}
                     style={{
-                      border: "1px solid #e2ebf7",
+                      ...softGlassStyle,
                       borderRadius: 14,
                       padding: isMobile ? 14 : 18,
-                      background: "#f8fbff",
                       display: "grid",
                       gap: 14,
                     }}
@@ -1229,10 +1239,9 @@ export function AccountPage({
                       <div
                         key={`announcement-${index}`}
                         style={{
-                          border: "1px solid #e2ebf7",
+                          ...softGlassStyle,
                           borderRadius: 14,
                           padding: isMobile ? 14 : 18,
-                          background: "#f8fbff",
                           display: "grid",
                           gap: 12,
                         }}
@@ -1323,10 +1332,9 @@ export function AccountPage({
                       <div
                         key={`highlight-${index}`}
                         style={{
-                          border: "1px solid #e2ebf7",
+                          ...softGlassStyle,
                           borderRadius: 14,
                           padding: isMobile ? 14 : 18,
-                          background: "#f8fbff",
                           display: "grid",
                           gap: 12,
                         }}

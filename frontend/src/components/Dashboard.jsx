@@ -358,12 +358,14 @@ function MetricCard({ item, compact }) {
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.9)",
-        border: "1px solid rgba(226,232,240,0.9)",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(244,248,255,0.64))",
+        border: "1px solid rgba(255,255,255,0.76)",
         borderRadius: 24,
         padding: compact ? "16px 16px 14px" : "18px 18px 16px",
         minHeight: compact ? 148 : 162,
-        boxShadow: "0 18px 44px rgba(15,23,42,0.06)",
+        boxShadow: "0 18px 44px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
+        backdropFilter: "blur(18px) saturate(130%)",
+        WebkitBackdropFilter: "blur(18px) saturate(130%)",
         display: "grid",
         alignContent: "space-between",
         gap: 12,
@@ -402,8 +404,10 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false }) {
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       style={{
-        border: "1px solid rgba(226,232,240,0.85)",
-        background: disabled ? "rgba(248,250,252,0.9)" : "#fff",
+        border: "1px solid rgba(255,255,255,0.76)",
+        background: disabled
+          ? "linear-gradient(135deg, rgba(248,250,252,0.92), rgba(241,245,249,0.8))"
+          : "linear-gradient(135deg, rgba(255,255,255,0.84), rgba(246,250,255,0.66))",
         borderRadius: 20,
         padding: "14px 14px 12px",
         display: "grid",
@@ -411,7 +415,9 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false }) {
         justifyItems: "start",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.55 : 1,
-        boxShadow: disabled ? "none" : "0 14px 36px rgba(15,23,42,0.05)",
+        boxShadow: disabled ? "none" : "0 14px 36px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
+        backdropFilter: "blur(16px) saturate(125%)",
+        WebkitBackdropFilter: "blur(16px) saturate(125%)",
         textAlign: "left",
       }}
     >
@@ -449,6 +455,13 @@ export function Dashboard({
 }) {
   const { isMobile, isTablet } = useViewport();
   const compact = isMobile || isTablet;
+  const glassPanel = {
+    background: "linear-gradient(135deg, rgba(255,255,255,0.78), rgba(244,248,255,0.62))",
+    border: "1px solid rgba(255,255,255,0.76)",
+    boxShadow: "0 22px 55px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
+    backdropFilter: "blur(20px) saturate(135%)",
+    WebkitBackdropFilter: "blur(20px) saturate(135%)",
+  };
   const dashboardRef = useRef(null);
   const [filterYear, setFilterYear] = useState("all");
   const [overview, setOverview] = useState({ announcements: [], highlights: [], stats: {}, formBreakdown: [] });
@@ -704,7 +717,7 @@ export function Dashboard({
         flex: 1,
         overflowY: "auto",
         padding: compact ? 14 : 20,
-        background: "linear-gradient(180deg, #f7fafc 0%, #eff5fb 100%)",
+        background: "radial-gradient(circle at top left, rgba(191,219,254,0.34), transparent 24%), radial-gradient(circle at top right, rgba(186,230,253,0.28), transparent 22%), linear-gradient(180deg, #f7fafc 0%, #eff5fb 100%)",
       }}
     >
       <div ref={dashboardRef} style={{ maxWidth: 1460, margin: "0 auto", display: "grid", gap: compact ? 16 : 20 }}>
@@ -717,10 +730,8 @@ export function Dashboard({
         >
           <div
             style={{
-              background: "rgba(255,255,255,0.9)",
+              ...glassPanel,
               borderRadius: 30,
-              border: "1px solid rgba(226,232,240,0.85)",
-              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
               padding: compact ? 18 : 22,
               display: "grid",
               gridTemplateColumns: compact ? "1fr" : "auto 1fr",
@@ -787,10 +798,8 @@ export function Dashboard({
 
           <div
             style={{
-              background: "rgba(255,255,255,0.9)",
+              ...glassPanel,
               borderRadius: 30,
-              border: "1px solid rgba(226,232,240,0.85)",
-              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
               padding: compact ? 18 : 22,
               display: "grid",
               gap: 12,
@@ -857,10 +866,8 @@ export function Dashboard({
 
         <div
           style={{
-            background: "rgba(255,255,255,0.92)",
+            ...glassPanel,
             borderRadius: 30,
-            border: "1px solid rgba(226,232,240,0.85)",
-            boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
             padding: compact ? 18 : 22,
           }}
         >
@@ -951,10 +958,8 @@ export function Dashboard({
         >
           <div
             style={{
-              background: "rgba(255,255,255,0.92)",
+              ...glassPanel,
               borderRadius: 30,
-              border: "1px solid rgba(226,232,240,0.85)",
-              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
               padding: compact ? 18 : 22,
             }}
           >
@@ -976,10 +981,8 @@ export function Dashboard({
 
           <div
             style={{
-              background: "rgba(255,255,255,0.92)",
+              ...glassPanel,
               borderRadius: 30,
-              border: "1px solid rgba(226,232,240,0.85)",
-              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
               padding: compact ? 18 : 22,
               display: "grid",
               gap: 18,
@@ -1056,10 +1059,8 @@ export function Dashboard({
         >
           <div
             style={{
-              background: "rgba(255,255,255,0.92)",
+              ...glassPanel,
               borderRadius: 30,
-              border: "1px solid rgba(226,232,240,0.85)",
-              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
               padding: compact ? 18 : 22,
               display: "grid",
               gap: 14,
@@ -1129,10 +1130,8 @@ export function Dashboard({
 
           <div
             style={{
-              background: "rgba(255,255,255,0.92)",
+              ...glassPanel,
               borderRadius: 30,
-              border: "1px solid rgba(226,232,240,0.85)",
-              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
               padding: compact ? 18 : 22,
               display: "grid",
               gap: 14,
@@ -1195,21 +1194,55 @@ export function Dashboard({
             display: "grid",
             gridTemplateColumns: compact ? "1fr" : "minmax(0, 1fr) minmax(320px, 0.9fr)",
             gap: 18,
+            alignItems: "start",
           }}
         >
           <div
             style={{
-              background: "rgba(255,255,255,0.92)",
+              ...glassPanel,
               borderRadius: 30,
-              border: "1px solid rgba(226,232,240,0.85)",
-              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
               padding: compact ? 18 : 22,
               display: "grid",
-              gap: 14,
+              gap: 16,
+              alignSelf: "start",
             }}
           >
-            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>
-              Student Lookup
+            <div
+              style={{
+                display: "flex",
+                alignItems: compact ? "flex-start" : "center",
+                justifyContent: "space-between",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ display: "grid", gap: 5 }}>
+                <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>
+                  Student Lookup
+                </div>
+                <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.55, maxWidth: 520 }}>
+                  Search by student name or CNO, then jump straight into that learner&apos;s profile and report history.
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "9px 12px",
+                  borderRadius: 999,
+                  border: "1px solid rgba(148,163,184,0.24)",
+                  background: "rgba(255,255,255,0.52)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
+                  color: "#0f8b8d",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                <SearchIcon />
+                Quick Access
+              </div>
             </div>
             <div
               style={{
@@ -1225,9 +1258,11 @@ export function Dashboard({
                   alignItems: "center",
                   gap: 10,
                   borderRadius: 18,
-                  border: "1px solid rgba(203,213,225,0.92)",
+                  border: "1px solid rgba(191,219,254,0.55)",
                   padding: "12px 14px",
-                  background: "#fff",
+                  background: "rgba(255,255,255,0.72)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
+                  backdropFilter: "blur(16px)",
                 }}
               >
                 <div style={{ color: "#64748b" }}>
@@ -1264,6 +1299,7 @@ export function Dashboard({
                   fontWeight: 900,
                   cursor: searching ? "wait" : "pointer",
                   minHeight: 50,
+                  boxShadow: "0 14px 28px rgba(15,118,110,0.22)",
                 }}
               >
                 {searching ? "Searching..." : "Search"}
@@ -1276,15 +1312,16 @@ export function Dashboard({
                   setSearchError("");
                 }}
                 style={{
-                  border: "1px solid rgba(203,213,225,0.92)",
+                  border: "1px solid rgba(191,219,254,0.55)",
                   borderRadius: 18,
                   padding: "0 16px",
-                  background: "#fff",
+                  background: "rgba(255,255,255,0.72)",
                   color: "#475569",
                   fontSize: 14,
                   fontWeight: 800,
                   cursor: "pointer",
                   minHeight: 50,
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
                 }}
               >
                 Reset
@@ -1293,7 +1330,7 @@ export function Dashboard({
 
             {searchError && <div style={{ fontSize: 13, color: "#dc2626", fontWeight: 700 }}>{searchError}</div>}
 
-            {searchResults && (
+            {searchResults ? (
               searchResults.length ? (
                 <div style={{ display: "grid", gap: 10 }}>
                   {searchResults.map((student) => (
@@ -1301,8 +1338,8 @@ export function Dashboard({
                       key={`${student.classId}-${student.studentId}`}
                       onClick={() => onViewProfile?.(student.indexNo)}
                       style={{
-                        border: "1px solid rgba(226,232,240,0.92)",
-                        background: "#fff",
+                        border: "1px solid rgba(191,219,254,0.5)",
+                        background: "rgba(255,255,255,0.74)",
                         borderRadius: 20,
                         padding: "14px 16px",
                         display: "grid",
@@ -1334,17 +1371,67 @@ export function Dashboard({
                   ))}
                 </div>
               ) : (
-                <div style={{ fontSize: 14, color: "#64748b" }}>No students found for that search.</div>
+                <div
+                  style={{
+                    borderRadius: 22,
+                    border: "1px dashed rgba(148,163,184,0.42)",
+                    padding: compact ? "18px 16px" : "22px 20px",
+                    background: "rgba(255,255,255,0.56)",
+                    color: "#64748b",
+                    display: "grid",
+                    gap: 6,
+                  }}
+                >
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>
+                    No matching student found
+                  </div>
+                  <div style={{ fontSize: 13, lineHeight: 1.6 }}>
+                    Check the spelling, try the student&apos;s CNO, or open the full class list to continue from student entry.
+                  </div>
+                </div>
               )
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: compact ? "1fr" : "repeat(2, minmax(0, 1fr))",
+                  gap: 12,
+                }}
+              >
+                {[
+                  {
+                    title: "Search by CNO",
+                    text: "Use the student CNO for the fastest exact match when you need one learner quickly.",
+                  },
+                  {
+                    title: "Open profile directly",
+                    text: "Search results take you straight to the student profile and report card flow from the dashboard.",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    style={{
+                      borderRadius: 22,
+                      border: "1px solid rgba(191,219,254,0.42)",
+                      background: "rgba(255,255,255,0.6)",
+                      padding: compact ? "16px 15px" : "18px 18px",
+                      display: "grid",
+                      gap: 6,
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.76)",
+                    }}
+                  >
+                    <div style={{ fontSize: 14, fontWeight: 900, color: "#102a43" }}>{item.title}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.65, color: "#5b6b80" }}>{item.text}</div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
           <div
             style={{
-              background: "rgba(255,255,255,0.92)",
+              ...glassPanel,
               borderRadius: 30,
-              border: "1px solid rgba(226,232,240,0.85)",
-              boxShadow: "0 22px 55px rgba(15,23,42,0.07)",
               padding: compact ? 18 : 22,
               display: "grid",
               gap: 14,

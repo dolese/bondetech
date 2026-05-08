@@ -104,9 +104,11 @@ export function AppTopBar({
         position: "sticky",
         top: 0,
         zIndex: 20,
-        background: "rgba(247,250,253,0.88)",
-        backdropFilter: "blur(18px)",
-        borderBottom: "1px solid rgba(148,163,184,0.12)",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.68), rgba(241,247,255,0.58))",
+        backdropFilter: "blur(22px) saturate(135%)",
+        WebkitBackdropFilter: "blur(22px) saturate(135%)",
+        borderBottom: "1px solid rgba(255,255,255,0.62)",
+        boxShadow: "0 14px 36px rgba(15,23,42,0.08)",
         padding: isMobile ? "10px 12px" : "14px 20px 12px",
         boxSizing: "border-box",
       }}
@@ -125,11 +127,14 @@ export function AppTopBar({
           <button
             style={{
               border: "none",
-              background: "#fff",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(246,250,255,0.62))",
               width: isMobile ? 42 : 48,
               height: isMobile ? 42 : 48,
               borderRadius: 16,
-              boxShadow: "0 12px 30px rgba(15,23,42,0.08)",
+              boxShadow: "0 14px 34px rgba(15,23,42,0.09), inset 0 1px 0 rgba(255,255,255,0.82)",
+              border: "1px solid rgba(255,255,255,0.7)",
+              backdropFilter: "blur(18px)",
+              WebkitBackdropFilter: "blur(18px)",
               color: "#0f172a",
               cursor: "pointer",
               display: "flex",
@@ -149,8 +154,8 @@ export function AppTopBar({
           <button
             onClick={showMenu ? onOpenSidebar : onOpenAccount}
             style={{
-              border: "1px solid rgba(148,163,184,0.16)",
-              background: "#fff",
+              border: "1px solid rgba(255,255,255,0.7)",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(246,250,255,0.64))",
               borderRadius: 16,
               padding: "12px 14px",
               textAlign: "left",
@@ -162,7 +167,9 @@ export function AppTopBar({
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              boxShadow: "0 12px 30px rgba(15,23,42,0.05)",
+              boxShadow: "0 14px 34px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.82)",
+              backdropFilter: "blur(18px)",
+              WebkitBackdropFilter: "blur(18px)",
             }}
           >
             {topBarLabel}
@@ -174,10 +181,12 @@ export function AppTopBar({
               gridTemplateColumns: "1fr auto",
               alignItems: "center",
               gap: 12,
-              background: "#fff",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.78), rgba(246,250,255,0.62))",
               borderRadius: 18,
-              border: "1px solid rgba(148,163,184,0.14)",
-              boxShadow: "0 12px 36px rgba(15,23,42,0.06)",
+              border: "1px solid rgba(255,255,255,0.74)",
+              boxShadow: "0 16px 40px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.86)",
+              backdropFilter: "blur(18px)",
+              WebkitBackdropFilter: "blur(18px)",
               padding: "13px 18px",
             }}
           >
@@ -189,7 +198,8 @@ export function AppTopBar({
                 width: 34,
                 height: 34,
                 borderRadius: "50%",
-                background: "linear-gradient(145deg, rgba(37,99,235,0.10), rgba(15,139,141,0.10))",
+                background: "linear-gradient(145deg, rgba(255,255,255,0.6), rgba(226,238,255,0.46))",
+                border: "1px solid rgba(255,255,255,0.7)",
                 color: "#475569",
                 display: "flex",
                 alignItems: "center",
@@ -216,7 +226,10 @@ export function AppTopBar({
               onClick={onOpenAccount}
               style={{
                 border: "none",
-                background: "transparent",
+                background: "linear-gradient(135deg, rgba(255,255,255,0.5), rgba(248,251,255,0.34))",
+                borderRadius: 16,
+                border: "1px solid rgba(255,255,255,0.64)",
+                boxShadow: "0 12px 28px rgba(15,23,42,0.06)",
                 cursor: "pointer",
                 position: "relative",
                 color: "#0f8b8d",
@@ -226,6 +239,8 @@ export function AppTopBar({
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 0,
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
               }}
               title="Notifications"
             >
@@ -260,12 +275,17 @@ export function AppTopBar({
             onClick={onOpenAccount}
             style={{
               border: "none",
-              background: "transparent",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.48), rgba(248,251,255,0.3))",
+              border: "1px solid rgba(255,255,255,0.62)",
+              boxShadow: "0 14px 34px rgba(15,23,42,0.07)",
+              backdropFilter: "blur(18px)",
+              WebkitBackdropFilter: "blur(18px)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               gap: 10,
-              padding: 0,
+              padding: isMobile ? "4px 6px 4px 4px" : "6px 10px 6px 6px",
+              borderRadius: 18,
             }}
             title="Open account"
           >
@@ -307,8 +327,8 @@ export function AppTopBar({
           {isMobile && (
             <button
               style={{
-                border: "1px solid rgba(148,163,184,0.16)",
-                background: "#fff",
+                border: "1px solid rgba(255,255,255,0.72)",
+                background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(246,250,255,0.62))",
                 color: "#0f172a",
                 borderRadius: 14,
                 padding: "10px 11px",
@@ -316,6 +336,9 @@ export function AppTopBar({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                boxShadow: "0 14px 32px rgba(15,23,42,0.08)",
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
               }}
               onClick={onLogout}
               title="Log out"

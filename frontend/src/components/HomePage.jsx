@@ -227,8 +227,10 @@ function QuickCard({ bg, badge, title, desc, onClick }) {
         }
       }}
       style={{
-        background: hovered ? "#f0f4ff" : "#fff",
-        border: "1px solid #e8edf5",
+        background: hovered
+          ? "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(236,244,255,0.82))"
+          : "linear-gradient(135deg, rgba(255,255,255,0.84), rgba(246,250,255,0.68))",
+        border: "1px solid rgba(255,255,255,0.74)",
         borderRadius: 14,
         padding: "16px 14px",
         display: "flex",
@@ -236,7 +238,11 @@ function QuickCard({ bg, badge, title, desc, onClick }) {
         gap: 10,
         cursor: "pointer",
         transition: "all 0.18s ease",
-        boxShadow: hovered ? "0 4px 16px rgba(0,51,102,0.10)" : "0 1px 4px rgba(0,0,0,0.04)",
+        boxShadow: hovered
+          ? "0 14px 30px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.9)"
+          : "0 12px 28px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.86)",
+        backdropFilter: "blur(16px) saturate(130%)",
+        WebkitBackdropFilter: "blur(16px) saturate(130%)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
@@ -267,7 +273,9 @@ function AnnouncementRow({ title, desc, date, tone, compact = false }) {
         padding: "14px 16px",
         borderBottom: "1px solid #f1f5f9",
         cursor: "pointer",
-        background: hovered ? "#f8faff" : "transparent",
+        background: hovered
+          ? "linear-gradient(135deg, rgba(255,255,255,0.88), rgba(240,246,255,0.78))"
+          : "transparent",
         transition: "background 0.15s",
       }}
     >
@@ -331,12 +339,19 @@ function CategoryChip({ label, color, bg, onClick }) {
         alignItems: "center",
         gap: 6,
         padding: "14px 12px",
-        background: hovered ? bg : "#fff",
-        border: `1.5px solid ${hovered ? color : "#e8edf5"}`,
+        background: hovered
+          ? `linear-gradient(135deg, rgba(255,255,255,0.94), ${bg})`
+          : "linear-gradient(135deg, rgba(255,255,255,0.84), rgba(247,250,255,0.68))",
+        border: `1.5px solid ${hovered ? color : "rgba(255,255,255,0.76)"}`,
         borderRadius: 14,
         cursor: "pointer",
         transition: "all 0.18s ease",
         minWidth: 84,
+        boxShadow: hovered
+          ? "0 14px 28px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.9)"
+          : "0 10px 24px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.82)",
+        backdropFilter: "blur(14px) saturate(125%)",
+        WebkitBackdropFilter: "blur(14px) saturate(125%)",
       }}
     >
       <div style={{ width: 26, height: 26, borderRadius: 999, background: hovered ? color : "#e2e8f0" }} />
@@ -511,6 +526,20 @@ export function HomePage({ onOpenLogin }) {
   const navBg = "#0f2d6e";
   const font = "'Poppins', 'Segoe UI', sans-serif";
   const containerStyle = { maxWidth: 1140, margin: "0 auto", padding: isMobile ? "0 16px" : "0 32px" };
+  const glassPanel = {
+    background: "linear-gradient(135deg, rgba(255,255,255,0.76), rgba(244,248,255,0.62))",
+    border: "1px solid rgba(255,255,255,0.72)",
+    boxShadow: "0 18px 46px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
+    backdropFilter: "blur(20px) saturate(135%)",
+    WebkitBackdropFilter: "blur(20px) saturate(135%)",
+  };
+  const glassCard = {
+    background: "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(248,251,255,0.66))",
+    border: "1px solid rgba(255,255,255,0.76)",
+    boxShadow: "0 14px 34px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,0.86)",
+    backdropFilter: "blur(16px) saturate(130%)",
+    WebkitBackdropFilter: "blur(16px) saturate(130%)",
+  };
 
   const categories = [
     { label: language === "sw" ? "Kidato I\nMatokeo" : "Form I\nResults", color: "#2563eb", bg: "#dbeafe" },
@@ -847,7 +876,7 @@ export function HomePage({ onOpenLogin }) {
 
       <section ref={searchSectionRef} style={{ padding: isMobile ? "24px 0" : "32px 0" }}>
         <div style={containerStyle}>
-          <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? "20px 16px" : "28px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1.5px solid #f1f5f9" }}>
+          <div style={{ ...glassPanel, borderRadius: 20, padding: isMobile ? "20px 16px" : "28px 28px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("searchResultsHeading")}</span>
@@ -1005,10 +1034,8 @@ export function HomePage({ onOpenLogin }) {
           </div>
           <div
             style={{
-              background: "#fff",
+              ...glassPanel,
               borderRadius: 18,
-              border: "1.5px solid #f1f5f9",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
               display: "grid",
               gridTemplateColumns: isXs ? "1fr 1fr" : isMobile ? "repeat(2, 1fr)" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
               gap: 0,
@@ -1047,7 +1074,7 @@ export function HomePage({ onOpenLogin }) {
             </div>
             <span onClick={scrollToAnnouncements} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>{t("viewAll")}</span>
           </div>
-          <div style={{ background: "#fff", borderRadius: 18, border: "1.5px solid #f1f5f9", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
+          <div style={{ ...glassPanel, borderRadius: 18, overflow: "hidden" }}>
             {announcements.map((announcement) => (
               <AnnouncementRow
                 key={announcement.id}
@@ -1082,10 +1109,8 @@ export function HomePage({ onOpenLogin }) {
           </div>
           <div
             style={{
-              background: "#fff",
+              ...glassPanel,
               borderRadius: 18,
-              border: "1.5px solid #f1f5f9",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
               display: "grid",
               gridTemplateColumns: isXs ? "1fr 1fr" : isMobile ? "repeat(2, 1fr)" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
               gap: 0,

@@ -37,13 +37,16 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
 
   const overlayStyle = silent
     ? { position: "fixed", inset: 0, background: "transparent", pointerEvents: "none", zIndex: 1000 }
-    : { position: "fixed", inset: 0, background: "rgba(0,51,102,0.58)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 12 };
+    : { position: "fixed", inset: 0, background: "linear-gradient(135deg, rgba(8,47,73,0.54), rgba(15,23,42,0.44))", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 12 };
   const shellStyle = silent
     ? { position: "fixed", left: "-9999px", top: 0, background: "#fff" }
     : {
-        background: "#f6f8fc",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.78), rgba(242,247,255,0.62))",
         borderRadius: 16,
-        boxShadow: "0 24px 56px rgba(15,42,96,0.28)",
+        border: "1px solid rgba(255,255,255,0.76)",
+        boxShadow: "0 24px 56px rgba(15,42,96,0.24), inset 0 1px 0 rgba(255,255,255,0.86)",
+        backdropFilter: "blur(20px) saturate(135%)",
+        WebkitBackdropFilter: "blur(20px) saturate(135%)",
         width: "min(96vw, 1200px)",
         maxHeight: "92vh",
         overflow: "hidden",
@@ -120,7 +123,7 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
           <div
             className="report-card-ui"
             style={{
-              background: "linear-gradient(135deg, #0f2d6e, #2563eb)",
+              background: "linear-gradient(135deg, rgba(15,45,110,0.92), rgba(37,99,235,0.86))",
               color: "#fff",
               padding: "14px 18px",
               display: "flex",
@@ -194,7 +197,7 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
           style={{
             overflow: "auto",
             padding: silent ? 0 : 16,
-            background: silent ? "transparent" : "linear-gradient(180deg, #eef3ff 0%, #f8fafc 100%)",
+            background: silent ? "transparent" : "linear-gradient(180deg, rgba(231,239,255,0.5) 0%, rgba(248,250,252,0.3) 100%)",
           }}
         >
           <div
