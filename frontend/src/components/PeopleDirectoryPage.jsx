@@ -50,6 +50,7 @@ function getAvatarGradient(name) {
 function getRoleBorderColor(badge) {
   const b = (badge || "").toLowerCase();
   if (b.includes("admin")) return "#8b5cf6"; // Purple
+  if (b.includes("academic")) return "#16a34a"; // Green
   if (b.includes("teacher") || b.includes("staff")) return "#3b82f6"; // Blue
   if (b.includes("parent")) return "#10b981"; // Green
   return "transparent";

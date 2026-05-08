@@ -14,6 +14,7 @@ function initialsFrom(user) {
 
 const ROLE_BADGE_COLORS = {
   admin:   { bg: "#ede9fe", color: "#6d28d9", border: "#c4b5fd" },
+  academic:{ bg: "#dcfce7", color: "#166534", border: "#86efac" },
   teacher: { bg: "#dbeafe", color: "#1d4ed8", border: "#93c5fd" },
   student: { bg: "#dcfce7", color: "#15803d", border: "#86efac" },
   parent:  { bg: "#fef9c3", color: "#a16207", border: "#fde047" },

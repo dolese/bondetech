@@ -95,7 +95,7 @@ export function TimetablePage({
 }) {
   const { isMobile } = useViewport();
   const canEditGlobal = role === "admin";
-  const canEditClass = role === "admin" || role === "teacher";
+  const canEditClass = role === "admin" || role === "academic" || role === "teacher";
   const [globalTimetable, setGlobalTimetable] = useState(() =>
     normalizeTimetableSettings(schoolSettings?.timetable)
   );

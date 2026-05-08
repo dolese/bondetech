@@ -162,6 +162,7 @@ function BellIcon() {
 function formatRole(role) {
   if (!role) return "Staff";
   if (role === "admin") return "Super Administrator";
+  if (role === "academic") return "Academic Officer";
   return `${role.slice(0, 1).toUpperCase()}${role.slice(1)}`;
 }
 
@@ -554,7 +555,7 @@ export function Dashboard({
     (sum, cls) => sum + Number(cls.studentCount ?? cls.student_count ?? cls.students?.length ?? cls.computed?.length ?? 0),
     0
   );
-  const teacherCount = managedUsers.filter((user) => user.role === "teacher" && user.active !== false).length;
+  const teacherCount = managedUsers.filter((user) => (user.role === "teacher" || user.role === "academic") && user.active !== false).length;
   const totalResults = countEnteredScores(filteredClasses);
   const previousResults = countEnteredScores(previousClasses);
   const passRate = calculatePassRate(allStudents.filter((student) => student?.total !== null));

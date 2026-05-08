@@ -85,6 +85,7 @@ export const DEFAULT_SCHOOL = {
 
 export const USER_ROLE_OPTIONS = [
   { label: "Administrator", value: "admin" },
+  { label: "Academic", value: "academic" },
   { label: "Teacher", value: "teacher" },
   { label: "Parent", value: "parent" },
   { label: "Student", value: "student" },

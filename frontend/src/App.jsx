@@ -26,7 +26,7 @@ import { useI18n } from "./i18n";
 import { DEFAULT_SCHOOL } from "./utils/constants";
 import { mergeClassSchoolInfo, normalizeSchoolSettings } from "./utils/schoolSettings";
 
-const CLASS_ACCESS_ROLES = new Set(["admin", "teacher"]);
+const CLASS_ACCESS_ROLES = new Set(["admin", "academic", "teacher"]);
 
 function getDefaultPageForUser(user) {
   if (!user) return "dashboard";
@@ -75,7 +75,7 @@ function buildParentDirectory(classes) {
 
 function buildTeacherDirectory(users) {
   return users
-    .filter((user) => user.role === "teacher")
+    .filter((user) => user.role === "teacher" || user.role === "academic")
     .map((user) => ({
       key: user.id || user.username,
       name: user.displayName || user.username || "Teacher",
@@ -84,7 +84,10 @@ function buildTeacherDirectory(users) {
       email: user.email || "",
       lastSeen: user.lastLoginAt || "",
       badge: user.active === false ? "Inactive" : "Active",
-      subtitle: "Teacher account created and managed by admin",
+      subtitle:
+        user.role === "academic"
+          ? "Academic staff account created and managed by admin"
+          : "Teacher account created and managed by admin",
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "en"));
 }
@@ -541,7 +544,7 @@ export default function App() {
                 onDeleteStudent={onDeleteStudent}
                 onAddStudent={onAddStudent}
                 onReorderStudentCnos={role === "admin" ? onReorderStudentCnos : null}
-                canDeleteStudents={role === "admin" || role === "teacher"}
+                canDeleteStudents={role === "admin" || role === "academic"}
                 activeExam={activeExam}
                 onChangeExam={onChangeExam}
               />
