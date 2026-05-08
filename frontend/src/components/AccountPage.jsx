@@ -637,8 +637,8 @@ export function AccountPage({
             padding: "6px 8px",
             boxShadow: "0 4px 12px rgba(0,51,102,0.05)",
             WebkitOverflowScrolling: "touch",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
+            scrollbarWidth: "thin",
+            scrollbarColor: "#d0dcf8 transparent",
           }}
         >
           {tabs.map((tab) => {
@@ -986,7 +986,7 @@ export function AccountPage({
                       <TextInput label="Reset Password" type="password" value={edit.password} onChange={(value) => updateManagedField(managedUser.username, "password", value)} placeholder="Leave blank to keep current" />
                     </div>
 
-                    <div style={{ display: "flex", flexWrap: isMobile ? "wrap" : "wrap", gap: isMobile ? 8 : 18 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? 8 : 18 }}>
                       <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: isXs ? 12 : 13, color: "#425466", fontWeight: 600, cursor: "pointer", flex: isMobile ? "1 1 auto" : "none" }}>
                         <ToggleSwitch
                           checked={edit.active}
@@ -1139,7 +1139,7 @@ export function AccountPage({
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <div style={{ fontSize: isXs ? 13 : 14, fontWeight: 800, color: "#102a43", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: isXs ? 100 : "none" }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: isXs ? "45vw" : "none" }}>
                         {log.username || "Unknown user"}
                       </div>
                       <span

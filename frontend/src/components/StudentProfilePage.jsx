@@ -182,7 +182,7 @@ export function StudentProfilePage({ indexNo, onBack }) {
                       </div>
                       <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
                         {isMobile && (
-                          <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>← Scroll to see all subjects →</div>
+                          <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>Swipe left or right to see all subjects</div>
                         )}
                         <table style={{ borderCollapse: "collapse", fontSize: 10, minWidth: 400 }}>
                           <thead>
