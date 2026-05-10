@@ -1,6 +1,7 @@
 import React from "react";
 import { buildSlotKey, isSharedTimetablePeriod } from "../../utils/timetable";
 import "./Timetable.css";
+import { useI18n } from "../../i18n";
 
 function slotRange(period) {
   const range = [period.start, period.end].filter(Boolean).join(" - ");
@@ -22,12 +23,13 @@ export function TimetableGrid({
   days,
   periods,
 }) {
+  const { t } = useI18n();
   return (
     <>
       <section className="tt-section">
         <div className="tt-title-block">
-          <div className="tt-title">{activeClassLabel || "Class"} Subject Setup</div>
-          <div className="tt-sub">Set the subjects, target periods, preferred teacher, and room for this class.</div>
+          <div className="tt-title">{t("ttClassSubjectSetup", "{classLabel} Subject Setup", { classLabel: activeClassLabel || t("ttClass", "Class") })}</div>
+          <div className="tt-sub">{t("ttClassSubjectSetupSub", "Set the subjects, target periods, preferred teacher, and room for this class.")}</div>
         </div>
 
         <datalist id={teacherSuggestionId}>
@@ -45,11 +47,11 @@ export function TimetableGrid({
           <table className="tt-table">
             <thead>
               <tr>
-                <th className="tt-head-cell">Subject</th>
-                <th className="tt-head-cell">Target / Week</th>
-                <th className="tt-head-cell">Assigned</th>
-                <th className="tt-head-cell">Preferred Teacher</th>
-                <th className="tt-head-cell">Room</th>
+                <th className="tt-head-cell">{t("analysisSubject", "Subject")}</th>
+                <th className="tt-head-cell">{t("ttTargetPerWeek", "Target / Week")}</th>
+                <th className="tt-head-cell">{t("ttAssigned", "Assigned")}</th>
+                <th className="tt-head-cell">{t("ttPreferredTeacher", "Preferred Teacher")}</th>
+                <th className="tt-head-cell">{t("ttRoom", "Room")}</th>
               </tr>
             </thead>
             <tbody>
@@ -74,7 +76,7 @@ export function TimetableGrid({
                       {summary?.assigned || 0}
                       {summary?.target > summary?.assigned ? (
                         <div style={{ fontSize: 11, color: "#b45309" }}>
-                          Need {summary.target - summary.assigned} more
+                          {t("ttNeedMore", "Need {count} more", { count: summary.target - summary.assigned })}
                         </div>
                       ) : null}
                     </td>
@@ -106,8 +108,8 @@ export function TimetableGrid({
 
       <section className="tt-section">
         <div className="tt-title-block">
-          <div className="tt-title">{activeClassLabel || "Class"} Timetable Editor</div>
-          <div className="tt-sub">Use the clean day tables below to assign subject, teacher, and room for this class.</div>
+          <div className="tt-title">{t("ttClassTimetableEditor", "{classLabel} Timetable Editor", { classLabel: activeClassLabel || t("ttClass", "Class") })}</div>
+          <div className="tt-sub">{t("ttClassTimetableEditorSub", "Use the clean day tables below to assign subject, teacher, and room for this class.")}</div>
         </div>
 
         <div className="tt-stack">
@@ -119,10 +121,10 @@ export function TimetableGrid({
                     <th className="tt-head-cell" colSpan={4}>{day.label}</th>
                   </tr>
                   <tr>
-                    <th className="tt-head-cell">Time</th>
-                    <th className="tt-head-cell">Subject / Activity</th>
-                    <th className="tt-head-cell">Teacher</th>
-                    <th className="tt-head-cell">Room</th>
+                    <th className="tt-head-cell">{t("ttTime", "Time")}</th>
+                    <th className="tt-head-cell">{t("ttSubjectActivity", "Subject / Activity")}</th>
+                    <th className="tt-head-cell">{t("ttTeacher", "Teacher")}</th>
+                    <th className="tt-head-cell">{t("ttRoom", "Room")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -140,7 +142,7 @@ export function TimetableGrid({
                       return (
                         <tr key={slotKey}>
                           <td className="tt-axis-cell">{slotRange(period)}</td>
-                          <td className="tt-shared-cell" colSpan={3}>{period.label || "Shared Activity"}</td>
+                          <td className="tt-shared-cell" colSpan={3}>{period.label || t("ttTypeSharedActivity", "Shared Activity")}</td>
                         </tr>
                       );
                     }
@@ -155,7 +157,7 @@ export function TimetableGrid({
                             onChange={(event) => updateClassEntry(slotKey, "subject", event.target.value)}
                             disabled={!canEditClass}
                           >
-                            <option value="">Select subject</option>
+                            <option value="">{t("ttSelectSubject", "Select subject")}</option>
                             {(classData?.subjects || []).map((subject) => (
                               <option key={subject} value={subject}>{subject}</option>
                             ))}

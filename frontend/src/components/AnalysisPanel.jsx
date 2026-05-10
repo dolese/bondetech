@@ -1,16 +1,18 @@
 import React, { useMemo } from "react";
 import { GRADE_COLORS, DIVISION_COLORS } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
+import { useI18n } from "../i18n";
 
 export function AnalysisPanel({ classData, computed }) {
   const present = (computed ?? []).filter(s => s.total !== null);
   const { isMobile } = useViewport();
+  const { t } = useI18n();
 
   if (!present.length) {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 14 }}>
         <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#003366" }}>
-          📊 Analysis & Statistics
+          📊 {t("analysisTitle", "Analysis & Statistics")}
         </h2>
         <div
           style={{
@@ -23,7 +25,7 @@ export function AnalysisPanel({ classData, computed }) {
             fontSize: 12,
           }}
         >
-          No results yet. Enter student scores to unlock analysis.
+          {t("analysisNoResults", "No results yet. Enter student scores to unlock analysis.")}
         </div>
       </div>
     );
@@ -130,26 +132,26 @@ export function AnalysisPanel({ classData, computed }) {
   return (
     <div style={styles.panel}>
       <h2 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 900, color: "#003366" }}>
-        📊 Analysis & Statistics
+        📊 {t("analysisTitle", "Analysis & Statistics")}
       </h2>
       <div style={{ fontSize: 11, color: "#667", marginTop: -4 }}>
-        Performance breakdowns for this class.
+        {t("analysisSubtitle", "Performance breakdowns for this class.")}
       </div>
 
       <div style={styles.grid}>
         {/* Gender Comparison */}
         <div style={styles.card}>
-          <h3 style={styles.cardTitle}>👫 Gender Comparison</h3>
+          <h3 style={styles.cardTitle}>👫 {t("analysisGenderComparison", "Gender Comparison")}</h3>
           <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 16 }}>
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#0077aa" }}>
                 {maleStudents.length}
               </div>
               <div style={{ fontSize: 10, color: "#666", marginTop: 2, fontWeight: 700 }}>
-                Male Students
+                 {t("analysisMaleStudents", "Male Students")}
               </div>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#003366", marginTop: 8 }}>
-                {getMaleAvg()} avg
+                 {t("analysisAvgScore", "{value} avg", { value: getMaleAvg() })}
               </div>
             </div>
             <div style={{ fontSize: 2, color: "#ddd" }}></div>
@@ -158,10 +160,10 @@ export function AnalysisPanel({ classData, computed }) {
                 {femaleStudents.length}
               </div>
               <div style={{ fontSize: 10, color: "#666", marginTop: 2, fontWeight: 700 }}>
-                Female Students
+                 {t("analysisFemaleStudents", "Female Students")}
               </div>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#003366", marginTop: 8 }}>
-                {getFemaleAvg()} avg
+                 {t("analysisAvgScore", "{value} avg", { value: getFemaleAvg() })}
               </div>
             </div>
           </div>
@@ -169,7 +171,7 @@ export function AnalysisPanel({ classData, computed }) {
 
         {/* Division breakdown */}
         <div style={styles.card}>
-          <h3 style={styles.cardTitle}>🏆 Division Distribution</h3>
+          <h3 style={styles.cardTitle}>🏆 {t("analysisDivisionDistribution", "Division Distribution")}</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
             {["I", "II", "III", "IV"].map(div => (
               <div key={div} style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -181,7 +183,7 @@ export function AnalysisPanel({ classData, computed }) {
                     color: "#333",
                   }}
                 >
-                  Div {div}
+                  {t("analysisDivisionLabel", "Div {div}", { div })}
                 </span>
                 <div
                   style={{
@@ -219,7 +221,7 @@ export function AnalysisPanel({ classData, computed }) {
 
         {/* Subject Performance */}
         <div style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}>
-          <h3 style={styles.cardTitle}>📚 Subject Performance</h3>
+          <h3 style={styles.cardTitle}>📚 {t("analysisSubjectPerformance", "Subject Performance")}</h3>
           <div style={{ overflowX: "auto", minWidth: 0 }}>
             <table
               style={{
@@ -230,7 +232,7 @@ export function AnalysisPanel({ classData, computed }) {
             >
               <thead>
                 <tr style={{ background: "#003366", color: "#fff" }}>
-                  {["Subject", "Avg", "Min", "Max", "Coverage"].map(h => (
+                  {[t("analysisSubject", "Subject"), t("analysisAvg", "Avg"), t("analysisMin", "Min"), t("analysisMax", "Max"), t("analysisCoverage", "Coverage")].map(h => (
                     <th
                       key={h}
                       style={{
@@ -315,7 +317,7 @@ export function AnalysisPanel({ classData, computed }) {
                         border: "1px solid #cbd8f3",
                       }}
                     >
-                      No scores entered yet
+                      {t("analysisNoScores", "No scores entered yet")}
                     </td>
                   </tr>
                 )}
@@ -326,7 +328,7 @@ export function AnalysisPanel({ classData, computed }) {
 
         {/* Score Distribution */}
         <div style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}>
-          <h3 style={styles.cardTitle}>📈 Score Distribution</h3>
+          <h3 style={styles.cardTitle}>📈 {t("analysisScoreDistribution", "Score Distribution")}</h3>
           <div style={{ overflowX: "auto", minWidth: 0 }}>
           <div
             style={{

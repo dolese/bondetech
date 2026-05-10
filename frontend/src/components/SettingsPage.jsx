@@ -4,6 +4,7 @@ import { updateExportBranding } from "../utils/exportBranding";
 import { validateSchoolInfo } from "../utils/validation";
 import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
+import { useI18n } from "../i18n";
 
 export function SettingsPage({
   classData,
@@ -25,6 +26,7 @@ export function SettingsPage({
   onLoadAuditLog,
 }) {
   const { isMobile } = useViewport();
+  const { t } = useI18n();
   const subjects = classData.subjects ?? [];
 
   // Class name & year/form state
@@ -89,16 +91,16 @@ export function SettingsPage({
   const handleUpdateMeta = async () => {
     const yearStr = String(classYear).trim();
     if (!/^[0-9]{4}$/.test(yearStr)) {
-      setMetaError("Year must be 4 digits");
+      setMetaError(t("settingsYearMustBe4Digits", "Year must be 4 digits"));
       return;
     }
     if (!classForm || !String(classForm).trim()) {
-      setMetaError("Form is required");
+      setMetaError(t("settingsFormRequired", "Form is required"));
       return;
     }
     const nameStr = className.trim();
     if (!nameStr) {
-      setMetaError("Class name is required");
+      setMetaError(t("settingsClassNameRequired", "Class name is required"));
       return;
     }
     setMetaError("");
@@ -135,11 +137,11 @@ export function SettingsPage({
   const handleAddSubject = async () => {
     const next = cleanSubject(subjectInput);
     if (!next) {
-      setSubjectError("Subject name is required");
+      setSubjectError(t("settingsSubjectNameRequired", "Subject name is required"));
       return;
     }
     if (subjects.some((s) => s.toLowerCase() === next.toLowerCase())) {
-      setSubjectError("Subject already exists");
+      setSubjectError(t("settingsSubjectAlreadyExists", "Subject already exists"));
       return;
     }
     setSubjectError("");
@@ -150,7 +152,7 @@ export function SettingsPage({
   };
 
   const handleRemoveSubject = async (subject) => {
-    if (!window.confirm(`Remove "${subject}"? Existing scores will be hidden.`)) return;
+    if (!window.confirm(t("settingsConfirmRemoveSubject", "Remove \"{subject}\"? Existing scores will be hidden.", { subject }))) return;
     const next = subjects.filter((s) => s !== subject);
     setUpdatingSubjects(true);
     await onUpdateSubjects?.(next);
@@ -326,20 +328,20 @@ export function SettingsPage({
 
   return (
     <div style={styles.panel}>
-      <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800 }}>⚙️ Settings</h3>
+      <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800 }}>⚙️ {t("settingsTitle", "Settings")}</h3>
 
       {/* Class name / year / form */}
       <div style={styles.section}>
         <div>
-          <div style={styles.sectionTitle}>Class Identity</div>
+           <div style={styles.sectionTitle}>{t("settingsClassIdentity", "Class Identity")}</div>
           <div style={styles.sectionSub}>
-            Name, year, and form used to organize classes in the sidebar.
+             {t("settingsClassIdentitySub", "Name, year, and form used to organize classes in the sidebar.")}
           </div>
         </div>
         <div style={{ ...styles.grid2, gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Class Name
+               {t("settingsClassName", "Class Name")}
             </label>
             <input
               type="text"
@@ -351,7 +353,7 @@ export function SettingsPage({
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Year
+               {t("settingsYear", "Year")}
             </label>
             <input
               type="text"
@@ -364,7 +366,7 @@ export function SettingsPage({
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Form
+               {t("settingsForm", "Form")}
             </label>
             <select
               value={classForm}
@@ -380,7 +382,7 @@ export function SettingsPage({
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button style={styles.saveBtn} onClick={handleUpdateMeta} disabled={updatingMeta}>
-            {updatingMeta ? "Saving…" : "Save"}
+             {updatingMeta ? t("saving", "Saving...") : t("save", "Save")}
           </button>
           {metaError && <div style={styles.errMsg}>{metaError}</div>}
         </div>
@@ -389,9 +391,9 @@ export function SettingsPage({
       {/* Global school settings */}
       <div style={styles.section}>
         <div>
-          <div style={styles.sectionTitle}>School Settings</div>
+           <div style={styles.sectionTitle}>{t("settingsSchoolSettings", "School Settings")}</div>
           <div style={styles.sectionSub}>
-            Whole-school identity, contacts, and export branding used across the project.
+             {t("settingsSchoolSettingsSub", "Whole-school identity, contacts, and export branding used across the project.")}
           </div>
         </div>
         <div style={styles.grid2}>
@@ -431,9 +433,9 @@ export function SettingsPage({
           />
         </div>
         <div>
-          <div style={styles.sectionTitle}>Export Branding</div>
+           <div style={styles.sectionTitle}>{t("settingsExportBranding", "Export Branding")}</div>
           <div style={styles.sectionSub}>
-            Controls the logos and header text used by result sheet and report card exports.
+             {t("settingsExportBrandingSub", "Controls the logos and header text used by result sheet and report card exports.")}
           </div>
         </div>
         <div style={styles.grid2}>
@@ -465,16 +467,16 @@ export function SettingsPage({
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button style={styles.saveBtn} onClick={handleUpdateSchool} disabled={updatingSchool}>
-            {updatingSchool ? "Saving…" : "Save School Settings"}
+             {updatingSchool ? t("saving", "Saving...") : t("settingsSaveSchoolSettings", "Save School Settings")}
           </button>
         </div>
       </div>
 
       <div style={styles.section}>
         <div>
-          <div style={styles.sectionTitle}>Report Context</div>
+           <div style={styles.sectionTitle}>{t("settingsReportContext", "Report Context")}</div>
           <div style={styles.sectionSub}>
-            These values stay with this class only and control its current report session.
+             {t("settingsReportContextSub", "These values stay with this class only and control its current report session.")}
           </div>
         </div>
         <div style={styles.grid2}>
@@ -497,7 +499,7 @@ export function SettingsPage({
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button style={styles.saveBtn} onClick={handleUpdateReportContext} disabled={updatingReportContext}>
-            {updatingReportContext ? "Saving…" : "Save Report Context"}
+             {updatingReportContext ? t("saving", "Saving...") : t("settingsSaveReportContext", "Save Report Context")}
           </button>
         </div>
       </div>
@@ -506,16 +508,16 @@ export function SettingsPage({
       <div style={styles.section}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={styles.sectionTitle}>Subjects</div>
+             <div style={styles.sectionTitle}>{t("settingsSubjects", "Subjects")}</div>
             <div style={styles.sectionSub}>
-              Add or remove subjects. Student scores are remapped automatically.
+               {t("settingsSubjectsSub", "Add or remove subjects. Student scores are remapped automatically.")}
             </div>
           </div>
-          <div style={{ fontSize: 10, color: "#667" }}>{subjects.length} subjects</div>
+           <div style={{ fontSize: 10, color: "#667" }}>{t("settingsSubjectCount", "{count} subjects", { count: subjects.length })}</div>
         </div>
         <div style={styles.row}>
           {subjects.length === 0 && (
-            <div style={{ fontSize: 10, color: "#999" }}>No subjects yet.</div>
+             <div style={{ fontSize: 10, color: "#999" }}>{t("settingsNoSubjectsYet", "No subjects yet.")}</div>
           )}
           {subjects.map((subj, idx) => (
             <span key={subj} style={styles.subjectChip}>
@@ -523,7 +525,7 @@ export function SettingsPage({
                 style={styles.subjectArrow}
                 onClick={() => handleMoveSubject(idx, -1)}
                 disabled={updatingSubjects || idx === 0}
-                title="Move up"
+                 title={t("settingsMoveUp", "Move up")}
               >
                 ▲
               </button>
@@ -532,7 +534,7 @@ export function SettingsPage({
                 style={styles.subjectArrow}
                 onClick={() => handleMoveSubject(idx, 1)}
                 disabled={updatingSubjects || idx === subjects.length - 1}
-                title="Move down"
+                 title={t("settingsMoveDown", "Move down")}
               >
                 ▼
               </button>
@@ -550,7 +552,7 @@ export function SettingsPage({
         <div style={styles.row}>
           <input
             type="text"
-            placeholder="Add subject"
+             placeholder={t("settingsAddSubject", "Add subject")}
             value={subjectInput}
             onChange={(e) => setSubjectInput(e.target.value)}
             onKeyDown={(e) => {
@@ -563,7 +565,7 @@ export function SettingsPage({
             onClick={handleAddSubject}
             disabled={updatingSubjects || !subjectInput.trim()}
           >
-            ➕ Add
+             ➕ {t("add", "Add")}
           </button>
           {subjectError && <div style={styles.errMsg}>{subjectError}</div>}
         </div>
@@ -572,10 +574,11 @@ export function SettingsPage({
       {/* Monthly Exams */}
       <div style={styles.section}>
         <div>
-          <div style={styles.sectionTitle}>📅 Monthly Exams</div>
+           <div style={styles.sectionTitle}>📅 {t("settingsMonthlyExams", "Monthly Exams")}</div>
           <div style={styles.sectionSub}>
-            Select which months have a monthly exam available for this Form.
-            Enabled months appear in the exam picker alongside the standard exams.
+             {t("settingsMonthlyExamsSub1", "Select which months have a monthly exam available for this Form.")}
+             {" "}
+             {t("settingsMonthlyExamsSub2", "Enabled months appear in the exam picker alongside the standard exams.")}
           </div>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -606,7 +609,7 @@ export function SettingsPage({
         </div>
         {monthlyExams.length > 0 && (
           <div style={{ fontSize: 10, color: "#0b6b3a" }}>
-            {monthlyExams.length} monthly exam{monthlyExams.length !== 1 ? "s" : ""} enabled:{" "}
+             {t("settingsMonthlyExamsEnabled", "{count} monthly exam{suffix} enabled:", { count: monthlyExams.length, suffix: monthlyExams.length !== 1 ? "s" : "" })}{" "}
             {monthlyExams.join(", ")}
           </div>
         )}
@@ -615,10 +618,11 @@ export function SettingsPage({
       {/* Composite Exam Settings */}
       <div style={styles.section}>
         <div>
-          <div style={styles.sectionTitle}>🔗 Composite Exam Settings</div>
+           <div style={styles.sectionTitle}>🔗 {t("settingsCompositeExamSettings", "Composite Exam Settings")}</div>
           <div style={styles.sectionSub}>
-            Terminal, September, and Annual exams combine two sittings: (Midterm Score + Exam Score) ÷ 2.
-            Choose which earlier exam acts as the midterm partner for each composite exam type.
+             {t("settingsCompositeExamSub1", "Terminal, September, and Annual exams combine two sittings: (Midterm Score + Exam Score) ÷ 2.")}
+             {" "}
+             {t("settingsCompositeExamSub2", "Choose which earlier exam acts as the midterm partner for each composite exam type.")}
           </div>
         </div>
         {compositeExamKeys.map((examKey) => {
@@ -627,7 +631,7 @@ export function SettingsPage({
           return (
             <div key={examKey} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: "#003366", minWidth: 120 }}>{examKey}</span>
-              <span style={{ fontSize: 11, color: "#667" }}>partner:</span>
+               <span style={{ fontSize: 11, color: "#667" }}>{t("settingsPartner", "partner")}:</span>
               <select
                 value={currentPartner}
                 onChange={(e) =>
@@ -653,7 +657,7 @@ export function SettingsPage({
                     })
                   }
                 >
-                  Reset
+                   {t("settingsReset", "Reset")}
                 </button>
               )}
             </div>
@@ -661,7 +665,7 @@ export function SettingsPage({
         })}
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button style={styles.saveBtn} onClick={handleUpdateCompositeConfig} disabled={updatingComposite}>
-            {updatingComposite ? "Saving…" : "Save"}
+             {updatingComposite ? t("saving", "Saving...") : t("save", "Save")}
           </button>
         </div>
       </div>
@@ -669,12 +673,12 @@ export function SettingsPage({
       {/* Publish / Unpublish */}
       <div style={styles.section}>
         <div>
-          <div style={styles.sectionTitle}>📢 Result Publishing</div>
+          <div style={styles.sectionTitle}>📢 {t("settingsResultPublishing", "Result Publishing")}</div>
           <div style={styles.sectionSub}>
-            Mark this class's results as published so students and parents can view them.
+            {t("settingsResultPublishingSub", "Mark this class's results as published so students and parents can view them.")}
             {classData.publishedAt && (
               <span style={{ marginLeft: 6, color: "#0b6b3a" }}>
-                Published on {new Date(classData.publishedAt).toLocaleDateString()}.
+                {t("settingsPublishedOn", "Published on {date}.", { date: new Date(classData.publishedAt).toLocaleDateString() })}
               </span>
             )}
           </div>
@@ -690,7 +694,7 @@ export function SettingsPage({
                 setPublishing(false);
               }}
             >
-              {publishing ? "Updating…" : "🔒 Unpublish"}
+              {publishing ? t("updating", "Updating...") : `🔒 ${t("settingsUnpublish", "Unpublish")}`}
             </button>
           ) : (
             <button
@@ -702,7 +706,7 @@ export function SettingsPage({
                 setPublishing(false);
               }}
             >
-              {publishing ? "Publishing…" : "📢 Publish Results"}
+              {publishing ? t("settingsPublishing", "Publishing...") : `📢 ${t("settingsPublishResults", "Publish Results")}`}
             </button>
           )}
         </div>
@@ -711,9 +715,9 @@ export function SettingsPage({
       {/* Backup & Restore */}
       <div style={styles.section}>
         <div>
-          <div style={styles.sectionTitle}>💾 Backup & Restore</div>
+          <div style={styles.sectionTitle}>💾 {t("settingsBackupRestore", "Backup & Restore")}</div>
           <div style={styles.sectionSub}>
-            Export all school data to a JSON file, or re-import a previous backup.
+            {t("settingsBackupRestoreSub", "Export all school data to a JSON file, or re-import a previous backup.")}
           </div>
         </div>
         <div style={styles.row}>
@@ -721,7 +725,7 @@ export function SettingsPage({
             style={{ ...styles.saveBtn, background: "#003366" }}
             onClick={() => onExportBackup?.()}
           >
-            ⬇ Export All Data
+            ⬇ {t("settingsExportAllData", "Export All Data")}
           </button>
           <label
             style={{
@@ -732,7 +736,7 @@ export function SettingsPage({
               alignItems: "center",
             }}
           >
-            {importingBackup ? "Importing…" : "⬆ Import Backup"}
+            {importingBackup ? t("settingsImporting", "Importing...") : `⬆ ${t("settingsImportBackup", "Import Backup")}`}
             <input
               type="file"
               accept=".json"
@@ -772,22 +776,22 @@ export function SettingsPage({
              }}
         >
           <div>
-            <div style={styles.sectionTitle}>📋 Audit Log</div>
-            <div style={styles.sectionSub}>View who updated scores and when.</div>
+            <div style={styles.sectionTitle}>📋 {t("settingsAuditLog", "Audit Log")}</div>
+            <div style={styles.sectionSub}>{t("settingsAuditLogSub", "View who updated scores and when.")}</div>
           </div>
-          <span style={{ fontSize: 12, color: "#003366" }}>{auditOpen ? "▲ Hide" : "▼ Show"}</span>
+          <span style={{ fontSize: 12, color: "#003366" }}>{auditOpen ? `▲ ${t("hide", "Hide")}` : `▼ ${t("show", "Show")}`}</span>
         </div>
         {auditOpen && (
           loadingAudit ? (
-            <div style={{ fontSize: 11, color: "#888" }}>Loading…</div>
+            <div style={{ fontSize: 11, color: "#888" }}>{t("loadingData", "Loading data...")}</div>
           ) : !auditLogs || auditLogs.length === 0 ? (
-            <div style={{ fontSize: 11, color: "#888" }}>No audit records yet.</div>
+            <div style={{ fontSize: 11, color: "#888" }}>{t("settingsNoAuditRecords", "No audit records yet.")}</div>
           ) : (
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
                 <thead>
                   <tr>
-                    {["When", "Student", "By", "Changes"].map(h => (
+                     {[t("settingsWhen", "When"), t("students", "Students"), t("settingsBy", "By"), t("settingsChanges", "Changes")].map(h => (
                       <th key={h} style={{ padding: "5px 6px", background: "#003366", color: "#fff", textAlign: "left", fontWeight: 700 }}>
                         {h}
                       </th>
@@ -798,20 +802,20 @@ export function SettingsPage({
                   {auditLogs.map((log, i) => (
                     <tr key={log.id || i} style={{ background: i % 2 === 0 ? "#fff" : "#f7f9ff" }}>
                       <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8", whiteSpace: "nowrap" }}>
-                        {log.updatedAt ? new Date(log.updatedAt).toLocaleString() : "–"}
+                        {log.updatedAt ? new Date(log.updatedAt).toLocaleString() : t("settingsDash", "–")}
                       </td>
                       <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8" }}>
-                        {log.studentName || log.studentId || "–"}
+                        {log.studentName || log.studentId || t("settingsDash", "–")}
                       </td>
                       <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8" }}>
-                        {log.updatedBy || "–"}
+                        {log.updatedBy || t("settingsDash", "–")}
                       </td>
                       <td style={{ padding: "4px 6px", borderBottom: "1px solid #e8eef8", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>
                         {log.changes
                           ? Object.entries(log.changes)
                               .map(([k, v]) => `${k}: ${JSON.stringify(v.from)} → ${JSON.stringify(v.to)}`)
                               .join("; ")
-                          : log.action || "–"}
+                           : log.action || t("settingsDash", "–")}
                       </td>
                     </tr>
                   ))}
@@ -825,9 +829,9 @@ export function SettingsPage({
       {/* Danger zone */}
       <div style={{ ...styles.section, borderColor: "#f5c6c6" }}>
         <div>
-          <div style={{ ...styles.sectionTitle, color: "#8b2500" }}>Danger Zone</div>
+          <div style={{ ...styles.sectionTitle, color: "#8b2500" }}>{t("settingsDangerZone", "Danger Zone")}</div>
           <div style={styles.sectionSub}>
-            Archive or permanently delete this class.
+            {t("settingsDangerZoneSub", "Archive or permanently delete this class.")}
           </div>
         </div>
         <div style={styles.row}>
@@ -841,24 +845,24 @@ export function SettingsPage({
                 setArchiving(false);
               }}
             >
-              {archiving ? "Restoring…" : "♻️ Restore Class"}
+              {archiving ? t("settingsRestoring", "Restoring...") : `♻️ ${t("settingsRestoreClass", "Restore Class")}`}
             </button>
           ) : (
             <button
               style={{ ...styles.deleteBtn, background: "#7a5800" }}
               disabled={archiving}
               onClick={async () => {
-                if (!window.confirm(`Archive "${classData.name}"? It will be hidden but data is preserved.`)) return;
+                if (!window.confirm(t("settingsConfirmArchive", "Archive \"{name}\"? It will be hidden but data is preserved.", { name: classData.name }))) return;
                 setArchiving(true);
                 await onArchiveClass?.();
                 setArchiving(false);
               }}
             >
-              {archiving ? "Archiving…" : "📦 Archive Class"}
+              {archiving ? t("settingsArchiving", "Archiving...") : `📦 ${t("settingsArchiveClass", "Archive Class")}`}
             </button>
           )}
           <button style={styles.deleteBtn} onClick={onDeleteClass}>
-            🗑️ Delete Class
+            🗑️ {t("settingsDeleteClass", "Delete Class")}
           </button>
         </div>
       </div>

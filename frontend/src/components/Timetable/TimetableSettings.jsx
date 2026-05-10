@@ -1,5 +1,6 @@
 import React from "react";
 import "./Timetable.css";
+import { useI18n } from "../../i18n";
 
 function tableCellText(value) {
   const text = String(value || "").trim();
@@ -20,18 +21,19 @@ export function TimetableSettings({
   removeRoom,
   streamRows,
 }) {
+  const { t } = useI18n();
   return (
     <div className="tt-two-col">
       <div className="tt-stack">
         <section className="tt-section">
           <div className="tt-title-block">
-            <div className="tt-title">School Time Setup</div>
-            <div className="tt-sub">These settings apply to the whole school timetable.</div>
+            <div className="tt-title">{t("ttSchoolTimeSetup", "School Time Setup")}</div>
+            <div className="tt-sub">{t("ttSchoolTimeSetupSub", "These settings apply to the whole school timetable.")}</div>
           </div>
 
           <div className="tt-stack">
             <div>
-              <div className="tt-stat-label" style={{ marginBottom: 8 }}>Active Days</div>
+               <div className="tt-stat-label" style={{ marginBottom: 8 }}>{t("ttActiveDays", "Active Days")}</div>
               <div className="tt-checkbox-row">
                 {normalizedGlobalTimetable.days.map((day) => (
                   <label key={day.id} className="tt-checkbox-label">
@@ -51,11 +53,11 @@ export function TimetableSettings({
               <table className="tt-compact-table">
                 <thead>
                   <tr>
-                    <th className="tt-head-cell">Label</th>
-                    <th className="tt-head-cell">Start</th>
-                    <th className="tt-head-cell">End</th>
-                    <th className="tt-head-cell">Type</th>
-                    <th className="tt-head-cell">Action</th>
+                     <th className="tt-head-cell">{t("ttLabel", "Label")}</th>
+                     <th className="tt-head-cell">{t("ttStart", "Start")}</th>
+                     <th className="tt-head-cell">{t("ttEnd", "End")}</th>
+                     <th className="tt-head-cell">{t("ttType", "Type")}</th>
+                     <th className="tt-head-cell">{t("ttAction", "Action")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -92,14 +94,14 @@ export function TimetableSettings({
                           onChange={(event) => updatePeriod(period.id, "type", event.target.value)}
                           disabled={!canEditGlobal}
                         >
-                          <option value="lesson">Lesson</option>
-                          <option value="break">Break</option>
-                          <option value="shared">Shared Activity</option>
+                          <option value="lesson">{t("ttTypeLesson", "Lesson")}</option>
+                          <option value="break">{t("ttTypeBreak", "Break")}</option>
+                          <option value="shared">{t("ttTypeSharedActivity", "Shared Activity")}</option>
                         </select>
                       </td>
                       <td className="tt-body-cell">
                         <button className="tt-secondary-button" onClick={() => removePeriod(period.id)} disabled={!canEditGlobal}>
-                          Remove
+                          {t("remove", "Remove")}
                         </button>
                       </td>
                     </tr>
@@ -110,7 +112,7 @@ export function TimetableSettings({
 
             {canEditGlobal ? (
               <div className="tt-action-row">
-                <button className="tt-secondary-button" onClick={addPeriod}>Add Period</button>
+                 <button className="tt-secondary-button" onClick={addPeriod}>{t("ttAddPeriod", "Add Period")}</button>
               </div>
             ) : null}
           </div>
@@ -118,17 +120,17 @@ export function TimetableSettings({
 
         <section className="tt-section">
           <div className="tt-title-block">
-            <div className="tt-title">Available Streams</div>
-            <div className="tt-sub">These are the class streams currently available for the school timetable.</div>
+            <div className="tt-title">{t("ttAvailableStreams", "Available Streams")}</div>
+            <div className="tt-sub">{t("ttAvailableStreamsSub", "These are the class streams currently available for the school timetable.")}</div>
           </div>
           <div className="tt-table-wrap">
             <table className="tt-compact-table">
               <thead>
                 <tr>
-                  <th className="tt-head-cell">Form</th>
-                  <th className="tt-head-cell">Stream</th>
-                  <th className="tt-head-cell">Subjects</th>
-                  <th className="tt-head-cell">Assigned Lessons</th>
+                   <th className="tt-head-cell">{t("settingsForm", "Form")}</th>
+                   <th className="tt-head-cell">{t("ttStream", "Stream")}</th>
+                   <th className="tt-head-cell">{t("settingsSubjects", "Subjects")}</th>
+                   <th className="tt-head-cell">{t("ttAssignedLessons", "Assigned Lessons")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -143,7 +145,7 @@ export function TimetableSettings({
                   ))
                 ) : (
                   <tr>
-                    <td className="tt-body-cell" colSpan={4}>No streams available yet.</td>
+                     <td className="tt-body-cell" colSpan={4}>{t("ttNoStreams", "No streams available yet.")}</td>
                   </tr>
                 )}
               </tbody>
@@ -155,18 +157,18 @@ export function TimetableSettings({
       <div className="tt-stack">
         <section className="tt-section">
           <div className="tt-title-block">
-            <div className="tt-title">Teacher Setup</div>
-            <div className="tt-sub">Teachers available for timetable assignment are taken from user accounts already created by admin.</div>
+            <div className="tt-title">{t("ttTeacherSetup", "Teacher Setup")}</div>
+            <div className="tt-sub">{t("ttTeacherSetupSub", "Teachers available for timetable assignment are taken from user accounts already created by admin.")}</div>
           </div>
           <div className="tt-table-wrap">
             <table className="tt-compact-table">
               <thead>
                 <tr>
-                  <th className="tt-head-cell">Teacher</th>
-                  <th className="tt-head-cell">Account</th>
-                  <th className="tt-head-cell">Weekly Load</th>
-                  <th className="tt-head-cell">Classes</th>
-                  <th className="tt-head-cell">Unavailable Slots</th>
+                   <th className="tt-head-cell">{t("ttTeacher", "Teacher")}</th>
+                   <th className="tt-head-cell">{t("ttAccount", "Account")}</th>
+                   <th className="tt-head-cell">{t("ttWeeklyLoad", "Weekly Load")}</th>
+                   <th className="tt-head-cell">{t("ttClasses", "Classes")}</th>
+                   <th className="tt-head-cell">{t("ttUnavailableSlots", "Unavailable Slots")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -185,7 +187,7 @@ export function TimetableSettings({
                   ))
                 ) : (
                   <tr>
-                    <td className="tt-body-cell" colSpan={5}>No teacher accounts available yet.</td>
+                     <td className="tt-body-cell" colSpan={5}>{t("ttNoTeacherAccounts", "No teacher accounts available yet.")}</td>
                   </tr>
                 )}
               </tbody>
@@ -195,19 +197,19 @@ export function TimetableSettings({
 
         <section className="tt-section">
           <div className="tt-title-block">
-            <div className="tt-title">Room Setup</div>
-            <div className="tt-sub">Maintain the rooms available for timetable assignment and review how often they are used.</div>
+            <div className="tt-title">{t("ttRoomSetup", "Room Setup")}</div>
+            <div className="tt-sub">{t("ttRoomSetupSub", "Maintain the rooms available for timetable assignment and review how often they are used.")}</div>
           </div>
           <div className="tt-table-wrap">
             <table className="tt-compact-table">
               <thead>
                 <tr>
-                  <th className="tt-head-cell">Room</th>
-                  <th className="tt-head-cell">Type</th>
-                  <th className="tt-head-cell">Capacity</th>
-                  <th className="tt-head-cell">Used Periods</th>
-                  <th className="tt-head-cell">Classes</th>
-                  <th className="tt-head-cell">Action</th>
+                   <th className="tt-head-cell">{t("ttRoom", "Room")}</th>
+                   <th className="tt-head-cell">{t("ttType", "Type")}</th>
+                   <th className="tt-head-cell">{t("ttCapacity", "Capacity")}</th>
+                   <th className="tt-head-cell">{t("ttUsedPeriods", "Used Periods")}</th>
+                   <th className="tt-head-cell">{t("ttClasses", "Classes")}</th>
+                   <th className="tt-head-cell">{t("ttAction", "Action")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -227,7 +229,7 @@ export function TimetableSettings({
                           ) : (
                             <>
                               <div style={{ fontWeight: 800 }}>{room.name}</div>
-                              <div className="tt-note">Inferred from current timetable data</div>
+                               <div className="tt-note">{t("ttInferredFromData", "Inferred from current timetable data")}</div>
                             </>
                           )}
                         </td>
@@ -260,10 +262,10 @@ export function TimetableSettings({
                         <td className="tt-body-cell">
                           {isConfigured ? (
                             <button className="tt-secondary-button" onClick={() => removeRoom(room.id)} disabled={!canEditGlobal}>
-                              Remove
+                               {t("remove", "Remove")}
                             </button>
                           ) : (
-                            <span className="tt-note">Derived</span>
+                             <span className="tt-note">{t("ttDerived", "Derived")}</span>
                           )}
                         </td>
                       </tr>
@@ -271,7 +273,7 @@ export function TimetableSettings({
                   })
                 ) : (
                   <tr>
-                    <td className="tt-body-cell" colSpan={6}>No rooms available yet.</td>
+                     <td className="tt-body-cell" colSpan={6}>{t("ttNoRooms", "No rooms available yet.")}</td>
                   </tr>
                 )}
               </tbody>
@@ -279,7 +281,7 @@ export function TimetableSettings({
           </div>
           {canEditGlobal ? (
             <div className="tt-action-row">
-              <button className="tt-secondary-button" onClick={addRoom}>Add Room</button>
+               <button className="tt-secondary-button" onClick={addRoom}>{t("ttAddRoom", "Add Room")}</button>
             </div>
           ) : null}
         </section>

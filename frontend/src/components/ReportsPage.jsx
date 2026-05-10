@@ -7,6 +7,7 @@ import { createRoot } from "react-dom/client";
 import { withPositions } from "../utils/grading";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { useI18n } from "../i18n";
 
 const TEMPLATE_OPTIONS = [
   { label: "Official", value: "official" },
@@ -47,6 +48,7 @@ function averageOf(values) {
 
 export function ReportsPage({ classData, computed, allClasses = [], onOpenReportCard }) {
   const { isMobile, isTablet } = useViewport();
+  const { t } = useI18n();
   const [exportingZip, setExportingZip] = useState(false);
   const [template, setTemplate] = useState("official");
   const schoolInfo = classData.school_info ?? DEFAULT_SCHOOL;
@@ -174,7 +176,7 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
     setExportingZip(true);
     try {
       const zip = new JSZip();
-      const safeClass = (classData.name || "class").replace(/[^a-z0-9-_ ]/gi, "").trim() || "class";
+      const safeClass = (classData.name || t("reportsClassFallback", "class")).replace(/[^a-z0-9-_ ]/gi, "").trim() || t("reportsClassFallback", "class");
       const container = document.createElement("div");
       container.style.position = "fixed";
       container.style.left = "-9999px";
@@ -291,7 +293,7 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
       <div style={{ ...styles.section, display: "grid", gap: 16 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 900, color: "#102a43" }}>Report Center</h3>
+               <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 900, color: "#102a43" }}>{t("reportsCenterTitle", "Report Center")}</h3>
             <div style={{ fontSize: 13, color: "#607086", lineHeight: 1.7 }}>
               {schoolInfo.name} • {classData.form || ""} {classData.year || ""} • {schoolInfo.exam || DEFAULT_EXAM_TYPE}
             </div>
@@ -310,38 +312,38 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
             onClick={exportAllZip}
             disabled={exportingZip || !present.length}
           >
-            {exportingZip ? "Exporting..." : "Export All PDFs"}
+            {exportingZip ? t("reportsExporting", "Exporting...") : t("reportsExportAllPdfs", "Export All PDFs")}
           </button>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))", gap: 12 }}>
           <div style={styles.metricCard}>
-            <div style={{ fontSize: 11, color: "#516074", fontWeight: 800, textTransform: "uppercase" }}>Students Reported</div>
+            <div style={{ fontSize: 11, color: "#516074", fontWeight: 800, textTransform: "uppercase" }}>{t("reportsStudentsReported", "Students Reported")}</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: "#102a43" }}>{present.length}</div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>Scored students in the selected class exam.</div>
+            <div style={{ fontSize: 12, color: "#64748b" }}>{t("reportsStudentsReportedSub", "Scored students in the selected class exam.")}</div>
           </div>
           <div style={styles.metricCard}>
-            <div style={{ fontSize: 11, color: "#516074", fontWeight: 800, textTransform: "uppercase" }}>Class Average</div>
+            <div style={{ fontSize: 11, color: "#516074", fontWeight: 800, textTransform: "uppercase" }}>{t("reportsClassAverage", "Class Average")}</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: "#102a43" }}>{currentAvg.toFixed(1)}</div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>Average student mark for the current class exam.</div>
+            <div style={{ fontSize: 12, color: "#64748b" }}>{t("reportsClassAverageSub", "Average student mark for the current class exam.")}</div>
           </div>
           <div style={styles.metricCard}>
-            <div style={{ fontSize: 11, color: "#516074", fontWeight: 800, textTransform: "uppercase" }}>Year Rank</div>
+            <div style={{ fontSize: 11, color: "#516074", fontWeight: 800, textTransform: "uppercase" }}>{t("reportsYearRank", "Year Rank")}</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: "#102a43" }}>{classComparison.rank || "-"}</div>
             <div style={{ fontSize: 12, color: "#64748b" }}>
-              {classComparison.best ? `Best peer: ${classComparison.best.name}` : "No peer comparison yet."}
+              {classComparison.best ? t("reportsBestPeer", "Best peer: {name}", { name: classComparison.best.name }) : t("reportsNoPeerComparison", "No peer comparison yet.")}
             </div>
           </div>
           <div style={styles.metricCard}>
-            <div style={{ fontSize: 11, color: "#516074", fontWeight: 800, textTransform: "uppercase" }}>Top Performer</div>
+            <div style={{ fontSize: 11, color: "#516074", fontWeight: 800, textTransform: "uppercase" }}>{t("reportsTopPerformer", "Top Performer")}</div>
             <div style={{ fontSize: 18, fontWeight: 900, color: "#102a43" }}>{present[0]?.name || "-"}</div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>{present[0] ? `Average ${present[0].avg}` : "No completed ranking yet."}</div>
+            <div style={{ fontSize: 12, color: "#64748b" }}>{present[0] ? t("reportsTopAverage", "Average {avg}", { avg: present[0].avg }) : t("reportsNoRankingYet", "No completed ranking yet.")}</div>
           </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))", gap: 12 }}>
           <div>
-            <label style={styles.controlLabel}>Template</label>
+            <label style={styles.controlLabel}>{t("reportsTemplate", "Template")}</label>
             <select value={template} onChange={(event) => setTemplate(event.target.value)} style={styles.select}>
               {TEMPLATE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -349,15 +351,15 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
             </select>
           </div>
           <div>
-            <label style={styles.controlLabel}>Paper Size</label>
+            <label style={styles.controlLabel}>{t("reportsPaperSize", "Paper Size")}</label>
             <div style={{ ...styles.select, background: "#eef4ff", fontWeight: 700, color: "#17324d" }}>
               A4
             </div>
           </div>
           <div>
-            <label style={styles.controlLabel}>Orientation</label>
+            <label style={styles.controlLabel}>{t("reportsOrientation", "Orientation")}</label>
             <div style={{ ...styles.select, background: "#eef4ff", fontWeight: 700, color: "#17324d" }}>
-              Portrait
+              {t("reportsPortrait", "Portrait")}
             </div>
           </div>
         </div>
@@ -367,11 +369,11 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
         <div style={{ ...styles.section, display: "grid", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>Ranking History</div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>Track rank changes across all recorded exam types in this class.</div>
+               <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>{t("reportsRankingHistory", "Ranking History")}</div>
+               <div style={{ fontSize: 12, color: "#64748b" }}>{t("reportsRankingHistorySub", "Track rank changes across all recorded exam types in this class.")}</div>
             </div>
             <div style={{ minWidth: isMobile || isTablet ? "100%" : 220 }}>
-              <label style={styles.controlLabel}>Selected Student</label>
+               <label style={styles.controlLabel}>{t("reportsSelectedStudent", "Selected Student")}</label>
               <select value={selectedStudentId} onChange={(event) => setSelectedStudentId(event.target.value)} style={styles.select}>
                 {present.map((student) => (
                   <option key={student.id} value={student.id}>{student.name}</option>
@@ -386,16 +388,16 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
                   <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>{snapshot.exam}</div>
                   <div style={{ fontSize: 12, color: "#64748b" }}>
-                    Avg total {snapshot.avgTotal.toFixed(1)} • {snapshot.completeCount} ranked students
+                    {t("reportsAvgTotalRanked", "Avg total {avg} • {count} ranked students", { avg: snapshot.avgTotal.toFixed(1), count: snapshot.completeCount })}
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {snapshot.leaders.length ? snapshot.leaders.map((leader) => (
                     <div key={leader.id} style={{ background: "#f8fbff", border: "1px solid #dbe7ff", borderRadius: 999, padding: "6px 10px", fontSize: 12, fontWeight: 700, color: "#17324d" }}>
-                      #{leader.posn} {leader.name} • Avg {leader.avg}
+                      {t("reportsLeaderChip", "#{posn} {name} • Avg {avg}", { posn: leader.posn, name: leader.name, avg: leader.avg })}
                     </div>
                   )) : (
-                    <div style={{ fontSize: 12, color: "#94a3b8" }}>No complete rankings for this exam yet.</div>
+                     <div style={{ fontSize: 12, color: "#94a3b8" }}>{t("reportsNoExamRankings", "No complete rankings for this exam yet.")}</div>
                   )}
                 </div>
               </div>
@@ -403,16 +405,16 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
           </div>
 
           <div style={{ borderTop: "1px solid #edf2fb", paddingTop: 8 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43", marginBottom: 8 }}>Selected Student Trend</div>
+             <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43", marginBottom: 8 }}>{t("reportsSelectedStudentTrend", "Selected Student Trend")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
               {selectedStudentHistory.length ? selectedStudentHistory.map((entry) => (
                 <div key={entry.exam} style={{ background: "#f8fbff", borderRadius: 12, border: "1px solid #e0e8f7", padding: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 800, color: "#516074", textTransform: "uppercase" }}>{entry.exam}</div>
                   <div style={{ fontSize: 24, fontWeight: 900, color: "#102a43", marginTop: 4 }}>#{entry.posn}</div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>Avg {entry.avg} • Total {entry.total}</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>{t("reportsAvgTotal", "Avg {avg} • Total {total}", { avg: entry.avg, total: entry.total })}</div>
                 </div>
               )) : (
-                <div style={{ fontSize: 12, color: "#94a3b8" }}>The selected student has not completed enough exams to show history yet.</div>
+                 <div style={{ fontSize: 12, color: "#94a3b8" }}>{t("reportsNoStudentHistory", "The selected student has not completed enough exams to show history yet.")}</div>
               )}
             </div>
           </div>
@@ -420,11 +422,11 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
 
         <div style={{ ...styles.section, display: "grid", gap: 14 }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>Subject Trends</div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>See how one subject performs across the class exam history.</div>
+             <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>{t("reportsSubjectTrends", "Subject Trends")}</div>
+             <div style={{ fontSize: 12, color: "#64748b" }}>{t("reportsSubjectTrendsSub", "See how one subject performs across the class exam history.")}</div>
           </div>
           <div>
-            <label style={styles.controlLabel}>Subject</label>
+             <label style={styles.controlLabel}>{t("reportsSubject", "Subject")}</label>
             <select value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value)} style={styles.select}>
               {(classData.subjects ?? []).map((subject) => (
                 <option key={subject} value={subject}>{subject}</option>
@@ -439,7 +441,7 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
                 <div key={entry.exam} style={{ display: "grid", gap: 6 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#425466" }}>
                     <span style={{ fontWeight: 700 }}>{entry.exam}</span>
-                    <span>Avg {entry.average.toFixed(1)} • {entry.count} marks</span>
+                    <span>{t("reportsAvgMarks", "Avg {avg} • {count} marks", { avg: entry.average.toFixed(1), count: entry.count })}</span>
                   </div>
                   <div style={{ height: 10, borderRadius: 999, background: "#e6edf8", overflow: "hidden" }}>
                     <div style={{ width: `${width}%`, height: "100%", background: "linear-gradient(90deg, #2563eb, #06b6d4)" }} />
@@ -450,7 +452,7 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
           </div>
 
           <div style={{ borderTop: "1px solid #edf2fb", paddingTop: 10 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43", marginBottom: 8 }}>Class Comparison</div>
+             <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43", marginBottom: 8 }}>{t("reportsClassComparison", "Class Comparison")}</div>
             <div style={{ display: "grid", gap: 8 }}>
               {classComparison.ordered.length ? classComparison.ordered.slice(0, 5).map((entry, index) => (
                 <div key={entry.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", padding: "10px 12px", border: "1px solid #e2ebf7", borderRadius: 12, background: entry.id === classData.id ? "#eef5ff" : "#fff" }}>
@@ -458,12 +460,12 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
                     <div style={{ fontSize: 13, fontWeight: 800, color: "#102a43" }}>
                       #{index + 1} {entry.name}
                     </div>
-                    <div style={{ fontSize: 11, color: "#64748b" }}>{entry.exam} • {entry.count} students</div>
+                     <div style={{ fontSize: 11, color: "#64748b" }}>{t("reportsExamStudents", "{exam} • {count} students", { exam: entry.exam, count: entry.count })}</div>
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 900, color: "#17324d" }}>{entry.avg.toFixed(1)}</div>
                 </div>
               )) : (
-                <div style={{ fontSize: 12, color: "#94a3b8" }}>No peer classes available for comparison in this year.</div>
+                 <div style={{ fontSize: 12, color: "#94a3b8" }}>{t("reportsNoPeerClasses", "No peer classes available for comparison in this year.")}</div>
               )}
             </div>
           </div>
@@ -472,14 +474,14 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
 
       {!present.length ? (
         <div style={styles.empty}>
-          No scored students yet. Enter student scores to generate report cards.
+           {t("reportsNoScoredStudents", "No scored students yet. Enter student scores to generate report cards.")}
         </div>
       ) : (
         <div style={{ ...styles.section, display: "grid", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>Printable Report Templates</div>
+             <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>{t("reportsPrintableTemplates", "Printable Report Templates")}</div>
             <div style={{ fontSize: 12, color: "#64748b" }}>
-              Preview and export individual student cards using the selected template. Student report cards are fixed to A4 portrait.
+               {t("reportsPrintableTemplatesSub", "Preview and export individual student cards using the selected template. Student report cards are fixed to A4 portrait.")}
             </div>
           </div>
 
@@ -494,12 +496,12 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
                       </span>
                       <span style={{ fontWeight: 700, fontSize: 13, color: "#003366" }}>{student.name}</span>
                     </div>
-                    <button style={styles.viewBtn} onClick={() => onOpenReportCard(student.id)}>View</button>
+                     <button style={styles.viewBtn} onClick={() => onOpenReportCard(student.id)}>{t("reportsView", "View")}</button>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 12px", fontSize: 11 }}>
                     <span style={{ fontFamily: "monospace", color: "#555" }}>CNO: {student.index_no ?? student.indexNo ?? "-"}</span>
-                    <span>Total: <b>{student.total ?? "-"}</b></span>
-                    <span>Avg: <b>{student.avg ?? "-"}</b></span>
+                     <span>{t("reportsTotal", "Total")}: <b>{student.total ?? "-"}</b></span>
+                     <span>{t("analysisAvg", "Avg")}: <b>{student.avg ?? "-"}</b></span>
                   </div>
                 </div>
               ))}
@@ -509,7 +511,7 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
                   <tr>
-                    {["#", "CNO", "Name", "Sex", "Total", "Avg", "Template", "Report Card"].map((label) => (
+                     {["#", "CNO", t("reportsName", "Name"), t("reportsSex", "Sex"), t("reportsTotal", "Total"), t("analysisAvg", "Avg"), t("reportsTemplate", "Template"), t("reportsReportCard", "Report Card")].map((label) => (
                       <th key={label} style={{ background: "#003366", color: "#fff", padding: "8px 10px", textAlign: "left", fontWeight: 700, fontSize: 11, whiteSpace: "nowrap" }}>
                         {label}
                       </th>
@@ -526,10 +528,10 @@ export function ReportsPage({ classData, computed, allClasses = [], onOpenReport
                       <td style={{ padding: "7px 10px", borderBottom: "1px solid #e8eef8", fontWeight: 700 }}>{student.total ?? "-"}</td>
                       <td style={{ padding: "7px 10px", borderBottom: "1px solid #e8eef8" }}>{student.avg ?? "-"}</td>
                       <td style={{ padding: "7px 10px", borderBottom: "1px solid #e8eef8" }}>
-                        {(template === "compact" ? "Compact" : "Official") + " • A4"}
+                         {(template === "compact" ? t("reportsTemplateCompact", "Compact") : t("reportsTemplateOfficial", "Official")) + " • A4"}
                       </td>
                       <td style={{ padding: "7px 10px", borderBottom: "1px solid #e8eef8", textAlign: "center" }}>
-                        <button style={styles.viewBtn} onClick={() => onOpenReportCard(student.id)}>View</button>
+                         <button style={styles.viewBtn} onClick={() => onOpenReportCard(student.id)}>{t("reportsView", "View")}</button>
                       </td>
                     </tr>
                   ))}

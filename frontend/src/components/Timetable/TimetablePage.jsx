@@ -19,6 +19,7 @@ import { TimetableGrid } from "./TimetableGrid";
 import { TeacherViews } from "./TeacherViews";
 import { MasterTimetable } from "./MasterTimetable";
 import "./Timetable.css";
+import { useI18n } from "../../i18n";
 
 function normalizeClassLabel(cls = {}) {
   return [cls.form, cls.year].filter(Boolean).join(" ").trim();
@@ -174,6 +175,7 @@ export function TimetablePage({
   onSaveSchoolSettings,
   onUpdateTimetable,
 }) {
+  const { t } = useI18n();
   const canEditGlobal = role === "admin";
   const canEditClass = role === "admin" || role === "academic" || role === "teacher";
 
@@ -532,20 +534,20 @@ export function TimetablePage({
       <section className="tt-section">
         <div className="tt-header-row">
           <div className="tt-title-block">
-            <div className="tt-title">Timetable Setup</div>
+            <div className="tt-title">{t("ttSetupTitle", "Timetable Setup")}</div>
             <div className="tt-sub">
-              Clean timetable workflow: define periods and active days, review teachers and streams, set subject targets, then build the class timetable from one shared structure.
+              {t("ttSetupSub", "Clean timetable workflow: define periods and active days, review teachers and streams, set subject targets, then build the class timetable from one shared structure.")}
             </div>
           </div>
           <div className="tt-action-row">
             {canEditGlobal ? (
               <button className="tt-secondary-button" onClick={handleSaveGlobal} disabled={savingGlobal}>
-                {savingGlobal ? "Saving School..." : "Save School Setup"}
+                {savingGlobal ? t("ttSavingSchool", "Saving School...") : t("ttSaveSchoolSetup", "Save School Setup")}
               </button>
             ) : null}
             {canEditClass ? (
               <button className="tt-button" onClick={handleSaveClass} disabled={savingClass}>
-                {savingClass ? "Saving Class..." : `Save ${activeClassLabel || "Class"} Timetable`}
+                {savingClass ? t("ttSavingClass", "Saving Class...") : t("ttSaveClassTimetable", "Save {classLabel} Timetable", { classLabel: activeClassLabel || t("ttClass", "Class") })}
               </button>
             ) : null}
           </div>
