@@ -401,7 +401,7 @@ export function UserGuideModal({
           <div
             style={{
               padding: isMobile
-                ? "max(18px, env(safe-area-inset-top)) 16px 18px"
+                ? "max(18px, env(safe-area-inset-top)) 16px 14px"
                 : "24px 32px",
               borderBottom: "1px solid #e2e8f0",
               display: "flex",
