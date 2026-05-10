@@ -199,11 +199,12 @@ export function AccountPage({
   const { isXs, isMobile, isTablet } = useViewport();
   const singleColumn = isMobile;
   const stackedColumns = isMobile || isTablet;
-  const managedCardsColumns = singleColumn
-    ? "1fr"
-    : isTablet
-    ? "repeat(2, minmax(0, 1fr))"
-    : "repeat(auto-fill, minmax(320px, 1fr))";
+  let managedCardsColumns = "repeat(auto-fill, minmax(320px, 1fr))";
+  if (singleColumn) {
+    managedCardsColumns = "1fr";
+  } else if (isTablet) {
+    managedCardsColumns = "repeat(2, minmax(0, 1fr))";
+  }
   const [activeTab, setActiveTab] = useState("profile");
   const [form, setForm] = useState({
     username: "",
