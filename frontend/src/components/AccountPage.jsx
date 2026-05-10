@@ -343,6 +343,12 @@ export function AccountPage({
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
   };
+  const adaptiveFieldGrid = singleColumn
+    ? "1fr"
+    : "repeat(auto-fit, minmax(min(100%, 220px), 1fr))";
+  const adaptiveWideFieldGrid = singleColumn
+    ? "1fr"
+    : "repeat(auto-fit, minmax(min(100%, 280px), 1fr))";
 
   const updateField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -577,7 +583,7 @@ export function AccountPage({
         overflowY: "auto",
       }}
     >
-      <div style={{ maxWidth: 1120, margin: "0 auto", display: "grid", gap: 18 }}>
+      <div style={{ maxWidth: 1440, margin: "0 auto", display: "grid", gap: 18 }}>
 
         {/* ── Header card ─────────────────────────────── */}
         <div
@@ -766,7 +772,7 @@ export function AccountPage({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: stackedColumns ? "1fr" : "1.1fr 0.9fr",
+              gridTemplateColumns: stackedColumns ? "1fr" : "repeat(auto-fit, minmax(min(100%, 360px), 1fr))",
               gap: 18,
             }}
           >
@@ -780,7 +786,7 @@ export function AccountPage({
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 14 }}>
                 <TextInput label="Username" value={form.username} onChange={() => {}} disabled />
                 <TextInput
                   label="Display Name"
@@ -797,7 +803,7 @@ export function AccountPage({
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "1fr 1fr", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 14 }}>
                 <TextInput
                   label="Email"
                   value={form.email}
@@ -910,7 +916,7 @@ export function AccountPage({
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : isTablet ? "1fr 1fr" : "repeat(3, 1fr)", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 14 }}>
               <TextInput label="Username" value={adminForm.username} onChange={(value) => setAdminForm((prev) => ({ ...prev, username: value }))} required />
               <TextInput label="Display Name" value={adminForm.displayName} onChange={(value) => setAdminForm((prev) => ({ ...prev, displayName: value }))} />
               <SelectInput label="Role" value={adminForm.role} onChange={(value) => setAdminForm((prev) => ({ ...prev, role: value }))} options={USER_ROLE_OPTIONS} />
@@ -959,7 +965,7 @@ export function AccountPage({
               <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43", marginBottom: 12 }}>
                 Manage Users
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: stackedColumns ? "1fr" : "1.2fr 0.8fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: adaptiveWideFieldGrid, gap: 12 }}>
                 <TextInput
                   label="Search Users"
                   value={userSearch}
@@ -991,6 +997,7 @@ export function AccountPage({
                       padding: isMobile ? 14 : 18,
                       display: "grid",
                       gap: 14,
+                      width: "100%",
                     }}
                   >
                     {/* Card header with avatar + badges */}
@@ -1041,7 +1048,7 @@ export function AccountPage({
                       </div>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : isTablet ? "1fr 1fr" : "repeat(3, 1fr)", gap: 12 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 12 }}>
                       <TextInput label="Display Name" value={edit.displayName} onChange={(value) => updateManagedField(managedUser.username, "displayName", value)} />
                       <SelectInput label="Role" value={edit.role} onChange={(value) => updateManagedField(managedUser.username, "role", value)} options={USER_ROLE_OPTIONS} />
                       <TextInput label="Email" value={edit.email} onChange={(value) => updateManagedField(managedUser.username, "email", value)} />

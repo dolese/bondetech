@@ -29,45 +29,70 @@ const TOUR_STEPS = [
 ];
 
 export function OnboardingTour({ role }) {
-  const { isMobile } = useViewport();
+  const { isMobile, width, height, isShort } = useViewport();
   const [currentStep, setCurrentStep] = useState(-1);
   const [targetRect, setTargetRect] = useState(null);
+  const [isCoarsePointer, setIsCoarsePointer] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mediaQuery = window.matchMedia("(pointer: coarse)");
+    const updatePointerMode = () => setIsCoarsePointer(mediaQuery.matches);
+    updatePointerMode();
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", updatePointerMode);
+      return () => mediaQuery.removeEventListener("change", updatePointerMode);
+    }
+    mediaQuery.addListener(updatePointerMode);
+    return () => mediaQuery.removeListener(updatePointerMode);
+  }, []);
+
+  const shouldHideTour = isMobile || isShort || (isCoarsePointer && Math.min(width, height) < 820);
+
+  useEffect(() => {
+    if (shouldHideTour && currentStep >= 0) {
+      setCurrentStep(-1);
+      setTargetRect(null);
+    }
+  }, [currentStep, shouldHideTour]);
 
   useEffect(() => {
     // Only run for admins on first login
-    if (role !== "admin") return;
+    if (role !== "admin" || shouldHideTour) return;
     const hasSeenTour = localStorage.getItem("bonde_tour_seen");
     if (!hasSeenTour) {
       // Start tour after a brief delay to allow rendering
-      setTimeout(() => setCurrentStep(0), 1000);
+      const timer = window.setTimeout(() => setCurrentStep(0), 1000);
+      return () => window.clearTimeout(timer);
     }
-  }, [role]);
+    return undefined;
+  }, [role, shouldHideTour]);
 
   useEffect(() => {
-    if (currentStep >= 0 && currentStep < TOUR_STEPS.length) {
-      const step = TOUR_STEPS[currentStep];
-      const el = document.getElementById(step.targetId);
-      if (el) {
-        // Scroll element into view if needed
-        el.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
-        // Calculate position
-        setTimeout(() => {
-          const rect = el.getBoundingClientRect();
-          setTargetRect({
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height
-          });
-        }, 300); // Wait for scroll
-      } else {
-        // If element is not found, skip to next step or end
-        console.warn("Tour target not found:", step.targetId);
-      }
-    }
-  }, [currentStep]);
+    if (currentStep < 0 || currentStep >= TOUR_STEPS.length || shouldHideTour) return undefined;
 
-  if (currentStep < 0 || currentStep >= TOUR_STEPS.length || !targetRect || isMobile) {
+    const step = TOUR_STEPS[currentStep];
+    const el = document.getElementById(step.targetId);
+    if (!el) {
+      console.warn("Tour target not found:", step.targetId);
+      return undefined;
+    }
+
+    el.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    const timer = window.setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      setTargetRect({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      });
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [currentStep, shouldHideTour, width, height]);
+
+  if (currentStep < 0 || currentStep >= TOUR_STEPS.length || !targetRect || shouldHideTour) {
     return null; // Don't show tour on mobile, or if finished/not started
   }
 
@@ -93,18 +118,27 @@ export function OnboardingTour({ role }) {
     background: "#fff",
     borderRadius: 16,
     padding: 20,
-    width: 320,
+    width: Math.min(320, Math.max(260, width - 32)),
     boxShadow: "0 20px 40px -10px rgba(0,0,0,0.3)",
     border: "1px solid #e2e8f0",
     transition: "top 0.3s ease, left 0.3s ease",
   };
 
   if (step.placement === "right") {
-    popoverStyle.top = Math.max(20, targetRect.top + targetRect.height / 2 - 100);
-    popoverStyle.left = targetRect.left + targetRect.width + 16;
+    popoverStyle.top = Math.min(
+      Math.max(20, targetRect.top + targetRect.height / 2 - 100),
+      height - 220
+    );
+    popoverStyle.left = Math.min(
+      targetRect.left + targetRect.width + 16,
+      width - popoverStyle.width - 16
+    );
   } else if (step.placement === "bottom") {
-    popoverStyle.top = targetRect.top + targetRect.height + 16;
-    popoverStyle.left = targetRect.left + targetRect.width / 2 - 160;
+    popoverStyle.top = Math.min(targetRect.top + targetRect.height + 16, height - 220);
+    popoverStyle.left = Math.min(
+      Math.max(16, targetRect.left + targetRect.width / 2 - popoverStyle.width / 2),
+      width - popoverStyle.width - 16
+    );
   }
 
   return (
