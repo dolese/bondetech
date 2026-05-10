@@ -1,19 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { API } from "../api";
-import { EXAM_TYPES, DEFAULT_SCHOOL } from "../utils/constants";
-import { normalizeSchoolSettings } from "../utils/schoolSettings";
-import { useViewport } from "../utils/useViewport";
-import { StudentProfilePage } from "./StudentProfilePage";
-import { useI18n } from "../i18n";
-import { LanguageToggle } from "./LanguageToggle";
+import { API } from "../../api";
+import { EXAM_TYPES, DEFAULT_SCHOOL } from "../../utils/constants";
+import { normalizeSchoolSettings } from "../../utils/schoolSettings";
+import { useViewport } from "../../utils/useViewport";
+import { StudentProfilePage } from "../StudentProfilePage";
+import { useI18n } from "../../i18n";
+import { LanguageToggle } from "../LanguageToggle";
 import { HeroSlider } from "./HeroSlider";
-
-const ANNOUNCEMENT_TONES = {
-  info: { bg: "#dbeafe", color: "#2563eb", label: "Live" },
-  success: { bg: "#d1fae5", color: "#059669", label: "Published" },
-  warning: { bg: "#fef3c7", color: "#d97706", label: "Schedule" },
-  accent: { bg: "#ede9fe", color: "#7c3aed", label: "Portal" },
-};
+import { QuickCard } from "./QuickCard";
+import { AnnouncementRow } from "./AnnouncementRow";
+import { CategoryChip, FeatureChip } from "./Chips";
+import { MiniBarChart } from "./MiniBarChart";
+import "./Home.css";
 
 const DEFAULT_HERO_SLIDES = [
   {
@@ -205,50 +203,6 @@ function buildPerformanceStats(stats, latestExamLabel, t) {
   ];
 }
 
-function MiniBarChart({ bars }) {
-  const normalized = bars.length > 0
-    ? bars
-    : [
-        { label: "F1", value: 0 },
-        { label: "F2", value: 0 },
-        { label: "F3", value: 0 },
-        { label: "F4", value: 0 },
-      ];
-  const width = 22;
-  const gap = 12;
-  const maxHeight = 72;
-  const maxValue = Math.max(...normalized.map((bar) => bar.value), 1);
-
-  return (
-    <svg width={normalized.length * (width + gap) - gap} height={maxHeight + 20} style={{ display: "block", overflow: "visible" }}>
-      {normalized.map((bar, index) => {
-        const height = bar.value > 0 ? Math.max(12, Math.round((bar.value / maxValue) * maxHeight)) : 8;
-        return (
-          <g key={bar.label}>
-            <rect
-              x={index * (width + gap)}
-              y={maxHeight - height}
-              width={width}
-              height={height}
-              rx={4}
-              fill={bar.value > 0 ? "#2563eb" : "#cbd5e1"}
-            />
-            <text
-              x={index * (width + gap) + width / 2}
-              y={maxHeight + 13}
-              textAnchor="middle"
-              fontSize={9}
-              fill="#64748b"
-            >
-              {bar.label}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
 function SchoolCrest({ size = 40 }) {
   return (
     <img
@@ -258,165 +212,6 @@ function SchoolCrest({ size = 40 }) {
       height={size}
       style={{ objectFit: "contain", borderRadius: 4 }}
     />
-  );
-}
-
-function QuickCard({ bg, badge, title, desc, onClick }) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick && onClick();
-        }
-      }}
-      style={{
-        background: hovered
-          ? "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(236,244,255,0.82))"
-          : "linear-gradient(135deg, rgba(255,255,255,0.84), rgba(246,250,255,0.68))",
-        border: "1px solid rgba(255,255,255,0.74)",
-        borderRadius: 14,
-        padding: "16px 14px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        cursor: "pointer",
-        transition: "all 0.18s ease",
-        boxShadow: hovered
-          ? "0 14px 30px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.9)"
-          : "0 12px 28px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.86)",
-        backdropFilter: "blur(16px) saturate(130%)",
-        WebkitBackdropFilter: "blur(16px) saturate(130%)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 12, background: bg }} />
-        <span style={{ fontSize: 10, fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          {badge}
-        </span>
-      </div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{title}</div>
-      <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.6 }}>{desc}</div>
-    </div>
-  );
-}
-
-function AnnouncementRow({ title, desc, date, tone, compact = false }) {
-  const [hovered, setHovered] = useState(false);
-  const palette = ANNOUNCEMENT_TONES[tone] || ANNOUNCEMENT_TONES.info;
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: "flex",
-        alignItems: compact ? "flex-start" : "center",
-        flexWrap: compact ? "wrap" : "nowrap",
-        gap: 14,
-        padding: "14px 16px",
-        borderBottom: "1px solid #f1f5f9",
-        cursor: "pointer",
-        background: hovered
-          ? "linear-gradient(135deg, rgba(255,255,255,0.88), rgba(240,246,255,0.78))"
-          : "transparent",
-        transition: "background 0.15s",
-      }}
-    >
-      <div
-        style={{
-          width: 42,
-          height: 42,
-          borderRadius: 12,
-          background: palette.bg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: palette.color,
-          fontSize: 10,
-          fontWeight: 800,
-          textTransform: "uppercase",
-          flexShrink: 0,
-        }}
-      >
-        {palette.label}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{title}</div>
-        <div style={{ fontSize: 11, color: "#64748b", marginTop: 2, lineHeight: 1.5 }}>{desc}</div>
-      </div>
-      <div
-        style={{
-          fontSize: 11,
-          color: "#94a3b8",
-          flexShrink: 0,
-          marginLeft: compact ? 56 : 8,
-          width: compact ? "calc(100% - 56px)" : "auto",
-        }}
-      >
-        {date}
-      </div>
-      {!compact && <div style={{ fontSize: 16, color: "#94a3b8" }}>{">"}</div>}
-    </div>
-  );
-}
-
-function CategoryChip({ label, color, bg, onClick }) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick && onClick();
-        }
-      }}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 6,
-        padding: "14px 12px",
-        background: hovered
-          ? `linear-gradient(135deg, rgba(255,255,255,0.94), ${bg})`
-          : "linear-gradient(135deg, rgba(255,255,255,0.84), rgba(247,250,255,0.68))",
-        border: `1.5px solid ${hovered ? color : "rgba(255,255,255,0.76)"}`,
-        borderRadius: 14,
-        cursor: "pointer",
-        transition: "all 0.18s ease",
-        minWidth: 84,
-        boxShadow: hovered
-          ? "0 14px 28px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.9)"
-          : "0 10px 24px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.82)",
-        backdropFilter: "blur(14px) saturate(125%)",
-        WebkitBackdropFilter: "blur(14px) saturate(125%)",
-      }}
-    >
-      <div style={{ width: 26, height: 26, borderRadius: 999, background: hovered ? color : "#e2e8f0" }} />
-      <div style={{ fontSize: 10, fontWeight: 700, color: hovered ? color : "#475569", textAlign: "center", lineHeight: 1.3 }}>{label}</div>
-    </div>
-  );
-}
-
-function FeatureChip({ bg, label }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "14px 10px" }}>
-      <div style={{ width: 48, height: 48, borderRadius: 14, background: bg }} />
-      <div style={{ fontSize: 10, fontWeight: 700, color: "#475569", textAlign: "center", lineHeight: 1.3 }}>{label}</div>
-    </div>
   );
 }
 
@@ -660,22 +455,8 @@ export function HomePage({ onOpenLogin }) {
   const heroDescription = resolveHeroText(currentHeroSlide, language, "description", "descriptionSw")
     || t("getInstantResults");
   const navBg = "#0f2d6e";
-  const font = "'Poppins', 'Segoe UI', sans-serif";
-  const containerStyle = { maxWidth: 1140, margin: "0 auto", padding: isMobile ? "0 16px" : "0 32px" };
-  const glassPanel = {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.76), rgba(244,248,255,0.62))",
-    border: "1px solid rgba(255,255,255,0.72)",
-    boxShadow: "0 18px 46px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
-    backdropFilter: "blur(20px) saturate(135%)",
-    WebkitBackdropFilter: "blur(20px) saturate(135%)",
-  };
-  const glassCard = {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(248,251,255,0.66))",
-    border: "1px solid rgba(255,255,255,0.76)",
-    boxShadow: "0 14px 34px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,0.86)",
-    backdropFilter: "blur(16px) saturate(130%)",
-    WebkitBackdropFilter: "blur(16px) saturate(130%)",
-  };
+  
+  const containerClass = `home-content-wrapper ${isMobile ? 'home-content-wrapper-mobile' : 'home-content-wrapper-desktop'}`;
 
   const categories = [
     { label: language === "sw" ? "Kidato I\nMatokeo" : "Form I\nResults", color: "#2563eb", bg: "#dbeafe" },
@@ -698,144 +479,9 @@ export function HomePage({ onOpenLogin }) {
   ];
 
   return (
-    <div style={{ fontFamily: font, background: "#f0f4fa", minHeight: "100vh", overflowX: "hidden" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-        * { box-sizing: border-box; }
-        .landing-btn-outline {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          border: 2px solid rgba(255,255,255,0.85);
-          border-radius: 10px;
-          padding: 11px 20px;
-          font-size: 13px;
-          font-weight: 700;
-          color: #fff;
-          background: transparent;
-          cursor: pointer;
-          letter-spacing: 0.2px;
-          transition: all 0.18s ease;
-          font-family: inherit;
-        }
-        .landing-btn-outline:hover {
-          background: rgba(255,255,255,0.15);
-        }
-        .landing-search-input {
-          border: 1.5px solid #dde3ef;
-          border-radius: 10px;
-          padding: 10px 12px;
-          font-size: 13px;
-          background: #fff;
-          flex: 1;
-          min-width: 0;
-          font-family: inherit;
-          color: #1a2040;
-          outline: none;
-        }
-        .landing-search-input:focus {
-          border-color: #2563eb;
-        }
-        .landing-search-select {
-          appearance: none;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          background:
-            linear-gradient(180deg, #ffffff, #f7faff),
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%233f5f85' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-          background-repeat: no-repeat, no-repeat;
-          background-position: center, right 12px center;
-          background-size: auto, 14px;
-          padding-right: 38px;
-          font-weight: 600;
-          color: #17324d;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
-        }
-        .landing-search-select:focus {
-          border-color: #2563eb;
-          box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
-        }
-        .landing-mobile-menu {
-          margin: 10px 14px 14px;
-          padding: 10px;
-          border-radius: 20px;
-          background: linear-gradient(180deg, rgba(247,250,255,0.98), rgba(237,244,255,0.96));
-          border: 1px solid rgba(37,99,235,0.10);
-          box-shadow: 0 18px 38px rgba(15,45,110,0.12);
-        }
-        .landing-mobile-link {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 14px;
-          width: 100%;
-          border: none;
-          background: #fff;
-          border-radius: 14px;
-          padding: 13px 14px;
-          margin-bottom: 8px;
-          color: #17324d;
-          cursor: pointer;
-          font-family: inherit;
-          box-shadow: 0 1px 0 rgba(255,255,255,0.8), 0 6px 16px rgba(15,45,110,0.06);
-        }
-        .landing-mobile-link:last-child {
-          margin-bottom: 0;
-        }
-        .landing-mobile-link-label {
-          display: grid;
-          gap: 3px;
-          text-align: left;
-        }
-        .landing-mobile-link-title {
-          font-size: 13px;
-          font-weight: 800;
-          color: #17324d;
-        }
-        .landing-mobile-link-meta {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: #6b7f94;
-        }
-        .landing-mobile-link-arrow {
-          width: 28px;
-          height: 28px;
-          border-radius: 999px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          background: #eff6ff;
-          color: #2563eb;
-          font-size: 14px;
-          font-weight: 900;
-          flex-shrink: 0;
-        }
-        .landing-mobile-login {
-          width: 100%;
-          margin-top: 10px;
-          background: linear-gradient(135deg, #0f2d6e, #2563eb);
-          color: #fff;
-          border: none;
-          border-radius: 16px;
-          padding: 13px 14px;
-          font-size: 13px;
-          font-weight: 800;
-          cursor: pointer;
-          box-shadow: 0 14px 28px rgba(37,99,235,0.24);
-        }
-        @media (max-width: 720px) {
-          .landing-search-select {
-            border-radius: 14px;
-            padding-top: 12px;
-            padding-bottom: 12px;
-          }
-        }
-      `}</style>
-
+    <div className="home-container">
       <nav style={{ background: "#fff", borderBottom: "1.5px solid #e8edf5", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
-        <div style={{ ...containerStyle, display: "flex", alignItems: "center", justifyContent: "space-between", height: isMobile ? 60 : 68 }}>
+        <div className={containerClass} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: isMobile ? 60 : 68 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <SchoolCrest size={isMobile ? 36 : 44} />
             <div>
@@ -933,8 +579,8 @@ export function HomePage({ onOpenLogin }) {
         <div style={{ position: "absolute", bottom: -80, left: -40, width: 240, height: 240, borderRadius: "50%", background: "rgba(255,255,255,0.03)", pointerEvents: "none", zIndex: 2 }} />
 
         <div
+          className={containerClass}
           style={{
-            ...containerStyle,
             display: isDesktop ? "grid" : "flex",
             gridTemplateColumns: isDesktop ? "1fr 340px" : undefined,
             flexDirection: isDesktop ? undefined : "column",
@@ -1016,8 +662,8 @@ export function HomePage({ onOpenLogin }) {
       </section>
 
       <section ref={searchSectionRef} style={{ padding: isMobile ? "24px 0" : "32px 0" }}>
-        <div style={containerStyle}>
-          <div style={{ ...glassPanel, borderRadius: 20, padding: isMobile ? "20px 16px" : "28px 28px" }}>
+        <div className={containerClass}>
+          <div className="glass-panel" style={{ borderRadius: 20, padding: isMobile ? "20px 16px" : "28px 28px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("searchResultsHeading")}</span>
@@ -1149,7 +795,7 @@ export function HomePage({ onOpenLogin }) {
       </section>
 
       <section style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
-        <div style={containerStyle}>
+        <div className={containerClass}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
             <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("quickAccess")}</span>
             <span onClick={scrollToSearch} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>{t("viewAll")}</span>
@@ -1169,13 +815,13 @@ export function HomePage({ onOpenLogin }) {
       </section>
 
       <section style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
-        <div style={containerStyle}>
+        <div className={containerClass}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
             <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("portalHighlights")}</span>
           </div>
           <div
+            className="glass-panel"
             style={{
-              ...glassPanel,
               borderRadius: 18,
               display: "grid",
               gridTemplateColumns: isXs ? "1fr 1fr" : isMobile ? "repeat(2, 1fr)" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
@@ -1208,14 +854,14 @@ export function HomePage({ onOpenLogin }) {
       </section>
 
       <section ref={announcementsSectionRef} style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
-        <div style={containerStyle}>
+        <div className={containerClass}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("recentAnnouncements")}</span>
             </div>
             <span onClick={scrollToAnnouncements} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>{t("viewAll")}</span>
           </div>
-          <div style={{ ...glassPanel, borderRadius: 18, overflow: "hidden" }}>
+          <div className="glass-panel" style={{ borderRadius: 18, overflow: "hidden" }}>
             {announcements.map((announcement) => (
               <AnnouncementRow
                 key={announcement.id}
@@ -1231,7 +877,7 @@ export function HomePage({ onOpenLogin }) {
       </section>
 
       <section style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
-        <div style={containerStyle}>
+        <div className={containerClass}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
             <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("resultsCategories")}</span>
           </div>
@@ -1244,13 +890,13 @@ export function HomePage({ onOpenLogin }) {
       </section>
 
       <section style={{ padding: isMobile ? "4px 0 28px" : "4px 0 40px" }}>
-        <div style={containerStyle}>
+        <div className={containerClass}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
             <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("whyUseSystem")}</span>
           </div>
           <div
+            className="glass-panel"
             style={{
-              ...glassPanel,
               borderRadius: 18,
               display: "grid",
               gridTemplateColumns: isXs ? "1fr 1fr" : isMobile ? "repeat(2, 1fr)" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
@@ -1275,8 +921,8 @@ export function HomePage({ onOpenLogin }) {
 
       <footer ref={footerRef} style={{ background: "#0c2461", color: "#fff", padding: isMobile ? "32px 0 0" : "48px 0 0" }}>
         <div
+          className={containerClass}
           style={{
-            ...containerStyle,
             display: "grid",
             gridTemplateColumns: isMobile ? "1fr" : "1.5fr 1fr 1fr",
             gap: isMobile ? 28 : 40,

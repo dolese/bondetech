@@ -18,6 +18,16 @@ export const DEFAULT_TIMETABLE_PERIODS = [
   { id: "period-7", label: "Period 7", shortLabel: "P7", start: "12:20", end: "13:00", type: "lesson" },
 ];
 
+function normalizeRoom(room = {}) {
+  const source = room && typeof room === "object" ? room : {};
+  return {
+    id: String(source.id || `room-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`).trim(),
+    name: String(source.name || source.label || "").trim(),
+    type: String(source.type || "").trim(),
+    capacity: String(source.capacity || "").trim(),
+  };
+}
+
 function normalizeDay(day = {}, fallback = {}) {
   const source = day && typeof day === "object" ? day : {};
   return {
@@ -45,6 +55,7 @@ export function normalizeTimetableSettings(input = {}) {
   const source = input && typeof input === "object" ? input : {};
   const inputDays = Array.isArray(source.days) ? source.days : [];
   const inputPeriods = Array.isArray(source.periods) ? source.periods : [];
+  const inputRooms = Array.isArray(source.rooms) ? source.rooms : [];
   const rawTeacherAvailability =
     source.teacherAvailability && typeof source.teacherAvailability === "object"
       ? source.teacherAvailability
@@ -75,6 +86,9 @@ export function normalizeTimetableSettings(input = {}) {
   return {
     days: [...days, ...extraDays],
     periods: [...periods, ...extraPeriods],
+    rooms: inputRooms
+      .map((room) => normalizeRoom(room))
+      .filter((room) => room.name),
     teacherAvailability: Object.fromEntries(
       Object.entries(rawTeacherAvailability).map(([teacherKey, slots]) => [
         String(teacherKey || "").trim().toLowerCase(),
@@ -260,6 +274,47 @@ export function buildSubjectLoadSummary(classData) {
       room: target.room || "",
     }))
     .sort((a, b) => a.subject.localeCompare(b.subject));
+}
+
+export function buildRoomLoadSummary(classes = [], configuredRooms = []) {
+  const roomMap = new Map();
+
+  (configuredRooms || []).forEach((room) => {
+    const normalized = normalizeRoom(room);
+    if (!normalized.name) return;
+    roomMap.set(normalized.name.toLowerCase(), {
+      ...normalized,
+      periods: 0,
+      classes: new Set(),
+    });
+  });
+
+  (classes || []).forEach((cls) => {
+    const timetable = normalizeClassTimetable(cls?.timetable);
+    Object.values(timetable.entries || {}).forEach((entry) => {
+      const roomName = String(entry.room || "").trim();
+      if (!roomName) return;
+      const roomKey = roomName.toLowerCase();
+      const current = roomMap.get(roomKey) || {
+        id: `room-${roomKey.replace(/[^a-z0-9]+/gi, "-")}`,
+        name: roomName,
+        type: "",
+        capacity: "",
+        periods: 0,
+        classes: new Set(),
+      };
+      current.periods += 1;
+      current.classes.add([cls.form, cls.year].filter(Boolean).join(" "));
+      roomMap.set(roomKey, current);
+    });
+  });
+
+  return Array.from(roomMap.values())
+    .map((room) => ({
+      ...room,
+      classCount: room.classes.size,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function detectTeacherAvailabilityConflicts(classes = [], settings = {}) {

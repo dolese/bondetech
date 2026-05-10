@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HomePage } from "./HomePage";
+import { HomePage } from "./Home/HomePage";
 import { LoginPage } from "./LoginPage";
 
 export function Landing({ onLogin }) {

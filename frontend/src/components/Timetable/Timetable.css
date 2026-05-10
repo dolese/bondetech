@@ -1,0 +1,280 @@
+/* Timetable.css */
+.tt-page {
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  gap: 16px;
+  background: #f3f6fa;
+}
+
+.tt-section {
+  background: #fff;
+  border: 1px solid #d7e1ec;
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.tt-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tt-title-block {
+  display: grid;
+  gap: 4px;
+}
+
+.tt-title {
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.tt-sub {
+  font-size: 13px;
+  color: #52627b;
+  line-height: 1.5;
+}
+
+.tt-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tt-button {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #c7d4e4;
+  background: #0f766e;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tt-secondary-button {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #c7d4e4;
+  background: #fff;
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tt-helper {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.tt-stats-row {
+  display: grid;
+  gap: 10px;
+}
+
+.tt-stat {
+  border: 1px solid #d7e1ec;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  background: #fbfdff;
+}
+
+.tt-stat-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tt-stat-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.tt-two-col {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.tt-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.tt-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #d7e1ec;
+  border-radius: 12px;
+}
+
+.tt-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.tt-compact-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.tt-head-cell {
+  border-bottom: 1px solid #d7e1ec;
+  border-right: 1px solid #e6edf5;
+  padding: 8px 10px;
+  text-align: left;
+  background: #f5f8fc;
+  font-size: 12px;
+  font-weight: 900;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.tt-body-cell {
+  border-bottom: 1px solid #edf2f7;
+  border-right: 1px solid #f1f5f9;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #0f172a;
+  vertical-align: top;
+}
+
+.tt-axis-cell {
+  border-bottom: 1px solid #edf2f7;
+  border-right: 1px solid #e6edf5;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+  background: #fafcff;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.tt-shared-cell {
+  border-bottom: 1px solid #edf2f7;
+  border-right: 1px solid #e6edf5;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+  background: #f8fcf7;
+  text-align: center;
+  vertical-align: middle;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.tt-input {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  border: 1px solid #c7d4e4;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 13px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.tt-select {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  border: 1px solid #c7d4e4;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 13px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.tt-checkbox-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tt-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.tt-conflict-box {
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  background: #fff7ed;
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.tt-okay-box {
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  background: #f0fdf4;
+  padding: 10px 12px;
+  color: #166534;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.tt-note {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Mobile responsive fixes */
+@media (max-width: 768px) {
+  .tt-page {
+    padding: 12px;
+  }
+  .tt-section {
+    padding: 12px;
+  }
+  .tt-title {
+    font-size: 18px;
+  }
+  .tt-stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .tt-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 769px) {
+  .tt-page {
+    padding: 18px;
+  }
+  .tt-section {
+    padding: 16px;
+  }
+  .tt-title {
+    font-size: 22px;
+  }
+  .tt-stats-row {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .tt-two-col {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+}
