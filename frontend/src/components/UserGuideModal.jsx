@@ -160,6 +160,7 @@ function GuideActionButton({ item, onRun }) {
         fontSize: 12,
         fontWeight: 800,
         cursor: item.disabled ? "not-allowed" : "pointer",
+        fontFamily: "'Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', sans-serif",
       }}
     >
       {item.label}
@@ -181,6 +182,7 @@ export function UserGuideModal({
   const { isMobile } = useViewport();
   const [activeTab, setActiveTab] = useState("overview");
   const [query, setQuery] = useState("");
+  const uiFont = "'Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', sans-serif";
 
   const sections = useMemo(
     () =>
@@ -250,9 +252,10 @@ export function UserGuideModal({
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         display: "flex",
-        alignItems: "center",
+        alignItems: isMobile ? "stretch" : "center",
         justifyContent: "center",
-        padding: isMobile ? 16 : 40,
+        padding: isMobile ? 0 : 40,
+        fontFamily: uiFont,
       }}
       onClick={onClose}
     >
@@ -261,12 +264,13 @@ export function UserGuideModal({
           width: "100%",
           maxWidth: 980,
           background: "#fff",
-          borderRadius: 24,
+          borderRadius: isMobile ? 0 : 24,
           boxShadow: "0 25px 50px -12px rgba(0,0,0,0.3)",
           display: "flex",
           flexDirection: isMobile ? "column" : "row",
           overflow: "hidden",
-          maxHeight: "88vh",
+          maxHeight: isMobile ? "100dvh" : "88vh",
+          minHeight: isMobile ? "100dvh" : "auto",
         }}
         onClick={(event) => event.stopPropagation()}
       >
@@ -280,11 +284,21 @@ export function UserGuideModal({
             flexDirection: "column",
           }}
         >
-          <div style={{ padding: "24px 20px 16px" }}>
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#0f172a" }}>
+          <div
+            style={{
+              padding: isMobile ? "18px 16px 14px" : "24px 20px 16px",
+              position: "sticky",
+              top: 0,
+              zIndex: 2,
+              background: "rgba(248,250,252,0.94)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+            }}
+          >
+            <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 20, fontWeight: 900, color: "#0f172a" }}>
               User Guide
             </h2>
-            <p style={{ margin: "4px 0 10px", fontSize: 13, color: "#64748b" }}>
+            <p style={{ margin: "4px 0 10px", fontSize: isMobile ? 12 : 13, color: "#64748b" }}>
               Practical help for your current role and workflow.
             </p>
             <input
@@ -299,16 +313,17 @@ export function UserGuideModal({
                 padding: "10px 12px",
                 fontSize: 13,
                 boxSizing: "border-box",
+                fontFamily: uiFont,
               }}
             />
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", padding: "0 12px 20px" }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? "0 10px 12px" : "0 12px 20px" }}>
             <div
               style={{
                 display: "flex",
                 flexDirection: isMobile ? "row" : "column",
-                gap: 4,
+                gap: isMobile ? 8 : 4,
                 overflowX: "auto",
                 paddingBottom: isMobile ? 8 : 0,
               }}
@@ -335,6 +350,8 @@ export function UserGuideModal({
                       fontSize: 14,
                       transition: "all 0.2s",
                       whiteSpace: isMobile ? "nowrap" : "normal",
+                      minWidth: isMobile ? 176 : "100%",
+                      flexShrink: 0,
                     }}
                   >
                     <span
@@ -376,19 +393,26 @@ export function UserGuideModal({
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
           <div
             style={{
-              padding: "24px 32px",
+              padding: isMobile ? "18px 16px" : "24px 32px",
               borderBottom: "1px solid #e2e8f0",
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: isMobile ? "flex-start" : "center",
+              flexDirection: isMobile ? "column" : "row",
               gap: 12,
+              position: "sticky",
+              top: 0,
+              zIndex: 2,
+              background: "rgba(255,255,255,0.96)",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
             }}
           >
             <div style={{ minWidth: 0 }}>
               <h3
                 style={{
                   margin: 0,
-                  fontSize: 22,
+                  fontSize: isMobile ? 19 : 22,
                   fontWeight: 800,
                   color: "#0f172a",
                   display: "flex",
@@ -435,19 +459,22 @@ export function UserGuideModal({
                 fontWeight: 800,
                 fontSize: 16,
                 flexShrink: 0,
+                alignSelf: isMobile ? "stretch" : "auto",
+                borderRadius: isMobile ? 12 : "50%",
+                width: isMobile ? "100%" : 32,
               }}
               title="Close Guide"
             >
-              X
+              {isMobile ? "Close Guide" : "X"}
             </button>
           </div>
 
           <div
             style={{
               flex: 1,
-              padding: "28px 32px 32px",
+              padding: isMobile ? "18px 16px 24px" : "28px 32px 32px",
               overflowY: "auto",
-              fontSize: 15,
+              fontSize: isMobile ? 14 : 15,
               color: "#334155",
               lineHeight: 1.6,
             }}
@@ -512,7 +539,14 @@ export function UserGuideModal({
                     <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginBottom: 10 }}>
                       Quick actions
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(180px, max-content))",
+                        gap: 10,
+                        alignItems: "start",
+                      }}
+                    >
                       {activeSection.actions.map((item) => (
                         <GuideActionButton key={`${activeSection.id}-${item.label}`} item={item} onRun={runAction} />
                       ))}

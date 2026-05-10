@@ -101,6 +101,7 @@ export function AppTopBar({
     () => authLogs.filter((log) => log.status === "failed").length,
     [authLogs]
   );
+  const uiFont = "'Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', sans-serif";
 
   const roleLabel =
     currentUser?.role === "admin"
@@ -123,6 +124,7 @@ export function AppTopBar({
         boxShadow: "0 14px 36px rgba(15,23,42,0.08)",
         padding: isMobile ? "10px 12px" : "14px 20px 12px",
         boxSizing: "border-box",
+        fontFamily: uiFont,
       }}
     >
       <div
@@ -182,6 +184,7 @@ export function AppTopBar({
               boxShadow: "0 14px 34px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.82)",
               backdropFilter: "blur(18px)",
               WebkitBackdropFilter: "blur(18px)",
+              fontFamily: uiFont,
             }}
           >
             {topBarLabel}
@@ -204,6 +207,7 @@ export function AppTopBar({
               cursor: "pointer",
               width: "100%",
               textAlign: "left",
+              fontFamily: uiFont,
             }}
             title="Open search"
           >
@@ -247,6 +251,7 @@ export function AppTopBar({
               alignItems: "center",
               justifyContent: "center",
               padding: 4,
+              fontFamily: uiFont,
             }}
             title="User Guide"
           >
@@ -363,12 +368,13 @@ export function AppTopBar({
               style={{
                 border: "1px solid rgba(255,255,255,0.72)",
                 background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(246,250,255,0.62))",
-                color: "#0f172a",
-                borderRadius: 14,
-                padding: "10px 11px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
+              color: "#0f172a",
+              borderRadius: 14,
+              padding: "10px 11px",
+              cursor: "pointer",
+              fontFamily: uiFont,
+              display: "flex",
+              alignItems: "center",
                 justifyContent: "center",
                 boxShadow: "0 14px 32px rgba(15,23,42,0.08)",
                 backdropFilter: "blur(18px)",
