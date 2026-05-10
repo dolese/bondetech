@@ -384,7 +384,7 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
             <div style={styles.helpText}>
               📋 Format: <strong>cno,name,sex,subjects...</strong> (one student per line)
               <br />
-              Sex: M or F | Scores: 0-100 or ABS
+              Sex: M or F | Scores: 00-100 or ABS
               <br />
               Header row supported. Subject names must match this class.
             </div>

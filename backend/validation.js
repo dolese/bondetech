@@ -36,7 +36,7 @@ function validateStudent(data) {
         }
         const num = Number(score);
         if (isNaN(num) || num < 0 || num > 100) {
-          errors[`score_${idx}`] = `Score ${idx} must be between 0 and 100`;
+          errors[`score_${idx}`] = `Score ${idx} must be between 00 and 100`;
         }
       }
     });

@@ -36,7 +36,7 @@ export const validate = {
           }
           const num = Number(score);
           if (isNaN(num) || num < 0 || num > 100) {
-            errors[`score_${idx}`] = "Score must be 0-100";
+            errors[`score_${idx}`] = "Score must be between 00 and 100";
           }
         }
       });
@@ -97,7 +97,7 @@ export const validate = {
     }
     
     if (num < min || num > max) {
-      return { valid: false, error: `Must be between ${min} and ${max}` };
+      return { valid: false, error: `Must be between ${String(min).padStart(2, "0")} and ${max}` };
     }
     
     return { valid: true };

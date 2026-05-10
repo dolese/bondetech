@@ -35,6 +35,13 @@ function gradeDisplayValue(grade) {
   return "–";
 }
 
+function normalizeMarkInput(value) {
+  if (value === "" || value === null || value === undefined) return "";
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "";
+  return Math.min(100, Math.max(0, Math.trunc(num)));
+}
+
 export function EntryPanel({
   classId,
   classData,
@@ -401,10 +408,11 @@ export function EntryPanel({
   };
 
   const handleBulkScoreChange = (studentId, subjectIdx, value) => {
+    const normalized = normalizeMarkInput(value);
     setBulkScores(prev => ({
       ...prev,
       [studentId]: (prev[studentId] ?? subjects.map(() => "")).map((v, i) =>
-        i === subjectIdx ? value : v
+        i === subjectIdx ? normalized : v
       ),
     }));
   };
@@ -419,8 +427,8 @@ export function EntryPanel({
         const row = bulkScores[s.id] ?? subjects.map(() => "");
         const scores = row.map((v) => {
           if (v === "" || v == null) return null;
-          const n = Number(v);
-          return Number.isFinite(n) ? n : null;
+          const n = normalizeMarkInput(v);
+          return n === "" ? null : n;
         });
         const result = await onUpdateStudent({ ...s, scores, examType: effectiveExam }, { silent: true });
         if (!result?.ok) failures += 1;
@@ -1628,7 +1636,8 @@ export function EntryPanel({
                                 max="100"
                                 value={score === "" ? "" : score}
                                 onChange={e => {
-                                  const v = parseInt(e.target.value, 10) || null;
+                                  const normalized = normalizeMarkInput(e.target.value);
+                                  const v = normalized === "" ? null : normalized;
                                   const newGrades = [...(editData.grades ?? [])];
                                   newGrades[si] = { ...newGrades[si], score: v, grade: v != null ? getGrade(v) : null };
                                   setEditData({ ...editData, grades: newGrades });
@@ -2049,7 +2058,8 @@ export function EntryPanel({
                               max="100"
                               value={editInitial === "" ? "" : editInitial}
                               onChange={e => {
-                                const v = parseInt(e.target.value, 10) || null;
+                                const normalized = normalizeMarkInput(e.target.value);
+                                const v = normalized === "" ? null : normalized;
                                 const newGrades = [...(editData.grades ?? [])];
                                 newGrades[si] = {
                                   ...newGrades[si],
