@@ -355,27 +355,27 @@ function buildChartPath(points, width, height, padding) {
   return { coords, line, area, innerHeight };
 }
 
-function MetricCard({ item, compact }) {
+function MetricCard({ item, compact, dense }) {
   return (
     <div
       style={{
         background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(244,248,255,0.64))",
         border: "1px solid rgba(255,255,255,0.76)",
-        borderRadius: 24,
-        padding: compact ? "16px 16px 14px" : "18px 18px 16px",
-        minHeight: compact ? 148 : 162,
+        borderRadius: dense ? 20 : 24,
+        padding: dense ? "13px 13px 12px" : compact ? "16px 16px 14px" : "18px 18px 16px",
+        minHeight: dense ? 118 : compact ? 142 : 162,
         boxShadow: "0 18px 44px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
         backdropFilter: "blur(18px) saturate(130%)",
         WebkitBackdropFilter: "blur(18px) saturate(130%)",
         display: "grid",
         alignContent: "space-between",
-        gap: 12,
+        gap: dense ? 9 : 12,
       }}
     >
       <div
         style={{
-          width: 58,
-          height: 58,
+          width: dense ? 48 : 58,
+          height: dense ? 48 : 58,
           borderRadius: "50%",
           display: "grid",
           placeItems: "center",
@@ -387,11 +387,11 @@ function MetricCard({ item, compact }) {
         {item.icon}
       </div>
       <div>
-        <div style={{ fontSize: 14, color: "#334155", fontWeight: 700 }}>{item.label}</div>
-        <div style={{ marginTop: 8, fontSize: compact ? 28 : 34, lineHeight: 1, fontWeight: 900, color: "#0f172a" }}>
+        <div style={{ fontSize: dense ? 13 : 14, color: "#334155", fontWeight: 700 }}>{item.label}</div>
+        <div style={{ marginTop: dense ? 6 : 8, fontSize: dense ? 24 : compact ? 28 : 34, lineHeight: 1, fontWeight: 900, color: "#0f172a" }}>
           {item.value}
         </div>
-        <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: item.deltaColor }}>
+        <div style={{ marginTop: dense ? 7 : 10, fontSize: dense ? 12 : 13, fontWeight: 700, color: item.deltaColor }}>
           {item.delta}
         </div>
       </div>
@@ -399,7 +399,7 @@ function MetricCard({ item, compact }) {
   );
 }
 
-function ActionTile({ label, icon, color, bg, onClick, disabled = false }) {
+function ActionTile({ label, icon, color, bg, onClick, disabled = false, dense = false }) {
   return (
     <button
       onClick={disabled ? undefined : onClick}
@@ -409,10 +409,10 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false }) {
         background: disabled
           ? "linear-gradient(135deg, rgba(248,250,252,0.92), rgba(241,245,249,0.8))"
           : "linear-gradient(135deg, rgba(255,255,255,0.84), rgba(246,250,255,0.66))",
-        borderRadius: 20,
-        padding: "14px 14px 12px",
+        borderRadius: dense ? 18 : 20,
+        padding: dense ? "12px 12px 10px" : "14px 14px 12px",
         display: "grid",
-        gap: 12,
+        gap: dense ? 10 : 12,
         justifyItems: "start",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.55 : 1,
@@ -424,9 +424,9 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false }) {
     >
       <div
         style={{
-          width: 50,
-          height: 50,
-          borderRadius: 18,
+          width: dense ? 42 : 50,
+          height: dense ? 42 : 50,
+          borderRadius: dense ? 14 : 18,
           display: "grid",
           placeItems: "center",
           color,
@@ -435,7 +435,7 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false }) {
       >
         {icon}
       </div>
-      <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a", lineHeight: 1.35 }}>{label}</div>
+      <div style={{ fontSize: dense ? 13 : 14, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>{label}</div>
     </button>
   );
 }
@@ -454,8 +454,9 @@ export function Dashboard({
   onOpenSettings,
   onExportBackup,
 }) {
-  const { isMobile, isTablet } = useViewport();
+  const { isXs, isMobile, isTablet, isShort } = useViewport();
   const compact = isMobile || isTablet;
+  const dense = isMobile || isShort;
   const glassPanel = {
     background: "linear-gradient(135deg, rgba(255,255,255,0.78), rgba(244,248,255,0.62))",
     border: "1px solid rgba(255,255,255,0.76)",
@@ -721,7 +722,7 @@ export function Dashboard({
         background: "radial-gradient(circle at top left, rgba(191,219,254,0.34), transparent 24%), radial-gradient(circle at top right, rgba(186,230,253,0.28), transparent 22%), linear-gradient(180deg, #f7fafc 0%, #eff5fb 100%)",
       }}
     >
-      <div ref={dashboardRef} style={{ maxWidth: 1460, margin: "0 auto", display: "grid", gap: compact ? 16 : 20 }}>
+      <div ref={dashboardRef} style={{ maxWidth: 1460, margin: "0 auto", display: "grid", gap: dense ? 14 : compact ? 16 : 20 }}>
         <div
           style={{
             display: "grid",
@@ -733,7 +734,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: compact ? 18 : 22,
+              padding: dense ? 15 : compact ? 18 : 22,
               display: "grid",
               gridTemplateColumns: compact ? "1fr" : "auto 1fr",
               gap: compact ? 16 : 22,
@@ -801,7 +802,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: compact ? 18 : 22,
+              padding: dense ? 15 : compact ? 18 : 22,
               display: "grid",
               gap: 12,
             }}
@@ -861,7 +862,7 @@ export function Dashboard({
           }}
         >
           {kpiItems.map((item) => (
-            <MetricCard key={item.label} item={item} compact={compact} />
+            <MetricCard key={item.label} item={item} compact={compact} dense={dense} />
           ))}
         </div>
 
@@ -869,7 +870,7 @@ export function Dashboard({
           style={{
             ...glassPanel,
             borderRadius: 30,
-            padding: compact ? 18 : 22,
+            padding: dense ? 15 : compact ? 18 : 22,
           }}
         >
           <div
@@ -961,7 +962,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: compact ? 18 : 22,
+              padding: dense ? 15 : compact ? 18 : 22,
             }}
           >
             <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900, marginBottom: 16 }}>
@@ -975,7 +976,7 @@ export function Dashboard({
               }}
             >
               {quickActions.map((action) => (
-                <ActionTile key={action.label} {...action} />
+                <ActionTile key={action.label} {...action} dense={dense} />
               ))}
             </div>
           </div>
@@ -984,7 +985,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: compact ? 18 : 22,
+              padding: dense ? 15 : compact ? 18 : 22,
               display: "grid",
               gap: 18,
             }}
@@ -1005,15 +1006,15 @@ export function Dashboard({
                       width: 160,
                       height: 160,
                       borderRadius: "50%",
-                    background: `conic-gradient(#0f8b8d 0 ${classCoverage}%, rgba(226,232,240,0.95) ${classCoverage}% 100%)`,
+                      background: `conic-gradient(#0f8b8d 0 ${classCoverage}%, rgba(226,232,240,0.95) ${classCoverage}% 100%)`,
                       display: "grid",
                       placeItems: "center",
                     }}
                 >
                   <div
                     style={{
-                      width: 116,
-                      height: 116,
+                      width: dense ? 92 : 116,
+                      height: dense ? 92 : 116,
                       borderRadius: "50%",
                       background: "#fff",
                       boxShadow: "inset 0 4px 18px rgba(15,23,42,0.06)",
@@ -1023,8 +1024,8 @@ export function Dashboard({
                     }}
                     >
                       <div>
-                      <div style={{ fontSize: 40, lineHeight: 1, fontWeight: 950, color: "#0f172a" }}>{classCoverage}%</div>
-                        <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", fontWeight: 800 }}>Published Coverage</div>
+                      <div style={{ fontSize: dense ? 30 : 40, lineHeight: 1, fontWeight: 950, color: "#0f172a" }}>{classCoverage}%</div>
+                        <div style={{ marginTop: 6, fontSize: dense ? 11 : 13, color: "#64748b", fontWeight: 800 }}>Published Coverage</div>
                       </div>
                     </div>
                   </div>
@@ -1062,7 +1063,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: compact ? 18 : 22,
+              padding: dense ? 15 : compact ? 18 : 22,
               display: "grid",
               gap: 14,
             }}
@@ -1133,7 +1134,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: compact ? 18 : 22,
+              padding: dense ? 15 : compact ? 18 : 22,
               display: "grid",
               gap: 14,
             }}
@@ -1202,7 +1203,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: compact ? 18 : 22,
+              padding: dense ? 15 : compact ? 18 : 22,
               display: "grid",
               gap: 16,
               alignSelf: "start",
@@ -1248,7 +1249,7 @@ export function Dashboard({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: compact ? "1fr" : "1fr auto auto",
+                gridTemplateColumns: isXs ? "1fr" : "minmax(0, 1fr) auto auto",
                 gap: 10,
               }}
             >
@@ -1260,7 +1261,7 @@ export function Dashboard({
                   gap: 10,
                   borderRadius: 18,
                   border: "1px solid rgba(191,219,254,0.55)",
-                  padding: "12px 14px",
+                  padding: dense ? "10px 12px" : "12px 14px",
                   background: "rgba(255,255,255,0.72)",
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
                   backdropFilter: "blur(16px)",
@@ -1299,7 +1300,7 @@ export function Dashboard({
                   fontSize: 14,
                   fontWeight: 900,
                   cursor: searching ? "wait" : "pointer",
-                  minHeight: 50,
+                  minHeight: dense ? 44 : 50,
                   boxShadow: "0 14px 28px rgba(15,118,110,0.22)",
                 }}
               >
@@ -1321,7 +1322,7 @@ export function Dashboard({
                   fontSize: 14,
                   fontWeight: 800,
                   cursor: "pointer",
-                  minHeight: 50,
+                  minHeight: dense ? 44 : 50,
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
                 }}
               >
@@ -1415,7 +1416,7 @@ export function Dashboard({
                       borderRadius: 22,
                       border: "1px solid rgba(191,219,254,0.42)",
                       background: "rgba(255,255,255,0.6)",
-                      padding: compact ? "16px 15px" : "18px 18px",
+                      padding: dense ? "13px 13px" : compact ? "16px 15px" : "18px 18px",
                       display: "grid",
                       gap: 6,
                       boxShadow: "inset 0 1px 0 rgba(255,255,255,0.76)",
@@ -1433,7 +1434,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: compact ? 18 : 22,
+              padding: dense ? 15 : compact ? 18 : 22,
               display: "grid",
               gap: 14,
             }}
