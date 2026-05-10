@@ -2,15 +2,17 @@ import React, { useState } from "react";
 import { AnalysisPanel } from "./AnalysisPanel";
 import { ResultSheet } from "./ResultSheet";
 import { useViewport } from "../utils/useViewport";
+import { useI18n } from "../i18n";
 
 export function ResultsPage({ classData, computed, onOpenReportCard }) {
   const [tab, setTab] = useState("analysis");
   const { isMobile } = useViewport();
+  const { t } = useI18n();
   const topOffset = isMobile ? 52 : 46;
 
   const tabs = [
-    { key: "analysis", label: "📊 Analysis" },
-    { key: "sheet", label: "📄 Sheet" },
+    { key: "analysis", label: `📊 ${t("resultsTabAnalysis", "Analysis")}` },
+    { key: "sheet", label: `📄 ${t("resultsTabSheet", "Sheet")}` },
   ];
 
   return (

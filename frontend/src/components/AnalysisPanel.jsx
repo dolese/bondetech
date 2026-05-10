@@ -1,16 +1,27 @@
 import React, { useMemo } from "react";
 import { GRADE_COLORS, DIVISION_COLORS } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
+import { useI18n } from "../i18n";
 
 export function AnalysisPanel({ classData, computed }) {
-  const present = (computed ?? []).filter(s => s.total !== null);
+  const present = (computed ?? []).filter((s) => s.total !== null);
   const { isMobile } = useViewport();
+  const { t } = useI18n();
 
   if (!present.length) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 14 }}>
-        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#003366" }}>
-          📊 Analysis & Statistics
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          padding: 14,
+        }}
+      >
+        <h2
+          style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#003366" }}
+        >
+          📊 {t("analysisTitle", "Analysis & Statistics")}
         </h2>
         <div
           style={{
@@ -23,30 +34,37 @@ export function AnalysisPanel({ classData, computed }) {
             fontSize: 12,
           }}
         >
-          No results yet. Enter student scores to unlock analysis.
+          {t(
+            "analysisNoResults",
+            "No results yet. Enter student scores to unlock analysis.",
+          )}
         </div>
       </div>
     );
   }
 
   // Gender breakdown
-  const maleStudents = present.filter(s => s.sex === "M");
-  const femaleStudents = present.filter(s => s.sex === "F");
+  const maleStudents = present.filter((s) => s.sex === "M");
+  const femaleStudents = present.filter((s) => s.sex === "F");
   const getMaleAvg = () => {
     const total = maleStudents.reduce((sum, s) => sum + (s.total || 0), 0);
-    return maleStudents.length > 0 ? (total / maleStudents.length).toFixed(1) : 0;
+    return maleStudents.length > 0
+      ? (total / maleStudents.length).toFixed(1)
+      : 0;
   };
   const getFemaleAvg = () => {
     const total = femaleStudents.reduce((sum, s) => sum + (s.total || 0), 0);
-    return femaleStudents.length > 0 ? (total / femaleStudents.length).toFixed(1) : 0;
+    return femaleStudents.length > 0
+      ? (total / femaleStudents.length).toFixed(1)
+      : 0;
   };
 
   // Subject Performance
   const subjPerf = {};
   (classData.subjects ?? []).forEach((subj, si) => {
     const scores = (computed ?? [])
-      .filter(s => s.grades?.[si]?.score != null)
-      .map(s => s.grades[si].score);
+      .filter((s) => s.grades?.[si]?.score != null)
+      .map((s) => s.grades[si].score);
     if (scores.length > 0) {
       subjPerf[subj] = {
         avg: (scores.reduce((a, b) => a + b) / scores.length).toFixed(1),
@@ -59,8 +77,8 @@ export function AnalysisPanel({ classData, computed }) {
 
   // Division statistics
   const divStats = {};
-  ["I", "II", "III", "IV"].forEach(div => {
-    const students = present.filter(s => s.div === div);
+  ["I", "II", "III", "IV"].forEach((div) => {
+    const students = present.filter((s) => s.div === div);
     divStats[div] = {
       count: students.length,
       percent:
@@ -69,7 +87,10 @@ export function AnalysisPanel({ classData, computed }) {
           : 0,
       avg:
         students.length > 0
-          ? (students.reduce((sum, s) => sum + (s.total || 0), 0) / students.length).toFixed(1)
+          ? (
+              students.reduce((sum, s) => sum + (s.total || 0), 0) /
+              students.length
+            ).toFixed(1)
           : 0,
     };
   });
@@ -84,7 +105,7 @@ export function AnalysisPanel({ classData, computed }) {
     "40-49": 0,
     "0-39": 0,
   };
-  present.forEach(s => {
+  present.forEach((s) => {
     if (s.total >= 90) scoreRanges["90-100"]++;
     else if (s.total >= 80) scoreRanges["80-89"]++;
     else if (s.total >= 70) scoreRanges["70-79"]++;
@@ -129,27 +150,57 @@ export function AnalysisPanel({ classData, computed }) {
 
   return (
     <div style={styles.panel}>
-      <h2 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 900, color: "#003366" }}>
-        📊 Analysis & Statistics
+      <h2
+        style={{
+          margin: "0 0 8px",
+          fontSize: 16,
+          fontWeight: 900,
+          color: "#003366",
+        }}
+      >
+        📊 {t("analysisTitle", "Analysis & Statistics")}
       </h2>
       <div style={{ fontSize: 11, color: "#667", marginTop: -4 }}>
-        Performance breakdowns for this class.
+        {t("analysisSubtitle", "Performance breakdowns for this class.")}
       </div>
 
       <div style={styles.grid}>
         {/* Gender Comparison */}
         <div style={styles.card}>
-          <h3 style={styles.cardTitle}>👫 Gender Comparison</h3>
-          <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 16 }}>
+          <h3 style={styles.cardTitle}>
+            👫 {t("analysisGenderComparison", "Gender Comparison")}
+          </h3>
+          <div
+            style={{
+              display: "flex",
+              gap: 20,
+              justifyContent: "center",
+              marginTop: 16,
+            }}
+          >
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#0077aa" }}>
                 {maleStudents.length}
               </div>
-              <div style={{ fontSize: 10, color: "#666", marginTop: 2, fontWeight: 700 }}>
-                Male Students
+              <div
+                style={{
+                  fontSize: 10,
+                  color: "#666",
+                  marginTop: 2,
+                  fontWeight: 700,
+                }}
+              >
+                {t("analysisMaleStudents", "Male Students")}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#003366", marginTop: 8 }}>
-                {getMaleAvg()} avg
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: "#003366",
+                  marginTop: 8,
+                }}
+              >
+                {t("analysisAvgScore", "{value} avg", { value: getMaleAvg() })}
               </div>
             </div>
             <div style={{ fontSize: 2, color: "#ddd" }}></div>
@@ -157,11 +208,27 @@ export function AnalysisPanel({ classData, computed }) {
               <div style={{ fontSize: 14, fontWeight: 900, color: "#c041a3" }}>
                 {femaleStudents.length}
               </div>
-              <div style={{ fontSize: 10, color: "#666", marginTop: 2, fontWeight: 700 }}>
-                Female Students
+              <div
+                style={{
+                  fontSize: 10,
+                  color: "#666",
+                  marginTop: 2,
+                  fontWeight: 700,
+                }}
+              >
+                {t("analysisFemaleStudents", "Female Students")}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#003366", marginTop: 8 }}>
-                {getFemaleAvg()} avg
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: "#003366",
+                  marginTop: 8,
+                }}
+              >
+                {t("analysisAvgScore", "{value} avg", {
+                  value: getFemaleAvg(),
+                })}
               </div>
             </div>
           </div>
@@ -169,10 +236,22 @@ export function AnalysisPanel({ classData, computed }) {
 
         {/* Division breakdown */}
         <div style={styles.card}>
-          <h3 style={styles.cardTitle}>🏆 Division Distribution</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
-            {["I", "II", "III", "IV"].map(div => (
-              <div key={div} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <h3 style={styles.cardTitle}>
+            🏆 {t("analysisDivisionDistribution", "Division Distribution")}
+          </h3>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              marginTop: 4,
+            }}
+          >
+            {["I", "II", "III", "IV"].map((div) => (
+              <div
+                key={div}
+                style={{ display: "flex", alignItems: "center", gap: 8 }}
+              >
                 <span
                   style={{
                     fontSize: 10,
@@ -181,7 +260,7 @@ export function AnalysisPanel({ classData, computed }) {
                     color: "#333",
                   }}
                 >
-                  Div {div}
+                  {t("analysisDivisionLabel", "Div {div}", { div })}
                 </span>
                 <div
                   style={{
@@ -218,8 +297,12 @@ export function AnalysisPanel({ classData, computed }) {
         </div>
 
         {/* Subject Performance */}
-        <div style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}>
-          <h3 style={styles.cardTitle}>📚 Subject Performance</h3>
+        <div
+          style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}
+        >
+          <h3 style={styles.cardTitle}>
+            📚 {t("analysisSubjectPerformance", "Subject Performance")}
+          </h3>
           <div style={{ overflowX: "auto", minWidth: 0 }}>
             <table
               style={{
@@ -230,7 +313,13 @@ export function AnalysisPanel({ classData, computed }) {
             >
               <thead>
                 <tr style={{ background: "#003366", color: "#fff" }}>
-                  {["Subject", "Avg", "Min", "Max", "Coverage"].map(h => (
+                  {[
+                    t("analysisSubject", "Subject"),
+                    t("analysisAvg", "Avg"),
+                    t("analysisMin", "Min"),
+                    t("analysisMax", "Max"),
+                    t("analysisCoverage", "Coverage"),
+                  ].map((h) => (
                     <th
                       key={h}
                       style={{
@@ -248,7 +337,8 @@ export function AnalysisPanel({ classData, computed }) {
               <tbody>
                 {Object.entries(subjPerf).map(([subj, stats], i) => {
                   const avg = Number(stats.avg);
-                  const avgColor = avg >= 60 ? "#0b6b3a" : avg >= 40 ? "#0077aa" : "#8b2500";
+                  const avgColor =
+                    avg >= 60 ? "#0b6b3a" : avg >= 40 ? "#0077aa" : "#8b2500";
                   return (
                     <tr
                       key={subj}
@@ -315,7 +405,7 @@ export function AnalysisPanel({ classData, computed }) {
                         border: "1px solid #cbd8f3",
                       }}
                     >
-                      No scores entered yet
+                      {t("analysisNoScores", "No scores entered yet")}
                     </td>
                   </tr>
                 )}
@@ -325,68 +415,74 @@ export function AnalysisPanel({ classData, computed }) {
         </div>
 
         {/* Score Distribution */}
-        <div style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}>
-          <h3 style={styles.cardTitle}>📈 Score Distribution</h3>
+        <div
+          style={{ ...styles.card, gridColumn: isMobile ? "span 1" : "span 2" }}
+        >
+          <h3 style={styles.cardTitle}>
+            📈 {t("analysisScoreDistribution", "Score Distribution")}
+          </h3>
           <div style={{ overflowX: "auto", minWidth: 0 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-end",
-              gap: 12,
-              height: 140,
-              justifyContent: "space-around",
-              marginTop: 12,
-              minWidth: 280,
-            }}
-          >
-            {Object.entries(scoreRanges).map(([range, count]) => {
-              const max = Math.max(...Object.values(scoreRanges), 1);
-              const colorMap = {
-                "90-100": "#b8860b",
-                "80-89": "#0b6b3a",
-                "70-79": "#0077aa",
-                "60-69": "#5a2d82",
-                "50-59": "#c77a00",
-                "40-49": "#8b5a00",
-                "0-39": "#8b2500",
-              };
-              return (
-                <div
-                  key={range}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#333" }}>
-                    {count}
-                  </span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                gap: 12,
+                height: 140,
+                justifyContent: "space-around",
+                marginTop: 12,
+                minWidth: 280,
+              }}
+            >
+              {Object.entries(scoreRanges).map(([range, count]) => {
+                const max = Math.max(...Object.values(scoreRanges), 1);
+                const colorMap = {
+                  "90-100": "#b8860b",
+                  "80-89": "#0b6b3a",
+                  "70-79": "#0077aa",
+                  "60-69": "#5a2d82",
+                  "50-59": "#c77a00",
+                  "40-49": "#8b5a00",
+                  "0-39": "#8b2500",
+                };
+                return (
                   <div
+                    key={range}
                     style={{
-                      width: 32,
-                      borderRadius: "4px 4px 0 0",
-                      background: colorMap[range],
-                      height: Math.max((count / max) * 100, 4),
-                      transition: "height 0.5s",
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 700,
-                      color: "#666",
-                      textAlign: "center",
-                      width: 40,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 6,
                     }}
                   >
-                    {range}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                    <span
+                      style={{ fontSize: 11, fontWeight: 700, color: "#333" }}
+                    >
+                      {count}
+                    </span>
+                    <div
+                      style={{
+                        width: 32,
+                        borderRadius: "4px 4px 0 0",
+                        background: colorMap[range],
+                        height: Math.max((count / max) * 100, 4),
+                        transition: "height 0.5s",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        color: "#666",
+                        textAlign: "center",
+                        width: 40,
+                      }}
+                    >
+                      {range}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

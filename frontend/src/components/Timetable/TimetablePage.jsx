@@ -19,6 +19,7 @@ import { TimetableGrid } from "./TimetableGrid";
 import { TeacherViews } from "./TeacherViews";
 import { MasterTimetable } from "./MasterTimetable";
 import "./Timetable.css";
+import { useI18n } from "../../i18n";
 
 function normalizeClassLabel(cls = {}) {
   return [cls.form, cls.year].filter(Boolean).join(" ").trim();
@@ -29,14 +30,16 @@ function parseFormOrder(form) {
   if (!raw) return 999;
   const romanMatch = raw.match(/\b(I|II|III|IV|V|VI)\b/);
   if (romanMatch) {
-    return {
-      I: 1,
-      II: 2,
-      III: 3,
-      IV: 4,
-      V: 5,
-      VI: 6,
-    }[romanMatch[1]] || 999;
+    return (
+      {
+        I: 1,
+        II: 2,
+        III: 3,
+        IV: 4,
+        V: 5,
+        VI: 6,
+      }[romanMatch[1]] || 999
+    );
   }
   const digitMatch = raw.match(/\d+/);
   return digitMatch ? Number(digitMatch[0]) : 999;
@@ -50,7 +53,9 @@ function compareClasses(a, b) {
 
 function ensureSubjectTargets(timetable, subjects = []) {
   const normalized = normalizeClassTimetable(timetable);
-  const existing = new Map((normalized.subjectTargets || []).map((item) => [item.subject, item]));
+  const existing = new Map(
+    (normalized.subjectTargets || []).map((item) => [item.subject, item]),
+  );
   return {
     ...normalized,
     subjectTargets: (subjects || []).map((subject) => ({
@@ -66,7 +71,9 @@ function ensureSubjectTargets(timetable, subjects = []) {
 function buildTeacherSuggestions(entries) {
   return (entries || [])
     .map((entry) => ({
-      key: String(entry.username || entry.name || "").trim().toLowerCase(),
+      key: String(entry.username || entry.name || "")
+        .trim()
+        .toLowerCase(),
       value: entry.username || entry.name || "",
       label: entry.name || entry.username || "",
       phone: entry.phone || "",
@@ -104,13 +111,18 @@ function buildDerivedRooms(classes = [], subjectTargets = []) {
     });
   });
 
-  return Array.from(rooms.values()).sort((a, b) => a.name.localeCompare(b.name));
+  return Array.from(rooms.values()).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
 }
 
 function normalizeEditableRoom(room = {}) {
   const source = room && typeof room === "object" ? room : {};
   return {
-    id: String(source.id || `room-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`).trim(),
+    id: String(
+      source.id ||
+        `room-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    ).trim(),
     name: String(source.name || source.label || "").trim(),
     type: String(source.type || "").trim(),
     capacity: String(source.capacity || "").trim(),
@@ -152,7 +164,11 @@ function buildTeacherSchedule(days, periods, classes, selectedTeacherKey) {
       (classes || []).forEach((cls) => {
         const timetable = normalizeClassTimetable(cls?.timetable);
         const entry = timetable.entries?.[slotKey];
-        const teacherKey = String(entry?.teacherUsername || entry?.teacherName || "").trim().toLowerCase();
+        const teacherKey = String(
+          entry?.teacherUsername || entry?.teacherName || "",
+        )
+          .trim()
+          .toLowerCase();
         if (!teacherKey || teacherKey !== selectedTeacherKey) return;
         entries.push({
           classLabel: normalizeClassLabel(cls),
@@ -174,14 +190,16 @@ export function TimetablePage({
   onSaveSchoolSettings,
   onUpdateTimetable,
 }) {
+  const { t } = useI18n();
   const canEditGlobal = role === "admin";
-  const canEditClass = role === "admin" || role === "academic" || role === "teacher";
+  const canEditClass =
+    role === "admin" || role === "academic" || role === "teacher";
 
   const [globalTimetable, setGlobalTimetable] = useState(() =>
-    normalizeTimetableSettings(schoolSettings?.timetable)
+    normalizeTimetableSettings(schoolSettings?.timetable),
   );
   const [classTimetable, setClassTimetable] = useState(() =>
-    normalizeClassTimetable(classData?.timetable)
+    normalizeClassTimetable(classData?.timetable),
   );
   const [selectedTeacherKey, setSelectedTeacherKey] = useState("");
   const [savingGlobal, setSavingGlobal] = useState(false);
@@ -192,35 +210,70 @@ export function TimetablePage({
   }, [schoolSettings]);
 
   useEffect(() => {
-    setClassTimetable(ensureSubjectTargets(classData?.timetable, classData?.subjects || []));
+    setClassTimetable(
+      ensureSubjectTargets(classData?.timetable, classData?.subjects || []),
+    );
   }, [classData?.id, classData?.timetable, classData?.subjects]);
 
   const normalizedGlobalTimetable = useMemo(
     () => normalizeTimetableSettings(globalTimetable),
-    [globalTimetable]
+    [globalTimetable],
   );
-  const days = useMemo(() => getEnabledTimetableDays(normalizedGlobalTimetable), [normalizedGlobalTimetable]);
-  const periods = useMemo(() => normalizedGlobalTimetable.periods, [normalizedGlobalTimetable]);
-  const sortedClasses = useMemo(() => [...(allClasses || [])].sort(compareClasses), [allClasses]);
-  const teacherSuggestions = useMemo(() => buildTeacherSuggestions(teacherEntries), [teacherEntries]);
-  const teacherLoadSummary = useMemo(() => buildTeacherLoadSummary(allClasses || []), [allClasses]);
+  const days = useMemo(
+    () => getEnabledTimetableDays(normalizedGlobalTimetable),
+    [normalizedGlobalTimetable],
+  );
+  const periods = useMemo(
+    () => normalizedGlobalTimetable.periods,
+    [normalizedGlobalTimetable],
+  );
+  const sortedClasses = useMemo(
+    () => [...(allClasses || [])].sort(compareClasses),
+    [allClasses],
+  );
+  const teacherSuggestions = useMemo(
+    () => buildTeacherSuggestions(teacherEntries),
+    [teacherEntries],
+  );
+  const teacherLoadSummary = useMemo(
+    () => buildTeacherLoadSummary(allClasses || []),
+    [allClasses],
+  );
   const editableRooms = useMemo(
-    () => (Array.isArray(globalTimetable?.rooms) ? globalTimetable.rooms : []).map((room) => normalizeEditableRoom(room)),
-    [globalTimetable]
+    () =>
+      (Array.isArray(globalTimetable?.rooms) ? globalTimetable.rooms : []).map(
+        (room) => normalizeEditableRoom(room),
+      ),
+    [globalTimetable],
   );
   const derivedRooms = useMemo(
-    () => buildDerivedRooms(allClasses || [], classTimetable.subjectTargets || []),
-    [allClasses, classTimetable.subjectTargets]
+    () =>
+      buildDerivedRooms(allClasses || [], classTimetable.subjectTargets || []),
+    [allClasses, classTimetable.subjectTargets],
   );
   const roomDirectoryRows = useMemo(() => {
     const configuredNamedRooms = editableRooms.filter((room) => room.name);
-    const usageRows = buildRoomLoadSummary(allClasses || [], [...configuredNamedRooms, ...derivedRooms]);
+    const usageRows = buildRoomLoadSummary(allClasses || [], [
+      ...configuredNamedRooms,
+      ...derivedRooms,
+    ]);
     const usageById = new Map(usageRows.map((room) => [room.id, room]));
-    const usageByName = new Map(usageRows.map((room) => [String(room.name || "").trim().toLowerCase(), room]));
+    const usageByName = new Map(
+      usageRows.map((room) => [
+        String(room.name || "")
+          .trim()
+          .toLowerCase(),
+        room,
+      ]),
+    );
 
     const configuredRows = editableRooms.map((room) => {
-      const roomNameKey = String(room.name || "").trim().toLowerCase();
-      const usage = usageById.get(room.id) || (roomNameKey ? usageByName.get(roomNameKey) : null);
+      const roomNameKey = String(room.name || "")
+        .trim()
+        .toLowerCase();
+      const usage =
+        usageById.get(room.id) ||
+        (roomNameKey ? usageByName.get(roomNameKey) : null);
       return {
         ...room,
         isConfigured: true,
@@ -232,13 +285,19 @@ export function TimetablePage({
     const configuredIds = new Set(configuredRows.map((room) => room.id));
     const configuredNames = new Set(
       configuredRows
-        .map((room) => String(room.name || "").trim().toLowerCase())
-        .filter(Boolean)
+        .map((room) =>
+          String(room.name || "")
+            .trim()
+            .toLowerCase(),
+        )
+        .filter(Boolean),
     );
 
     const derivedOnlyRows = usageRows
       .filter((room) => {
-        const roomNameKey = String(room.name || "").trim().toLowerCase();
+        const roomNameKey = String(room.name || "")
+          .trim()
+          .toLowerCase();
         return !configuredIds.has(room.id) && !configuredNames.has(roomNameKey);
       })
       .map((room) => ({
@@ -250,44 +309,58 @@ export function TimetablePage({
   }, [allClasses, derivedRooms, editableRooms]);
   const subjectLoadSummary = useMemo(
     () => buildSubjectLoadSummary({ ...classData, timetable: classTimetable }),
-    [classData, classTimetable]
+    [classData, classTimetable],
   );
   const unmetSubjectTargets = useMemo(
     () => subjectLoadSummary.filter((item) => item.target > item.assigned),
-    [subjectLoadSummary]
+    [subjectLoadSummary],
   );
-  const teacherConflicts = useMemo(() => detectTeacherConflicts(allClasses || []), [allClasses]);
-  const roomConflicts = useMemo(() => detectRoomConflicts(allClasses || []), [allClasses]);
+  const teacherConflicts = useMemo(
+    () => detectTeacherConflicts(allClasses || []),
+    [allClasses],
+  );
+  const roomConflicts = useMemo(
+    () => detectRoomConflicts(allClasses || []),
+    [allClasses],
+  );
   const availabilityConflicts = useMemo(
-    () => detectTeacherAvailabilityConflicts(allClasses || [], normalizedGlobalTimetable),
-    [allClasses, normalizedGlobalTimetable]
+    () =>
+      detectTeacherAvailabilityConflicts(
+        allClasses || [],
+        normalizedGlobalTimetable,
+      ),
+    [allClasses, normalizedGlobalTimetable],
   );
   const activeClassLabel = useMemo(
     () => [classData?.form, classData?.year].filter(Boolean).join(" "),
-    [classData]
+    [classData],
   );
   const teacherLoadMap = useMemo(
     () => new Map(teacherLoadSummary.map((entry) => [entry.teacherKey, entry])),
-    [teacherLoadSummary]
+    [teacherLoadSummary],
   );
   const roomSuggestionId = `timetable-room-list-${classData?.id || "class"}`;
   const masterRows = useMemo(
     () => groupMasterRows(days, periods, sortedClasses),
-    [days, periods, sortedClasses]
+    [days, periods, sortedClasses],
   );
   const teacherDirectoryRows = useMemo(() => {
     return teacherSuggestions.map((teacher) => ({
       ...teacher,
       periods: teacherLoadMap.get(teacher.key)?.periods || 0,
       classCount: teacherLoadMap.get(teacher.key)?.classes?.length || 0,
-      unavailableCount: normalizedGlobalTimetable.teacherAvailability?.[teacher.key]?.length || 0,
+      unavailableCount:
+        normalizedGlobalTimetable.teacherAvailability?.[teacher.key]?.length ||
+        0,
     }));
   }, [normalizedGlobalTimetable, teacherLoadMap, teacherSuggestions]);
   const streamRows = useMemo(
     () =>
       sortedClasses.map((cls) => {
         const timetable = normalizeClassTimetable(cls?.timetable);
-        const lessonCount = Object.values(timetable.entries || {}).filter((entry) => entry.subject).length;
+        const lessonCount = Object.values(timetable.entries || {}).filter(
+          (entry) => entry.subject,
+        ).length;
         return {
           id: cls.id,
           form: cls.form || "",
@@ -297,7 +370,7 @@ export function TimetablePage({
           lessonCount,
         };
       }),
-    [sortedClasses]
+    [sortedClasses],
   );
 
   useEffect(() => {
@@ -312,16 +385,20 @@ export function TimetablePage({
   }, [selectedTeacherKey, teacherDirectoryRows]);
 
   const selectedTeacherSchedule = useMemo(
-    () => buildTeacherSchedule(days, periods, allClasses || [], selectedTeacherKey),
-    [allClasses, days, periods, selectedTeacherKey]
+    () =>
+      buildTeacherSchedule(days, periods, allClasses || [], selectedTeacherKey),
+    [allClasses, days, periods, selectedTeacherKey],
   );
   const selectedTeacherUnavailable = useMemo(
-    () => normalizedGlobalTimetable.teacherAvailability?.[selectedTeacherKey] || [],
-    [normalizedGlobalTimetable, selectedTeacherKey]
+    () =>
+      normalizedGlobalTimetable.teacherAvailability?.[selectedTeacherKey] || [],
+    [normalizedGlobalTimetable, selectedTeacherKey],
   );
   const selectedTeacherRow = useMemo(
-    () => teacherDirectoryRows.find((row) => row.key === selectedTeacherKey) || null,
-    [selectedTeacherKey, teacherDirectoryRows]
+    () =>
+      teacherDirectoryRows.find((row) => row.key === selectedTeacherKey) ||
+      null,
+    [selectedTeacherKey, teacherDirectoryRows],
   );
   const teacherSuggestionId = `timetable-teacher-list-${classData?.id || "class"}`;
 
@@ -329,7 +406,7 @@ export function TimetablePage({
     setGlobalTimetable((prev) => ({
       ...normalizeTimetableSettings(prev),
       periods: normalizeTimetableSettings(prev).periods.map((period) =>
-        period.id === periodId ? { ...period, [field]: value } : period
+        period.id === periodId ? { ...period, [field]: value } : period,
       ),
     }));
   };
@@ -337,7 +414,8 @@ export function TimetablePage({
   const addPeriod = () => {
     setGlobalTimetable((prev) => {
       const current = normalizeTimetableSettings(prev);
-      const lessonCount = current.periods.filter((period) => period.type === "lesson").length + 1;
+      const lessonCount =
+        current.periods.filter((period) => period.type === "lesson").length + 1;
       return {
         ...current,
         periods: [
@@ -358,7 +436,9 @@ export function TimetablePage({
   const removePeriod = (periodId) => {
     setGlobalTimetable((prev) => ({
       ...normalizeTimetableSettings(prev),
-      periods: normalizeTimetableSettings(prev).periods.filter((period) => period.id !== periodId),
+      periods: normalizeTimetableSettings(prev).periods.filter(
+        (period) => period.id !== periodId,
+      ),
     }));
   };
 
@@ -366,7 +446,7 @@ export function TimetablePage({
     setGlobalTimetable((prev) => ({
       ...normalizeTimetableSettings(prev),
       days: normalizeTimetableSettings(prev).days.map((day) =>
-        day.id === dayId ? { ...day, enabled: !day.enabled } : day
+        day.id === dayId ? { ...day, enabled: !day.enabled } : day,
       ),
     }));
   };
@@ -375,7 +455,7 @@ export function TimetablePage({
     setGlobalTimetable((prev) => ({
       ...(prev || {}),
       rooms: (Array.isArray(prev?.rooms) ? prev.rooms : []).map((room) =>
-        room.id === roomId ? { ...room, [field]: value } : room
+        room.id === roomId ? { ...room, [field]: value } : room,
       ),
     }));
   };
@@ -398,7 +478,9 @@ export function TimetablePage({
   const removeRoom = (roomId) => {
     setGlobalTimetable((prev) => ({
       ...(prev || {}),
-      rooms: (Array.isArray(prev?.rooms) ? prev.rooms : []).filter((room) => room.id !== roomId),
+      rooms: (Array.isArray(prev?.rooms) ? prev.rooms : []).filter(
+        (room) => room.id !== roomId,
+      ),
     }));
   };
 
@@ -415,10 +497,13 @@ export function TimetablePage({
         [field]: value,
       };
       if (field === "subject") {
-        const target = (prev.subjectTargets || []).find((item) => item.subject === value);
+        const target = (prev.subjectTargets || []).find(
+          (item) => item.subject === value,
+        );
         if (target) {
           if (!nextEntry.teacherName) {
-            nextEntry.teacherName = target.teacherName || target.teacherUsername || "";
+            nextEntry.teacherName =
+              target.teacherName || target.teacherUsername || "";
             nextEntry.teacherUsername = target.teacherUsername || "";
           }
           if (!nextEntry.room) {
@@ -429,18 +514,24 @@ export function TimetablePage({
       if (field === "teacherName") {
         const matched = teacherSuggestions.find(
           (item) =>
-            item.value.toLowerCase() === String(value || "").trim().toLowerCase()
-            || item.label.toLowerCase() === String(value || "").trim().toLowerCase()
+            item.value.toLowerCase() ===
+              String(value || "")
+                .trim()
+                .toLowerCase() ||
+            item.label.toLowerCase() ===
+              String(value || "")
+                .trim()
+                .toLowerCase(),
         );
         nextEntry.teacherUsername = matched?.value || "";
         nextEntry.teacherName = matched?.label || String(value || "").trim();
       }
       if (
-        !nextEntry.subject
-        && !nextEntry.teacherName
-        && !nextEntry.teacherUsername
-        && !nextEntry.room
-        && !nextEntry.note
+        !nextEntry.subject &&
+        !nextEntry.teacherName &&
+        !nextEntry.teacherUsername &&
+        !nextEntry.room &&
+        !nextEntry.note
       ) {
         delete nextEntries[slotKey];
       } else {
@@ -457,13 +548,22 @@ export function TimetablePage({
         if (target.subject !== subject) return target;
         if (field === "periodsPerWeek") {
           const numeric = Math.max(0, Number(value || 0));
-          return { ...target, periodsPerWeek: Number.isFinite(numeric) ? numeric : 0 };
+          return {
+            ...target,
+            periodsPerWeek: Number.isFinite(numeric) ? numeric : 0,
+          };
         }
         if (field === "teacherName") {
           const matched = teacherSuggestions.find(
             (item) =>
-              item.value.toLowerCase() === String(value || "").trim().toLowerCase()
-              || item.label.toLowerCase() === String(value || "").trim().toLowerCase()
+              item.value.toLowerCase() ===
+                String(value || "")
+                  .trim()
+                  .toLowerCase() ||
+              item.label.toLowerCase() ===
+                String(value || "")
+                  .trim()
+                  .toLowerCase(),
           );
           return {
             ...target,
@@ -480,7 +580,8 @@ export function TimetablePage({
     if (!canEditGlobal || !selectedTeacherKey) return;
     setGlobalTimetable((prev) => {
       const normalized = normalizeTimetableSettings(prev);
-      const current = normalized.teacherAvailability?.[selectedTeacherKey] || [];
+      const current =
+        normalized.teacherAvailability?.[selectedTeacherKey] || [];
       const next = current.includes(slotKey)
         ? current.filter((item) => item !== slotKey)
         : [...current, slotKey];
@@ -523,7 +624,10 @@ export function TimetablePage({
     teachers: teacherDirectoryRows.length,
     rooms: roomDirectoryRows.length,
     streams: streamRows.length,
-    conflicts: teacherConflicts.length + roomConflicts.length + availabilityConflicts.length,
+    conflicts:
+      teacherConflicts.length +
+      roomConflicts.length +
+      availabilityConflicts.length,
     unmetTargets: unmetSubjectTargets.length,
   };
 
@@ -532,20 +636,39 @@ export function TimetablePage({
       <section className="tt-section">
         <div className="tt-header-row">
           <div className="tt-title-block">
-            <div className="tt-title">Timetable Setup</div>
+            <div className="tt-title">
+              {t("ttSetupTitle", "Timetable Setup")}
+            </div>
             <div className="tt-sub">
-              Clean timetable workflow: define periods and active days, review teachers and streams, set subject targets, then build the class timetable from one shared structure.
+              {t(
+                "ttSetupSub",
+                "Clean timetable workflow: define periods and active days, review teachers and streams, set subject targets, then build the class timetable from one shared structure.",
+              )}
             </div>
           </div>
           <div className="tt-action-row">
             {canEditGlobal ? (
-              <button className="tt-secondary-button" onClick={handleSaveGlobal} disabled={savingGlobal}>
-                {savingGlobal ? "Saving School..." : "Save School Setup"}
+              <button
+                className="tt-secondary-button"
+                onClick={handleSaveGlobal}
+                disabled={savingGlobal}
+              >
+                {savingGlobal
+                  ? t("ttSavingSchool", "Saving School…")
+                  : t("ttSaveSchoolSetup", "Save School Setup")}
               </button>
             ) : null}
             {canEditClass ? (
-              <button className="tt-button" onClick={handleSaveClass} disabled={savingClass}>
-                {savingClass ? "Saving Class..." : `Save ${activeClassLabel || "Class"} Timetable`}
+              <button
+                className="tt-button"
+                onClick={handleSaveClass}
+                disabled={savingClass}
+              >
+                {savingClass
+                  ? t("ttSavingClass", "Saving Class…")
+                  : t("ttSaveClassTimetable", "Save {classLabel} Timetable", {
+                      classLabel: activeClassLabel || t("ttClass", "Class"),
+                    })}
               </button>
             ) : null}
           </div>

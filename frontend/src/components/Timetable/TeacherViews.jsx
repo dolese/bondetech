@@ -2,6 +2,7 @@ import React from "react";
 import { buildSlotKey, isSharedTimetablePeriod } from "../../utils/timetable";
 import { useViewport } from "../../utils/useViewport";
 import "./Timetable.css";
+import { useI18n } from "../../i18n";
 
 function slotRange(period) {
   const range = [period.start, period.end].filter(Boolean).join(" - ");
@@ -21,14 +22,22 @@ export function TeacherViews({
   selectedTeacherSchedule,
 }) {
   const { isMobile } = useViewport();
+  const { t } = useI18n();
 
   return (
     <div className="tt-two-col">
       <section className="tt-section">
         <div className="tt-header-row">
           <div className="tt-title-block">
-            <div className="tt-title">Teacher Availability Setup</div>
-            <div className="tt-sub">Choose one teacher, then mark slots that teacher should not teach.</div>
+            <div className="tt-title">
+              {t("ttTeacherAvailabilitySetup", "Teacher Availability Setup")}
+            </div>
+            <div className="tt-sub">
+              {t(
+                "ttTeacherAvailabilitySetupSub",
+                "Choose one teacher, then mark slots that teacher should not teach.",
+              )}
+            </div>
           </div>
           <select
             className="tt-select"
@@ -37,7 +46,9 @@ export function TeacherViews({
             onChange={(event) => setSelectedTeacherKey(event.target.value)}
           >
             {teacherDirectoryRows.map((teacher) => (
-              <option key={teacher.key} value={teacher.key}>{teacher.label}</option>
+              <option key={teacher.key} value={teacher.key}>
+                {teacher.label}
+              </option>
             ))}
           </select>
         </div>
@@ -45,15 +56,28 @@ export function TeacherViews({
         {selectedTeacherRow ? (
           <>
             <div className="tt-helper">
-              {selectedTeacherRow.label} currently has {selectedTeacherRow.unavailableCount} blocked slot{selectedTeacherRow.unavailableCount === 1 ? "" : "s"}.
+              {t(
+                "ttTeacherBlockedSlots",
+                "{name} currently has {count} blocked slot{suffix}.",
+                {
+                  name: selectedTeacherRow.label,
+                  count: selectedTeacherRow.unavailableCount,
+                  suffix: selectedTeacherRow.unavailableCount === 1 ? "" : "s",
+                },
+              )}
             </div>
             <div className="tt-table-wrap">
               <table className="tt-compact-table">
                 <thead>
                   <tr>
-                    <th className="tt-head-cell">Time</th>
+                    <th className="tt-head-cell">{t("ttTime", "Time")}</th>
                     {days.map((day) => (
-                      <th key={`availability-${day.id}`} className="tt-head-cell">{day.shortLabel || day.label}</th>
+                      <th
+                        key={`availability-${day.id}`}
+                        className="tt-head-cell"
+                      >
+                        {day.shortLabel || day.label}
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -63,7 +87,8 @@ export function TeacherViews({
                       <td className="tt-axis-cell">{slotRange(period)}</td>
                       {days.map((day) => {
                         const slotKey = buildSlotKey(day.id, period.id);
-                        const active = selectedTeacherUnavailable.includes(slotKey);
+                        const active =
+                          selectedTeacherUnavailable.includes(slotKey);
                         return (
                           <td key={slotKey} className="tt-body-cell">
                             {isSharedTimetablePeriod(period) ? (
@@ -77,10 +102,14 @@ export function TeacherViews({
                                   color: active ? "#991b1b" : "#0f172a",
                                   borderColor: active ? "#fca5a5" : "#c7d4e4",
                                 }}
-                                onClick={() => toggleTeacherUnavailableSlot(slotKey)}
+                                onClick={() =>
+                                  toggleTeacherUnavailableSlot(slotKey)
+                                }
                                 disabled={!canEditGlobal}
                               >
-                                {active ? "Unavailable" : "Available"}
+                                {active
+                                  ? t("ttUnavailable", "Unavailable")
+                                  : t("ttAvailable", "Available")}
                               </button>
                             )}
                           </td>
@@ -93,14 +122,23 @@ export function TeacherViews({
             </div>
           </>
         ) : (
-          <div className="tt-okay-box">No teacher selected.</div>
+          <div className="tt-okay-box">
+            {t("ttNoTeacherSelected", "No teacher selected.")}
+          </div>
         )}
       </section>
 
       <section className="tt-section">
         <div className="tt-title-block">
-          <div className="tt-title">Teacher Timetable View</div>
-          <div className="tt-sub">Read-only weekly view for the selected teacher.</div>
+          <div className="tt-title">
+            {t("ttTeacherTimetableView", "Teacher Timetable View")}
+          </div>
+          <div className="tt-sub">
+            {t(
+              "ttTeacherTimetableViewSub",
+              "Read-only weekly view for the selected teacher.",
+            )}
+          </div>
         </div>
 
         {selectedTeacherRow ? (
@@ -108,39 +146,60 @@ export function TeacherViews({
             <table className="tt-compact-table">
               <thead>
                 <tr>
-                  <th className="tt-head-cell">Day</th>
-                  <th className="tt-head-cell">Time</th>
-                  <th className="tt-head-cell">Assignment</th>
+                  <th className="tt-head-cell">{t("ttDay", "Day")}</th>
+                  <th className="tt-head-cell">{t("ttTime", "Time")}</th>
+                  <th className="tt-head-cell">
+                    {t("ttAssignment", "Assignment")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {selectedTeacherSchedule.flatMap((day) =>
                   day.slots.map((slot, index) => {
-                    const unavailable = selectedTeacherUnavailable.includes(slot.slotKey);
+                    const unavailable = selectedTeacherUnavailable.includes(
+                      slot.slotKey,
+                    );
                     return (
                       <tr key={`${day.id}-${slot.slotKey}`}>
                         {index === 0 ? (
-                          <td className="tt-axis-cell" rowSpan={day.slots.length}>{day.label}</td>
+                          <td
+                            className="tt-axis-cell"
+                            rowSpan={day.slots.length}
+                          >
+                            {day.label}
+                          </td>
                         ) : null}
-                        <td className="tt-axis-cell">{slotRange(slot.period)}</td>
+                        <td className="tt-axis-cell">
+                          {slotRange(slot.period)}
+                        </td>
                         <td className="tt-body-cell">
                           {isSharedTimetablePeriod(slot.period)
                             ? slot.period.label
                             : slot.entries.length
-                            ? slot.entries.map((entry) => `${entry.classLabel}: ${entry.subject}${entry.room ? ` | ${entry.room}` : ""}`).join(" / ")
-                            : unavailable
-                            ? "Unavailable"
-                            : "Free"}
+                              ? slot.entries
+                                  .map(
+                                    (entry) =>
+                                      `${entry.classLabel}: ${entry.subject}${entry.room ? ` | ${entry.room}` : ""}`,
+                                  )
+                                  .join(" / ")
+                              : unavailable
+                                ? t("ttUnavailable", "Unavailable")
+                                : t("ttFree", "Free")}
                         </td>
                       </tr>
                     );
-                  })
+                  }),
                 )}
               </tbody>
             </table>
           </div>
         ) : (
-          <div className="tt-okay-box">Choose a teacher to inspect the weekly timetable.</div>
+          <div className="tt-okay-box">
+            {t(
+              "ttChooseTeacherInspect",
+              "Choose a teacher to inspect the weekly timetable.",
+            )}
+          </div>
         )}
       </section>
     </div>
