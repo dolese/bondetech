@@ -199,6 +199,11 @@ export function AccountPage({
   const { isXs, isMobile, isTablet } = useViewport();
   const singleColumn = isMobile;
   const stackedColumns = isMobile || isTablet;
+  const managedCardsColumns = singleColumn
+    ? "1fr"
+    : isTablet
+    ? "repeat(2, minmax(0, 1fr))"
+    : "repeat(auto-fill, minmax(320px, 1fr))";
   const [activeTab, setActiveTab] = useState("profile");
   const [form, setForm] = useState({
     username: "",
@@ -974,20 +979,21 @@ export function AccountPage({
               Showing {managedUserCards.length} of {users.length} users
             </div>
 
-            <div style={{ display: "grid", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: managedCardsColumns, gap: 14, alignItems: "start" }}>
               {managedUserCards.map((managedUser) => {
                 const edit = editingUsers[managedUser.username] || blankManagedUser();
                 return (
                   <div
                     key={managedUser.username}
                     style={{
-                      ...softGlassStyle,
-                      borderRadius: 14,
-                      padding: isMobile ? 14 : 18,
-                      display: "grid",
-                      gap: 14,
-                    }}
-                  >
+                       ...softGlassStyle,
+                       borderRadius: 14,
+                       padding: isMobile ? 14 : 18,
+                       display: "grid",
+                       gap: 14,
+                       width: "100%",
+                     }}
+                   >
                     {/* Card header with avatar + badges */}
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                       <div
