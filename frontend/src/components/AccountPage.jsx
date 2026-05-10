@@ -693,7 +693,7 @@ export function AccountPage({
             backdropFilter: "blur(14px)",
             WebkitBackdropFilter: "blur(14px)",
             scrollSnapType: isMobile ? "x proximity" : "none",
-            overscrollBehaviorX: "contain",
+            overscrollBehaviorX: isMobile ? "contain" : "auto",
             scrollbarWidth: "thin",
             scrollbarColor: "#d0dcf8 transparent",
           }}

@@ -329,7 +329,7 @@ export function UserGuideModal({
                 overflowX: "auto",
                 paddingBottom: isMobile ? 8 : 0,
                 scrollSnapType: isMobile ? "x proximity" : "none",
-                overscrollBehaviorX: "contain",
+                overscrollBehaviorX: isMobile ? "contain" : "auto",
               }}
             >
               {filteredSections.map((section) => {
