@@ -986,13 +986,13 @@ export function AccountPage({
                   <div
                     key={managedUser.username}
                     style={{
-                       ...softGlassStyle,
-                       borderRadius: 14,
-                       padding: isMobile ? 14 : 18,
-                       display: "grid",
-                       gap: 14,
-                     }}
-                   >
+                      ...softGlassStyle,
+                      borderRadius: 14,
+                      padding: isMobile ? 14 : 18,
+                      display: "grid",
+                      gap: 14,
+                    }}
+                  >
                     {/* Card header with avatar + badges */}
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                       <div
