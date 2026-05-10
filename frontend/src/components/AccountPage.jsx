@@ -563,7 +563,11 @@ export function AccountPage({
     <div
       style={{
         flex: 1,
-        padding: isXs ? 10 : isMobile ? 14 : 24,
+        padding: isXs
+          ? "max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom))"
+          : isMobile
+          ? "max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom))"
+          : 24,
         background: "radial-gradient(circle at top left, rgba(191,219,254,0.32), transparent 24%), radial-gradient(circle at top right, rgba(167,243,208,0.24), transparent 22%), linear-gradient(180deg, #f6f9fd 0%, #edf4fb 100%)",
         overflowY: "auto",
       }}
@@ -688,7 +692,8 @@ export function AccountPage({
             boxShadow: "0 10px 26px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,0.82)",
             backdropFilter: "blur(14px)",
             WebkitBackdropFilter: "blur(14px)",
-            WebkitOverflowScrolling: "touch",
+            scrollSnapType: isMobile ? "x proximity" : "none",
+            overscrollBehaviorX: "contain",
             scrollbarWidth: "thin",
             scrollbarColor: "#d0dcf8 transparent",
           }}
@@ -712,11 +717,13 @@ export function AccountPage({
                   background: active ? "linear-gradient(135deg, #0f2d6e, #2563eb)" : "transparent",
                   color: active ? "#fff" : "#52627a",
                   boxShadow: active ? "0 6px 16px rgba(37,99,235,0.22)" : "none",
-                  transition: "background 0.18s, color 0.18s",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                }}
-              >
+                   transition: "background 0.18s, color 0.18s",
+                   whiteSpace: "nowrap",
+                   flexShrink: 0,
+                   minHeight: isMobile ? 44 : "auto",
+                   scrollSnapAlign: isMobile ? "start" : "none",
+                 }}
+               >
                 {tab.label}
                 {tab.badge != null && (
                   <span
@@ -1038,7 +1045,7 @@ export function AccountPage({
                     </div>
 
                     <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? 8 : 18 }}>
-                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: isXs ? 12 : 13, color: "#425466", fontWeight: 600, cursor: "pointer", flex: isMobile ? "1 1 auto" : "none" }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: isXs ? 12 : 13, color: "#425466", fontWeight: 600, cursor: "pointer", flex: isXs ? "1 1 100%" : isMobile ? "1 1 auto" : "none" }}>
                         <ToggleSwitch
                           checked={edit.active}
                           onChange={(val) => updateManagedField(managedUser.username, "active", val)}
@@ -1046,7 +1053,7 @@ export function AccountPage({
                         />
                         User can sign in
                       </label>
-                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: isXs ? 12 : 13, color: "#425466", fontWeight: 600, cursor: "pointer", flex: isMobile ? "1 1 auto" : "none" }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: isXs ? 12 : 13, color: "#425466", fontWeight: 600, cursor: "pointer", flex: isXs ? "1 1 100%" : isMobile ? "1 1 auto" : "none" }}>
                         <ToggleSwitch
                           checked={edit.mustChangePassword}
                           onChange={(val) => updateManagedField(managedUser.username, "mustChangePassword", val)}
@@ -1056,7 +1063,7 @@ export function AccountPage({
                       </label>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "auto auto auto", gap: 8, justifyContent: isMobile ? "stretch" : "start" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isXs ? "1fr" : isMobile ? "1fr 1fr" : "auto auto auto", gap: 8, justifyContent: isMobile ? "stretch" : "start" }}>
                       <button
                         onClick={() => handleSaveManagedUser(managedUser.username)}
                         style={{
@@ -1098,7 +1105,7 @@ export function AccountPage({
                           fontSize: 13,
                           fontWeight: 800,
                           cursor: "pointer",
-                          gridColumn: isMobile ? "1 / -1" : "auto",
+                          gridColumn: isXs ? "auto" : isMobile ? "1 / -1" : "auto",
                         }}
                       >
                         {edit.active ? "Deactivate" : "Reactivate"}
