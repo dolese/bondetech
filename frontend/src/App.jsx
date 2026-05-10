@@ -21,6 +21,7 @@ import { AppTopBar } from "./components/AppTopBar";
 import { DeleteClassDialog } from "./components/DeleteClassDialog";
 import { CommandPalette } from "./components/CommandPalette";
 import { OnboardingTour } from "./components/OnboardingTour";
+import { UserGuideModal } from "./components/UserGuideModal";
 import { useSession } from "./hooks/useSession";
 import { CLASS_FORMS, useClasses } from "./hooks/useClasses";
 import { API } from "./api";
@@ -108,6 +109,7 @@ export default function App() {
   const [searchProfileIndexNo, setSearchProfileIndexNo] = useState(null);
   const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [showUserGuide, setShowUserGuide] = useState(false);
   const { isMobile } = useViewport();
   const topBarHeight = isMobile ? 64 : 78;
 
@@ -458,6 +460,8 @@ export default function App() {
           onToggleSidebar={() => setSideOpen((prev) => !prev)}
           onOpenSidebar={() => setSideOpen(true)}
           onOpenAccount={() => setPage("account")}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          onOpenUserGuide={() => setShowUserGuide(true)}
           onLogout={handleLogout}
         />
 
@@ -728,6 +732,27 @@ export default function App() {
 
       {loggedIn && currentUser && (
         <OnboardingTour role={currentUser.role} />
+      )}
+
+      {showUserGuide && (
+        <UserGuideModal
+          onClose={() => setShowUserGuide(false)}
+          role={role}
+          canAccessClassData={canAccessClassData}
+          canManageUsers={canManageUsers}
+          canViewSettings={canViewSettings}
+          hasActiveClass={Boolean(activeClass)}
+          activeClassLabel={[activeClass?.form, activeClass?.year].filter(Boolean).join(" ")}
+          onNavigate={(nextPage) => {
+            if (!nextPage) return;
+            setShowUserGuide(false);
+            setPage(nextPage);
+          }}
+          onOpenSearch={() => {
+            setShowUserGuide(false);
+            setIsCommandPaletteOpen(true);
+          }}
+        />
       )}
 
     </div>

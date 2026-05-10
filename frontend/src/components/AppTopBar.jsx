@@ -73,6 +73,16 @@ function LogoutIcon() {
   );
 }
 
+function HelpIcon() {
+  return (
+    <SvgIcon width={20} height={20}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <path d="M12 17h.01" />
+    </SvgIcon>
+  );
+}
+
 export function AppTopBar({
   isMobile,
   currentUser,
@@ -83,7 +93,9 @@ export function AppTopBar({
   onToggleSidebar,
   onOpenSidebar,
   onOpenAccount,
+  onOpenCommandPalette,
   onLogout,
+  onOpenUserGuide,
 }) {
   const failedCount = useMemo(
     () => authLogs.filter((log) => log.status === "failed").length,
@@ -175,7 +187,8 @@ export function AppTopBar({
             {topBarLabel}
           </button>
         ) : (
-          <div
+          <button
+            onClick={onOpenCommandPalette}
             style={{
               display: "grid",
               gridTemplateColumns: "1fr auto",
@@ -188,7 +201,11 @@ export function AppTopBar({
               backdropFilter: "blur(18px)",
               WebkitBackdropFilter: "blur(18px)",
               padding: "13px 18px",
+              cursor: "pointer",
+              width: "100%",
+              textAlign: "left",
             }}
+            title="Open search"
           >
             <div style={{ color: "#64748b", fontSize: 15 }}>
               Search students, results, users...
@@ -205,10 +222,10 @@ export function AppTopBar({
                 alignItems: "center",
                 justifyContent: "center",
               }}
-            >
-              <SearchIcon />
-            </div>
-          </div>
+              >
+                <SearchIcon />
+              </div>
+          </button>
         )}
 
         <div
@@ -219,6 +236,23 @@ export function AppTopBar({
             justifyContent: "flex-end",
           }}
         >
+          <button
+            onClick={onOpenUserGuide}
+            style={{
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+              color: "#475569",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 4,
+            }}
+            title="User Guide"
+          >
+            <HelpIcon />
+          </button>
+
           <LanguageToggle compact={!isMobile} />
 
           {!isMobile && (
