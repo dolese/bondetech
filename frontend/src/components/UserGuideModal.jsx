@@ -286,7 +286,9 @@ export function UserGuideModal({
         >
           <div
             style={{
-              padding: isMobile ? "18px 16px 14px" : "24px 20px 16px",
+              padding: isMobile
+                ? "max(18px, env(safe-area-inset-top)) 16px 14px"
+                : "24px 20px 16px",
               position: "sticky",
               top: 0,
               zIndex: 2,
@@ -326,6 +328,8 @@ export function UserGuideModal({
                 gap: isMobile ? 8 : 4,
                 overflowX: "auto",
                 paddingBottom: isMobile ? 8 : 0,
+                scrollSnapType: isMobile ? "x proximity" : "none",
+                overscrollBehaviorX: isMobile ? "contain" : "auto",
               }}
             >
               {filteredSections.map((section) => {
@@ -338,8 +342,8 @@ export function UserGuideModal({
                       display: "flex",
                       alignItems: "center",
                       gap: 12,
-                      width: "100%",
-                      padding: "12px 16px",
+                      width: isMobile ? "auto" : "100%",
+                      padding: isMobile ? "12px 14px" : "12px 16px",
                       border: "none",
                       background: isActive ? "#eff6ff" : "transparent",
                       color: isActive ? "#1d4ed8" : "#475569",
@@ -351,7 +355,9 @@ export function UserGuideModal({
                       transition: "all 0.2s",
                       whiteSpace: isMobile ? "nowrap" : "normal",
                       minWidth: isMobile ? 176 : "100%",
+                      minHeight: isMobile ? 44 : "auto",
                       flexShrink: 0,
+                      scrollSnapAlign: isMobile ? "start" : "none",
                     }}
                   >
                     <span
@@ -393,7 +399,9 @@ export function UserGuideModal({
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
           <div
             style={{
-              padding: isMobile ? "18px 16px" : "24px 32px",
+              padding: isMobile
+                ? "max(18px, env(safe-area-inset-top)) 16px 18px"
+                : "24px 32px",
               borderBottom: "1px solid #e2e8f0",
               display: "flex",
               justifyContent: "space-between",
@@ -472,7 +480,9 @@ export function UserGuideModal({
           <div
             style={{
               flex: 1,
-              padding: isMobile ? "18px 16px 24px" : "28px 32px 32px",
+              padding: isMobile
+                ? "18px 16px max(24px, env(safe-area-inset-bottom))"
+                : "28px 32px 32px",
               overflowY: "auto",
               fontSize: isMobile ? 14 : 15,
               color: "#334155",
