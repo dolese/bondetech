@@ -991,7 +991,6 @@ export function AccountPage({
                        padding: isMobile ? 14 : 18,
                        display: "grid",
                        gap: 14,
-                       width: "100%",
                      }}
                    >
                     {/* Card header with avatar + badges */}
