@@ -28,13 +28,25 @@ export function TimetableGrid({
     <>
       <section className="tt-section">
         <div className="tt-title-block">
-          <div className="tt-title">{t("ttClassSubjectSetup", "{classLabel} Subject Setup", { classLabel: activeClassLabel || t("ttClass", "Class") })}</div>
-          <div className="tt-sub">{t("ttClassSubjectSetupSub", "Set the subjects, target periods, preferred teacher, and room for this class.")}</div>
+          <div className="tt-title">
+            {t("ttClassSubjectSetup", "{classLabel} Subject Setup", {
+              classLabel: activeClassLabel || t("ttClass", "Class"),
+            })}
+          </div>
+          <div className="tt-sub">
+            {t(
+              "ttClassSubjectSetupSub",
+              "Set the subjects, target periods, preferred teacher, and room for this class.",
+            )}
+          </div>
         </div>
 
         <datalist id={teacherSuggestionId}>
           {teacherSuggestions.map((teacher) => (
-            <option key={`${teacher.key}-${teacher.value}`} value={teacher.label || teacher.value} />
+            <option
+              key={`${teacher.key}-${teacher.value}`}
+              value={teacher.label || teacher.value}
+            />
           ))}
         </datalist>
         <datalist id={roomSuggestionId}>
@@ -47,16 +59,24 @@ export function TimetableGrid({
           <table className="tt-table">
             <thead>
               <tr>
-                <th className="tt-head-cell">{t("analysisSubject", "Subject")}</th>
-                <th className="tt-head-cell">{t("ttTargetPerWeek", "Target / Week")}</th>
+                <th className="tt-head-cell">
+                  {t("analysisSubject", "Subject")}
+                </th>
+                <th className="tt-head-cell">
+                  {t("ttTargetPerWeek", "Target / Week")}
+                </th>
                 <th className="tt-head-cell">{t("ttAssigned", "Assigned")}</th>
-                <th className="tt-head-cell">{t("ttPreferredTeacher", "Preferred Teacher")}</th>
+                <th className="tt-head-cell">
+                  {t("ttPreferredTeacher", "Preferred Teacher")}
+                </th>
                 <th className="tt-head-cell">{t("ttRoom", "Room")}</th>
               </tr>
             </thead>
             <tbody>
               {(classTimetable.subjectTargets || []).map((target) => {
-                const summary = subjectLoadSummary.find((item) => item.subject === target.subject);
+                const summary = subjectLoadSummary.find(
+                  (item) => item.subject === target.subject,
+                );
                 return (
                   <tr key={target.subject}>
                     <td className="tt-body-cell">
@@ -68,7 +88,13 @@ export function TimetableGrid({
                         min="0"
                         className="tt-input"
                         value={target.periodsPerWeek}
-                        onChange={(event) => updateSubjectTarget(target.subject, "periodsPerWeek", event.target.value)}
+                        onChange={(event) =>
+                          updateSubjectTarget(
+                            target.subject,
+                            "periodsPerWeek",
+                            event.target.value,
+                          )
+                        }
                         disabled={!canEditClass}
                       />
                     </td>
@@ -76,7 +102,9 @@ export function TimetableGrid({
                       {summary?.assigned || 0}
                       {summary?.target > summary?.assigned ? (
                         <div style={{ fontSize: 11, color: "#b45309" }}>
-                          {t("ttNeedMore", "Need {count} more", { count: summary.target - summary.assigned })}
+                          {t("ttNeedMore", "Need {count} more", {
+                            count: summary.target - summary.assigned,
+                          })}
                         </div>
                       ) : null}
                     </td>
@@ -85,7 +113,13 @@ export function TimetableGrid({
                         className="tt-input"
                         list={teacherSuggestionId}
                         value={target.teacherName}
-                        onChange={(event) => updateSubjectTarget(target.subject, "teacherName", event.target.value)}
+                        onChange={(event) =>
+                          updateSubjectTarget(
+                            target.subject,
+                            "teacherName",
+                            event.target.value,
+                          )
+                        }
                         disabled={!canEditClass}
                       />
                     </td>
@@ -94,7 +128,13 @@ export function TimetableGrid({
                         className="tt-input"
                         value={target.room}
                         list={roomSuggestionId}
-                        onChange={(event) => updateSubjectTarget(target.subject, "room", event.target.value)}
+                        onChange={(event) =>
+                          updateSubjectTarget(
+                            target.subject,
+                            "room",
+                            event.target.value,
+                          )
+                        }
                         disabled={!canEditClass}
                       />
                     </td>
@@ -108,8 +148,17 @@ export function TimetableGrid({
 
       <section className="tt-section">
         <div className="tt-title-block">
-          <div className="tt-title">{t("ttClassTimetableEditor", "{classLabel} Timetable Editor", { classLabel: activeClassLabel || t("ttClass", "Class") })}</div>
-          <div className="tt-sub">{t("ttClassTimetableEditorSub", "Use the clean day tables below to assign subject, teacher, and room for this class.")}</div>
+          <div className="tt-title">
+            {t("ttClassTimetableEditor", "{classLabel} Timetable Editor", {
+              classLabel: activeClassLabel || t("ttClass", "Class"),
+            })}
+          </div>
+          <div className="tt-sub">
+            {t(
+              "ttClassTimetableEditorSub",
+              "Use the clean day tables below to assign subject, teacher, and room for this class.",
+            )}
+          </div>
         </div>
 
         <div className="tt-stack">
@@ -118,12 +167,18 @@ export function TimetableGrid({
               <table className="tt-compact-table">
                 <thead>
                   <tr>
-                    <th className="tt-head-cell" colSpan={4}>{day.label}</th>
+                    <th className="tt-head-cell" colSpan={4}>
+                      {day.label}
+                    </th>
                   </tr>
                   <tr>
                     <th className="tt-head-cell">{t("ttTime", "Time")}</th>
-                    <th className="tt-head-cell">{t("ttSubjectActivity", "Subject / Activity")}</th>
-                    <th className="tt-head-cell">{t("ttTeacher", "Teacher")}</th>
+                    <th className="tt-head-cell">
+                      {t("ttSubjectActivity", "Subject / Activity")}
+                    </th>
+                    <th className="tt-head-cell">
+                      {t("ttTeacher", "Teacher")}
+                    </th>
                     <th className="tt-head-cell">{t("ttRoom", "Room")}</th>
                   </tr>
                 </thead>
@@ -142,7 +197,10 @@ export function TimetableGrid({
                       return (
                         <tr key={slotKey}>
                           <td className="tt-axis-cell">{slotRange(period)}</td>
-                          <td className="tt-shared-cell" colSpan={3}>{period.label || t("ttTypeSharedActivity", "Shared Activity")}</td>
+                          <td className="tt-shared-cell" colSpan={3}>
+                            {period.label ||
+                              t("ttTypeSharedActivity", "Shared Activity")}
+                          </td>
                         </tr>
                       );
                     }
@@ -154,12 +212,22 @@ export function TimetableGrid({
                           <select
                             className="tt-select"
                             value={entry.subject}
-                            onChange={(event) => updateClassEntry(slotKey, "subject", event.target.value)}
+                            onChange={(event) =>
+                              updateClassEntry(
+                                slotKey,
+                                "subject",
+                                event.target.value,
+                              )
+                            }
                             disabled={!canEditClass}
                           >
-                            <option value="">{t("ttSelectSubject", "Select subject")}</option>
+                            <option value="">
+                              {t("ttSelectSubject", "Select subject")}
+                            </option>
                             {(classData?.subjects || []).map((subject) => (
-                              <option key={subject} value={subject}>{subject}</option>
+                              <option key={subject} value={subject}>
+                                {subject}
+                              </option>
                             ))}
                           </select>
                         </td>
@@ -168,7 +236,13 @@ export function TimetableGrid({
                             className="tt-input"
                             list={teacherSuggestionId}
                             value={entry.teacherName}
-                            onChange={(event) => updateClassEntry(slotKey, "teacherName", event.target.value)}
+                            onChange={(event) =>
+                              updateClassEntry(
+                                slotKey,
+                                "teacherName",
+                                event.target.value,
+                              )
+                            }
                             disabled={!canEditClass}
                           />
                         </td>
@@ -177,7 +251,13 @@ export function TimetableGrid({
                             className="tt-input"
                             value={entry.room}
                             list={roomSuggestionId}
-                            onChange={(event) => updateClassEntry(slotKey, "room", event.target.value)}
+                            onChange={(event) =>
+                              updateClassEntry(
+                                slotKey,
+                                "room",
+                                event.target.value,
+                              )
+                            }
                             disabled={!canEditClass}
                           />
                         </td>

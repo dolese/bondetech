@@ -18,19 +18,28 @@ export function MasterTimetable({ masterRows, periods }) {
   return (
     <section className="tt-section">
       <div className="tt-title-block">
-        <div className="tt-title">{t("ttSchoolGeneralTimetable", "School General Timetable")}</div>
-        <div className="tt-sub">{t("ttSchoolGeneralTimetableSub", "Master table grouped by day, form, and stream using the same school-wide structure.")}</div>
+        <div className="tt-title">
+          {t("ttSchoolGeneralTimetable", "School General Timetable")}
+        </div>
+        <div className="tt-sub">
+          {t(
+            "ttSchoolGeneralTimetableSub",
+            "Master table grouped by day, form, and stream using the same school-wide structure.",
+          )}
+        </div>
       </div>
 
       <div className="tt-table-wrap">
         <table className="tt-table">
           <thead>
             <tr>
-                <th className="tt-head-cell">{t("ttDay", "Day")}</th>
-                <th className="tt-head-cell">{t("settingsForm", "Form")}</th>
-                <th className="tt-head-cell">{t("ttStream", "Stream")}</th>
+              <th className="tt-head-cell">{t("ttDay", "Day")}</th>
+              <th className="tt-head-cell">{t("settingsForm", "Form")}</th>
+              <th className="tt-head-cell">{t("ttStream", "Stream")}</th>
               {periods.map((period) => (
-                <th key={`head-${period.id}`} className="tt-head-cell">{slotRange(period)}</th>
+                <th key={`head-${period.id}`} className="tt-head-cell">
+                  {slotRange(period)}
+                </th>
               ))}
             </tr>
           </thead>
@@ -41,7 +50,8 @@ export function MasterTimetable({ masterRows, periods }) {
               let remainingFormRows = 0;
               return day.classes.map((cls, index) => {
                 const firstDayRow = !dayRendered;
-                const firstFormRow = cls.form !== previousForm || remainingFormRows <= 0;
+                const firstFormRow =
+                  cls.form !== previousForm || remainingFormRows <= 0;
                 if (firstFormRow) {
                   previousForm = cls.form;
                   remainingFormRows = day.formCounts[cls.form] || 1;
@@ -52,10 +62,17 @@ export function MasterTimetable({ masterRows, periods }) {
                 return (
                   <tr key={`${day.id}-${cls.id || index}`}>
                     {firstDayRow ? (
-                      <td className="tt-axis-cell" rowSpan={day.rowCount}>{day.label}</td>
+                      <td className="tt-axis-cell" rowSpan={day.rowCount}>
+                        {day.label}
+                      </td>
                     ) : null}
                     {firstFormRow ? (
-                      <td className="tt-axis-cell" rowSpan={day.formCounts[cls.form] || 1}>{tableCellText(cls.form)}</td>
+                      <td
+                        className="tt-axis-cell"
+                        rowSpan={day.formCounts[cls.form] || 1}
+                      >
+                        {tableCellText(cls.form)}
+                      </td>
                     ) : null}
                     <td className="tt-axis-cell">{tableCellText(cls.year)}</td>
                     {periods.map((period) => {
@@ -63,22 +80,38 @@ export function MasterTimetable({ masterRows, periods }) {
                       if (isSharedTimetablePeriod(period)) {
                         if (!firstDayRow) return null;
                         return (
-                          <td key={`${day.id}-${period.id}`} className="tt-shared-cell" rowSpan={day.rowCount}>
+                          <td
+                            key={`${day.id}-${period.id}`}
+                            className="tt-shared-cell"
+                            rowSpan={day.rowCount}
+                          >
                             {tableCellText(period.label)}
                           </td>
                         );
                       }
                       const entry = cls.entries?.[slotKey];
                       return (
-                        <td key={`${cls.id}-${slotKey}`} className="tt-body-cell">
+                        <td
+                          key={`${cls.id}-${slotKey}`}
+                          className="tt-body-cell"
+                        >
                           {entry?.subject ? (
                             <>
-                              <div style={{ fontWeight: 800 }}>{entry.subject}</div>
+                              <div style={{ fontWeight: 800 }}>
+                                {entry.subject}
+                              </div>
                               <div className="tt-note">
-                                {[entry.teacherName || entry.teacherUsername, entry.room].filter(Boolean).join(" | ")}
+                                {[
+                                  entry.teacherName || entry.teacherUsername,
+                                  entry.room,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" | ")}
                               </div>
                             </>
-                          ) : "-"}
+                          ) : (
+                            "-"
+                          )}
                         </td>
                       );
                     })}
