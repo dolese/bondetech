@@ -692,6 +692,7 @@ export function AccountPage({
             boxShadow: "0 10px 26px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,0.82)",
             backdropFilter: "blur(14px)",
             WebkitBackdropFilter: "blur(14px)",
+            WebkitOverflowScrolling: isMobile ? "touch" : "auto",
             scrollSnapType: isMobile ? "x proximity" : "none",
             overscrollBehaviorX: isMobile ? "contain" : "auto",
             scrollbarWidth: "thin",
