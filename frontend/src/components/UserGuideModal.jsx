@@ -329,7 +329,6 @@ export function UserGuideModal({
                 overflowX: "auto",
                 paddingBottom: isMobile ? 8 : 0,
                 scrollSnapType: isMobile ? "x proximity" : "none",
-                WebkitOverflowScrolling: "touch",
                 overscrollBehaviorX: "contain",
               }}
             >
