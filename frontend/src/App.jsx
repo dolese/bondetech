@@ -19,6 +19,8 @@ import { StudentProfilePage } from "./components/StudentProfilePage";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTopBar } from "./components/AppTopBar";
 import { DeleteClassDialog } from "./components/DeleteClassDialog";
+import { CommandPalette } from "./components/CommandPalette";
+import { OnboardingTour } from "./components/OnboardingTour";
 import { useSession } from "./hooks/useSession";
 import { CLASS_FORMS, useClasses } from "./hooks/useClasses";
 import { API } from "./api";
@@ -105,8 +107,20 @@ export default function App() {
   const [examPickerClass, setExamPickerClass] = useState(null);
   const [searchProfileIndexNo, setSearchProfileIndexNo] = useState(null);
   const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const { isMobile } = useViewport();
   const topBarHeight = isMobile ? 64 : 78;
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const showToast = useCallback((msg, type = "success") => {
     setToast({ msg, type });
@@ -692,12 +706,28 @@ export default function App() {
         />
       )}
 
-      {examPickerClass && (
+            {examPickerClass && (
         <ExamPickerScreen
           classData={examPickerClass}
           onPick={handleExamPickerSelect}
           onCancel={() => setExamPickerClass(null)}
         />
+      )}
+
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        classes={displayAllComputed}
+        users={managedUsers}
+        onSetPage={setPage}
+        onPickClass={(cls) => {
+          setActiveId(cls.id);
+          setPage('students');
+        }}
+      />
+
+      {loggedIn && currentUser && (
+        <OnboardingTour role={currentUser.role} />
       )}
 
     </div>
@@ -743,3 +773,4 @@ const S = {
   btnGray: { background: "#eee", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
   btnRed: { background: "#cc2222", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
 };
+

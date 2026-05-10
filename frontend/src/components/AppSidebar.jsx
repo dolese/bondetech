@@ -232,6 +232,7 @@ export function AppSidebar({
 
           <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: 2 }}>
             <button
+              id="nav-dashboard"
               onClick={() => {
                 onSetPage("dashboard");
                 onClose();
@@ -271,6 +272,7 @@ export function AppSidebar({
                 return (
                   <button
                     key={item.key}
+                    id={`nav-${item.key}`}
                     onClick={() => {
                       if (!disabled) {
                         onSetPage(item.key);
@@ -329,7 +331,7 @@ export function AppSidebar({
               CLASSES
             </div>
 
-            <div style={{ display: "grid", gap: 8 }}>
+            <div id="nav-classes-group" style={{ display: "grid", gap: 8 }}>
               {classesByYear.map(([year, yearClasses]) => (
                 <div
                   key={year}
