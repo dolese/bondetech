@@ -20,7 +20,7 @@ function withTimeout(promise, timeoutMs = EXPORT_TIMEOUT_MS) {
 }
 
 async function waitForFonts() {
-  if (!document.fonts?.ready) return;
+  if (!document.fonts || !document.fonts.ready) return;
   await withTimeout(document.fonts.ready).catch(() => {});
 }
 
@@ -38,7 +38,7 @@ async function waitForImages(element) {
             settled = true;
             resolve();
           };
-          if (image.complete && image.naturalWidth > 0) {
+          if (image.complete) {
             done();
             return;
           }

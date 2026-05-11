@@ -36,7 +36,7 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
           REPORT_CARD_PAPER_SIZE,
           0
         );
-        if (!cancelled && onClose) setTimeout(onClose, 0);
+        if (!cancelled && onClose) onClose();
       } catch (error) {
         console.error("Report card export failed:", error);
         if (!cancelled) {
