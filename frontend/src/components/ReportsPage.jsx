@@ -24,7 +24,7 @@ const TEMPLATE_OPTIONS = [
 const REPORT_CARD_PAPER_SIZE = "a4";
 const REPORT_CARD_ORIENTATION = "portrait";
 const PREVIEW_URL_CHECK_INTERVAL_MS = 1000;
-const PREVIEW_URL_MAX_LIFETIME_MS = 1800000;
+const PREVIEW_URL_MAX_LIFETIME_30_MIN_MS = 1800000;
 
 function getClassLabel(classData = {}) {
   const base = [classData.form, classData.stream].filter(Boolean).join(" ").trim();
@@ -355,7 +355,7 @@ export function ReportsPage({
         const openedAt = Date.now();
         const revokeWhenClosed = () => {
           if (!previewUrl) return;
-          const exceededLifetime = Date.now() - openedAt >= PREVIEW_URL_MAX_LIFETIME_MS;
+          const exceededLifetime = Date.now() - openedAt >= PREVIEW_URL_MAX_LIFETIME_30_MIN_MS;
           if (previewWindow.closed || exceededLifetime) {
             cleanupPreviewUrl();
             return;
@@ -365,7 +365,7 @@ export function ReportsPage({
         setTimeout(revokeWhenClosed, PREVIEW_URL_CHECK_INTERVAL_MS);
       }
     } catch (error) {
-      console.error("Bulk PDF preview failed:", error);
+      console.error("PDF preview failed:", error);
       setExportError(
         t(
           "reportsPdfExportFailed",
