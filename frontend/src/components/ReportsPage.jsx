@@ -237,11 +237,13 @@ export function ReportsPage({
         (classData.name || t("reportsClassFallback", "class"))
           .replace(/[^a-z0-9-_ ]/gi, "")
           .trim() || t("reportsClassFallback", "class");
+      const fileName = `${safeClass}-report-cards.pdf`;
       container = document.createElement("div");
       container.style.position = "fixed";
-      container.style.left = "-9999px";
+      container.style.left = "0";
       container.style.top = "0";
       container.style.pointerEvents = "none";
+      container.style.zIndex = "-1";
       container.style.width = "210mm";
       container.style.minHeight = "100vh";
       container.style.overflow = "visible";
@@ -262,32 +264,39 @@ export function ReportsPage({
                   justifyContent: "center",
                   alignItems: "flex-start",
                   background: "#fff",
+                  pageBreakInside: "avoid",
+                  breakInside: "avoid",
                   pageBreakAfter: index === present.length - 1 ? "auto" : "always",
                   breakAfter: index === present.length - 1 ? "auto" : "page",
                 }}
               >
-                <ReportCardPrint
-                  student={student}
-                  classData={classData}
-                  template={template}
-                  paperSize={REPORT_CARD_PAPER_SIZE}
-                  orientation={REPORT_CARD_ORIENTATION}
-                />
+                <div className="report-card-page">
+                  <ReportCardPrint
+                    student={student}
+                    classData={classData}
+                    template={template}
+                    paperSize={REPORT_CARD_PAPER_SIZE}
+                    orientation={REPORT_CARD_ORIENTATION}
+                  />
+                </div>
               </div>
             ))}
           </div>,
         );
       });
       const exportNode = container.firstChild;
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
       validatePdfExportElement(exportNode);
       const blob = await exportElementToPdfBlob(exportNode, {
-        fileName: `${safeClass}-report-cards.pdf`,
+        fileName,
         format: REPORT_CARD_PAPER_SIZE,
         orientation: REPORT_CARD_ORIENTATION,
         margin: 0,
         pagebreak: { mode: ["css", "legacy"] },
       });
-      saveAs(blob, `${safeClass}-report-cards.pdf`);
+      saveAs(blob, fileName);
     } catch (error) {
       console.error("Bulk PDF export failed:", error);
       setExportError(
@@ -305,10 +314,100 @@ export function ReportsPage({
     }
   };
 
-  const previewPdf = () => {
-    const targetStudentId = selectedStudentId || present[0]?.id;
-    if (!targetStudentId) return;
-    onOpenReportCard(targetStudentId);
+  const previewPdf = async () => {
+    if (exportingZip || !present.length) return;
+    setExportingZip(true);
+    setExportError("");
+    let container = null;
+    let root = null;
+    let previewUrl = null;
+    try {
+      const safeClass =
+        (classData.name || t("reportsClassFallback", "class"))
+          .replace(/[^a-z0-9-_ ]/gi, "")
+          .trim() || t("reportsClassFallback", "class");
+      const fileName = `${safeClass}-report-cards.pdf`;
+      container = document.createElement("div");
+      container.style.position = "fixed";
+      container.style.left = "0";
+      container.style.top = "0";
+      container.style.pointerEvents = "none";
+      container.style.zIndex = "-1";
+      container.style.width = "210mm";
+      container.style.minHeight = "100vh";
+      container.style.overflow = "visible";
+      container.style.background = "#fff";
+      document.body.appendChild(container);
+      root = createRoot(container);
+
+      flushSync(() => {
+        root.render(
+          <div style={{ width: "210mm", background: "#fff" }}>
+            {present.map((student, index) => (
+              <div
+                key={student.id}
+                style={{
+                  width: "210mm",
+                  minHeight: "297mm",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "flex-start",
+                  background: "#fff",
+                  pageBreakInside: "avoid",
+                  breakInside: "avoid",
+                  pageBreakAfter: index === present.length - 1 ? "auto" : "always",
+                  breakAfter: index === present.length - 1 ? "auto" : "page",
+                }}
+              >
+                <div className="report-card-page">
+                  <ReportCardPrint
+                    student={student}
+                    classData={classData}
+                    template={template}
+                    paperSize={REPORT_CARD_PAPER_SIZE}
+                    orientation={REPORT_CARD_ORIENTATION}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>,
+        );
+      });
+      const exportNode = container.firstChild;
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
+      validatePdfExportElement(exportNode);
+      const blob = await exportElementToPdfBlob(exportNode, {
+        fileName,
+        format: REPORT_CARD_PAPER_SIZE,
+        orientation: REPORT_CARD_ORIENTATION,
+        margin: 0,
+        pagebreak: { mode: ["css", "legacy"] },
+      });
+      previewUrl = URL.createObjectURL(blob);
+      const previewWindow = window.open(previewUrl, "_blank", "noopener,noreferrer");
+      if (!previewWindow) {
+        saveAs(blob, fileName);
+      } else {
+        setTimeout(() => URL.revokeObjectURL(previewUrl), 60000);
+      }
+    } catch (error) {
+      console.error("Bulk PDF preview failed:", error);
+      setExportError(
+        t(
+          "reportsPdfExportFailed",
+          "PDF export failed. Please check internet/images and try again.",
+        ),
+      );
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    } finally {
+      if (root) root.unmount();
+      if (container?.parentNode) {
+        container.parentNode.removeChild(container);
+      }
+      setExportingZip(false);
+    }
   };
 
   const currentAvg = averageOf(
