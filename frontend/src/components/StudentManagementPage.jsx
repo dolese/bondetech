@@ -66,6 +66,17 @@ export function StudentManagementPage({
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(makeEmptyForm());
 
+  const classOptions = useMemo(
+    () =>
+      [...classes]
+        .sort((left, right) => getClassLabel(left).localeCompare(getClassLabel(right), "en"))
+        .map((cls) => ({
+          id: cls.id,
+          label: getClassLabel(cls),
+        })),
+    [classes],
+  );
+
   const classGroupOptions = useMemo(() => {
     const groups = new Map();
     classes.forEach((cls) => {
