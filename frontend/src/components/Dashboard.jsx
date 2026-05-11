@@ -937,9 +937,8 @@ export function Dashboard({
             </select>
           </div>
 
-          <div style={{ overflowX: "auto" }}>
-            <div style={{ minWidth: compact ? 700 : 0 }}>
-              <svg viewBox="0 0 860 310" width="100%" height={dense ? 248 : compact ? 300 : 310} role="img" aria-label="Results overview chart">
+          <div style={{ width: "100%", overflow: "hidden" }}>
+              <svg viewBox="0 0 860 310" width="100%" height={dense ? 220 : compact ? 270 : 310} role="img" aria-label="Results overview chart">
                 <defs>
                   <linearGradient id="dashboardArea" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="rgba(14,165,233,0.22)" />
@@ -951,27 +950,26 @@ export function Dashboard({
                   return (
                     <g key={tick}>
                       <line x1="46" y1={y} x2="834" y2={y} stroke="rgba(148,163,184,0.22)" strokeDasharray="5 6" />
-                      <text x="0" y={y + 4} fill="#64748b" fontSize="14" fontWeight="700">
+                      <text x="0" y={y + 4} fill="#64748b" fontSize={dense ? "11" : "14"} fontWeight="700">
                         {tick}%
                       </text>
                     </g>
                   );
                 })}
                 {area && <path d={area} fill="url(#dashboardArea)" />}
-                {line && <path d={line} fill="none" stroke="#0f8b8d" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" />}
+                {line && <path d={line} fill="none" stroke="#0f8b8d" strokeWidth={dense ? "3" : "4"} strokeLinejoin="round" strokeLinecap="round" />}
                 {coords.map((point) => (
                   <g key={point.label}>
-                    <circle cx={point.x} cy={point.y} r="7" fill="#fff" stroke="#0f8b8d" strokeWidth="4" />
-                    <text x={point.x} y={point.y - 18} textAnchor="middle" fill="#0f172a" fontSize="15" fontWeight="900">
+                    <circle cx={point.x} cy={point.y} r={dense ? "5" : "7"} fill="#fff" stroke="#0f8b8d" strokeWidth={dense ? "3" : "4"} />
+                    <text x={point.x} y={point.y - (dense ? 12 : 18)} textAnchor="middle" fill="#0f172a" fontSize={dense ? "11" : "15"} fontWeight="900">
                       {point.value}%
                     </text>
-                    <text x={point.x} y="292" textAnchor="middle" fill="#334155" fontSize="16" fontWeight="700">
+                    <text x={point.x} y="292" textAnchor="middle" fill="#334155" fontSize={dense ? "11" : "16"} fontWeight="700">
                       {point.label}
                     </text>
                   </g>
                 ))}
               </svg>
-            </div>
           </div>
         </div>
 
@@ -1304,7 +1302,7 @@ export function Dashboard({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: isXs ? "1fr" : dense ? "minmax(0, 1fr) repeat(2, minmax(88px, auto))" : "minmax(0, 1fr) auto auto",
+                gridTemplateColumns: isXs ? "1fr" : dense ? "1fr" : "minmax(0, 1fr) auto auto",
                 gap: 10,
               }}
             >
@@ -1351,6 +1349,7 @@ export function Dashboard({
                   padding: "0 18px",
                   cursor: searching ? "wait" : "pointer",
                   minHeight: dense ? 44 : 50,
+                  width: isXs || dense ? "100%" : "auto",
                 }}
               >
                 {searching ? "Searching..." : "Search"}
@@ -1366,6 +1365,7 @@ export function Dashboard({
                   ...secondaryButtonStyle(),
                   padding: "0 16px",
                   minHeight: dense ? 44 : 50,
+                  width: isXs || dense ? "100%" : "auto",
                 }}
               >
                 Reset
@@ -1396,10 +1396,10 @@ export function Dashboard({
                       }}
                     >
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: dense ? "normal" : "nowrap" }}>
                           {student.name}
                         </div>
-                        <div style={{ marginTop: 5, fontSize: 13, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div style={{ marginTop: 5, fontSize: 13, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: dense ? "normal" : "nowrap", lineHeight: dense ? 1.45 : undefined }}>
                           {student.indexNo} | {student.className} | {student.form} {student.year}
                         </div>
                       </div>
