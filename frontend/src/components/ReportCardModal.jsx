@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { exportElementToPdf } from "../utils/pdfExport";
 import { ReportCardPrint } from "./ReportCardPrint";
+import { useI18n } from "../i18n";
 
 const TEMPLATE_OPTIONS = [
   { label: "Official", value: "official" },
@@ -12,6 +13,7 @@ const REPORT_CARD_ORIENTATION = "portrait";
 const REPORT_CARD_PREVIEW_WIDTH = 820;
 
 export function ReportCardModal({ student, classData, onClose, autoExport = false, silent = false }) {
+  const { t } = useI18n();
   const cardRef = useRef(null);
   const [template, setTemplate] = useState("official");
   const [exportingPdf, setExportingPdf] = useState(false);
@@ -38,7 +40,12 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
       } catch (error) {
         console.error("Report card export failed:", error);
         if (!cancelled) {
-          setExportError("PDF export failed. Please try again.");
+          setExportError(
+            t(
+              "reportsPdfExportFailed",
+              "PDF export failed. Please check internet/images and try again.",
+            ),
+          );
         }
       } finally {
         if (!cancelled) setExportingPdf(false);
@@ -51,7 +58,7 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [autoExport, onClose, student, template]);
+  }, [autoExport, onClose, student, t, template]);
 
   if (!student) return null;
 
@@ -89,7 +96,12 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
       );
     } catch (error) {
       console.error("Report card export failed:", error);
-      setExportError("PDF export failed. Please try again.");
+      setExportError(
+        t(
+          "reportsPdfExportFailed",
+          "PDF export failed. Please check internet/images and try again.",
+        ),
+      );
     } finally {
       setExportingPdf(false);
     }

@@ -3,6 +3,7 @@ import { saveAs } from "file-saver";
 
 const EXPORT_TIMEOUT_MS = 20000;
 const MIN_PDF_BYTES = 1024;
+const HTML2CANVAS_IMAGE_TIMEOUT_MS = 10000;
 
 function waitForAnimationFrame() {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()));
@@ -30,12 +31,16 @@ async function waitForImages(element) {
     images.map((image) =>
       withTimeout(
         new Promise((resolve) => {
-          if (image.complete && image.naturalWidth > 0) {
+          let settled = false;
+          const done = () => {
+            if (settled) return;
+            settled = true;
             resolve();
+          };
+          if (image.complete && image.naturalWidth > 0) {
+            done();
             return;
           }
-
-          const done = () => resolve();
           image.addEventListener("load", done, { once: true });
           image.addEventListener("error", done, { once: true });
           if (typeof image.decode === "function") {
@@ -107,7 +112,7 @@ function buildPdfOptions({
       scale: 2,
       useCORS: true,
       logging: false,
-      imageTimeout: EXPORT_TIMEOUT_MS,
+      imageTimeout: HTML2CANVAS_IMAGE_TIMEOUT_MS,
       backgroundColor: "#ffffff",
       removeContainer: true,
     },
