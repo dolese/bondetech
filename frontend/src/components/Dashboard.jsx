@@ -2,6 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API } from "../api";
 import { exportElementToPdf } from "../utils/pdfExport";
 import { useViewport } from "../utils/useViewport";
+import {
+  glassPanelStyle,
+  pageBackground,
+  pillStyle,
+  primaryButtonStyle,
+  secondaryButtonStyle,
+  softCardStyle,
+} from "../utils/designSystem";
 
 const TONE_STYLES = {
   info: {
@@ -359,14 +367,13 @@ function MetricCard({ item, compact, dense }) {
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(244,248,255,0.64))",
-        border: "1px solid rgba(255,255,255,0.76)",
-        borderRadius: dense ? 20 : 24,
-        padding: dense ? "13px 13px 12px" : compact ? "16px 16px 14px" : "18px 18px 16px",
+        ...glassPanelStyle({
+          compact,
+          dense,
+          radius: dense ? 20 : 24,
+          padding: dense ? "13px 13px 12px" : compact ? "16px 16px 14px" : "18px 18px 16px",
+        }),
         minHeight: dense ? 118 : compact ? 142 : 162,
-        boxShadow: "0 18px 44px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
-        backdropFilter: "blur(18px) saturate(130%)",
-        WebkitBackdropFilter: "blur(18px) saturate(130%)",
         display: "grid",
         alignContent: "space-between",
         gap: dense ? 9 : 12,
@@ -405,20 +412,20 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false, dense =
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       style={{
-        border: "1px solid rgba(255,255,255,0.76)",
+        ...glassPanelStyle({
+          dense,
+          radius: dense ? 18 : 20,
+          padding: dense ? "12px 12px 10px" : "14px 14px 12px",
+        }),
         background: disabled
-          ? "linear-gradient(135deg, rgba(248,250,252,0.92), rgba(241,245,249,0.8))"
-          : "linear-gradient(135deg, rgba(255,255,255,0.84), rgba(246,250,255,0.66))",
-        borderRadius: dense ? 18 : 20,
-        padding: dense ? "12px 12px 10px" : "14px 14px 12px",
+          ? "linear-gradient(135deg, rgba(248,250,252,0.94), rgba(241,245,249,0.84))"
+          : "linear-gradient(135deg, rgba(255,255,255,0.86), rgba(246,250,255,0.72))",
         display: "grid",
         gap: dense ? 10 : 12,
         justifyItems: "start",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.55 : 1,
         boxShadow: disabled ? "none" : "0 14px 36px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
-        backdropFilter: "blur(16px) saturate(125%)",
-        WebkitBackdropFilter: "blur(16px) saturate(125%)",
         textAlign: "left",
       }}
     >
@@ -455,15 +462,9 @@ export function Dashboard({
   onExportBackup,
 }) {
   const { isXs, isMobile, isTablet, isShort } = useViewport();
-  const compact = isMobile || isTablet;
+  const compact = isMobile || (isTablet && !isShort);
   const dense = isMobile || isShort;
-  const glassPanel = {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.78), rgba(244,248,255,0.62))",
-    border: "1px solid rgba(255,255,255,0.76)",
-    boxShadow: "0 22px 55px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
-    backdropFilter: "blur(20px) saturate(135%)",
-    WebkitBackdropFilter: "blur(20px) saturate(135%)",
-  };
+  const glassPanel = glassPanelStyle({ compact, dense });
   const dashboardRef = useRef(null);
   const [filterYear, setFilterYear] = useState("all");
   const [overview, setOverview] = useState({ announcements: [], highlights: [], stats: {}, formBreakdown: [] });
@@ -719,7 +720,7 @@ export function Dashboard({
         flex: 1,
         overflowY: "auto",
         padding: compact ? 14 : 20,
-        background: "radial-gradient(circle at top left, rgba(191,219,254,0.34), transparent 24%), radial-gradient(circle at top right, rgba(186,230,253,0.28), transparent 22%), linear-gradient(180deg, #f7fafc 0%, #eff5fb 100%)",
+        background: pageBackground,
       }}
     >
       <div ref={dashboardRef} style={{ maxWidth: 1460, margin: "0 auto", display: "grid", gap: dense ? 14 : compact ? 16 : 20 }}>
@@ -787,14 +788,15 @@ export function Dashboard({
             </div>
 
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: compact ? 16 : 18, color: "#0f172a", fontWeight: 700 }}>Welcome back,</div>
-              <div style={{ fontSize: compact ? 40 : 52, lineHeight: 1, marginTop: 8, fontWeight: 950, color: "#0f172a" }}>
+              <div style={{ ...pillStyle({ tone: "teal" }), display: "inline-flex" }}>Operations Console</div>
+              <div style={{ fontSize: compact ? 16 : 18, color: "#0f172a", fontWeight: 700, marginTop: 12 }}>Welcome back,</div>
+              <div style={{ fontSize: compact ? 34 : 44, lineHeight: 1.02, marginTop: 8, fontWeight: 950, color: "#0f172a", letterSpacing: "-0.03em" }}>
                 {welcomeName}
               </div>
-              <div style={{ marginTop: 10, fontSize: compact ? 22 : 26, color: "#0f8b8d", fontWeight: 900 }}>
-                {formatRole(currentUser?.role)}
+              <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <span style={pillStyle({ tone: "blue" })}>{formatRole(currentUser?.role)}</span>
+                <span style={{ fontSize: 16, color: "#475569", fontWeight: 600 }}>Bonde Secondary School</span>
               </div>
-              <div style={{ marginTop: 6, fontSize: 18, color: "#475569" }}>Bonde Secondary School</div>
             </div>
           </div>
 
@@ -829,16 +831,7 @@ export function Dashboard({
                     <span style={{ width: 10, height: 10, borderRadius: "50%", background: meta.dotColor, boxShadow: "0 0 0 5px rgba(34,197,94,0.12)" }} />
                   )}
                   {meta?.chip ? (
-                    <span
-                      style={{
-                        padding: "6px 12px",
-                        borderRadius: 999,
-                        background: meta.chipBg,
-                        color: meta.chipColor,
-                        fontSize: 14,
-                        fontWeight: 900,
-                      }}
-                    >
+                    <span style={pillStyle({ tone: "teal" })}>
                       {value}
                     </span>
                   ) : (
@@ -894,14 +887,10 @@ export function Dashboard({
               onChange={(event) => setFilterYear(event.target.value)}
               style={{
                 alignSelf: compact ? "stretch" : "center",
-                border: "1px solid rgba(203,213,225,0.95)",
-                background: "#fff",
-                borderRadius: 16,
-                padding: "12px 14px",
+                ...softCardStyle({ padding: "12px 14px", radius: 16 }),
                 fontSize: 14,
                 fontWeight: 800,
                 color: "#0f172a",
-                boxShadow: "0 10px 24px rgba(15,23,42,0.04)",
               }}
             >
               {years.length > 1 && <option value="all">All Years</option>}
@@ -1003,8 +992,8 @@ export function Dashboard({
               <div style={{ display: "grid", placeItems: "center" }}>
                   <div
                     style={{
-                      width: 160,
-                      height: 160,
+                      width: dense ? 132 : 148,
+                      height: dense ? 132 : 148,
                       borderRadius: "50%",
                       background: `conic-gradient(#0f8b8d 0 ${classCoverage}%, rgba(226,232,240,0.95) ${classCoverage}% 100%)`,
                       display: "grid",
@@ -1013,8 +1002,8 @@ export function Dashboard({
                 >
                   <div
                     style={{
-                      width: dense ? 92 : 116,
-                      height: dense ? 92 : 116,
+                      width: dense ? 82 : 104,
+                      height: dense ? 82 : 104,
                       borderRadius: "50%",
                       background: "#fff",
                       boxShadow: "inset 0 4px 18px rgba(15,23,42,0.06)",
@@ -1292,16 +1281,10 @@ export function Dashboard({
                 onClick={handleSearch}
                 disabled={searching}
                 style={{
-                  border: "none",
-                  borderRadius: 18,
+                  ...primaryButtonStyle(),
                   padding: "0 18px",
-                  background: "linear-gradient(135deg, #1f3c88, #0f8b8d)",
-                  color: "#fff",
-                  fontSize: 14,
-                  fontWeight: 900,
                   cursor: searching ? "wait" : "pointer",
                   minHeight: dense ? 44 : 50,
-                  boxShadow: "0 14px 28px rgba(15,118,110,0.22)",
                 }}
               >
                 {searching ? "Searching..." : "Search"}
@@ -1314,16 +1297,9 @@ export function Dashboard({
                   setSearchError("");
                 }}
                 style={{
-                  border: "1px solid rgba(191,219,254,0.55)",
-                  borderRadius: 18,
+                  ...secondaryButtonStyle(),
                   padding: "0 16px",
-                  background: "rgba(255,255,255,0.72)",
-                  color: "#475569",
-                  fontSize: 14,
-                  fontWeight: 800,
-                  cursor: "pointer",
                   minHeight: dense ? 44 : 50,
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
                 }}
               >
                 Reset
@@ -1413,13 +1389,9 @@ export function Dashboard({
                   <div
                     key={item.title}
                     style={{
-                      borderRadius: 22,
-                      border: "1px solid rgba(191,219,254,0.42)",
-                      background: "rgba(255,255,255,0.6)",
-                      padding: dense ? "13px 13px" : compact ? "16px 15px" : "18px 18px",
+                      ...softCardStyle({ padding: dense ? "13px 13px" : compact ? "16px 15px" : "18px 18px", radius: 22 }),
                       display: "grid",
                       gap: 6,
-                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.76)",
                     }}
                   >
                     <div style={{ fontSize: 14, fontWeight: 900, color: "#102a43" }}>{item.title}</div>
@@ -1447,11 +1419,7 @@ export function Dashboard({
                 <div
                   key={highlight.key}
                   style={{
-                    borderRadius: 20,
-                    border: "1px solid rgba(226,232,240,0.88)",
-                    background: "#fff",
-                    padding: "14px 16px",
-                    boxShadow: "0 12px 28px rgba(15,23,42,0.04)",
+                    ...softCardStyle({ padding: "14px 16px", radius: 20 }),
                   }}
                 >
                   <div style={{ fontSize: 12, fontWeight: 900, color: highlight.color || "#2563eb", textTransform: "uppercase", letterSpacing: 0.8 }}>

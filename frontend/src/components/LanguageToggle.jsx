@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n";
+import { premiumFontStack } from "../utils/designSystem";
 
 function GlobeIcon() {
   return (
@@ -56,7 +57,7 @@ export function LanguageToggle({ compact = false, dark = false }) {
       style={{
         position: "relative",
         display: "inline-flex",
-        fontFamily: "'Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', sans-serif",
+        fontFamily: premiumFontStack,
       }}
     >
       <button

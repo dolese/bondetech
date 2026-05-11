@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { LanguageToggle } from "./LanguageToggle";
+import { premiumFontStack } from "../utils/designSystem";
 
 function initialsFromUser(user) {
   const source = String(user?.displayName || user?.username || "Admin")
@@ -101,7 +102,7 @@ export function AppTopBar({
     () => authLogs.filter((log) => log.status === "failed").length,
     [authLogs]
   );
-  const uiFont = "'Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', sans-serif";
+  const uiFont = premiumFontStack;
 
   const roleLabel =
     currentUser?.role === "admin"

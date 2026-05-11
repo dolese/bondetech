@@ -1,6 +1,16 @@
 import React, { useMemo, useState } from "react";
 import { useViewport } from "../utils/useViewport";
 import { DEFAULT_CONDUCT } from "../hooks/useClasses";
+import {
+  fieldStyle,
+  glassPanelStyle,
+  pageBackground,
+  pillStyle,
+  premiumFontStack,
+  primaryButtonStyle,
+  secondaryButtonStyle,
+  softCardStyle,
+} from "../utils/designSystem";
 
 function getClassLabel(cls = {}) {
   const base = [cls.form, cls.stream].filter(Boolean).join(" ").trim();
@@ -96,6 +106,7 @@ export function StudentManagementPage({
       students: students.length,
       classes: new Set(students.map((student) => student.classId)).size,
       guardians: students.filter((student) => student.parentName || student.parentPhone).length,
+      missingGuardian: students.filter((student) => !student.parentName && !student.parentPhone).length,
     }),
     [students],
   );
@@ -188,19 +199,16 @@ export function StudentManagementPage({
         flex: 1,
         minHeight: 0,
         overflowY: "auto",
-        background: "#f6f9ff",
-        padding: isMobile ? 10 : 16,
+        background: pageBackground,
+        padding: isMobile ? 10 : 18,
         display: "grid",
         gap: 14,
+        fontFamily: premiumFontStack,
       }}
     >
       <section
         style={{
-          background: "#fff",
-          borderRadius: 18,
-          border: "1px solid #dbe7ff",
-          boxShadow: "0 12px 32px rgba(15,23,42,0.06)",
-          padding: isMobile ? 14 : 18,
+          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 24 : 30 }),
           display: "grid",
           gap: 14,
         }}
@@ -215,7 +223,8 @@ export function StudentManagementPage({
           }}
         >
           <div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>
+            <div style={{ display: "inline-flex", ...pillStyle({ tone: "blue" }) }}>School-wide records</div>
+            <div style={{ fontSize: isMobile ? 30 : 34, fontWeight: 900, color: "#0f172a", lineHeight: 1.05, marginTop: 10 }}>
               Student Management
             </div>
             <div style={{ fontSize: 14, color: "#64748b", marginTop: 6, maxWidth: 720 }}>
@@ -225,25 +234,16 @@ export function StudentManagementPage({
           <button
             type="button"
             onClick={openAddModal}
-            style={{
-              border: "none",
-              borderRadius: 12,
-              background: "linear-gradient(135deg, #0f766e, #0ea5a4)",
-              color: "#fff",
-              fontWeight: 800,
-              fontSize: 13,
-              padding: "11px 16px",
-              cursor: "pointer",
-            }}
+            style={primaryButtonStyle()}
           >
-            + Student Management
+            + Add Student
           </button>
         </div>
 
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
+            gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))",
             gap: 12,
           }}
         >
@@ -251,17 +251,11 @@ export function StudentManagementPage({
             ["Students", stats.students, "All student records currently available."],
             ["Classes", stats.classes, "Classes linked to student records."],
             ["Guardians", stats.guardians, "Students with parent or guardian contact saved."],
+            ["Need Contact", stats.missingGuardian, "Students still missing guardian information."],
           ].map(([label, value, note]) => (
             <div
               key={label}
-              style={{
-                borderRadius: 16,
-                border: "1px solid #dbe7ff",
-                background: "linear-gradient(180deg, #f8fbff, #eef5ff)",
-                padding: 14,
-                display: "grid",
-                gap: 6,
-              }}
+              style={{ ...softCardStyle({ padding: 15, radius: 20 }), display: "grid", gap: 6 }}
             >
               <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.7 }}>
                 {label}
@@ -275,19 +269,32 @@ export function StudentManagementPage({
 
       <section
         style={{
-          background: "#fff",
-          borderRadius: 18,
-          border: "1px solid #dbe7ff",
-          boxShadow: "0 12px 32px rgba(15,23,42,0.06)",
-          padding: isMobile ? 14 : 18,
+          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 24 : 30 }),
           display: "grid",
           gap: 12,
         }}
       >
         <div
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "grid", gap: 4 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a" }}>Directory</div>
+            <div style={{ fontSize: 13, color: "#64748b" }}>
+              Search, filter, and maintain full student records from one place.
+            </div>
+          </div>
+          <div style={pillStyle({ tone: classFilter ? "teal" : "slate" })}>{filteredStudents.length} visible</div>
+        </div>
+        <div
+          style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "minmax(260px, 1.4fr) minmax(220px, 1fr)",
+            gridTemplateColumns: isMobile ? "1fr" : "minmax(320px, 1.45fr) minmax(220px, 0.8fr)",
             gap: 12,
           }}
         >
@@ -295,25 +302,12 @@ export function StudentManagementPage({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by student name, CNO, parent, or class"
-            style={{
-              borderRadius: 12,
-              border: "1px solid #d6e2f5",
-              padding: "12px 14px",
-              fontSize: 14,
-              outline: "none",
-            }}
+            style={fieldStyle()}
           />
           <select
             value={classFilter}
             onChange={(event) => setClassFilter(event.target.value)}
-            style={{
-              borderRadius: 12,
-              border: "1px solid #d6e2f5",
-              padding: "12px 14px",
-              fontSize: 14,
-              background: "#fff",
-              outline: "none",
-            }}
+            style={fieldStyle()}
           >
             <option value="">All Classes</option>
             {classOptions.map((cls) => (
@@ -324,7 +318,15 @@ export function StudentManagementPage({
           </select>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
+        <div
+          style={{
+            overflowX: "auto",
+            borderRadius: 22,
+            border: "1px solid rgba(214,226,245,0.92)",
+            background: "rgba(255,255,255,0.82)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
+          }}
+        >
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 960 }}>
             <thead>
               <tr>
@@ -337,10 +339,11 @@ export function StudentManagementPage({
                       fontSize: 12,
                       fontWeight: 900,
                       color: "#475569",
-                      borderBottom: "1px solid #dbe7ff",
+                      borderBottom: "1px solid rgba(214,226,245,0.92)",
                       textTransform: "uppercase",
                       letterSpacing: 0.5,
                       whiteSpace: "nowrap",
+                      background: "rgba(247,250,252,0.94)",
                     }}
                   >
                     {label}
@@ -350,35 +353,31 @@ export function StudentManagementPage({
             </thead>
             <tbody>
               {filteredStudents.map((student) => (
-                <tr key={`${student.classId}-${student.id}`}>
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
+                <tr key={`${student.classId}-${student.id}`} style={{ background: "rgba(255,255,255,0.52)" }}>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
                     {student.index_no || "-"}
                   </td>
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf2fb" }}>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
                     <div style={{ fontWeight: 800, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
                     <div style={{ fontSize: 12, color: "#64748b" }}>
                       {student.previousSchool || "No previous school saved"}
                     </div>
                   </td>
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf2fb" }}>{student.sex || "-"}</td>
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf2fb" }}>{student.status || "-"}</td>
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf2fb" }}>{student.classLabel}</td>
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf2fb" }}>{student.parentName || "-"}</td>
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf2fb" }}>{student.parentPhone || "-"}</td>
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf2fb" }}>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.sex || "-"}</td>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
+                    <span style={pillStyle({ tone: student.status === "present" ? "teal" : student.status === "absent" ? "amber" : "red" })}>
+                      {student.status || "-"}
+                    </span>
+                  </td>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.classLabel}</td>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.parentName || "-"}</td>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.parentPhone || "-"}</td>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button
                         type="button"
                         onClick={() => onOpenStudentProfile?.(student.index_no || student.indexNo)}
-                        style={{
-                          border: "1px solid #cdd9ee",
-                          borderRadius: 10,
-                          background: "#fff",
-                          color: "#0f172a",
-                          fontWeight: 700,
-                          padding: "7px 10px",
-                          cursor: "pointer",
-                        }}
+                        style={secondaryButtonStyle({ compact: true })}
                       >
                         Profile
                       </button>
@@ -386,12 +385,7 @@ export function StudentManagementPage({
                         type="button"
                         onClick={() => openEditModal(student)}
                         style={{
-                          border: "1px solid #bfdbfe",
-                          borderRadius: 10,
-                          background: "#eff6ff",
-                          color: "#1d4ed8",
-                          fontWeight: 700,
-                          padding: "7px 10px",
+                          ...pillStyle({ tone: "blue" }),
                           cursor: "pointer",
                         }}
                       >
@@ -402,12 +396,7 @@ export function StudentManagementPage({
                           type="button"
                           onClick={() => handleDelete(student)}
                           style={{
-                            border: "1px solid #fecaca",
-                            borderRadius: 10,
-                            background: "#fef2f2",
-                            color: "#b91c1c",
-                            fontWeight: 700,
-                            padding: "7px 10px",
+                            ...pillStyle({ tone: "red" }),
                             cursor: "pointer",
                           }}
                         >
@@ -457,17 +446,16 @@ export function StudentManagementPage({
               width: "min(880px, 100%)",
               maxHeight: "90vh",
               overflowY: "auto",
-              background: "#fff",
-              borderRadius: 22,
-              border: "1px solid #dbe7ff",
-              boxShadow: "0 24px 60px rgba(15,23,42,0.24)",
-              padding: isMobile ? 16 : 22,
+              ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: 26, padding: isMobile ? 16 : 22 }),
               display: "grid",
               gap: 14,
             }}
           >
             <div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a" }}>
+              <div style={{ display: "inline-flex", ...pillStyle({ tone: modalMode === "edit" ? "blue" : "teal" }) }}>
+                {modalMode === "edit" ? "Update record" : "Create record"}
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a", marginTop: 10 }}>
                 {modalMode === "edit" ? "Edit Student" : "Add Student"}
               </div>
               <div style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>
@@ -484,7 +472,7 @@ export function StudentManagementPage({
                   value={form.classId}
                   onChange={(event) => updateField("classId", event.target.value)}
                   disabled={modalMode === "edit"}
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px", background: "#fff" }}
+                  style={fieldStyle()}
                 >
                   <option value="">Select class</option>
                   {classOptions.map((cls) => (
@@ -501,7 +489,7 @@ export function StudentManagementPage({
                   value={form.index_no}
                   onChange={(event) => updateField("index_no", event.target.value)}
                   placeholder="Leave blank for auto-assignment"
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px" }}
+                  style={fieldStyle()}
                 />
               </label>
 
@@ -511,7 +499,7 @@ export function StudentManagementPage({
                   value={form.name}
                   onChange={(event) => updateField("name", event.target.value)}
                   placeholder="Full student name"
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px" }}
+                  style={fieldStyle()}
                 />
               </label>
 
@@ -521,7 +509,7 @@ export function StudentManagementPage({
                   type="date"
                   value={form.dateOfBirth}
                   onChange={(event) => updateField("dateOfBirth", event.target.value)}
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px" }}
+                  style={fieldStyle()}
                 />
               </label>
 
@@ -530,7 +518,7 @@ export function StudentManagementPage({
                 <select
                   value={form.sex}
                   onChange={(event) => updateField("sex", event.target.value)}
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px", background: "#fff" }}
+                  style={fieldStyle()}
                 >
                   <option value="M">Male</option>
                   <option value="F">Female</option>
@@ -542,7 +530,7 @@ export function StudentManagementPage({
                 <select
                   value={form.status}
                   onChange={(event) => updateField("status", event.target.value)}
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px", background: "#fff" }}
+                  style={fieldStyle()}
                 >
                   <option value="present">Present</option>
                   <option value="absent">Absent</option>
@@ -556,7 +544,7 @@ export function StudentManagementPage({
                   value={form.parentName}
                   onChange={(event) => updateField("parentName", event.target.value)}
                   placeholder="Guardian name"
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px" }}
+                  style={fieldStyle()}
                 />
               </label>
 
@@ -566,7 +554,7 @@ export function StudentManagementPage({
                   value={form.parentPhone}
                   onChange={(event) => updateField("parentPhone", event.target.value)}
                   placeholder="Phone number"
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px" }}
+                  style={fieldStyle()}
                 />
               </label>
 
@@ -576,7 +564,7 @@ export function StudentManagementPage({
                   value={form.address}
                   onChange={(event) => updateField("address", event.target.value)}
                   placeholder="Home address"
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px" }}
+                  style={fieldStyle()}
                 />
               </label>
 
@@ -586,7 +574,7 @@ export function StudentManagementPage({
                   value={form.previousSchool}
                   onChange={(event) => updateField("previousSchool", event.target.value)}
                   placeholder="Previous school"
-                  style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px" }}
+                  style={fieldStyle()}
                 />
               </label>
             </div>
@@ -597,16 +585,13 @@ export function StudentManagementPage({
                 value={form.remarks}
                 onChange={(event) => updateField("remarks", event.target.value)}
                 rows={3}
-                style={{ borderRadius: 14, border: "1px solid #d6e2f5", padding: "12px 14px", resize: "vertical" }}
+                style={{ ...fieldStyle(), resize: "vertical" }}
               />
             </label>
 
             <div
               style={{
-                borderRadius: 16,
-                border: "1px solid #e2e8f0",
-                background: "#f8fbff",
-                padding: 14,
+                ...softCardStyle({ padding: 14, radius: 20 }),
                 display: "grid",
                 gap: 12,
               }}
@@ -626,7 +611,7 @@ export function StudentManagementPage({
                     <input
                       value={form.conduct[key] || ""}
                       onChange={(event) => updateConductField(key, event.target.value)}
-                      style={{ borderRadius: 12, border: "1px solid #d6e2f5", padding: "11px 12px" }}
+                      style={fieldStyle()}
                     />
                   </label>
                 ))}
@@ -639,12 +624,7 @@ export function StudentManagementPage({
                 onClick={closeModal}
                 disabled={saving}
                 style={{
-                  border: "1px solid #d6e2f5",
-                  borderRadius: 12,
-                  background: "#fff",
-                  color: "#334155",
-                  fontWeight: 800,
-                  padding: "11px 16px",
+                  ...secondaryButtonStyle(),
                   cursor: saving ? "not-allowed" : "pointer",
                 }}
               >
@@ -655,12 +635,7 @@ export function StudentManagementPage({
                 onClick={handleSave}
                 disabled={saving || !form.classId || !String(form.name || "").trim()}
                 style={{
-                  border: "none",
-                  borderRadius: 12,
-                  background: "linear-gradient(135deg, #0f766e, #0ea5a4)",
-                  color: "#fff",
-                  fontWeight: 800,
-                  padding: "11px 16px",
+                  ...primaryButtonStyle(),
                   cursor: saving ? "not-allowed" : "pointer",
                   opacity: saving || !form.classId || !String(form.name || "").trim() ? 0.65 : 1,
                 }}

@@ -29,6 +29,7 @@ import { API } from "./api";
 import { useI18n } from "./i18n";
 import { DEFAULT_SCHOOL } from "./utils/constants";
 import { mergeClassSchoolInfo, normalizeSchoolSettings } from "./utils/schoolSettings";
+import { premiumFontStack } from "./utils/designSystem";
 
 const CLASS_ACCESS_ROLES = new Set(["admin", "academic", "teacher"]);
 
@@ -845,7 +846,7 @@ export default function App() {
 }
 
 const S = {
-  root: { display: "flex", minHeight: "100vh", fontFamily: "'Segoe UI',Tahoma,sans-serif", background: "#e8edf5", color: "#1a1a2e", overflowY: "auto" },
+  root: { display: "flex", minHeight: "100vh", fontFamily: premiumFontStack, background: "#e8edf5", color: "#1a1a2e", overflowY: "auto" },
   toast: { position: "fixed", top: 16, right: 16, zIndex: 9999, color: "#fff", padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 700, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" },
 
   sidebar: { background: "#001a3d", flexShrink: 0 },
