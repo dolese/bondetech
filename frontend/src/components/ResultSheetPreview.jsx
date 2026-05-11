@@ -52,10 +52,11 @@ function SummaryCard({ title, children, style }) {
           background: ACCENT,
           color: "#fff",
           fontWeight: 900,
-          fontSize: 11,
+          fontSize: 10.5,
           textAlign: "center",
           padding: "8px 10px",
           letterSpacing: 0.2,
+          lineHeight: 1.2,
         }}
       >
         {title}
@@ -184,7 +185,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
     },
     summaryGrid: {
       display: "grid",
-      gridTemplateColumns: "1.25fr 0.85fr 1.25fr",
+      gridTemplateColumns: "1.15fr 0.95fr 1fr",
       gap: 12,
       alignItems: "start",
     },
@@ -437,7 +438,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
                     </table>
                   </SummaryCard>
 
-                  <SummaryCard title="DIVISION SUMMARY (COMPLETE ONLY)">
+                  <SummaryCard title="DIVISION SUMMARY">
                     <table style={styles.summaryTable}>
                       <tbody>
                         {model.divisionRows.map(([label, value]) => (
@@ -465,13 +466,13 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
                       </thead>
                       <tbody>
                         {[
-                          ["Total Students", model.sexSummary.total],
+                          ["Total", model.sexSummary.total],
                           ["Complete", model.sexSummary.complete],
                           ["Incomplete", model.sexSummary.incomplete],
                           ["Absent", model.sexSummary.absent],
-                          ["Average (Complete Only)", model.sexSummary.average],
-                          ["Pass (Div I-IV)", model.sexSummary.pass],
-                          ["Fail (Div 0)", model.sexSummary.fail],
+                          ["Avg (Complete)", model.sexSummary.average],
+                          ["Pass (I-IV)", model.sexSummary.pass],
+                          ["Fail (0)", model.sexSummary.fail],
                         ].map(([label, values]) => (
                           <tr key={label}>
                             <td style={styles.summaryCell}>{label}:</td>
@@ -531,7 +532,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
                 </tbody>
               </table>
             </SummaryCard>
-            <SummaryCard title="DIVISION SUMMARY (COMPLETE ONLY)">
+            <SummaryCard title="DIVISION SUMMARY">
               <div style={{ height: 220 }} />
             </SummaryCard>
             <SummaryCard title="SEX SUMMARY">

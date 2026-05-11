@@ -120,7 +120,7 @@ function drawSummaryTitle(doc, x, y, width, title) {
   doc.setDrawColor(...BORDER);
   doc.rect(x, y, width, 9, "FD");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(9.2);
   doc.setTextColor(255, 255, 255);
   doc.text(title, x + width / 2, y + 5.8, { align: "center" });
 }
@@ -129,8 +129,8 @@ function drawSummaryBlocks(doc, model) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const totalWidth = pageWidth - PAGE_MARGIN * 2;
   const gap = 5;
-  const leftWidth = 92;
-  const middleWidth = 64;
+  const leftWidth = 104;
+  const middleWidth = 80;
   const rightWidth = totalWidth - leftWidth - middleWidth - gap * 2;
   const topY = SUMMARY_START_Y;
   const rowHeight = 8.2;
@@ -155,7 +155,7 @@ function drawSummaryBlocks(doc, model) {
   });
 
   const divisionX = PAGE_MARGIN + leftWidth + gap;
-  drawSummaryTitle(doc, divisionX, topY, middleWidth, "DIVISION SUMMARY (COMPLETE ONLY)");
+  drawSummaryTitle(doc, divisionX, topY, middleWidth, "DIVISION SUMMARY");
   autoTable(doc, {
     startY: topY + 9,
     margin: { left: divisionX, right: pageWidth - divisionX - middleWidth },
@@ -189,13 +189,13 @@ function drawSummaryBlocks(doc, model) {
     margin: { left: sexX, right: PAGE_MARGIN },
     head: [["", "MALE", "FEMALE"]],
     body: [
-      ["Total Students", String(model.sexSummary.total.male), String(model.sexSummary.total.female)],
+      ["Total", String(model.sexSummary.total.male), String(model.sexSummary.total.female)],
       ["Complete", String(model.sexSummary.complete.male), String(model.sexSummary.complete.female)],
       ["Incomplete", String(model.sexSummary.incomplete.male), String(model.sexSummary.incomplete.female)],
       ["Absent", String(model.sexSummary.absent.male), String(model.sexSummary.absent.female)],
-      ["Average (Complete Only)", String(model.sexSummary.average.male), String(model.sexSummary.average.female)],
-      ["Pass (Div I-IV)", String(model.sexSummary.pass.male), String(model.sexSummary.pass.female)],
-      ["Fail (Div 0)", String(model.sexSummary.fail.male), String(model.sexSummary.fail.female)],
+      ["Avg (Complete)", String(model.sexSummary.average.male), String(model.sexSummary.average.female)],
+      ["Pass (I-IV)", String(model.sexSummary.pass.male), String(model.sexSummary.pass.female)],
+      ["Fail (0)", String(model.sexSummary.fail.male), String(model.sexSummary.fail.female)],
     ],
     theme: "grid",
     styles: {
