@@ -37,6 +37,8 @@ export function PeopleDirectoryPage({
   description,
   entries = [],
   tone = "teal",
+  onOpenStudentProfile,
+  onOpenTimetable,
 }) {
   const { isMobile } = useViewport();
   const [query, setQuery] = useState("");
@@ -146,14 +148,16 @@ export function PeopleDirectoryPage({
 
       {filtered.length ? (
         <div className="dir-person-grid">
-          {filtered.map((entry) => (
-            <PersonCard
-              key={entry.key}
-              entry={entry}
-              palette={palette}
-              handleCopy={handleCopy}
-            />
-          ))}
+            {filtered.map((entry) => (
+              <PersonCard
+                key={entry.key}
+                entry={entry}
+                palette={palette}
+                handleCopy={handleCopy}
+                onOpenStudentProfile={onOpenStudentProfile}
+                onOpenTimetable={onOpenTimetable}
+              />
+            ))}
         </div>
       ) : (
         <div className="dir-empty-state">

@@ -42,7 +42,13 @@ const CopyIcon = () => (
   </svg>
 );
 
-export function PersonCard({ entry, palette, handleCopy }) {
+export function PersonCard({
+  entry,
+  palette,
+  handleCopy,
+  onOpenStudentProfile,
+  onOpenTimetable,
+}) {
   const { isMobile } = useViewport();
   const borderColor = getRoleBorderColor(entry.badge);
 
@@ -193,8 +199,49 @@ export function PersonCard({ entry, palette, handleCopy }) {
                     {student.classLabel}
                   </div>
                 </div>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: 10, fontWeight: 800 }}>
-                  {getInitials(student.name)}
+                <div className="dir-student-actions">
+                  {student.indexNo && onOpenStudentProfile ? (
+                    <button
+                      type="button"
+                      className="dir-mini-btn"
+                      onClick={() => onOpenStudentProfile(student.indexNo)}
+                    >
+                      Open Profile
+                    </button>
+                  ) : null}
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: 10, fontWeight: 800 }}>
+                    {getInitials(student.name)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {entry.assignments?.length ? (
+        <div className="dir-student-list">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.8 }}>
+              Timetable Assignments ({entry.assignments.length})
+            </div>
+            {onOpenTimetable ? (
+              <button type="button" className="dir-mini-btn" onClick={onOpenTimetable}>
+                Open Timetable
+              </button>
+            ) : null}
+          </div>
+          {entry.assignmentSummary ? (
+            <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
+              {entry.assignmentSummary}
+            </div>
+          ) : null}
+          <div style={{ display: "grid", gap: 8 }}>
+            {entry.assignments.map((assignment) => (
+              <div key={assignment.key} className="dir-student-item">
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>{assignment.label}</div>
+                  <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{assignment.meta}</div>
                 </div>
               </div>
             ))}

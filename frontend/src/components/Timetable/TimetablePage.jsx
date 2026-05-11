@@ -17,6 +17,7 @@ import { ConflictWarnings } from "./ConflictWarnings";
 import { TimetableSettings } from "./TimetableSettings";
 import { TimetableGrid } from "./TimetableGrid";
 import { TeacherViews } from "./TeacherViews";
+import { RoomViews } from "./RoomViews";
 import { MasterTimetable } from "./MasterTimetable";
 import "./Timetable.css";
 import { useI18n } from "../../i18n";
@@ -181,6 +182,28 @@ function buildTeacherSchedule(days, periods, classes, selectedTeacherKey) {
   }));
 }
 
+function buildRoomSchedule(days, periods, classes, selectedRoomKey) {
+  return days.reduce((acc, day) => {
+    periods.forEach((period) => {
+      const slotKey = buildSlotKey(day.id, period.id);
+      const entries = [];
+      (classes || []).forEach((cls) => {
+        const timetable = normalizeClassTimetable(cls?.timetable);
+        const entry = timetable.entries?.[slotKey];
+        const roomKey = String(entry?.room || "").trim().toLowerCase();
+        if (!roomKey || roomKey !== selectedRoomKey) return;
+        entries.push({
+          classLabel: normalizeClassLabel(cls),
+          subject: entry.subject || "",
+          teacherName: entry.teacherName || entry.teacherUsername || "",
+        });
+      });
+      acc[slotKey] = entries;
+    });
+    return acc;
+  }, {});
+}
+
 export function TimetablePage({
   classData,
   allClasses,
@@ -202,6 +225,7 @@ export function TimetablePage({
     normalizeClassTimetable(classData?.timetable),
   );
   const [selectedTeacherKey, setSelectedTeacherKey] = useState("");
+  const [selectedRoomKey, setSelectedRoomKey] = useState("");
   const [savingGlobal, setSavingGlobal] = useState(false);
   const [savingClass, setSavingClass] = useState(false);
 
@@ -384,6 +408,19 @@ export function TimetablePage({
     }
   }, [selectedTeacherKey, teacherDirectoryRows]);
 
+  useEffect(() => {
+    const keys = roomDirectoryRows
+      .map((row) => String(row.name || "").trim().toLowerCase())
+      .filter(Boolean);
+    if (!keys.length) {
+      setSelectedRoomKey("");
+      return;
+    }
+    if (!keys.includes(selectedRoomKey)) {
+      setSelectedRoomKey(keys[0]);
+    }
+  }, [roomDirectoryRows, selectedRoomKey]);
+
   const selectedTeacherSchedule = useMemo(
     () =>
       buildTeacherSchedule(days, periods, allClasses || [], selectedTeacherKey),
@@ -399,6 +436,18 @@ export function TimetablePage({
       teacherDirectoryRows.find((row) => row.key === selectedTeacherKey) ||
       null,
     [selectedTeacherKey, teacherDirectoryRows],
+  );
+  const selectedRoomRow = useMemo(
+    () =>
+      roomDirectoryRows.find(
+        (row) =>
+          String(row.name || "").trim().toLowerCase() === selectedRoomKey,
+      ) || null,
+    [roomDirectoryRows, selectedRoomKey],
+  );
+  const selectedRoomSchedule = useMemo(
+    () => buildRoomSchedule(days, periods, allClasses || [], selectedRoomKey),
+    [allClasses, days, periods, selectedRoomKey],
   );
   const teacherSuggestionId = `timetable-teacher-list-${classData?.id || "class"}`;
 
@@ -725,6 +774,16 @@ export function TimetablePage({
         selectedTeacherUnavailable={selectedTeacherUnavailable}
         toggleTeacherUnavailableSlot={toggleTeacherUnavailableSlot}
         selectedTeacherSchedule={selectedTeacherSchedule}
+      />
+
+      <RoomViews
+        days={days}
+        periods={periods}
+        roomDirectoryRows={roomDirectoryRows}
+        selectedRoomKey={selectedRoomKey}
+        setSelectedRoomKey={setSelectedRoomKey}
+        selectedRoomRow={selectedRoomRow}
+        selectedRoomSchedule={selectedRoomSchedule}
       />
 
       <MasterTimetable masterRows={masterRows} periods={periods} />

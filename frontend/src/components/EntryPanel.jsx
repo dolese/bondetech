@@ -10,7 +10,7 @@ import {
   getCompositeEntry,
 } from "../utils/constants";
 import { getGrade, getDivision, computeStudent } from "../utils/grading";
-import { validateStudent, validateSchoolInfo } from "../utils/validation";
+import { validateStudent } from "../utils/validation";
 import { TextInput, NumberInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { exportXlsx } from "../utils/xlsxExport";
@@ -58,6 +58,7 @@ export function EntryPanel({
   hideSettings = false,
   activeExam,
   onChangeExam,
+  resultsLocked = false,
 }) {
   const subjects = classData.subjects ?? [];
   // Determine the effective active exam: prefer the prop, fall back to schoolInfo
@@ -91,8 +92,6 @@ export function EntryPanel({
     ...DEFAULT_SCHOOL,
     ...(classData.school_info ?? {}),
   });
-  const [schoolErrors, setSchoolErrors] = useState({});
-  const [updatingSchool, setUpdatingSchool] = useState(false);
   const [savingInstruction, setSavingInstruction] = useState(false);
   const [instructionNotice, setInstructionNotice] = useState("");
   const [showInstructionPanel, setShowInstructionPanel] = useState(false);
@@ -119,6 +118,7 @@ export function EntryPanel({
   });
   const { isMobile, isTablet } = useViewport();
   const compactLayout = isMobile || isTablet;
+  const editingLocked = Boolean(resultsLocked);
 
   useEffect(() => {
     setClassYear(classData.year ?? "");
@@ -127,7 +127,6 @@ export function EntryPanel({
       ...DEFAULT_SCHOOL,
       ...(classData.school_info ?? {}),
     });
-    setSchoolErrors({});
     setInstructionNotice("");
     setShowInstructionPanel(false);
     setShowImportMenu(false);
@@ -180,6 +179,7 @@ export function EntryPanel({
   };
 
   const handleSaveEdit = async () => {
+    if (editingLocked) return;
     const validation = validateStudent(editData);
     if (!validation.valid) {
       setErrors(validation.errors);
@@ -203,6 +203,7 @@ export function EntryPanel({
   };
 
   const handleAddNew = async () => {
+    if (editingLocked) return;
     const registrationName = [newStudent.firstName, newStudent.lastName]
       .map((value) => String(value || "").trim())
       .filter(Boolean)
@@ -375,18 +376,6 @@ export function EntryPanel({
     setUpdatingMeta(false);
   };
 
-  const handleUpdateSchool = async () => {
-    const validation = validateSchoolInfo(schoolInfo);
-    if (!validation.valid) {
-      setSchoolErrors(validation.errors);
-      return;
-    }
-    setSchoolErrors({});
-    setUpdatingSchool(true);
-    await onUpdateSchool?.(schoolInfo);
-    setUpdatingSchool(false);
-  };
-
   const handleSaveReportInstruction = async () => {
     const nextSchoolInfo = {
       ...schoolInfo,
@@ -418,7 +407,7 @@ export function EntryPanel({
   };
 
   const handleBulkSave = async () => {
-    if (bulkSaving) return;
+    if (editingLocked || bulkSaving) return;
     setBulkSaving(true);
     setBulkNotice("");
     let failures = 0;
@@ -444,7 +433,7 @@ export function EntryPanel({
   };
 
   const handleReorderStudentCnos = async () => {
-    if (!onReorderStudentCnos || reorderingCnos) return;
+    if (editingLocked || !onReorderStudentCnos || reorderingCnos) return;
     const confirmed = window.confirm(
       "This will reorder the whole class as Female first, then Male, and regenerate all CNO numbers. Continue?"
     );
@@ -784,13 +773,14 @@ export function EntryPanel({
             <button
               onClick={() => setBulkMode(!bulkMode)}
               title="Bulk score entry"
+              disabled={editingLocked}
               style={{
                 padding: "6px 12px",
-                background: bulkMode ? "#8b2500" : "#003366",
+                background: editingLocked ? "#94a3b8" : bulkMode ? "#8b2500" : "#003366",
                 color: "#fff",
                 border: "none",
                 borderRadius: 5,
-                cursor: "pointer",
+                cursor: editingLocked ? "not-allowed" : "pointer",
                 fontWeight: 700,
                 height: 30,
                 flex: compactLayout ? 1 : "0 0 auto",
@@ -801,13 +791,14 @@ export function EntryPanel({
             <button
               onClick={() => setAddingNew(!addingNew)}
               title="Add a new student"
+              disabled={editingLocked}
               style={{
                 padding: "6px 12px",
-                background: "#0b6b3a",
+                background: editingLocked ? "#94a3b8" : "#0b6b3a",
                 color: "#fff",
                 border: "none",
                 borderRadius: 5,
-                cursor: "pointer",
+                cursor: editingLocked ? "not-allowed" : "pointer",
                 fontWeight: 700,
                 height: 30,
                 flex: compactLayout ? 1 : "0 0 auto",
@@ -819,6 +810,7 @@ export function EntryPanel({
               <div style={styles.dropdownWrap}>
                 <button
                   onClick={() => setShowAdvancedMenu((prev) => !prev)}
+                  disabled={editingLocked}
                   style={{ ...styles.actionBtn, background: "#9a3412" }}
                   title="Advanced student actions"
                 >
@@ -831,11 +823,17 @@ export function EntryPanel({
                         setShowAdvancedMenu(false);
                         handleReorderStudentCnos();
                       }}
-                      disabled={reorderingCnos || !(computed ?? []).length}
+                      disabled={editingLocked || reorderingCnos || !(computed ?? []).length}
                       style={{
                         ...styles.dropdownItem,
-                        color: reorderingCnos || !(computed ?? []).length ? "#9ca3af" : "#9a3412",
-                        cursor: reorderingCnos || !(computed ?? []).length ? "not-allowed" : "pointer",
+                        color:
+                          editingLocked || reorderingCnos || !(computed ?? []).length
+                            ? "#9ca3af"
+                            : "#9a3412",
+                        cursor:
+                          editingLocked || reorderingCnos || !(computed ?? []).length
+                            ? "not-allowed"
+                            : "pointer",
                       }}
                     >
                       {reorderingCnos ? "Reordering CNO..." : "Reorder Female → Male CNO"}
@@ -858,6 +856,23 @@ export function EntryPanel({
             </button>
           </div>
         </div>
+
+        {editingLocked ? (
+          <div
+            style={{
+              marginBottom: 10,
+              padding: "10px 12px",
+              borderRadius: 8,
+              border: "1px solid #f5c2c7",
+              background: "#fff1f2",
+              color: "#9f1239",
+              fontSize: 11,
+              fontWeight: 700,
+            }}
+          >
+            Results are published for this class. Unpublish them before adding students, editing marks, importing, deleting, or reordering CNO values.
+          </div>
+        ) : null}
 
         {/* Composite exam banner */}
         {compositeEntry && (
@@ -955,9 +970,11 @@ export function EntryPanel({
             <div style={styles.dropdownWrap}>
               <button
                 onClick={() => {
+                  if (editingLocked) return;
                   setShowImportMenu((prev) => !prev);
                   setShowExportMenu(false);
                 }}
+                disabled={editingLocked}
                 style={{ ...styles.actionBtn, background: "#0077aa" }}
                 title="Import student data"
               >
@@ -1060,75 +1077,9 @@ export function EntryPanel({
 
       {!hideSettings && (
       <div style={styles.schoolPanel}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>School Information</div>
-            <div style={{ fontSize: 10, color: "#667" }}>
-              Appears on report cards and result sheets.
-            </div>
-          </div>
-        </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: compactLayout ? "1fr" : "1fr 1fr",
-            gap: 10,
-          }}
-        >
-          <TextInput
-            label="School Name"
-            value={schoolInfo.name}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, name: v })}
-            error={schoolErrors.name}
-          />
-          <TextInput
-            label="Authority"
-            value={schoolInfo.authority}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, authority: v })}
-            error={schoolErrors.authority}
-          />
-          <TextInput
-            label="Region"
-            value={schoolInfo.region}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, region: v })}
-            error={schoolErrors.region}
-          />
-          <TextInput
-            label="District"
-            value={schoolInfo.district}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, district: v })}
-            error={schoolErrors.district}
-          />
-          <TextInput
-            label="Form"
-            value={schoolInfo.form}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, form: v })}
-            error={schoolErrors.form}
-          />
-          <TextInput
-            label="Term"
-            value={schoolInfo.term}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, term: v })}
-            error={schoolErrors.term}
-          />
-          <SelectInput
-            label="Exam"
-            value={schoolInfo.exam}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, exam: v })}
-            options={examOptions}
-            error={schoolErrors.exam}
-          />
-          <TextInput
-            label="Year"
-            value={schoolInfo.year}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, year: v })}
-            error={schoolErrors.year}
-          />
-        </div>
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button style={styles.metaBtn} onClick={handleUpdateSchool} disabled={updatingSchool}>
-            {updatingSchool ? "Saving..." : "Save"}
-          </button>
+        <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Global School Settings</div>
+        <div style={{ fontSize: 10, color: "#667", lineHeight: 1.6 }}>
+          School identity, logos, contacts, and export branding are now managed from the main Settings page so they stay consistent across all classes.
         </div>
       </div>
       )}
@@ -1359,13 +1310,14 @@ export function EntryPanel({
           <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "flex-end" }}>
             <button
               onClick={handleAddNew}
+              disabled={editingLocked}
               style={{
                 padding: "6px 16px",
-                background: "#0b6b3a",
+                background: editingLocked ? "#94a3b8" : "#0b6b3a",
                 color: "#fff",
                 border: "none",
                 borderRadius: 5,
-                cursor: "pointer",
+                cursor: editingLocked ? "not-allowed" : "pointer",
                 fontWeight: 700,
               }}
             >
@@ -1420,14 +1372,14 @@ export function EntryPanel({
               )}
               <button
                 onClick={handleBulkSave}
-                disabled={bulkSaving || subjects.length === 0 || filtered.length === 0}
+                disabled={editingLocked || bulkSaving || subjects.length === 0 || filtered.length === 0}
                 style={{
                   padding: "6px 12px",
-                  background: bulkSaving ? "#999" : "#0b6b3a",
+                  background: editingLocked || bulkSaving ? "#999" : "#0b6b3a",
                   color: "#fff",
                   border: "none",
                   borderRadius: 5,
-                  cursor: bulkSaving ? "not-allowed" : "pointer",
+                  cursor: editingLocked || bulkSaving ? "not-allowed" : "pointer",
                   fontWeight: 700,
                   height: 30,
                 }}
@@ -1685,7 +1637,8 @@ export function EntryPanel({
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button
                       onClick={handleSaveEdit}
-                      style={{ padding: "7px 18px", background: "#0b6b3a", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                      disabled={editingLocked}
+                      style={{ padding: "7px 18px", background: editingLocked ? "#94a3b8" : "#0b6b3a", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: editingLocked ? "not-allowed" : "pointer" }}
                     >
                       ✓ Save
                     </button>
@@ -1725,7 +1678,8 @@ export function EntryPanel({
                   <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                     <button
                       onClick={() => handleEdit(s)}
-                      style={{ padding: "4px 8px", background: "#0077aa", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      disabled={editingLocked}
+                      style={{ padding: "4px 8px", background: editingLocked ? "#94a3b8" : "#0077aa", color: "#fff", border: "none", borderRadius: 5, cursor: editingLocked ? "not-allowed" : "pointer", fontSize: 11, fontWeight: 700 }}
                       title="Edit student"
                     >✎</button>
                     <button
@@ -1735,8 +1689,9 @@ export function EntryPanel({
                     >📥</button>
                     {canDeleteStudents && (
                       <button
-                        onClick={() => { if (window.confirm(`Delete ${s.name || "this student"}?`)) onDeleteStudent(s.id); }}
-                        style={{ padding: "4px 8px", background: "#8b2500", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                        onClick={() => { if (!editingLocked && window.confirm(`Delete ${s.name || "this student"}?`)) onDeleteStudent(s.id); }}
+                        disabled={editingLocked}
+                        style={{ padding: "4px 8px", background: editingLocked ? "#94a3b8" : "#8b2500", color: "#fff", border: "none", borderRadius: 5, cursor: editingLocked ? "not-allowed" : "pointer", fontSize: 11, fontWeight: 700 }}
                         title="Delete student"
                       >🗑</button>
                     )}
@@ -2189,13 +2144,14 @@ export function EntryPanel({
                       <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
                         <button
                           onClick={handleSaveEdit}
+                          disabled={editingLocked}
                           style={{
                             padding: "3px 6px",
-                            background: "#0b6b3a",
+                            background: editingLocked ? "#94a3b8" : "#0b6b3a",
                             color: "#fff",
                             border: "none",
                             borderRadius: 3,
-                            cursor: "pointer",
+                            cursor: editingLocked ? "not-allowed" : "pointer",
                             fontSize: 10,
                             fontWeight: 700,
                           }}
@@ -2226,13 +2182,14 @@ export function EntryPanel({
                       <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
                         <button
                           onClick={() => handleEdit(s)}
+                          disabled={editingLocked}
                           style={{
                             padding: "3px 6px",
-                            background: "#0077aa",
+                            background: editingLocked ? "#94a3b8" : "#0077aa",
                             color: "#fff",
                             border: "none",
                             borderRadius: 3,
-                            cursor: "pointer",
+                            cursor: editingLocked ? "not-allowed" : "pointer",
                             fontSize: 10,
                             fontWeight: 700,
                           }}
@@ -2256,19 +2213,21 @@ export function EntryPanel({
                         </button>
                         <button
                           onClick={() => {
-                            if (window.confirm(`Delete ${s.name || "this student"}?`)) {
+                            if (!editingLocked && window.confirm(`Delete ${s.name || "this student"}?`)) {
                               onDeleteStudent(s.id);
                             }
                           }}
+                          disabled={editingLocked || !canDeleteStudents}
                           style={{
                             padding: "3px 6px",
-                            background: "#8b2500",
+                            background: editingLocked ? "#94a3b8" : "#8b2500",
                             color: "#fff",
                             border: "none",
                             borderRadius: 3,
-                            cursor: "pointer",
+                            cursor: editingLocked || !canDeleteStudents ? "not-allowed" : "pointer",
                             fontSize: 10,
                             fontWeight: 700,
+                            display: canDeleteStudents ? undefined : "none",
                           }}
                         >
                           🗑

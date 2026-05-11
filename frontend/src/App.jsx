@@ -59,6 +59,7 @@ function buildParentDirectory(classes) {
       if (!existing.address && address) existing.address = address;
       existing.students.push({
         key: `${cls.id}-${student.id}`,
+        studentId: student.id,
         name: student.name || "Unnamed Student",
         indexNo: student.index_no || student.indexNo || "",
         classLabel: [cls.form, cls.year].filter(Boolean).join(" "),
@@ -76,22 +77,62 @@ function buildParentDirectory(classes) {
     .sort((a, b) => a.name.localeCompare(b.name, "en"));
 }
 
-function buildTeacherDirectory(users) {
+function buildTeacherDirectory(users, classes) {
+  const assignmentMap = new Map();
+  (classes || []).forEach((cls) => {
+    const classLabel = [cls.form, cls.year].filter(Boolean).join(" ");
+    Object.values(cls.timetable?.entries || {}).forEach((entry) => {
+      const teacherKey = String(entry.teacherUsername || entry.teacherName || "")
+        .trim()
+        .toLowerCase();
+      if (!teacherKey) return;
+      const current = assignmentMap.get(teacherKey) || {
+        periods: 0,
+        classes: new Map(),
+        subjects: new Set(),
+      };
+      current.periods += 1;
+      current.classes.set(classLabel, (current.classes.get(classLabel) || 0) + 1);
+      if (entry.subject) current.subjects.add(entry.subject);
+      assignmentMap.set(teacherKey, current);
+    });
+  });
+
   return users
     .filter((user) => user.role === "teacher" || user.role === "academic")
-    .map((user) => ({
-      key: user.id || user.username,
-      name: user.displayName || user.username || "Teacher",
-      username: user.username || "",
-      phone: user.phone || "",
-      email: user.email || "",
-      lastSeen: user.lastLoginAt || "",
-      badge: user.active === false ? "Inactive" : "Active",
-      subtitle:
-        user.role === "academic"
-          ? "Academic staff account created and managed by admin"
-          : "Teacher account created and managed by admin",
-    }))
+    .map((user) => {
+      const teacherKey = String(user.username || user.displayName || "")
+        .trim()
+        .toLowerCase();
+      const assignment = assignmentMap.get(teacherKey);
+      const classAssignments = Array.from(assignment?.classes?.entries?.() || [])
+        .map(([label, count]) => ({
+          key: `${teacherKey}-${label}`,
+          label,
+          meta: `${count} period${count === 1 ? "" : "s"}`,
+        }))
+        .sort((left, right) => left.label.localeCompare(right.label, "en"));
+
+      return {
+        key: user.id || user.username,
+        name: user.displayName || user.username || "Teacher",
+        username: user.username || "",
+        phone: user.phone || "",
+        email: user.email || "",
+        lastSeen: user.lastLoginAt || "",
+        badge: user.active === false ? "Inactive" : "Active",
+        subtitle:
+          user.role === "academic"
+            ? "Academic staff account created and managed by admin"
+            : "Teacher account created and managed by admin",
+        assignments: classAssignments,
+        assignmentSummary: assignment
+          ? `${assignment.periods} period${assignment.periods === 1 ? "" : "s"} across ${
+              classAssignments.length
+            } class${classAssignments.length === 1 ? "" : "es"}`
+          : "No timetable assignments yet",
+      };
+    })
     .sort((a, b) => a.name.localeCompare(b.name, "en"));
 }
 
@@ -243,7 +284,10 @@ export default function App() {
     () => allComputed.map((cls) => mergeDisplayClass(cls)),
     [allComputed, mergeDisplayClass]
   );
-  const teacherDirectory = useMemo(() => buildTeacherDirectory(managedUsers), [managedUsers]);
+  const teacherDirectory = useMemo(
+    () => buildTeacherDirectory(managedUsers, classes),
+    [classes, managedUsers],
+  );
   const parentDirectory = useMemo(() => buildParentDirectory(classes), [classes]);
 
   const handleLogout = useCallback(() => {
@@ -333,6 +377,13 @@ export default function App() {
     setSelectedStudent(found);
     setModalType("report-card");
   }, [activeComputed]);
+
+  const handleOpenStudentProfile = useCallback((indexNo) => {
+    if (!indexNo) return;
+    setSearchProfileIndexNo(indexNo);
+    setPage("profile");
+    if (isMobile) setSideOpen(false);
+  }, [isMobile]);
 
   const handleExamPickerSelect = useCallback((exam) => {
     const cls = examPickerClass;
@@ -489,8 +540,7 @@ export default function App() {
                   setPage("students");
                 }}
                 onViewProfile={(indexNo) => {
-                  setSearchProfileIndexNo(indexNo);
-                  setPage("profile");
+                  handleOpenStudentProfile(indexNo);
                 }}
                 onOpenAccount={() => setPage("account")}
                 onOpenReports={() => {
@@ -577,6 +627,7 @@ export default function App() {
               description="These are the real teacher accounts created by the administrator in the system."
               entries={teacherDirectory}
               tone="teal"
+              onOpenTimetable={() => setPage("timetable")}
             />
           )}
 
@@ -586,6 +637,7 @@ export default function App() {
               description="These parent records are picked automatically from guardian details saved during student registration."
               entries={parentDirectory}
               tone="amber"
+              onOpenStudentProfile={handleOpenStudentProfile}
             />
           )}
 
@@ -724,6 +776,7 @@ export default function App() {
         classes={displayAllComputed}
         users={managedUsers}
         onSetPage={setPage}
+        onOpenStudentProfile={handleOpenStudentProfile}
         onPickClass={(cls) => {
           setActiveId(cls.id);
           setPage('students');

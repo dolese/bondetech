@@ -528,11 +528,12 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
           cls.id === activeClass.id ? { ...cls, composite_config: compositeConfig } : cls
         )
       );
+      await refreshClass(activeClass.id);
       showToast?.("Composite exam settings updated");
     } catch (err) {
       showToast?.(err.message, "error");
     }
-  }, [activeClass, showToast]);
+  }, [activeClass, refreshClass, showToast]);
 
   const onUpdateTimetable = useCallback(async (timetable) => {
     if (!activeClass) return;

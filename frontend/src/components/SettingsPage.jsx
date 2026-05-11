@@ -33,6 +33,7 @@ export function SettingsPage({
   const { isMobile } = useViewport();
   const { t } = useI18n();
   const subjects = classData.subjects ?? [];
+  const resultsLocked = Boolean(classData.published);
 
   // Class name & year/form state
   const [className, setClassName] = useState(classData.name ?? "");
@@ -149,6 +150,7 @@ export function SettingsPage({
   const cleanSubject = (value) => String(value ?? "").trim();
 
   const handleAddSubject = async () => {
+    if (resultsLocked) return;
     const next = cleanSubject(subjectInput);
     if (!next) {
       setSubjectError(
@@ -170,6 +172,7 @@ export function SettingsPage({
   };
 
   const handleRemoveSubject = async (subject) => {
+    if (resultsLocked) return;
     if (
       !window.confirm(
         t(
@@ -187,6 +190,7 @@ export function SettingsPage({
   };
 
   const handleMoveSubject = async (index, direction) => {
+    if (resultsLocked) return;
     const swapIdx = index + direction;
     if (swapIdx < 0 || swapIdx >= subjects.length) return;
     const next = [...subjects];
@@ -197,6 +201,7 @@ export function SettingsPage({
   };
 
   const handleToggleMonthlyExam = async (month) => {
+    if (resultsLocked) return;
     const next = monthlyExams.includes(month)
       ? monthlyExams.filter((m) => m !== month)
       : [...monthlyExams, month];
@@ -209,6 +214,7 @@ export function SettingsPage({
   };
 
   const handleUpdateCompositeConfig = async () => {
+    if (resultsLocked) return;
     setUpdatingComposite(true);
     await onUpdateCompositeConfig?.(compositeConfig);
     setUpdatingComposite(false);
@@ -355,6 +361,21 @@ export function SettingsPage({
 
   return (
     <div style={styles.panel}>
+      {resultsLocked ? (
+        <div
+          style={{
+            background: "#fff1f2",
+            border: "1px solid #f5c2c7",
+            color: "#9f1239",
+            borderRadius: 10,
+            padding: "10px 12px",
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+        >
+          Results are published for this class. Unpublish them before changing subjects, monthly exams, or composite exam setup.
+        </div>
+      ) : null}
       <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800 }}>
         ⚙️ {t("settingsTitle", "Settings")}
       </h3>

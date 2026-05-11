@@ -27,6 +27,7 @@ export function StudentsPage({
       hideSettings
       activeExam={activeExam}
       onChangeExam={onChangeExam}
+      resultsLocked={classData.published}
     />
   );
 }
