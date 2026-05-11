@@ -1082,12 +1082,11 @@ export function Dashboard({
                     <div
                       key={item.id}
                       style={{
+                        ...softCardStyle({ padding: compact ? "12px 13px" : "14px 14px", radius: 18 }),
                         display: "grid",
                         gridTemplateColumns: "auto 1fr auto",
                         gap: 12,
                         alignItems: "start",
-                        paddingBottom: 12,
-                        borderBottom: "1px solid rgba(226,232,240,0.82)",
                       }}
                     >
                       <div
@@ -1414,7 +1413,13 @@ export function Dashboard({
             <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>
               Portal Highlights
             </div>
-            <div style={{ display: "grid", gap: 12 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isXs ? "1fr" : compact ? "repeat(2, minmax(0, 1fr))" : "1fr",
+                gap: 12,
+              }}
+            >
               {(overview.highlights || []).slice(0, 4).map((highlight) => (
                 <div
                   key={highlight.key}

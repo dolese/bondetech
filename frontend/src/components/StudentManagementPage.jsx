@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useViewport } from "../utils/useViewport";
-import { DEFAULT_CONDUCT } from "../hooks/useClasses";
+import { CLASS_STREAMS, DEFAULT_CONDUCT } from "../hooks/useClasses";
 import {
   fieldStyle,
   glassPanelStyle,
@@ -21,12 +21,13 @@ function getClassLabel(cls = {}) {
 function makeEmptyForm() {
   return {
     classId: "",
+    classGroupKey: "",
+    stream: "",
     id: "",
     index_no: "",
     name: "",
     sex: "M",
     status: "present",
-    dateOfBirth: "",
     parentName: "",
     parentPhone: "",
     address: "",
@@ -65,16 +66,31 @@ export function StudentManagementPage({
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(makeEmptyForm());
 
-  const classOptions = useMemo(
-    () =>
-      [...classes]
-        .sort((left, right) => getClassLabel(left).localeCompare(getClassLabel(right), "en"))
-        .map((cls) => ({
-          id: cls.id,
-          label: getClassLabel(cls),
-        })),
-    [classes],
-  );
+  const classGroupOptions = useMemo(() => {
+    const groups = new Map();
+    classes.forEach((cls) => {
+      const groupKey = [cls.form, cls.year].filter(Boolean).join("|");
+      if (!groupKey) return;
+      const current = groups.get(groupKey) || {
+        key: groupKey,
+        label: [cls.form, cls.year].filter(Boolean).join(" ").trim(),
+        streams: [],
+      };
+      current.streams.push({
+        stream: String(cls.stream || "").trim().toUpperCase(),
+        classId: cls.id,
+      });
+      groups.set(groupKey, current);
+    });
+    return Array.from(groups.values())
+      .map((group) => ({
+        ...group,
+        streams: group.streams
+          .filter((entry) => entry.stream)
+          .sort((left, right) => left.stream.localeCompare(right.stream, "en")),
+      }))
+      .sort((left, right) => left.label.localeCompare(right.label, "en"));
+  }, [classes]);
 
   const students = useMemo(() => flattenStudents(classes), [classes]);
 
@@ -112,22 +128,29 @@ export function StudentManagementPage({
   );
 
   const openAddModal = () => {
+    const defaultClass = classes.find((cls) => cls.id === classFilter) || classes[0];
+    const defaultGroupKey = defaultClass ? [defaultClass.form, defaultClass.year].filter(Boolean).join("|") : classGroupOptions[0]?.key || "";
+    const defaultStream = String(defaultClass?.stream || classGroupOptions[0]?.streams?.[0]?.stream || "").trim().toUpperCase();
     setForm({
       ...makeEmptyForm(),
-      classId: classFilter || classOptions[0]?.id || "",
+      classId: defaultClass?.id || "",
+      classGroupKey: defaultGroupKey,
+      stream: defaultStream,
     });
     setModalMode("add");
   };
 
   const openEditModal = (student) => {
+    const targetClass = classes.find((cls) => cls.id === student.classId);
     setForm({
       classId: student.classId,
+      classGroupKey: [targetClass?.form || student.form, targetClass?.year || student.year].filter(Boolean).join("|"),
+      stream: String(targetClass?.stream || student.stream || "").trim().toUpperCase(),
       id: student.id,
       index_no: student.index_no || "",
       name: student.name || "",
       sex: student.sex || "M",
       status: student.status || "present",
-      dateOfBirth: student.dateOfBirth || "",
       parentName: student.parentName || "",
       parentPhone: student.parentPhone || "",
       address: student.address || "",
@@ -148,6 +171,33 @@ export function StudentManagementPage({
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const availableStreams = useMemo(() => {
+    const group = classGroupOptions.find((entry) => entry.key === form.classGroupKey);
+    return group?.streams || [];
+  }, [classGroupOptions, form.classGroupKey]);
+
+  const updateClassGroup = (groupKey) => {
+    const group = classGroupOptions.find((entry) => entry.key === groupKey);
+    const stream = group?.streams?.[0]?.stream || "";
+    const classId = group?.streams?.[0]?.classId || "";
+    setForm((prev) => ({
+      ...prev,
+      classGroupKey: groupKey,
+      stream,
+      classId,
+    }));
+  };
+
+  const updateStream = (stream) => {
+    const normalized = String(stream || "").trim().toUpperCase();
+    const matched = availableStreams.find((entry) => entry.stream === normalized);
+    setForm((prev) => ({
+      ...prev,
+      stream: normalized,
+      classId: matched?.classId || prev.classId,
+    }));
+  };
+
   const updateConductField = (key, value) => {
     setForm((prev) => ({
       ...prev,
@@ -159,7 +209,7 @@ export function StudentManagementPage({
   };
 
   const handleSave = async () => {
-    if (!form.classId) return;
+    if (!form.classId || !form.stream) return;
     if (!String(form.name || "").trim()) return;
     setSaving(true);
     const payload = {
@@ -469,15 +519,31 @@ export function StudentManagementPage({
               <label style={{ display: "grid", gap: 6 }}>
                 <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Class</span>
                 <select
-                  value={form.classId}
-                  onChange={(event) => updateField("classId", event.target.value)}
+                  value={form.classGroupKey}
+                  onChange={(event) => updateClassGroup(event.target.value)}
                   disabled={modalMode === "edit"}
                   style={fieldStyle()}
                 >
-                  <option value="">Select class</option>
-                  {classOptions.map((cls) => (
-                    <option key={cls.id} value={cls.id}>
+                  <option value="">Select form and year</option>
+                  {classGroupOptions.map((cls) => (
+                    <option key={cls.key} value={cls.key}>
                       {cls.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={{ display: "grid", gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Stream</span>
+                <select
+                  value={form.stream}
+                  onChange={(event) => updateStream(event.target.value)}
+                  style={fieldStyle()}
+                >
+                  <option value="">Select stream</option>
+                  {(availableStreams.length ? availableStreams : CLASS_STREAMS.map((stream) => ({ stream, classId: "" }))).map((entry) => (
+                    <option key={entry.stream} value={entry.stream}>
+                      {entry.stream}
                     </option>
                   ))}
                 </select>
@@ -499,16 +565,6 @@ export function StudentManagementPage({
                   value={form.name}
                   onChange={(event) => updateField("name", event.target.value)}
                   placeholder="Full student name"
-                  style={fieldStyle()}
-                />
-              </label>
-
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Date of Birth</span>
-                <input
-                  type="date"
-                  value={form.dateOfBirth}
-                  onChange={(event) => updateField("dateOfBirth", event.target.value)}
                   style={fieldStyle()}
                 />
               </label>
@@ -633,11 +689,11 @@ export function StudentManagementPage({
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={saving || !form.classId || !String(form.name || "").trim()}
+                disabled={saving || !form.classId || !form.stream || !String(form.name || "").trim()}
                 style={{
                   ...primaryButtonStyle(),
                   cursor: saving ? "not-allowed" : "pointer",
-                  opacity: saving || !form.classId || !String(form.name || "").trim() ? 0.65 : 1,
+                  opacity: saving || !form.classId || !form.stream || !String(form.name || "").trim() ? 0.65 : 1,
                 }}
               >
                 {saving ? "Saving..." : modalMode === "edit" ? "Save Changes" : "Add Student"}

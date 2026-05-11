@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useViewport } from "../utils/useViewport";
+import {
+  glassPanelStyle,
+  pageBackground,
+  premiumFontStack,
+  primaryButtonStyle,
+  softCardStyle,
+} from "../utils/designSystem";
 
 function buildGuideSections({
   role,
@@ -152,15 +159,21 @@ function GuideActionButton({ item, onRun }) {
       disabled={item.disabled}
       onClick={() => onRun(item.action)}
       style={{
-        border: "none",
-        borderRadius: 10,
-        padding: "10px 14px",
-        background: item.disabled ? "#e2e8f0" : "#dbeafe",
-        color: item.disabled ? "#94a3b8" : "#1d4ed8",
+        ...(item.disabled
+          ? {
+              ...softCardStyle({ padding: "10px 14px", radius: 12 }),
+              color: "#94a3b8",
+              cursor: "not-allowed",
+            }
+          : {
+              ...primaryButtonStyle({ compact: true }),
+              background: "linear-gradient(135deg, #2563eb, #0f8b8d)",
+              cursor: "pointer",
+            }),
         fontSize: 12,
         fontWeight: 800,
         cursor: item.disabled ? "not-allowed" : "pointer",
-        fontFamily: "'Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', sans-serif",
+        fontFamily: premiumFontStack,
       }}
     >
       {item.label}
@@ -182,7 +195,7 @@ export function UserGuideModal({
   const { isMobile } = useViewport();
   const [activeTab, setActiveTab] = useState("overview");
   const [query, setQuery] = useState("");
-  const uiFont = "'Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', sans-serif";
+  const uiFont = premiumFontStack;
 
   const sections = useMemo(
     () =>
@@ -263,7 +276,7 @@ export function UserGuideModal({
         style={{
           width: "100%",
           maxWidth: 980,
-          background: "#fff",
+          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 0 : 28, padding: 0 }),
           borderRadius: isMobile ? 0 : 24,
           boxShadow: "0 25px 50px -12px rgba(0,0,0,0.3)",
           display: "flex",
@@ -277,7 +290,7 @@ export function UserGuideModal({
         <div
           style={{
             width: isMobile ? "100%" : 300,
-            background: "#f8fafc",
+            background: isMobile ? pageBackground : "rgba(248,250,252,0.84)",
             borderRight: isMobile ? "none" : "1px solid #e2e8f0",
             borderBottom: isMobile ? "1px solid #e2e8f0" : "none",
             display: "flex",
@@ -310,9 +323,7 @@ export function UserGuideModal({
               placeholder="Search guide topics..."
               style={{
                 width: "100%",
-                border: "1px solid #d6e0ef",
-                borderRadius: 10,
-                padding: "10px 12px",
+                ...softCardStyle({ padding: "10px 12px", radius: 12 }),
                 fontSize: 13,
                 boxSizing: "border-box",
                 fontFamily: uiFont,
@@ -345,7 +356,7 @@ export function UserGuideModal({
                       width: isMobile ? "auto" : "100%",
                       padding: isMobile ? "12px 14px" : "12px 16px",
                       border: "none",
-                      background: isActive ? "#eff6ff" : "transparent",
+                      background: isActive ? "rgba(37,99,235,0.12)" : "rgba(255,255,255,0.36)",
                       color: isActive ? "#1d4ed8" : "#475569",
                       borderRadius: 12,
                       cursor: "pointer",
@@ -365,7 +376,7 @@ export function UserGuideModal({
                         minWidth: 28,
                         height: 28,
                         borderRadius: 9,
-                        background: isActive ? "rgba(37,99,235,0.15)" : "#e2e8f0",
+                        background: isActive ? "rgba(37,99,235,0.18)" : "rgba(226,232,240,0.9)",
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -493,10 +504,7 @@ export function UserGuideModal({
               <>
                 <div
                   style={{
-                    background: "#f8fafc",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: 16,
-                    padding: "16px 18px",
+                    ...softCardStyle({ padding: "16px 18px", radius: 18 }),
                     marginBottom: 20,
                   }}
                 >
@@ -529,9 +537,8 @@ export function UserGuideModal({
                         <div
                           key={tip}
                           style={{
-                            padding: "12px 14px",
-                            borderRadius: 12,
-                            background: "#eff6ff",
+                            ...softCardStyle({ padding: "12px 14px", radius: 14 }),
+                            background: "linear-gradient(180deg, rgba(239,246,255,0.98), rgba(224,242,254,0.82))",
                             color: "#1e3a8a",
                             fontSize: 13,
                             fontWeight: 600,
