@@ -10,7 +10,6 @@ import { useViewport } from "../utils/useViewport";
 import { ReportCardPrint } from "./ReportCardPrint";
 import { createRoot } from "react-dom/client";
 import { withPositions } from "../utils/grading";
-import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { useI18n } from "../i18n";
 
@@ -222,11 +221,10 @@ export function ReportsPage({
     };
   }, [allClasses, classData.id, classData.year]);
 
-  const exportAllZip = async () => {
+  const exportAllPdf = async () => {
     if (exportingZip || !present.length) return;
     setExportingZip(true);
     try {
-      const zip = new JSZip();
       const safeClass =
         (classData.name || t("reportsClassFallback", "class"))
           .replace(/[^a-z0-9-_ ]/gi, "")
@@ -240,40 +238,48 @@ export function ReportsPage({
       document.body.appendChild(container);
       const root = createRoot(container);
 
-      for (const student of present) {
-        await new Promise((resolve) => {
-          root.render(
-            <ReportCardPrint
-              student={student}
-              classData={classData}
-              template={template}
-              paperSize={REPORT_CARD_PAPER_SIZE}
-              orientation={REPORT_CARD_ORIENTATION}
-            />,
-          );
-          setTimeout(async () => {
-            const blob = await exportElementToPdfBlob(container.firstChild, {
-              format: REPORT_CARD_PAPER_SIZE,
-              orientation: REPORT_CARD_ORIENTATION,
-              margin: 0,
-            });
-            if (blob) {
-              const safeName =
-                (student.name || "student")
-                  .replace(/[^a-z0-9-_ ]/gi, "")
-                  .trim() || "student";
-              zip.file(`${safeClass}-${safeName}.pdf`, blob);
-            }
-            resolve();
-          }, 0);
-        });
-      }
+      root.render(
+        <div style={{ width: "210mm", background: "#fff" }}>
+          {present.map((student, index) => (
+            <div
+              key={student.id}
+              style={{
+                width: "210mm",
+                minHeight: "297mm",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "flex-start",
+                background: "#fff",
+                pageBreakAfter: index === present.length - 1 ? "auto" : "always",
+                breakAfter: index === present.length - 1 ? "auto" : "page",
+              }}
+            >
+              <ReportCardPrint
+                student={student}
+                classData={classData}
+                template={template}
+                paperSize={REPORT_CARD_PAPER_SIZE}
+                orientation={REPORT_CARD_ORIENTATION}
+              />
+            </div>
+          ))}
+        </div>,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const blob = await exportElementToPdfBlob(container.firstChild, {
+        fileName: `${safeClass}-report-cards.pdf`,
+        format: REPORT_CARD_PAPER_SIZE,
+        orientation: REPORT_CARD_ORIENTATION,
+        margin: 0,
+        pagebreak: { mode: ["css", "legacy"] },
+      });
 
       root.unmount();
       document.body.removeChild(container);
-
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      saveAs(zipBlob, `${safeClass}-report-cards.zip`);
+      if (blob) {
+        saveAs(blob, `${safeClass}-report-cards.pdf`);
+      }
     } finally {
       setExportingZip(false);
     }
@@ -386,12 +392,12 @@ export function ReportsPage({
               fontWeight: 800,
               fontSize: 12,
             }}
-            onClick={exportAllZip}
+            onClick={exportAllPdf}
             disabled={exportingZip || !present.length}
           >
             {exportingZip
-              ? t("reportsExporting", "Exporting…")
-              : t("reportsExportAllPdfs", "Export All PDFs")}
+              ? t("reportsPreparingPdf", "Preparing PDF...")
+              : t("reportsDownloadAllPdfs", "Download all PDFs")}
           </button>
         </div>
 
