@@ -23,7 +23,7 @@ const TEMPLATE_OPTIONS = [
 ];
 const REPORT_CARD_PAPER_SIZE = "a4";
 const REPORT_CARD_ORIENTATION = "portrait";
-const PREVIEW_URL_TIMEOUT_MS = 60000;
+const PREVIEW_URL_TIMEOUT_MS = 300000;
 
 function getClassLabel(classData = {}) {
   const base = [classData.form, classData.stream].filter(Boolean).join(" ").trim();
@@ -336,13 +336,17 @@ export function ReportsPage({
     setExportingZip(true);
     setExportError("");
     let previewUrl = null;
+    let previewOpened = false;
     try {
       const { blob, fileName } = await buildClassReportPdfBlob();
       previewUrl = URL.createObjectURL(blob);
       const previewWindow = window.open(previewUrl, "_blank", "noopener,noreferrer");
       if (!previewWindow) {
         saveAs(blob, fileName);
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
       } else {
+        previewOpened = true;
         setTimeout(() => URL.revokeObjectURL(previewUrl), PREVIEW_URL_TIMEOUT_MS);
       }
     } catch (error) {
@@ -353,7 +357,7 @@ export function ReportsPage({
           "PDF export failed. Please check internet/images and try again.",
         ),
       );
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (previewUrl && !previewOpened) URL.revokeObjectURL(previewUrl);
     } finally {
       setExportingZip(false);
     }
