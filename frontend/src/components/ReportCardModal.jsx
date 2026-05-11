@@ -215,7 +215,9 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
                 }}
                 disabled={exportingPdf}
               >
-                {exportingPdf ? "Preparing PDF..." : "Download PDF"}
+                {exportingPdf
+                  ? t("reportsPreparingPdf", "Preparing PDF...")
+                  : "Download PDF"}
               </button>
               <button
                 onClick={onClose}

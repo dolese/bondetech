@@ -2,6 +2,7 @@ import html2pdf from "html2pdf.js";
 import { saveAs } from "file-saver";
 
 const EXPORT_TIMEOUT_MS = 20000;
+// Guard against saving obviously blank/failed PDF output.
 const MIN_PDF_BYTES = 1024;
 const HTML2CANVAS_IMAGE_TIMEOUT_MS = 10000;
 

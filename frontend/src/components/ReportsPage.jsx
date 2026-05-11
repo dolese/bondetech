@@ -414,9 +414,9 @@ export function ReportsPage({
               flexWrap: "wrap",
               width: isMobile ? "100%" : "auto",
               justifyContent: isMobile ? "stretch" : "flex-end",
-              paddingLeft: isMobile ? "max(0px, env(safe-area-inset-left))" : 0,
+              paddingLeft: isMobile ? "env(safe-area-inset-left, 0px)" : 0,
               paddingRight: isMobile
-                ? "max(0px, env(safe-area-inset-right))"
+                ? "env(safe-area-inset-right, 0px)"
                 : 0,
             }}
           >
