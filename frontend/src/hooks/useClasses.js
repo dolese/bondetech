@@ -291,22 +291,49 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeId, classes, onNavigate, showToast]);
 
-  const onAddStudent = useCallback(async (studentData) => {
-    if (!activeClass) return;
-    try {
-      await API.addStudent(activeClass.id, toApiStudent({ ...studentData, examType: activeExam }));
-      await refreshClass(activeClass.id);
-      showToast?.("Student added");
-    } catch (err) {
-      showToast?.(err.message, "error");
+  const onAddStudentToClass = useCallback(async (classId, studentData, opts = {}) => {
+    const targetClass = classes.find((cls) => cls.id === classId);
+    if (!targetClass) {
+      if (!opts.silent) showToast?.("Target class not found", "error");
+      return { ok: false, error: "Target class not found" };
     }
-  }, [activeClass, activeExam, refreshClass, showToast]);
-
-  const onUpdateStudent = useCallback(async (studentData, opts = {}) => {
-    if (!activeClass) return;
     try {
-      await API.updateStudent(activeClass.id, studentData.id, toApiStudent({ ...studentData, examType: studentData.examType ?? activeExam }));
-      await refreshClass(activeClass.id);
+      await API.addStudent(
+        classId,
+        toApiStudent({
+          ...studentData,
+          examType: studentData.examType ?? targetClass.school_info?.exam ?? activeExam,
+        }),
+      );
+      await refreshClass(classId);
+      if (!opts.silent) {
+        showToast?.("Student added");
+      }
+      return { ok: true };
+    } catch (err) {
+      if (!opts.silent) {
+        showToast?.(err.message, "error");
+      }
+      return { ok: false, error: err.message };
+    }
+  }, [activeExam, classes, refreshClass, showToast]);
+
+  const onUpdateStudentInClass = useCallback(async (classId, studentData, opts = {}) => {
+    const targetClass = classes.find((cls) => cls.id === classId);
+    if (!targetClass) {
+      if (!opts.silent) showToast?.("Target class not found", "error");
+      return { ok: false, error: "Target class not found" };
+    }
+    try {
+      await API.updateStudent(
+        classId,
+        studentData.id,
+        toApiStudent({
+          ...studentData,
+          examType: studentData.examType ?? targetClass.school_info?.exam ?? activeExam,
+        }),
+      );
+      await refreshClass(classId);
       if (!opts.silent) {
         showToast?.("Student updated");
       }
@@ -317,18 +344,43 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
       }
       return { ok: false, error: err.message };
     }
-  }, [activeClass, activeExam, refreshClass, showToast]);
+  }, [activeExam, classes, refreshClass, showToast]);
+
+  const onDeleteStudentFromClass = useCallback(async (classId, studentId, opts = {}) => {
+    const targetClass = classes.find((cls) => cls.id === classId);
+    if (!targetClass) {
+      if (!opts.silent) showToast?.("Target class not found", "error");
+      return { ok: false, error: "Target class not found" };
+    }
+    try {
+      await API.deleteStudent(classId, studentId);
+      await refreshClass(classId);
+      if (!opts.silent) {
+        showToast?.("Student deleted");
+      }
+      return { ok: true };
+    } catch (err) {
+      if (!opts.silent) {
+        showToast?.(err.message, "error");
+      }
+      return { ok: false, error: err.message };
+    }
+  }, [classes, refreshClass, showToast]);
+
+  const onAddStudent = useCallback(async (studentData) => {
+    if (!activeClass) return;
+    return onAddStudentToClass(activeClass.id, studentData);
+  }, [activeClass, onAddStudentToClass]);
+
+  const onUpdateStudent = useCallback(async (studentData, opts = {}) => {
+    if (!activeClass) return;
+    return onUpdateStudentInClass(activeClass.id, studentData, opts);
+  }, [activeClass, onUpdateStudentInClass]);
 
   const onDeleteStudent = useCallback(async (studentId) => {
     if (!activeClass) return;
-    try {
-      await API.deleteStudent(activeClass.id, studentId);
-      await refreshClass(activeClass.id);
-      showToast?.("Student deleted");
-    } catch (err) {
-      showToast?.(err.message, "error");
-    }
-  }, [activeClass, refreshClass, showToast]);
+    return onDeleteStudentFromClass(activeClass.id, studentId);
+  }, [activeClass, onDeleteStudentFromClass]);
 
   const onBulkImport = useCallback(async (rows) => {
     if (!activeClass) return;
@@ -605,8 +657,11 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     deleteClass,
     saveExamForClass,
     onAddStudent,
+    onAddStudentToClass,
     onUpdateStudent,
+    onUpdateStudentInClass,
     onDeleteStudent,
+    onDeleteStudentFromClass,
     onBulkImport,
     onReorderStudentCnos,
     onUpdateSchool,

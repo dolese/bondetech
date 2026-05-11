@@ -59,6 +59,17 @@ function navIcon(key) {
           <path d="M15 10h6" />
         </SvgIcon>
       );
+    case "student-management":
+      return (
+        <SvgIcon>
+          <rect x="4.5" y="4.5" width="15" height="15" rx="2.4" />
+          <circle cx="9" cy="10" r="2.2" />
+          <path d="M6.5 16c.8-2 4.2-2 5 0" />
+          <path d="M15.5 8.5h3" />
+          <path d="M15.5 12h3" />
+          <path d="M15.5 15.5h2.2" />
+        </SvgIcon>
+      );
     case "results":
       return (
         <SvgIcon>

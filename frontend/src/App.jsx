@@ -12,6 +12,7 @@ import { ReportCardModal } from "./components/ReportCardModal";
 import { CSVImportModal } from "./components/CSVImportModal";
 import { JSONImportModal } from "./components/JSONImportModal";
 import { XLSXImportModal } from "./components/XLSXImportModal";
+import { StudentManagementPage } from "./components/StudentManagementPage";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 import { ExamPickerScreen } from "./components/ExamPickerScreen";
@@ -212,8 +213,12 @@ export default function App() {
   const canAccessClassData = CLASS_ACCESS_ROLES.has(role);
   const canManageUsers = role === "admin";
   const canViewSettings = role === "admin";
+  const canManageStudentsGlobally = role === "admin" || role === "academic";
   const navItems = [
     ...classNavItems.filter((item) => canViewSettings || item.key !== "settings"),
+    ...(canManageStudentsGlobally
+      ? [{ key: "student-management", label: "Student Management", requiresClass: false }]
+      : []),
     ...(canManageUsers
       ? [
           { key: "teachers", label: "Teachers", requiresClass: false },
@@ -242,8 +247,11 @@ export default function App() {
     deleteClass,
     saveExamForClass,
     onAddStudent,
+    onAddStudentToClass,
     onUpdateStudent,
+    onUpdateStudentInClass,
     onDeleteStudent,
+    onDeleteStudentFromClass,
     onBulkImport,
     onReorderStudentCnos,
     onUpdateSchool,
@@ -357,6 +365,12 @@ export default function App() {
       setPage(canAccessClassData ? "students" : "account");
     }
   }, [canAccessClassData, canViewSettings, page]);
+
+  useEffect(() => {
+    if (page === "student-management" && !canManageStudentsGlobally) {
+      setPage(canAccessClassData ? "students" : "account");
+    }
+  }, [canAccessClassData, canManageStudentsGlobally, page]);
 
   useEffect(() => {
     if (!loggedIn || role !== "admin") return;
@@ -626,6 +640,17 @@ export default function App() {
             ) : (
               noClassBlock
             )
+          )}
+
+          {page === "student-management" && canManageStudentsGlobally && (
+            <StudentManagementPage
+              classes={classes}
+              canDeleteStudents={role === "admin" || role === "academic"}
+              onOpenStudentProfile={handleOpenStudentProfile}
+              onAddStudentToClass={onAddStudentToClass}
+              onUpdateStudentInClass={onUpdateStudentInClass}
+              onDeleteStudentFromClass={onDeleteStudentFromClass}
+            />
           )}
 
           {page === "teachers" && canManageUsers && (
