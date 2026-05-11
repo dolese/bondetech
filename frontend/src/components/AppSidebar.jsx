@@ -165,6 +165,116 @@ export function AppSidebar({
   const { t } = useI18n();
   const academicYear = useMemo(() => currentAcademicYear(classesByYear), [classesByYear]);
   const streamSequence = streams.length ? streams : ["A", "B", "C", "D", "E", "F"];
+  const shellShadow = "0 24px 60px rgba(2, 12, 27, 0.34)";
+  const panelSurface = "linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.045))";
+  const panelBorder = "1px solid rgba(255,255,255,0.1)";
+  const panelInset = "inset 0 1px 0 rgba(255,255,255,0.08)";
+  const sectionLabelStyle = {
+    color: "rgba(226,247,244,0.58)",
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: 1.9,
+    padding: "0 4px",
+  };
+  const navSections = useMemo(() => {
+    const visible = new Map(navItems.map((item) => [item.key, item]));
+    const sectionOrder = [
+      {
+        title: "ACADEMICS",
+        items: ["students", "student-management", "teachers", "results", "timetable"],
+      },
+      {
+        title: "COMMUNICATION",
+        items: ["parents"],
+      },
+      {
+        title: "REPORTS",
+        items: ["reports"],
+      },
+      {
+        title: "SYSTEM",
+        items: ["settings", "account"],
+      },
+    ];
+    return sectionOrder
+      .map((section) => ({
+        ...section,
+        items: section.items
+          .map((key) => (key === "account" ? { key: "account", label: accountLabel, requiresClass: false } : visible.get(key)))
+          .filter(Boolean),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [accountLabel, navItems]);
+
+  const renderNavButton = (item) => {
+    const active = page === item.key;
+    const disabled = item.requiresClass !== false && !activeClass;
+    return (
+      <button
+        key={item.key}
+        id={`nav-${item.key}`}
+        onClick={() => {
+          if (!disabled) {
+            onSetPage(item.key);
+            onClose();
+          }
+        }}
+        disabled={disabled}
+        style={{
+          border: "none",
+          borderRadius: 16,
+          padding: "10px 12px",
+          textAlign: "left",
+          cursor: disabled ? "not-allowed" : "pointer",
+          opacity: disabled ? 0.42 : 1,
+          background: active
+            ? "linear-gradient(135deg, rgba(30, 196, 184, 0.28), rgba(29, 126, 168, 0.22))"
+            : "rgba(255,255,255,0.035)",
+          color: active ? "#fff" : "rgba(255,255,255,0.88)",
+          fontSize: 14,
+          fontWeight: 800,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          width: "100%",
+          boxShadow: active
+            ? "inset 0 0 0 1px rgba(130,248,236,0.18), 0 12px 26px rgba(6, 37, 52, 0.18)"
+            : "inset 0 1px 0 rgba(255,255,255,0.03)",
+          transition: "background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
+        }}
+      >
+        <span
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 12,
+            display: "grid",
+            placeItems: "center",
+            color: active ? "#dffef8" : "rgba(214, 251, 246, 0.86)",
+            background: active ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)",
+            boxShadow: active ? "inset 0 1px 0 rgba(255,255,255,0.08)" : "none",
+            flexShrink: 0,
+          }}
+        >
+          {navIcon(item.key)}
+        </span>
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>
+        {active && (
+          <span
+            style={{
+              marginLeft: "auto",
+              width: 7,
+              height: 7,
+              borderRadius: 999,
+              background: "#7ef2e8",
+              boxShadow: "0 0 0 4px rgba(126,242,232,0.16)",
+              flexShrink: 0,
+            }}
+          />
+        )}
+      </button>
+    );
+  };
 
   return (
     <>
@@ -187,8 +297,9 @@ export function AppSidebar({
           zIndex: isMobile ? 20 : "auto",
           transform: isMobile && !sideOpen ? `translateX(-${sidebarWidth}px)` : "translateX(0)",
           background:
-            "radial-gradient(circle at top left, rgba(20,184,166,0.26), transparent 28%), linear-gradient(180deg, #08536a 0%, #083f55 45%, #062f43 100%)",
+            "radial-gradient(circle at 12% 0%, rgba(34,211,196,0.24), transparent 24%), radial-gradient(circle at 86% 14%, rgba(59,130,246,0.16), transparent 18%), linear-gradient(180deg, #082f45 0%, #07293c 34%, #061e31 100%)",
           flexShrink: 0,
+          boxShadow: shellShadow,
         }}
       >
         <div
@@ -199,7 +310,7 @@ export function AppSidebar({
             flexDirection: "column",
             minHeight: 0,
             overflow: "hidden",
-            padding: "18px 14px 16px",
+            padding: "16px 14px 16px",
             boxSizing: "border-box",
           }}
         >
@@ -207,20 +318,23 @@ export function AppSidebar({
             style={{
               display: "grid",
               justifyItems: "center",
-              gap: 10,
-              paddingBottom: 18,
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
+              gap: 11,
+              padding: "14px 12px 18px",
+              borderRadius: 26,
+              background: "linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.04))",
+              border: "1px solid rgba(255,255,255,0.08)",
+              boxShadow: `${panelInset}, 0 18px 34px rgba(0,0,0,0.16)`,
               marginBottom: 16,
             }}
           >
             <div
               style={{
-                width: 92,
-                height: 92,
+                width: 94,
+                height: 94,
                 borderRadius: "50%",
                 background: "linear-gradient(145deg, rgba(255,255,255,0.96), rgba(231,244,255,0.94))",
-                border: "3px solid rgba(255,255,255,0.14)",
-                boxShadow: "0 14px 28px rgba(0,0,0,0.18)",
+                border: "4px solid rgba(255,255,255,0.18)",
+                boxShadow: "0 18px 32px rgba(0,0,0,0.2)",
                 display: "grid",
                 placeItems: "center",
                 overflow: "hidden",
@@ -238,8 +352,25 @@ export function AppSidebar({
               />
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ color: "#fff", fontWeight: 900, fontSize: 18 }}>{t("resultSystem")}</div>
-              <div style={{ color: "rgba(255,255,255,0.78)", fontSize: 13, marginTop: 4 }}>Admin Panel</div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "5px 10px",
+                  borderRadius: 999,
+                  background: "rgba(127, 243, 232, 0.12)",
+                  color: "#bffbf2",
+                  fontSize: 10,
+                  fontWeight: 900,
+                  letterSpacing: 1.2,
+                  marginBottom: 10,
+                }}
+              >
+                BONDE OS
+              </div>
+              <div style={{ color: "#fff", fontWeight: 900, fontSize: 18, letterSpacing: -0.3 }}>{t("resultSystem")}</div>
+              <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 12.5, marginTop: 4 }}>Administrative workspace</div>
             </div>
           </div>
 
@@ -252,7 +383,7 @@ export function AppSidebar({
               }}
               style={{
                 border: "none",
-                borderRadius: 16,
+                borderRadius: 18,
                 padding: "14px 16px",
                 textAlign: "left",
                 cursor: "pointer",
@@ -261,86 +392,89 @@ export function AppSidebar({
                 gap: 12,
                 background:
                   page === "dashboard"
-                    ? "linear-gradient(135deg, rgba(17,201,194,0.92), rgba(16,152,171,0.92))"
-                    : "rgba(255,255,255,0.06)",
+                    ? "linear-gradient(135deg, rgba(29,196,184,0.94), rgba(26,127,170,0.94))"
+                    : panelSurface,
+                border: page === "dashboard" ? "1px solid rgba(140,251,241,0.16)" : panelBorder,
                 color: "#fff",
                 fontSize: 15,
                 fontWeight: 800,
-                boxShadow: page === "dashboard" ? "0 14px 30px rgba(17,201,194,0.22)" : "none",
+                boxShadow:
+                  page === "dashboard"
+                    ? "0 16px 30px rgba(16, 121, 152, 0.28), inset 0 1px 0 rgba(255,255,255,0.08)"
+                    : `${panelInset}, 0 14px 30px rgba(0,0,0,0.12)`,
                 marginBottom: 18,
+                width: "100%",
               }}
             >
-              {navIcon("dashboard")}
-              {t("dashboard")}
-            </button>
-
-            <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, fontWeight: 800, letterSpacing: 1.6, marginBottom: 10 }}>
-              MANAGEMENT
-            </div>
-
-            <div style={{ display: "grid", gap: 6, marginBottom: 14 }}>
-              {navItems.map((item) => {
-                const active = page === item.key;
-                const disabled = item.requiresClass !== false && !activeClass;
-                return (
-                  <button
-                    key={item.key}
-                    id={`nav-${item.key}`}
-                    onClick={() => {
-                      if (!disabled) {
-                        onSetPage(item.key);
-                        onClose();
-                      }
-                    }}
-                    disabled={disabled}
-                    style={{
-                      border: "none",
-                      borderRadius: 14,
-                      padding: "11px 12px",
-                      textAlign: "left",
-                      cursor: disabled ? "not-allowed" : "pointer",
-                      opacity: disabled ? 0.42 : 1,
-                      background: active ? "rgba(255,255,255,0.12)" : "transparent",
-                      color: active ? "#fff" : "rgba(255,255,255,0.88)",
-                      fontSize: 14,
-                      fontWeight: 700,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                    }}
-                  >
-                    {navIcon(item.key)}
-                    {item.label}
-                  </button>
-                );
-              })}
-
-              <button
-                onClick={() => {
-                  onSetPage("account");
-                  onClose();
-                }}
+              <span
                 style={{
-                  border: "none",
+                  width: 38,
+                  height: 38,
                   borderRadius: 14,
-                  padding: "11px 12px",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  background: page === "account" ? "rgba(255,255,255,0.12)" : "transparent",
-                  color: "#fff",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
+                  display: "grid",
+                  placeItems: "center",
+                  background: page === "dashboard" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)",
+                  flexShrink: 0,
                 }}
               >
-                {navIcon("account")}
-                {accountLabel}
-              </button>
+                {navIcon("dashboard")}
+              </span>
+              <span>{t("dashboard")}</span>
+              <span
+                style={{
+                  marginLeft: "auto",
+                  color: "rgba(255,255,255,0.86)",
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: 1.1,
+                }}
+              >
+                HOME
+              </span>
+            </button>
+
+            <div style={{ display: "grid", gap: 12, marginBottom: 14 }}>
+              {navSections.map((section) => (
+                <div
+                  key={section.title}
+                  style={{
+                    borderRadius: 20,
+                    background: panelSurface,
+                    border: panelBorder,
+                    boxShadow: `${panelInset}, 0 14px 30px rgba(0,0,0,0.12)`,
+                    padding: "11px 10px 9px",
+                    display: "grid",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "0 4px" }}>
+                    <div style={sectionLabelStyle}>{section.title}</div>
+                    <span
+                      style={{
+                        minWidth: 24,
+                        height: 24,
+                        padding: "0 8px",
+                        borderRadius: 999,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "rgba(255,255,255,0.05)",
+                        color: "rgba(223,254,248,0.82)",
+                        fontSize: 11,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {section.items.length}
+                    </span>
+                  </div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {section.items.map(renderNavButton)}
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, fontWeight: 800, letterSpacing: 1.6, marginBottom: 10 }}>
+            <div style={{ ...sectionLabelStyle, marginBottom: 10 }}>
               CLASSES
             </div>
 
@@ -349,10 +483,11 @@ export function AppSidebar({
                 <div
                   key={year}
                   style={{
-                    borderRadius: 18,
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    padding: "10px 10px 8px",
+                    borderRadius: 20,
+                    background: panelSurface,
+                    border: panelBorder,
+                    boxShadow: `${panelInset}, 0 14px 30px rgba(0,0,0,0.12)`,
+                    padding: "11px 10px 9px",
                   }}
                 >
                   <div
@@ -366,7 +501,7 @@ export function AppSidebar({
                     }}
                     onClick={() => onToggleYear(year)}
                   >
-                    <span style={{ color: "#fff", fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ color: "#fff", fontSize: 13, fontWeight: 900, display: "flex", alignItems: "center", gap: 6 }}>
                       <ChevronIcon open={expandedYears.has(year)} />
                       {year}
                     </span>
@@ -393,13 +528,14 @@ export function AppSidebar({
                       style={{
                         border: "none",
                         borderRadius: 999,
-                        width: 22,
-                        height: 22,
-                        background: "rgba(17,201,194,0.18)",
-                        color: "#6ff6ea",
+                        width: 26,
+                        height: 26,
+                        background: "rgba(17,201,194,0.16)",
+                        color: "#96f8ef",
                         cursor: "pointer",
                         display: "grid",
                         placeItems: "center",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
                       }}
                     >
                       <PlusIcon />
@@ -425,11 +561,11 @@ export function AppSidebar({
                           <div
                             key={form}
                             style={{
-                              borderRadius: 12,
-                              padding: "9px 10px",
+                              borderRadius: 14,
+                              padding: "8px",
                               display: "grid",
-                              gap: 8,
-                              background: "rgba(255,255,255,0.04)",
+                              gap: 7,
+                              background: "rgba(255,255,255,0.035)",
                               color: "#fff",
                             }}
                           >
@@ -438,7 +574,7 @@ export function AppSidebar({
                                 onClick={() => representativeClass && onPickClass(representativeClass)}
                                 style={{
                                   border: "none",
-                                  borderRadius: 12,
+                                  borderRadius: 14,
                                   padding: "10px 12px",
                                   textAlign: "left",
                                   cursor: "pointer",
@@ -447,15 +583,30 @@ export function AppSidebar({
                                   justifyContent: "space-between",
                                   gap: 10,
                                   background: active
-                                    ? "rgba(17,201,194,0.16)"
-                                    : "rgba(255,255,255,0.06)",
+                                    ? "linear-gradient(135deg, rgba(29,196,184,0.22), rgba(29,126,168,0.18))"
+                                    : "rgba(255,255,255,0.055)",
                                   color: "#fff",
-                                  outline: active ? "1px solid rgba(111,246,234,0.35)" : "none",
+                                  outline: active ? "1px solid rgba(111,246,234,0.26)" : "none",
+                                  boxShadow: active ? "0 10px 22px rgba(8, 36, 50, 0.16)" : "none",
                                 }}
                                 title={`${form} ${year}`}
                               >
                                 <span style={{ fontSize: 13, fontWeight: 800 }}>{form}</span>
-                                <span style={{ color: "#7ef2e8", fontSize: 11, fontWeight: 800 }}>
+                                <span
+                                  style={{
+                                    minWidth: 28,
+                                    height: 24,
+                                    padding: "0 8px",
+                                    borderRadius: 999,
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    background: "rgba(255,255,255,0.08)",
+                                    color: "#7ef2e8",
+                                    fontSize: 11,
+                                    fontWeight: 900,
+                                  }}
+                                >
                                   {totalStudents}
                                 </span>
                               </button>
@@ -464,14 +615,14 @@ export function AppSidebar({
                                 onClick={() => onAddClass({ year, form, stream: streamSequence[0] })}
                                 style={{
                                   border: "1px dashed rgba(111,246,234,0.28)",
-                                  borderRadius: 10,
+                                  borderRadius: 12,
                                   padding: "8px 10px",
                                   textAlign: "left",
                                   cursor: "pointer",
-                                  background: "transparent",
+                                  background: "rgba(255,255,255,0.02)",
                                   color: "rgba(255,255,255,0.62)",
                                   fontSize: 12,
-                                  fontWeight: 700,
+                                  fontWeight: 800,
                                 }}
                               >
                                 Create {form}
@@ -488,13 +639,14 @@ export function AppSidebar({
               {unorganizedClasses.length > 0 && (
                 <div
                   style={{
-                    borderRadius: 18,
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    borderRadius: 20,
+                    background: panelSurface,
+                    border: panelBorder,
+                    boxShadow: `${panelInset}, 0 14px 30px rgba(0,0,0,0.12)`,
                     padding: "10px",
                   }}
                 >
-                  <div style={{ color: "rgba(255,255,255,0.58)", fontSize: 12, fontWeight: 800, marginBottom: 8 }}>
+                  <div style={{ color: "rgba(255,255,255,0.58)", fontSize: 12, fontWeight: 900, marginBottom: 8 }}>
                     {t("unorganized")}
                   </div>
                   <div style={{ display: "grid", gap: 4 }}>
@@ -504,7 +656,7 @@ export function AppSidebar({
                         onClick={() => onPickClass(cls)}
                         style={{
                           border: "none",
-                          borderRadius: 12,
+                          borderRadius: 14,
                           padding: "9px 10px",
                           textAlign: "left",
                           cursor: "pointer",
@@ -512,7 +664,10 @@ export function AppSidebar({
                           alignItems: "center",
                           justifyContent: "space-between",
                           gap: 8,
-                          background: cls.id === activeId && isClassPage ? "rgba(17,201,194,0.16)" : "rgba(255,255,255,0.04)",
+                          background:
+                            cls.id === activeId && isClassPage
+                              ? "linear-gradient(135deg, rgba(29,196,184,0.22), rgba(29,126,168,0.18))"
+                              : "rgba(255,255,255,0.05)",
                           color: "#fff",
                         }}
                       >
@@ -531,25 +686,36 @@ export function AppSidebar({
           <div
             style={{
               marginTop: 16,
-              borderRadius: 18,
-              border: "1px solid rgba(255,255,255,0.14)",
-              background: "rgba(255,255,255,0.05)",
-              padding: "14px 16px",
+              borderRadius: 22,
+              border: panelBorder,
+              background: "linear-gradient(135deg, rgba(14, 160, 150, 0.22), rgba(14, 92, 126, 0.24))",
+              padding: "15px 16px",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 12,
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 34px rgba(0,0,0,0.18)",
             }}
           >
             <div>
-              <div style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, marginBottom: 4 }}>
+              <div style={{ color: "rgba(231,255,251,0.72)", fontSize: 11, fontWeight: 800, letterSpacing: 1.1, marginBottom: 4 }}>
                 Academic Year
               </div>
               <div style={{ color: "#fff", fontSize: 22, fontWeight: 900 }}>
                 {academicYear}
               </div>
             </div>
-            <div style={{ color: "#d6fbf6", display: "flex", alignItems: "center" }}>
+            <div
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 16,
+                background: "rgba(255,255,255,0.1)",
+                color: "#d6fbf6",
+                display: "grid",
+                placeItems: "center",
+              }}
+            >
               <ChevronIcon open />
             </div>
           </div>
