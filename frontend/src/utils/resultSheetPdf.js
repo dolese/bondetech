@@ -3,15 +3,15 @@ import autoTable from "../vendor/jspdf.plugin.autotable.mjs";
 import { getExportBranding } from "./exportBranding";
 import { getResultSheetBody, getResultSheetHead } from "./resultSheetShared";
 
-const ACCENT = [11, 91, 85];
-const BORDER = [184, 200, 197];
+const ACCENT = [22, 63, 151];
+const BORDER = [174, 190, 223];
 const TEXT = [22, 22, 22];
 const STATUS_COLORS = {
   COMPLETE: [26, 107, 47],
   INCOMPLETE: [164, 91, 0],
   ABSENT: [180, 35, 24],
 };
-const PAGE_MARGIN = 8;
+const PAGE_MARGIN = 12;
 const PAGE_HEADER_HEIGHT = 56;
 const SUMMARY_START_Y = 76;
 const TABLE_START_Y = 152;
@@ -62,12 +62,12 @@ function drawSchoolHeader(doc, model, assets) {
     doc.addImage(assets.rightLogo, "PNG", pageWidth - PAGE_MARGIN - 28, PAGE_MARGIN + 4, 26, 26);
   }
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setFontSize(22);
   doc.setTextColor(...ACCENT);
   doc.text((branding.headerName || "School Name").toUpperCase(), pageWidth / 2, PAGE_MARGIN + 18, { align: "center" });
 
-  doc.setFont("helvetica", "normal");
+  doc.setFont("times", "normal");
   doc.setFontSize(12);
   doc.setTextColor(...TEXT);
   doc.text(branding.headerSubtitle || "", pageWidth / 2, PAGE_MARGIN + 27, { align: "center" });
@@ -89,7 +89,7 @@ function drawTitleBlock(doc, model) {
     ["Class", model.meta.classLabel],
   ];
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setFontSize(17);
   doc.setTextColor(...ACCENT);
   doc.text("GENERAL STUDENTS RESULTS", pageWidth / 2, top + 6, { align: "center" });
@@ -312,7 +312,8 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
     2: { cellWidth: 48, halign: "left" },
     3: { cellWidth: 10, halign: "center" },
   };
-  const remainingWidth = pageWidth - PAGE_MARGIN * 2 - 10 - 18 - 48 - 10 - 17 - 17 - 15 - 17 - 22 - (model.hasRemarks ? 28 : 0);
+  const remainingWidth =
+    pageWidth - PAGE_MARGIN * 2 - 10 - 18 - 48 - 10 - 15 - 17 - (model.hasRemarks ? 28 : 0);
   const subjectWidth = Math.max(10, Math.min(16, remainingWidth / Math.max(model.subjects.length, 1)));
 
   model.subjects.forEach((_, index) => {
@@ -322,11 +323,8 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
   const totalStart = subjectStartIndex + model.subjects.length;
   columnStyles[totalStart] = { cellWidth: 15, halign: "center" };
   columnStyles[totalStart + 1] = { cellWidth: 17, halign: "center" };
-  columnStyles[totalStart + 2] = { cellWidth: 15, halign: "center" };
-  columnStyles[totalStart + 3] = { cellWidth: 17, halign: "center" };
-  columnStyles[totalStart + 4] = { cellWidth: 22, halign: "center" };
   if (model.hasRemarks) {
-    columnStyles[totalStart + 5] = { cellWidth: 28, halign: "left" };
+    columnStyles[totalStart + 2] = { cellWidth: 28, halign: "left" };
   }
 
   autoTable(doc, {
@@ -369,14 +367,11 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
     },
     didParseCell: (data) => {
       if (data.section === "body") {
-        const statusColumn = totalStart + 4;
-        const divisionColumn = totalStart + 3;
-        if (data.column.index === statusColumn) {
-          const status = String(data.cell.raw || "");
-          data.cell.styles.textColor = STATUS_COLORS[status] || TEXT;
-          data.cell.styles.fontStyle = "bold";
-        }
+        const divisionColumn = totalStart + 1;
         if (data.column.index === divisionColumn) {
+          const division = String(data.cell.raw || "");
+          if (division === "INC") data.cell.styles.textColor = STATUS_COLORS.INCOMPLETE;
+          if (division === "ABS") data.cell.styles.textColor = STATUS_COLORS.ABSENT;
           data.cell.styles.fontStyle = "bold";
         }
       }

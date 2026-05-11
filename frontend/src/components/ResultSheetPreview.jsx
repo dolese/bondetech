@@ -1,15 +1,18 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DIVISION_COLORS } from "../utils/constants";
 import { getExportBranding } from "../utils/exportBranding";
-import { RESULT_SHEET_LAYOUT } from "../utils/resultSheetShared";
+import { getDivisionDisplay, RESULT_SHEET_LAYOUT, RESULT_SHEET_PAGE_MM } from "../utils/resultSheetShared";
 
-const ACCENT = "#0b5b55";
-const BORDER = "#b8c8c5";
+const ACCENT = "#163f97";
+const BORDER = "#aebedf";
 const STATUS_COLORS = {
   COMPLETE: "#1a6b2f",
   INCOMPLETE: "#a45b00",
   ABSENT: "#b42318",
 };
+const SAFE_MARGIN_MM = RESULT_SHEET_LAYOUT.safeMarginMm;
+const PAGE_WIDTH_MM = RESULT_SHEET_PAGE_MM.width - SAFE_MARGIN_MM * 2;
+const PAGE_HEIGHT_MM = RESULT_SHEET_PAGE_MM.height - SAFE_MARGIN_MM * 2;
 
 function paginateRowsByHeights(rowHeights, firstCapacity, otherCapacity) {
   const pages = [];
@@ -107,14 +110,16 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
     pageStack: {
       display: "flex",
       flexDirection: "column",
+      alignItems: "center",
       gap: RESULT_SHEET_LAYOUT.pageGapPx,
-      minWidth: "fit-content",
+      minWidth: "max-content",
+      padding: "0 12px",
     },
     page: {
-      width: "420mm",
-      minHeight: "297mm",
+      width: `${PAGE_WIDTH_MM}mm`,
+      minHeight: `${PAGE_HEIGHT_MM}mm`,
       background: "#fff",
-      border: `2px solid ${ACCENT}`,
+      border: `1.6px solid ${ACCENT}`,
       boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
       padding: isMobile ? 12 : 20,
       boxSizing: "border-box",
@@ -148,6 +153,8 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
       fontWeight: 900,
       color: ACCENT,
       letterSpacing: 0.3,
+      textTransform: "uppercase",
+      fontFamily: "'Georgia', 'Times New Roman', serif",
     },
     headerLine: {
       margin: 0,
@@ -163,6 +170,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
       color: ACCENT,
       letterSpacing: 0.2,
       textTransform: "uppercase",
+      fontFamily: "'Georgia', 'Times New Roman', serif",
     },
     metaRow: {
       display: "flex",
@@ -290,7 +298,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
       pointerEvents: "none",
       left: -10000,
       top: 0,
-      width: "420mm",
+      width: `${PAGE_WIDTH_MM}mm`,
       zIndex: -1,
     },
   };
@@ -305,11 +313,8 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
             "Student Name",
             "Sex",
             ...model.subjects,
-            "TOTAL",
-            "AVERAGE",
             "POINTS",
             "DIVISION",
-            "STATUS",
           ].map((heading) => (
             <th key={heading} style={styles.th}>
               {heading}
@@ -333,12 +338,18 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
                 </td>
               );
             })}
-            <td style={{ ...styles.td, fontWeight: 700 }}>{student.total ?? "-"}</td>
-            <td style={styles.td}>{student.avg ?? "-"}</td>
             <td style={styles.td}>{student.points ?? "-"}</td>
-            <td style={{ ...styles.td, color: DIVISION_COLORS[student.div] ?? "#111", fontWeight: 800 }}>{student.div ?? "-"}</td>
-            <td style={{ ...styles.td, color: STATUS_COLORS[student.resultStatus] ?? "#111", fontWeight: 900 }}>
-              {student.resultStatus}
+            <td
+              style={{
+                ...styles.td,
+                color:
+                  student.resultStatus === "COMPLETE"
+                    ? DIVISION_COLORS[student.div] ?? "#111"
+                    : STATUS_COLORS[student.resultStatus] ?? "#111",
+                fontWeight: 900,
+              }}
+            >
+              {getDivisionDisplay(student)}
             </td>
           </tr>
         ))}

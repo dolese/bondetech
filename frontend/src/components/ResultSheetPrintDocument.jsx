@@ -1,14 +1,18 @@
 import React, { useMemo } from "react";
 import { DIVISION_COLORS } from "../utils/constants";
 import { getExportBranding } from "../utils/exportBranding";
+import { getDivisionDisplay, RESULT_SHEET_LAYOUT, RESULT_SHEET_PAGE_MM } from "../utils/resultSheetShared";
 
-const ACCENT = "#0b5b55";
-const BORDER = "#b8c8c5";
+const ACCENT = "#163f97";
+const BORDER = "#aebedf";
 const STATUS_COLORS = {
   COMPLETE: "#1a6b2f",
   INCOMPLETE: "#a45b00",
   ABSENT: "#b42318",
 };
+const SAFE_MARGIN_MM = RESULT_SHEET_LAYOUT.safeMarginMm;
+const PAGE_WIDTH_MM = RESULT_SHEET_PAGE_MM.width - SAFE_MARGIN_MM * 2;
+const PAGE_HEIGHT_MM = RESULT_SHEET_PAGE_MM.height - SAFE_MARGIN_MM * 2;
 
 function SummaryCard({ title, children }) {
   return (
@@ -49,14 +53,15 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     pageStack: {
       display: "flex",
       flexDirection: "column",
+      alignItems: "center",
       gap: 0,
       background: "#fff",
     },
     page: {
-      width: "420mm",
-      minHeight: "297mm",
+      width: `${PAGE_WIDTH_MM}mm`,
+      minHeight: `${PAGE_HEIGHT_MM}mm`,
       background: "#fff",
-      border: `2px solid ${ACCENT}`,
+      border: `1.6px solid ${ACCENT}`,
       padding: 20,
       boxSizing: "border-box",
       display: "flex",
@@ -92,6 +97,7 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
       color: ACCENT,
       letterSpacing: 0.3,
       textTransform: "uppercase",
+      fontFamily: "'Georgia', 'Times New Roman', serif",
     },
     headerLine: {
       margin: 0,
@@ -107,6 +113,7 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
       color: ACCENT,
       letterSpacing: 0.2,
       textTransform: "uppercase",
+      fontFamily: "'Georgia', 'Times New Roman', serif",
     },
     metaRow: {
       display: "flex",
@@ -273,7 +280,7 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
       <style>{`
         @page {
           size: A3 landscape;
-          margin: 0;
+          margin: ${SAFE_MARGIN_MM}mm;
         }
         body { margin: 0; background: #fff; }
         .result-sheet-print-page:last-child {
@@ -380,11 +387,8 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
                   "Student Name",
                   "Sex",
                   ...model.subjects,
-                  "TOTAL",
-                  "AVERAGE",
                   "POINTS",
                   "DIVISION",
-                  "STATUS",
                   ...(model.hasRemarks ? ["REMARKS"] : []),
                 ].map((heading) => (
                   <th key={heading} style={styles.th}>
@@ -409,14 +413,18 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
                       </td>
                     );
                   })}
-                  <td style={{ ...styles.td, fontWeight: 700 }}>{student.total ?? "-"}</td>
-                  <td style={styles.td}>{student.avg ?? "-"}</td>
                   <td style={styles.td}>{student.points ?? "-"}</td>
-                  <td style={{ ...styles.td, color: DIVISION_COLORS[student.div] ?? "#111", fontWeight: 800 }}>
-                    {student.div ?? "-"}
-                  </td>
-                  <td style={{ ...styles.td, color: STATUS_COLORS[student.resultStatus] ?? "#111", fontWeight: 900 }}>
-                    {student.resultStatus}
+                  <td
+                    style={{
+                      ...styles.td,
+                      color:
+                        student.resultStatus === "COMPLETE"
+                          ? DIVISION_COLORS[student.div] ?? "#111"
+                          : STATUS_COLORS[student.resultStatus] ?? "#111",
+                      fontWeight: 900,
+                    }}
+                  >
+                    {getDivisionDisplay(student)}
                   </td>
                   {model.hasRemarks && (
                     <td style={{ ...styles.td, textAlign: "left" }}>

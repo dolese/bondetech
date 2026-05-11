@@ -27,7 +27,12 @@ function printResultSheetDocument(model, pageRanges) {
         <title>${model.className || "class"} Result Sheet</title>
         <meta charset="utf-8" />
         <style>
-          body { margin: 0; background: #fff; }
+          body {
+            margin: 0;
+            background: #eef2ff;
+            display: flex;
+            justify-content: center;
+          }
         </style>
       </head>
       <body>
@@ -177,7 +182,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         Result Sheet
       </h2>
       <div style={{ fontSize: 11, color: "#667", marginTop: -6, marginBottom: 8 }}>
-        Export a clean class summary for printing or sharing.
+        Download or print a centered official class summary for sharing and hard copy.
       </div>
 
       {compositeEntry && (
@@ -197,7 +202,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
           onClick={exportPdf}
           style={{ ...styles.tabBtn, background: "#8b2500", color: "#fff" }}
         >
-          Export PDF
+          Download PDF
         </button>
         <button
           onClick={exportZip}
@@ -213,7 +218,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         </button>
       </div>
 
-      <div style={{ overflowX: "auto", paddingBottom: 4 }}>
+      <div style={{ overflowX: "auto", paddingBottom: 4, display: "flex", justifyContent: "center" }}>
         {!model.students.length ? (
           <div
             style={{

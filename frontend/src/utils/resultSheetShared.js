@@ -6,8 +6,9 @@ export const RESULT_SHEET_PAGE_MM = {
 };
 
 export const RESULT_SHEET_LAYOUT = {
-  pagePaddingPx: 18,
+  pagePaddingPx: 20,
   pageGapPx: 14,
+  safeMarginMm: 8,
 };
 
 const DIVISION_ORDER = ["I", "II", "III", "IV", "0"];
@@ -35,8 +36,16 @@ function summarizeSex(students, status) {
 export function buildResultSheetModel(classData, computed) {
   const subjects = classData.subjects ?? [];
   const students = (computed ?? [])
-    .filter((student) => student.total !== null)
-    .sort((a, b) => (a.posn ?? Infinity) - (b.posn ?? Infinity));
+    .filter(Boolean)
+    .sort((left, right) => {
+      const statusRank = { COMPLETE: 0, INCOMPLETE: 1, ABSENT: 2 };
+      const statusDiff =
+        (statusRank[left.resultStatus] ?? 9) - (statusRank[right.resultStatus] ?? 9);
+      if (statusDiff !== 0) return statusDiff;
+      const posDiff = (left.posn ?? Infinity) - (right.posn ?? Infinity);
+      if (posDiff !== 0) return posDiff;
+      return String(left.name || "").localeCompare(String(right.name || ""), "en");
+    });
   const schoolInfo = { ...DEFAULT_SCHOOL, ...(classData.school_info ?? {}) };
   const classLabel =
     [classData.form, classData.stream].filter(Boolean).join(" ").trim() ||
@@ -150,14 +159,18 @@ export function getResultSheetHead(model) {
       "Student Name",
       "Sex",
       ...model.subjects,
-      "TOTAL",
-      "AVERAGE",
       "POINTS",
       "DIVISION",
-      "STATUS",
       ...(model.hasRemarks ? ["REMARKS"] : []),
     ],
   ];
+}
+
+export function getDivisionDisplay(student) {
+  if (!student) return "-";
+  if (student.resultStatus === "ABSENT") return "ABS";
+  if (student.resultStatus === "INCOMPLETE") return "INC";
+  return student.div ?? "-";
 }
 
 export function getResultSheetBody(model, students = model.students) {
@@ -170,11 +183,8 @@ export function getResultSheetBody(model, students = model.students) {
       const grade = student.grades?.[index];
       return grade?.raw === "ABS" ? "ABS" : (grade?.score ?? "-");
     }),
-    student.total ?? "-",
-    student.avg ?? "-",
     student.points ?? "-",
-    student.div ?? "-",
-    student.resultStatus ?? "-",
+    getDivisionDisplay(student),
     ...(model.hasRemarks ? [student.remarks ? student.remarks.trim() : ""] : []),
   ]);
 }

@@ -37,17 +37,11 @@ function getGenderLabel(value) {
   return value === "F" ? "Female" : value === "M" ? "Male" : "-";
 }
 
-function getStatusLabel(status) {
-  switch (status) {
-    case "COMPLETE":
-      return "KAMILI";
-    case "INCOMPLETE":
-      return "HAIJAKAMILIKA";
-    case "ABSENT":
-      return "HAKUHUDHURIA";
-    default:
-      return "-";
-  }
+function getDivisionDisplay(student) {
+  if (!student) return "-";
+  if (student.resultStatus === "ABSENT") return "ABS";
+  if (student.resultStatus === "INCOMPLETE") return "INC";
+  return student.div ? `Division ${student.div}` : "-";
 }
 
 function getGradeDescriptionSw(grade) {
@@ -674,11 +668,10 @@ export function ReportCardPrint({
               ["Jumla ya Alama", formatNumeric(totalScore, isComposite ? 1 : 0)],
               ["Wastani", formatNumeric(avgScore, 1)],
               ["Daraja la Wastani", getAverageGradeLabel(student)],
-              ["Divisheni", student.resultStatus === "COMPLETE" ? `Division ${student.div ?? "-"}` : "-"],
+              ["Divisheni", getDivisionDisplay(student)],
               ["Jumla ya Pointi", student.points ?? "-"],
               ["Nafasi", totalStudents ? `${student.posn ?? "-"} / ${totalStudents}` : (student.posn ?? "-")],
               ["Masomo Yaliyofanywa", student.subjectsDone ?? numericGrades.length],
-              ["Hali", getStatusLabel(student.resultStatus)],
             ].map(([label, value]) => (
               <div key={label} style={styles.sideRow}>
                 <span style={{ fontWeight: 700 }}>{label}</span>

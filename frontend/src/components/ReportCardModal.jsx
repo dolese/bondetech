@@ -72,12 +72,14 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
         @media print {
           @page {
             size: A4 portrait;
-            margin: 0;
+            margin: 8mm;
           }
           html, body {
             margin: 0 !important;
             padding: 0 !important;
             background: #fff !important;
+            display: flex !important;
+            justify-content: center !important;
           }
           .report-card-print-overlay,
           .report-card-print-shell,
@@ -96,9 +98,9 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
             margin: 0 !important;
           }
           .report-card-page {
-            width: 210mm !important;
-            min-height: 297mm !important;
-            height: 297mm !important;
+            width: 194mm !important;
+            min-height: 281mm !important;
+            height: 281mm !important;
             margin: 0 auto !important;
             box-shadow: none !important;
             border-radius: 0 !important;
@@ -107,8 +109,8 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
             page-break-inside: avoid !important;
           }
           .report-card-page > div {
-            width: 210mm !important;
-            min-height: 297mm !important;
+            width: 194mm !important;
+            min-height: 281mm !important;
             margin: 0 !important;
             box-shadow: none !important;
           }
@@ -171,7 +173,7 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
                   alignSelf: "end",
                 }}
               >
-                Export PDF
+                Download PDF
               </button>
               <button
                 onClick={onClose}
