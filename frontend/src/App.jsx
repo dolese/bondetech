@@ -23,13 +23,19 @@ import { CommandPalette } from "./components/CommandPalette";
 import { OnboardingTour } from "./components/OnboardingTour";
 import { UserGuideModal } from "./components/UserGuideModal";
 import { useSession } from "./hooks/useSession";
-import { CLASS_FORMS, useClasses } from "./hooks/useClasses";
+import { CLASS_FORMS, CLASS_STREAMS, useClasses } from "./hooks/useClasses";
 import { API } from "./api";
 import { useI18n } from "./i18n";
 import { DEFAULT_SCHOOL } from "./utils/constants";
 import { mergeClassSchoolInfo, normalizeSchoolSettings } from "./utils/schoolSettings";
 
 const CLASS_ACCESS_ROLES = new Set(["admin", "academic", "teacher"]);
+
+function getClassDisplayLabel(cls = {}, { includeYear = true } = {}) {
+  const parts = [cls.form, cls.stream].filter(Boolean);
+  const base = parts.join(" ").trim() || cls.name || "Unnamed Class";
+  return includeYear && cls.year ? `${base} ${cls.year}` : base;
+}
 
 function getDefaultPageForUser(user) {
   if (!user) return "dashboard";
@@ -62,7 +68,7 @@ function buildParentDirectory(classes) {
         studentId: student.id,
         name: student.name || "Unnamed Student",
         indexNo: student.index_no || student.indexNo || "",
-        classLabel: [cls.form, cls.year].filter(Boolean).join(" "),
+        classLabel: getClassDisplayLabel(cls),
       });
       parentMap.set(key, existing);
     });
@@ -80,7 +86,7 @@ function buildParentDirectory(classes) {
 function buildTeacherDirectory(users, classes) {
   const assignmentMap = new Map();
   (classes || []).forEach((cls) => {
-    const classLabel = [cls.form, cls.year].filter(Boolean).join(" ");
+    const classLabel = getClassDisplayLabel(cls);
     Object.values(cls.timetable?.entries || {}).forEach((entry) => {
       const teacherKey = String(entry.teacherUsername || entry.teacherName || "")
         .trim()
@@ -485,6 +491,7 @@ export default function App() {
           classesByYear={classesByYear}
           expandedYears={expandedYears}
           forms={CLASS_FORMS}
+          streams={CLASS_STREAMS}
           unorganizedClasses={unorganizedClasses}
           accountLabel={accountLabel}
           navItems={navItems}

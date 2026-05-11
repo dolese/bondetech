@@ -74,7 +74,7 @@ export function MasterTimetable({ masterRows, periods }) {
                         {tableCellText(cls.form)}
                       </td>
                     ) : null}
-                    <td className="tt-axis-cell">{tableCellText(cls.year)}</td>
+                    <td className="tt-axis-cell">{tableCellText(cls.stream)}</td>
                     {periods.map((period) => {
                       const slotKey = buildSlotKey(day.id, period.id);
                       if (isSharedTimetablePeriod(period)) {

@@ -39,6 +39,7 @@ export function SettingsPage({
   const [className, setClassName] = useState(classData.name ?? "");
   const [classYear, setClassYear] = useState(classData.year ?? "");
   const [classForm, setClassForm] = useState(classData.form ?? "Form I");
+  const [classStream, setClassStream] = useState(classData.stream ?? "A");
   const [metaError, setMetaError] = useState("");
   const [updatingMeta, setUpdatingMeta] = useState(false);
 
@@ -84,6 +85,7 @@ export function SettingsPage({
     setClassName(classData.name ?? "");
     setClassYear(classData.year ?? "");
     setClassForm(classData.form ?? "Form I");
+    setClassStream(classData.stream ?? "A");
     setSchoolInfo({ ...DEFAULT_SCHOOL, ...(schoolSettings ?? {}) });
     setSchoolErrors({});
     setMetaError("");
@@ -97,7 +99,7 @@ export function SettingsPage({
       year:
         classData.school_info?.year ?? classData.year ?? DEFAULT_SCHOOL.year,
     });
-  }, [classData.id, schoolSettings]);
+  }, [classData.id, classData.stream, schoolSettings]);
 
   const handleUpdateMeta = async () => {
     const yearStr = String(classYear).trim();
@@ -107,6 +109,10 @@ export function SettingsPage({
     }
     if (!classForm || !String(classForm).trim()) {
       setMetaError(t("settingsFormRequired", "Form is required"));
+      return;
+    }
+    if (!classStream || !String(classStream).trim()) {
+      setMetaError("Stream is required");
       return;
     }
     const nameStr = className.trim();
@@ -119,6 +125,7 @@ export function SettingsPage({
     await onUpdateClassMeta?.({
       year: yearStr,
       form: classForm,
+      stream: classStream,
       name: nameStr,
     });
     setUpdatingMeta(false);
@@ -396,7 +403,7 @@ export function SettingsPage({
         <div
           style={{
             ...styles.grid2,
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr 1fr",
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -462,6 +469,26 @@ export function SettingsPage({
               <option value="Form III">Form III</option>
               <option value="Form IV">Form IV</option>
             </select>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#555",
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}
+            >
+              Stream
+            </label>
+            <input
+              type="text"
+              value={classStream}
+              onChange={(e) => setClassStream(String(e.target.value || "").toUpperCase())}
+              placeholder="e.g. A"
+              style={styles.input}
+            />
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

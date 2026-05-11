@@ -6,6 +6,7 @@ import { normalizeClassTimetable } from "../utils/timetable";
 import { withPositions } from "../utils/grading";
 
 export const CLASS_FORMS = ["Form I", "Form II", "Form III", "Form IV"];
+export const CLASS_STREAMS = ["A", "B", "C", "D", "E", "F"];
 export const DEFAULT_CONDUCT = {
   utendajiKazi: "",
   nidhamNaUtii: "",
@@ -45,6 +46,7 @@ const normalizeClass = (cls) => ({
   ...cls,
   school_info: cls.school_info ?? cls.schoolInfo ?? {},
   subjects: cls.subjects ?? DEFAULT_SUBJECTS,
+  stream: String(cls.stream ?? "").trim().toUpperCase(),
   timetable: normalizeClassTimetable(cls.timetable),
   students: (cls.students ?? []).map(normalizeStudent),
   archived: cls.archived ?? false,
@@ -223,12 +225,35 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     try {
       const year = opts.year || DEFAULT_SCHOOL.year;
       const form = opts.form || CLASS_FORMS[0];
-      if (classes.some((cls) => cls.year === year && cls.form === form)) {
-        showToast?.(`${form} ${year} already exists`, "error");
+      const stream =
+        String(
+          opts.stream ||
+            CLASS_STREAMS.find(
+              (candidate) =>
+                !classes.some(
+                  (cls) =>
+                    cls.year === year &&
+                    cls.form === form &&
+                    String(cls.stream || "").trim().toUpperCase() === candidate,
+                ),
+            ) ||
+            CLASS_STREAMS[CLASS_STREAMS.length - 1],
+        )
+          .trim()
+          .toUpperCase();
+      if (
+        classes.some(
+          (cls) =>
+            cls.year === year &&
+            cls.form === form &&
+            String(cls.stream || "").trim().toUpperCase() === stream,
+        )
+      ) {
+        showToast?.(`${form} ${stream} ${year} already exists`, "error");
         return;
       }
       const created = await API.createClass({
-        name: `${form} ${year}`,
+        name: `${form} ${stream} ${year}`,
         schoolInfo: extractClassSchoolInfoOverrides({
           form,
           term: schoolSettings?.term || DEFAULT_SCHOOL.term,
@@ -239,6 +264,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
         subjects: DEFAULT_SUBJECTS,
         year,
         form,
+        stream,
       });
       const normalized = normalizeClass({ ...created, students: [] });
       setClasses((prev) => [...prev, normalized]);
@@ -372,20 +398,28 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, refreshClass, showToast]);
 
-  const onUpdateClassMeta = useCallback(async ({ year, form, name }) => {
+  const onUpdateClassMeta = useCallback(async ({ year, form, stream, name }) => {
     if (!activeClass) return;
     try {
       const updates = {};
       if (year !== undefined) updates.year = year;
       if (form !== undefined) updates.form = form;
+      if (stream !== undefined) updates.stream = String(stream).trim().toUpperCase();
       if (name !== undefined) updates.name = name.trim();
       const newYear = updates.year ?? activeClass.year;
       const newForm = updates.form ?? activeClass.form;
+      const newStream = updates.stream ?? activeClass.stream;
       if (
-        (updates.year !== undefined || updates.form !== undefined) &&
-        classes.some((cls) => cls.id !== activeClass.id && cls.year === newYear && cls.form === newForm)
+        (updates.year !== undefined || updates.form !== undefined || updates.stream !== undefined) &&
+        classes.some(
+          (cls) =>
+            cls.id !== activeClass.id &&
+            cls.year === newYear &&
+            cls.form === newForm &&
+            String(cls.stream || "").trim().toUpperCase() === String(newStream || "").trim().toUpperCase(),
+        )
       ) {
-        showToast?.(`${newForm} ${newYear} already exists`, "error");
+        showToast?.(`${newForm} ${newStream} ${newYear} already exists`, "error");
         return;
       }
       await API.updateClass(activeClass.id, updates);

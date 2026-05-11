@@ -23,7 +23,7 @@ import "./Timetable.css";
 import { useI18n } from "../../i18n";
 
 function normalizeClassLabel(cls = {}) {
-  return [cls.form, cls.year].filter(Boolean).join(" ").trim();
+  return [cls.form, cls.stream].filter(Boolean).join(" ").trim();
 }
 
 function parseFormOrder(form) {
@@ -49,6 +49,8 @@ function parseFormOrder(form) {
 function compareClasses(a, b) {
   const formDiff = parseFormOrder(a?.form) - parseFormOrder(b?.form);
   if (formDiff !== 0) return formDiff;
+  const streamDiff = String(a?.stream || "").localeCompare(String(b?.stream || ""), "en");
+  if (streamDiff !== 0) return streamDiff;
   return normalizeClassLabel(a).localeCompare(normalizeClassLabel(b));
 }
 
@@ -137,6 +139,7 @@ function groupMasterRows(days, periods, classes) {
       return {
         id: cls.id,
         form: cls.form || "",
+        stream: cls.stream || "",
         year: cls.year || "",
         classLabel: normalizeClassLabel(cls),
         entries: timetable.entries || {},
@@ -356,7 +359,7 @@ export function TimetablePage({
     [allClasses, normalizedGlobalTimetable],
   );
   const activeClassLabel = useMemo(
-    () => [classData?.form, classData?.year].filter(Boolean).join(" "),
+    () => [classData?.form, classData?.stream].filter(Boolean).join(" "),
     [classData],
   );
   const teacherLoadMap = useMemo(
@@ -388,7 +391,7 @@ export function TimetablePage({
         return {
           id: cls.id,
           form: cls.form || "",
-          stream: cls.year || "",
+          stream: cls.stream || "",
           classLabel: normalizeClassLabel(cls),
           subjectCount: (cls.subjects || []).length,
           lessonCount,

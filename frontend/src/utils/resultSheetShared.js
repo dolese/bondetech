@@ -38,7 +38,12 @@ export function buildResultSheetModel(classData, computed) {
     .filter((student) => student.total !== null)
     .sort((a, b) => (a.posn ?? Infinity) - (b.posn ?? Infinity));
   const schoolInfo = { ...DEFAULT_SCHOOL, ...(classData.school_info ?? {}) };
-  const classLabel = classData.form ?? schoolInfo.form ?? classData.name ?? "";
+  const classLabel =
+    [classData.form, classData.stream].filter(Boolean).join(" ").trim() ||
+    classData.form ||
+    schoolInfo.form ||
+    classData.name ||
+    "";
   const hasRemarks = students.some((student) => student.remarks && student.remarks.trim());
 
   const completeStudents = students.filter((student) => student.resultStatus === "COMPLETE");

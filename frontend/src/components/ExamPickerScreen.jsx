@@ -79,7 +79,9 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
     },
   };
 
-  const className = classData ? `${classData.form ?? ""} ${classData.year ?? ""}`.trim() : "";
+  const className = classData
+    ? [classData.form, classData.stream, classData.year].filter(Boolean).join(" ").trim()
+    : "";
 
   const renderExamButton = (examValue, meta, label) => {
     const isActive = classData?.school_info?.exam === examValue;

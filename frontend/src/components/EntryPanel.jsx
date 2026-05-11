@@ -101,6 +101,7 @@ export function EntryPanel({
   const [reorderingCnos, setReorderingCnos] = useState(false);
   const [classYear, setClassYear] = useState(classData.year ?? "");
   const [classForm, setClassForm] = useState(classData.form ?? "Form I");
+  const [classStream, setClassStream] = useState(classData.stream ?? "A");
   const [metaError, setMetaError] = useState("");
   const [updatingMeta, setUpdatingMeta] = useState(false);
   const [newStudent, setNewStudent] = useState({
@@ -123,6 +124,7 @@ export function EntryPanel({
   useEffect(() => {
     setClassYear(classData.year ?? "");
     setClassForm(classData.form ?? "Form I");
+    setClassStream(classData.stream ?? "A");
     setSchoolInfo({
       ...DEFAULT_SCHOOL,
       ...(classData.school_info ?? {}),
@@ -132,7 +134,7 @@ export function EntryPanel({
     setShowImportMenu(false);
     setShowExportMenu(false);
     setShowAdvancedMenu(false);
-  }, [classData.id, classData.year, classData.form]);
+  }, [classData.id, classData.year, classData.form, classData.stream]);
 
   useEffect(() => {
     setSchoolInfo((prev) => (
@@ -370,9 +372,13 @@ export function EntryPanel({
       setMetaError("Form is required");
       return;
     }
+    if (!classStream || !String(classStream).trim()) {
+      setMetaError("Stream is required");
+      return;
+    }
     setMetaError("");
     setUpdatingMeta(true);
-    await onUpdateClassMeta?.({ year: yearStr, form: classForm });
+    await onUpdateClassMeta?.({ year: yearStr, form: classForm, stream: classStream });
     setUpdatingMeta(false);
   };
 
@@ -1113,6 +1119,13 @@ export function EntryPanel({
             <option value="Form III">Form III</option>
             <option value="Form IV">Form IV</option>
           </select>
+          <input
+            type="text"
+            placeholder="Stream"
+            value={classStream}
+            onChange={e => setClassStream(String(e.target.value || "").toUpperCase())}
+            style={styles.metaInput}
+          />
           <button
             style={styles.metaBtn}
             onClick={handleUpdateMeta}

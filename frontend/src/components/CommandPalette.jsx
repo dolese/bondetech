@@ -4,7 +4,9 @@ import { useI18n } from "../i18n";
 import { useViewport } from "../utils/useViewport";
 
 function getClassLabel(cls = {}) {
-  return cls.name || [cls.form, cls.year].filter(Boolean).join(" ") || "Unnamed Class";
+  const base = [cls.form, cls.stream].filter(Boolean).join(" ").trim();
+  if (base && cls.year) return `${base} ${cls.year}`;
+  return base || cls.name || "Unnamed Class";
 }
 
 function getUserTargetPage(user = {}) {
@@ -20,7 +22,7 @@ function buildUserSubtitle(user = {}) {
 function buildStudentSubtitle(student = {}) {
   return [
     student.indexNo,
-    [student.form, student.year].filter(Boolean).join(" "),
+    [student.form, student.stream, student.year].filter(Boolean).join(" "),
     student.status,
   ]
     .filter(Boolean)

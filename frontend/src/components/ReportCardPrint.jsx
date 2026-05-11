@@ -196,7 +196,12 @@ export function ReportCardPrint({
   const isLandscape = orientation === "landscape";
   const isCompact = template === "compact";
   const totalStudents = (classData.students ?? []).length || null;
-  const classLabel = classData.form ?? schoolInfo.form ?? classData.name ?? "-";
+  const classLabel =
+    [classData.form, classData.stream].filter(Boolean).join(" ").trim() ||
+    classData.form ||
+    schoolInfo.form ||
+    classData.name ||
+    "-";
   const reportInstruction = String(
     schoolInfo.reportInstruction ?? schoolInfo.report_instruction ?? ""
   ).trim();

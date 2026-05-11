@@ -141,6 +141,7 @@ export function AppSidebar({
   classesByYear,
   expandedYears,
   forms,
+  streams = [],
   unorganizedClasses,
   accountLabel,
   navItems,
@@ -152,6 +153,7 @@ export function AppSidebar({
 }) {
   const { t } = useI18n();
   const academicYear = useMemo(() => currentAcademicYear(classesByYear), [classesByYear]);
+  const streamSequence = streams.length ? streams : ["A", "B", "C", "D", "E", "F"];
 
   return (
     <>
@@ -357,75 +359,153 @@ export function AppSidebar({
                       <ChevronIcon open={expandedYears.has(year)} />
                       {year}
                     </span>
-                    {yearClasses.length < forms.length && (
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          const nextForm = forms.find((form) => !yearClasses.some((cls) => cls.form === form));
-                          if (nextForm) onAddClass({ year, form: nextForm });
-                        }}
-                        style={{
-                          border: "none",
-                          borderRadius: 999,
-                          width: 22,
-                          height: 22,
-                          background: "rgba(17,201,194,0.18)",
-                          color: "#6ff6ea",
-                          cursor: "pointer",
-                          display: "grid",
-                          placeItems: "center",
-                        }}
-                      >
-                        <PlusIcon />
-                      </button>
-                    )}
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        const nextForm =
+                          forms.find(
+                            (form) =>
+                              !yearClasses.some(
+                                (cls) =>
+                                  cls.form === form &&
+                                  String(cls.stream || "").trim().toUpperCase() === streamSequence[0],
+                              ),
+                          ) || forms[0];
+                        const usedStreams = yearClasses
+                          .filter((cls) => cls.form === nextForm)
+                          .map((cls) => String(cls.stream || "").trim().toUpperCase());
+                        const nextStream =
+                          streamSequence.find((candidate) => !usedStreams.includes(candidate)) ||
+                          streamSequence[streamSequence.length - 1];
+                        onAddClass({ year, form: nextForm, stream: nextStream });
+                      }}
+                      style={{
+                        border: "none",
+                        borderRadius: 999,
+                        width: 22,
+                        height: 22,
+                        background: "rgba(17,201,194,0.18)",
+                        color: "#6ff6ea",
+                        cursor: "pointer",
+                        display: "grid",
+                        placeItems: "center",
+                      }}
+                    >
+                      <PlusIcon />
+                    </button>
                   </div>
 
                   {expandedYears.has(year) && (
                     <div style={{ display: "grid", gap: 4 }}>
                       {forms.map((form) => {
-                        const cls = yearClasses.find((item) => item.form === form);
-                        const active = cls && cls.id === activeId && isClassPage;
+                        const formClasses = yearClasses
+                          .filter((item) => item.form === form)
+                          .sort((left, right) =>
+                            String(left.stream || "").localeCompare(String(right.stream || ""), "en"),
+                          );
+                        const formHasAny = formClasses.length > 0;
                         return (
-                          <button
+                          <div
                             key={form}
-                            onClick={() => {
-                              if (cls) {
-                                onPickClass(cls);
-                              } else {
-                                onAddClass({ year, form });
-                              }
-                            }}
                             style={{
-                              border: "none",
                               borderRadius: 12,
                               padding: "9px 10px",
-                              textAlign: "left",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
+                              display: "grid",
                               gap: 8,
-                              background: active ? "rgba(17,201,194,0.16)" : "rgba(255,255,255,0.04)",
-                              color: cls ? "#fff" : "rgba(255,255,255,0.44)",
-                              outline: active ? "1px solid rgba(111,246,234,0.35)" : "none",
+                              background: "rgba(255,255,255,0.04)",
+                              color: "#fff",
                             }}
-                            title={cls ? cls.name : `${t("selectClass")} ${form} ${year}`}
                           >
-                            <span style={{ fontSize: 13, fontWeight: 700 }}>{form}</span>
-                            <span
+                            <div
                               style={{
-                                borderRadius: 999,
-                                padding: cls ? "3px 8px" : "0 4px",
-                                background: cls ? "rgba(255,255,255,0.08)" : "transparent",
-                                fontSize: 11,
-                                fontWeight: 800,
-                                color: cls ? "#7ef2e8" : "#6ff6ea",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 8,
                               }}
                             >
-                              {cls ? cls.studentCount ?? cls.students?.length ?? 0 : "+"}
-                            </span>
-                          </button>
+                              <span style={{ fontSize: 13, fontWeight: 700 }}>{form}</span>
+                              <button
+                                onClick={() => {
+                                  const usedStreams = formClasses.map((cls) =>
+                                    String(cls.stream || "").trim().toUpperCase(),
+                                  );
+                                  const nextStream =
+                                    streamSequence.find((candidate) => !usedStreams.includes(candidate)) ||
+                                    streamSequence[streamSequence.length - 1];
+                                  onAddClass({ year, form, stream: nextStream });
+                                }}
+                                style={{
+                                  border: "none",
+                                  borderRadius: 999,
+                                  width: 22,
+                                  height: 22,
+                                  background: "rgba(17,201,194,0.18)",
+                                  color: "#6ff6ea",
+                                  cursor: "pointer",
+                                  display: "grid",
+                                  placeItems: "center",
+                                }}
+                                title={`Add stream to ${form} ${year}`}
+                              >
+                                <PlusIcon />
+                              </button>
+                            </div>
+
+                            {formHasAny ? (
+                              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                {formClasses.map((cls) => {
+                                  const active = cls.id === activeId && isClassPage;
+                                  return (
+                                    <button
+                                      key={cls.id}
+                                      onClick={() => onPickClass(cls)}
+                                      style={{
+                                        border: "none",
+                                        borderRadius: 999,
+                                        padding: "6px 10px",
+                                        textAlign: "left",
+                                        cursor: "pointer",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: 8,
+                                        background: active
+                                          ? "rgba(17,201,194,0.16)"
+                                          : "rgba(255,255,255,0.06)",
+                                        color: "#fff",
+                                        outline: active ? "1px solid rgba(111,246,234,0.35)" : "none",
+                                      }}
+                                      title={`${form} ${cls.stream || ""} ${year}`.trim()}
+                                    >
+                                      <span style={{ fontSize: 12, fontWeight: 800 }}>
+                                        {cls.stream || "-"}
+                                      </span>
+                                      <span style={{ color: "#7ef2e8", fontSize: 11, fontWeight: 800 }}>
+                                        {cls.studentCount ?? cls.students?.length ?? 0}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => onAddClass({ year, form, stream: streamSequence[0] })}
+                                style={{
+                                  border: "1px dashed rgba(111,246,234,0.28)",
+                                  borderRadius: 10,
+                                  padding: "8px 10px",
+                                  textAlign: "left",
+                                  cursor: "pointer",
+                                  background: "transparent",
+                                  color: "rgba(255,255,255,0.62)",
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                Create stream {streamSequence[0]}
+                              </button>
+                            )}
+                          </div>
                         );
                       })}
                     </div>

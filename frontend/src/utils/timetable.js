@@ -1,3 +1,7 @@
+function formatClassLabel(cls = {}) {
+  return [cls.form, cls.stream].filter(Boolean).join(" ").trim();
+}
+
 export const DEFAULT_TIMETABLE_DAYS = [
   { id: "monday", label: "Monday", shortLabel: "Mon", enabled: true },
   { id: "tuesday", label: "Tuesday", shortLabel: "Tue", enabled: true },
@@ -7,15 +11,18 @@ export const DEFAULT_TIMETABLE_DAYS = [
 ];
 
 export const DEFAULT_TIMETABLE_PERIODS = [
-  { id: "period-1", label: "Period 1", shortLabel: "P1", start: "07:30", end: "08:10", type: "lesson" },
-  { id: "period-2", label: "Period 2", shortLabel: "P2", start: "08:10", end: "08:50", type: "lesson" },
-  { id: "short-break", label: "Break", shortLabel: "BR", start: "08:50", end: "09:10", type: "break" },
-  { id: "period-3", label: "Period 3", shortLabel: "P3", start: "09:10", end: "09:50", type: "lesson" },
-  { id: "period-4", label: "Period 4", shortLabel: "P4", start: "09:50", end: "10:30", type: "lesson" },
-  { id: "lunch", label: "Lunch", shortLabel: "LN", start: "10:30", end: "11:00", type: "break" },
+  { id: "period-1", label: "Period 1", shortLabel: "P1", start: "08:00", end: "08:40", type: "lesson" },
+  { id: "period-2", label: "Period 2", shortLabel: "P2", start: "08:40", end: "09:20", type: "lesson" },
+  { id: "period-3", label: "Period 3", shortLabel: "P3", start: "09:20", end: "10:00", type: "lesson" },
+  { id: "period-4", label: "Period 4", shortLabel: "P4", start: "10:00", end: "10:40", type: "lesson" },
+  { id: "short-break", label: "Break", shortLabel: "BR", start: "10:40", end: "11:00", type: "break" },
   { id: "period-5", label: "Period 5", shortLabel: "P5", start: "11:00", end: "11:40", type: "lesson" },
   { id: "period-6", label: "Period 6", shortLabel: "P6", start: "11:40", end: "12:20", type: "lesson" },
   { id: "period-7", label: "Period 7", shortLabel: "P7", start: "12:20", end: "13:00", type: "lesson" },
+  { id: "lunch", label: "Lunch", shortLabel: "LN", start: "13:00", end: "13:40", type: "break" },
+  { id: "period-8", label: "Period 8", shortLabel: "P8", start: "13:40", end: "14:20", type: "lesson" },
+  { id: "period-9", label: "Period 9", shortLabel: "P9", start: "14:20", end: "15:00", type: "lesson" },
+  { id: "period-10", label: "Activities", shortLabel: "ACT", start: "15:00", end: "15:30", type: "shared" },
 ];
 
 function normalizeRoom(room = {}) {
@@ -172,7 +179,7 @@ export function detectTeacherConflicts(classes = []) {
       const items = slotTeacherMap.get(combinedKey) || [];
       items.push({
         classId: cls.id,
-        classLabel: [cls.form, cls.year].filter(Boolean).join(" "),
+        classLabel: formatClassLabel(cls),
         subject: entry.subject,
         teacherName: entry.teacherName || entry.teacherUsername,
       });
@@ -205,7 +212,7 @@ export function detectRoomConflicts(classes = []) {
       const items = slotRoomMap.get(combinedKey) || [];
       items.push({
         classId: cls.id,
-        classLabel: [cls.form, cls.year].filter(Boolean).join(" "),
+        classLabel: formatClassLabel(cls),
         subject: entry.subject,
         room: entry.room,
       });
@@ -240,7 +247,7 @@ export function buildTeacherLoadSummary(classes = []) {
         classes: new Map(),
       };
       current.periods += 1;
-      const classLabel = [cls.form, cls.year].filter(Boolean).join(" ");
+      const classLabel = formatClassLabel(cls);
       current.classes.set(classLabel, (current.classes.get(classLabel) || 0) + 1);
       map.set(key, current);
     });
@@ -304,7 +311,7 @@ export function buildRoomLoadSummary(classes = [], configuredRooms = []) {
         classes: new Set(),
       };
       current.periods += 1;
-      current.classes.add([cls.form, cls.year].filter(Boolean).join(" "));
+      current.classes.add(formatClassLabel(cls));
       roomMap.set(roomKey, current);
     });
   });
@@ -331,7 +338,7 @@ export function detectTeacherAvailabilityConflicts(classes = [], settings = {}) 
         type: "availability",
         slotKey,
         teacherName: entry.teacherName || entry.teacherUsername,
-        classLabel: [cls.form, cls.year].filter(Boolean).join(" "),
+        classLabel: formatClassLabel(cls),
         subject: entry.subject,
       });
     });

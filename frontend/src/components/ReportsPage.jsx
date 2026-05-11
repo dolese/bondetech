@@ -21,6 +21,12 @@ const TEMPLATE_OPTIONS = [
 const REPORT_CARD_PAPER_SIZE = "a4";
 const REPORT_CARD_ORIENTATION = "portrait";
 
+function getClassLabel(classData = {}) {
+  const base = [classData.form, classData.stream].filter(Boolean).join(" ").trim();
+  if (base && classData.year) return `${base} ${classData.year}`;
+  return base || classData.name || "";
+}
+
 function normalizeExamList(classData, computed) {
   const standardExams = EXAM_TYPES.map((exam) => exam.value);
   const monthlyExams = (classData.monthly_exams ?? []).map((month) =>
@@ -365,8 +371,8 @@ export function ReportsPage({
               {t("reportsCenterTitle", "Report Center")}
             </h3>
             <div style={{ fontSize: 13, color: "#607086", lineHeight: 1.7 }}>
-              {schoolInfo.name} • {classData.form || ""} {classData.year || ""}{" "}
-              • {schoolInfo.exam || DEFAULT_EXAM_TYPE}
+              {schoolInfo.name} | {getClassLabel(classData)} |{" "}
+              {schoolInfo.exam || DEFAULT_EXAM_TYPE}
             </div>
           </div>
           <button
