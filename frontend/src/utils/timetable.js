@@ -63,10 +63,15 @@ function normalizeDay(day = {}, fallback = {}) {
 
 function normalizePeriod(period = {}, fallback = {}) {
   const source = period && typeof period === "object" ? period : {};
-  const type = String(source.type || fallback.type || "lesson").trim().toLowerCase();
+  const id = String(source.id || fallback.id || "").trim();
+  const label = String(source.label || fallback.label || "").trim();
+  let type = String(source.type || fallback.type || "lesson").trim().toLowerCase();
+  if (id === "short-break" || id === "lunch" || /break|lunch/i.test(label)) {
+    type = "break";
+  }
   return {
-    id: String(source.id || fallback.id || "").trim(),
-    label: String(source.label || fallback.label || "").trim(),
+    id,
+    label,
     shortLabel: String(source.shortLabel || source.short_label || fallback.shortLabel || fallback.short_label || "").trim(),
     start: String(source.start || fallback.start || "").trim(),
     end: String(source.end || fallback.end || "").trim(),

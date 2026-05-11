@@ -415,6 +415,12 @@ export function AppSidebar({
                             String(left.stream || "").localeCompare(String(right.stream || ""), "en"),
                           );
                         const formHasAny = formClasses.length > 0;
+                        const representativeClass = formClasses[0] || null;
+                        const totalStudents = formClasses.reduce(
+                          (sum, cls) => sum + Number(cls.studentCount ?? cls.students?.length ?? 0),
+                          0,
+                        );
+                        const active = formClasses.some((cls) => cls.id === activeId) && isClassPage;
                         return (
                           <div
                             key={form}
@@ -427,77 +433,32 @@ export function AppSidebar({
                               color: "#fff",
                             }}
                           >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                gap: 8,
-                              }}
-                            >
-                              <span style={{ fontSize: 13, fontWeight: 700 }}>{form}</span>
+                            {formHasAny ? (
                               <button
-                                onClick={() => {
-                                  const usedStreams = formClasses.map((cls) =>
-                                    String(cls.stream || "").trim().toUpperCase(),
-                                  );
-                                  const nextStream =
-                                    streamSequence.find((candidate) => !usedStreams.includes(candidate)) ||
-                                    streamSequence[streamSequence.length - 1];
-                                  onAddClass({ year, form, stream: nextStream });
-                                }}
+                                onClick={() => representativeClass && onPickClass(representativeClass)}
                                 style={{
                                   border: "none",
-                                  borderRadius: 999,
-                                  width: 22,
-                                  height: 22,
-                                  background: "rgba(17,201,194,0.18)",
-                                  color: "#6ff6ea",
+                                  borderRadius: 12,
+                                  padding: "10px 12px",
+                                  textAlign: "left",
                                   cursor: "pointer",
-                                  display: "grid",
-                                  placeItems: "center",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  gap: 10,
+                                  background: active
+                                    ? "rgba(17,201,194,0.16)"
+                                    : "rgba(255,255,255,0.06)",
+                                  color: "#fff",
+                                  outline: active ? "1px solid rgba(111,246,234,0.35)" : "none",
                                 }}
-                                title={`Add stream to ${form} ${year}`}
+                                title={`${form} ${year}`}
                               >
-                                <PlusIcon />
+                                <span style={{ fontSize: 13, fontWeight: 800 }}>{form}</span>
+                                <span style={{ color: "#7ef2e8", fontSize: 11, fontWeight: 800 }}>
+                                  {totalStudents}
+                                </span>
                               </button>
-                            </div>
-
-                            {formHasAny ? (
-                              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                {formClasses.map((cls) => {
-                                  const active = cls.id === activeId && isClassPage;
-                                  return (
-                                    <button
-                                      key={cls.id}
-                                      onClick={() => onPickClass(cls)}
-                                      style={{
-                                        border: "none",
-                                        borderRadius: 999,
-                                        padding: "6px 10px",
-                                        textAlign: "left",
-                                        cursor: "pointer",
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        gap: 8,
-                                        background: active
-                                          ? "rgba(17,201,194,0.16)"
-                                          : "rgba(255,255,255,0.06)",
-                                        color: "#fff",
-                                        outline: active ? "1px solid rgba(111,246,234,0.35)" : "none",
-                                      }}
-                                      title={`${form} ${cls.stream || ""} ${year}`.trim()}
-                                    >
-                                      <span style={{ fontSize: 12, fontWeight: 800 }}>
-                                        {cls.stream || "-"}
-                                      </span>
-                                      <span style={{ color: "#7ef2e8", fontSize: 11, fontWeight: 800 }}>
-                                        {cls.studentCount ?? cls.students?.length ?? 0}
-                                      </span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
                             ) : (
                               <button
                                 onClick={() => onAddClass({ year, form, stream: streamSequence[0] })}
@@ -513,7 +474,7 @@ export function AppSidebar({
                                   fontWeight: 700,
                                 }}
                               >
-                                Create stream {streamSequence[0]}
+                                Create {form}
                               </button>
                             )}
                           </div>

@@ -250,17 +250,6 @@ export function EntryPanel({
     setErrors({});
   };
 
-  const updateEditConduct = (key, value) => {
-    setEditData((prev) => ({
-      ...prev,
-      conduct: {
-        ...DEFAULT_CONDUCT,
-        ...(prev?.conduct ?? {}),
-        [key]: value,
-      },
-    }));
-  };
-
   const csvEscape = (value) => {
     const raw = String(value ?? "");
     if (raw.includes("\"") || raw.includes(",") || raw.includes("\n")) {
@@ -1496,93 +1485,10 @@ export function EntryPanel({
                   <div style={{ fontWeight: 800, fontSize: 13, color: "#003366", marginBottom: 10 }}>
                     ✎ Editing: {s.name}
                   </div>
-                  {/* Basic info row */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>CNO</div>
-                      <input
-                        type="text"
-                        value={editData.index_no}
-                        onChange={e => setEditData({ ...editData, index_no: e.target.value })}
-                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Name</div>
-                      <input
-                        type="text"
-                        value={editData.name}
-                        onChange={e => setEditData({ ...editData, name: e.target.value })}
-                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Sex</div>
-                      <select
-                        value={editData.sex}
-                        onChange={e => setEditData({ ...editData, sex: e.target.value })}
-                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12 }}
-                      >
-                        <option value="M">Male</option>
-                        <option value="F">Female</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Status</div>
-                      <select
-                        value={editData.status}
-                        onChange={e => setEditData({ ...editData, status: e.target.value })}
-                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12 }}
-                      >
-                        <option value="present">Present</option>
-                        <option value="absent">Absent</option>
-                        <option value="incomplete">Incomplete</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Date of Birth</div>
-                      <input
-                        type="date"
-                        value={editData.dateOfBirth ?? ""}
-                        onChange={e => setEditData({ ...editData, dateOfBirth: e.target.value })}
-                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Previous School</div>
-                      <input
-                        type="text"
-                        value={editData.previousSchool ?? ""}
-                        onChange={e => setEditData({ ...editData, previousSchool: e.target.value })}
-                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
-                      />
-                    </div>
-                  </div>
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>Guardian Information</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                      <input
-                        type="text"
-                        value={editData.parentName ?? ""}
-                        onChange={e => setEditData({ ...editData, parentName: e.target.value })}
-                        placeholder="Guardian name"
-                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
-                      />
-                      <input
-                        type="text"
-                        value={editData.parentPhone ?? ""}
-                        onChange={e => setEditData({ ...editData, parentPhone: e.target.value })}
-                        placeholder="Guardian phone"
-                        style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      value={editData.address ?? ""}
-                      onChange={e => setEditData({ ...editData, address: e.target.value })}
-                      placeholder="Address"
-                      style={{ width: "100%", marginTop: 8, padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
-                    />
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", marginBottom: 10, fontSize: 11, color: "#334155" }}>
+                    <span>CNO: <b>{editData.index_no || "—"}</b></span>
+                    <span>Sex: <b>{editData.sex || "—"}</b></span>
+                    <span>Status: <b>{editData.status || "—"}</b></span>
                   </div>
                   {/* Subject scores grid */}
                   {subjects.length > 0 && (
@@ -1618,34 +1524,6 @@ export function EntryPanel({
                       </div>
                     </div>
                   )}
-                  {/* Remarks */}
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 2 }}>Remarks</div>
-                    <input
-                      type="text"
-                      value={editData.remarks ?? ""}
-                      onChange={e => setEditData({ ...editData, remarks: e.target.value })}
-                      placeholder="Optional remark"
-                      style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 12, boxSizing: "border-box" }}
-                    />
-                  </div>
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>Tabia na Mwenendo</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                      {CONDUCT_FIELDS.map(([key, label]) => (
-                        <div key={key}>
-                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>{label}</div>
-                          <input
-                            type="text"
-                            value={editData.conduct?.[key] ?? ""}
-                            onChange={e => updateEditConduct(key, e.target.value)}
-                            placeholder="Jaza hapa"
-                            style={{ width: "100%", padding: "6px 8px", borderRadius: 5, border: "1px solid #b0c8f0", fontSize: 11, boxSizing: "border-box" }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                   {/* Save/cancel */}
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button
@@ -1901,23 +1779,7 @@ export function EntryPanel({
                       fontWeight: 700,
                     }}
                   >
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editData.index_no}
-                        onChange={e =>
-                          setEditData({ ...editData, index_no: e.target.value })
-                        }
-                        style={{
-                          width: 50,
-                          padding: "3px 4px",
-                          borderRadius: 3,
-                          border: "1px solid #d0dcf8",
-                        }}
-                      />
-                    ) : (
-                      s.index_no
-                    )}
+                    {s.index_no}
                   </td>
                   <td
                     style={{
@@ -1926,23 +1788,7 @@ export function EntryPanel({
                       border: "1px solid #d2def5",
                     }}
                   >
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editData.name}
-                        onChange={e =>
-                          setEditData({ ...editData, name: e.target.value })
-                        }
-                        style={{
-                          width: 100,
-                          padding: "3px 4px",
-                          borderRadius: 3,
-                          border: "1px solid #d0dcf8",
-                        }}
-                      />
-                    ) : (
-                      s.name
-                    )}
+                    {s.name}
                   </td>
                   <td
                     style={{
@@ -1951,24 +1797,7 @@ export function EntryPanel({
                       border: "1px solid #d2def5",
                     }}
                   >
-                    {isEditing ? (
-                      <select
-                        value={editData.sex}
-                        onChange={e =>
-                          setEditData({ ...editData, sex: e.target.value })
-                        }
-                        style={{
-                          padding: "3px 4px",
-                          borderRadius: 3,
-                          border: "1px solid #d0dcf8",
-                        }}
-                      >
-                        <option>M</option>
-                        <option>F</option>
-                      </select>
-                    ) : (
-                      s.sex
-                    )}
+                    {s.sex}
                   </td>
                   <td
                     style={{
@@ -1977,24 +1806,7 @@ export function EntryPanel({
                       border: "1px solid #d2def5",
                     }}
                   >
-                    {isEditing ? (
-                      <select
-                        value={editData.status}
-                        onChange={e =>
-                          setEditData({ ...editData, status: e.target.value })
-                        }
-                        style={{
-                          padding: "3px 4px",
-                          borderRadius: 3,
-                          border: "1px solid #d0dcf8",
-                        }}
-                      >
-                        <option value="present">Present</option>
-                        <option value="absent">Absent</option>
-                      </select>
-                    ) : (
-                      s.status
-                    )}
+                    {s.status}
                   </td>
 
                   {/* Score inputs */}
@@ -2249,149 +2061,6 @@ export function EntryPanel({
                     )}
                   </td>
                 </tr>
-                {isEditing && (
-                  <tr style={{ background: "#f6fbff" }}>
-                    <td
-                      colSpan={(classData.subjects ?? []).length + 10}
-                      style={{ padding: "10px 12px", border: "1px solid #d2def5" }}
-                    >
-                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>
-                        Student & Guardian Details
-                      </div>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: isTablet ? "1fr 1fr" : "repeat(3, minmax(0, 1fr))",
-                          gap: 8,
-                          marginBottom: 12,
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
-                            Date of Birth
-                          </div>
-                          <input
-                            type="date"
-                            value={editData.dateOfBirth ?? ""}
-                            onChange={e => setEditData({ ...editData, dateOfBirth: e.target.value })}
-                            style={{
-                              width: "100%",
-                              padding: "5px 6px",
-                              borderRadius: 4,
-                              border: "1px solid #d0dcf8",
-                              fontSize: 10,
-                              boxSizing: "border-box",
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
-                            Previous School
-                          </div>
-                          <input
-                            type="text"
-                            value={editData.previousSchool ?? ""}
-                            onChange={e => setEditData({ ...editData, previousSchool: e.target.value })}
-                            style={{
-                              width: "100%",
-                              padding: "5px 6px",
-                              borderRadius: 4,
-                              border: "1px solid #d0dcf8",
-                              fontSize: 10,
-                              boxSizing: "border-box",
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
-                            Guardian Name
-                          </div>
-                          <input
-                            type="text"
-                            value={editData.parentName ?? ""}
-                            onChange={e => setEditData({ ...editData, parentName: e.target.value })}
-                            style={{
-                              width: "100%",
-                              padding: "5px 6px",
-                              borderRadius: 4,
-                              border: "1px solid #d0dcf8",
-                              fontSize: 10,
-                              boxSizing: "border-box",
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
-                            Guardian Phone
-                          </div>
-                          <input
-                            type="text"
-                            value={editData.parentPhone ?? ""}
-                            onChange={e => setEditData({ ...editData, parentPhone: e.target.value })}
-                            style={{
-                              width: "100%",
-                              padding: "5px 6px",
-                              borderRadius: 4,
-                              border: "1px solid #d0dcf8",
-                              fontSize: 10,
-                              boxSizing: "border-box",
-                            }}
-                          />
-                        </div>
-                        <div style={{ gridColumn: isTablet ? "1 / -1" : "span 2" }}>
-                          <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
-                            Address
-                          </div>
-                          <input
-                            type="text"
-                            value={editData.address ?? ""}
-                            onChange={e => setEditData({ ...editData, address: e.target.value })}
-                            style={{
-                              width: "100%",
-                              padding: "5px 6px",
-                              borderRadius: 4,
-                              border: "1px solid #d0dcf8",
-                              fontSize: 10,
-                              boxSizing: "border-box",
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>
-                        Tabia na Mwenendo
-                      </div>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: isTablet ? "1fr 1fr" : "repeat(3, minmax(0, 1fr))",
-                          gap: 8,
-                        }}
-                      >
-                        {CONDUCT_FIELDS.map(([key, label]) => (
-                          <div key={key}>
-                            <div style={{ fontSize: 9, color: "#555", fontWeight: 700, marginBottom: 2 }}>
-                              {label}
-                            </div>
-                            <input
-                              type="text"
-                              value={editData.conduct?.[key] ?? ""}
-                              onChange={e => updateEditConduct(key, e.target.value)}
-                              placeholder="Jaza hapa"
-                              style={{
-                                width: "100%",
-                                padding: "5px 6px",
-                                borderRadius: 4,
-                                border: "1px solid #d0dcf8",
-                                fontSize: 10,
-                                boxSizing: "border-box",
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                )}
                 </React.Fragment>
               );
             })}
