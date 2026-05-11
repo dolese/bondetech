@@ -370,19 +370,19 @@ function MetricCard({ item, compact, dense }) {
         ...glassPanelStyle({
           compact,
           dense,
-          radius: dense ? 20 : 24,
-          padding: dense ? "13px 13px 12px" : compact ? "16px 16px 14px" : "18px 18px 16px",
+          radius: dense ? 18 : 24,
+          padding: dense ? "12px 12px 11px" : compact ? "15px 15px 13px" : "18px 18px 16px",
         }),
-        minHeight: dense ? 118 : compact ? 142 : 162,
+        minHeight: dense ? 104 : compact ? 132 : 162,
         display: "grid",
         alignContent: "space-between",
-        gap: dense ? 9 : 12,
+        gap: dense ? 8 : 12,
       }}
     >
       <div
         style={{
-          width: dense ? 48 : 58,
-          height: dense ? 48 : 58,
+          width: dense ? 42 : 58,
+          height: dense ? 42 : 58,
           borderRadius: "50%",
           display: "grid",
           placeItems: "center",
@@ -395,10 +395,10 @@ function MetricCard({ item, compact, dense }) {
       </div>
       <div>
         <div style={{ fontSize: dense ? 13 : 14, color: "#334155", fontWeight: 700 }}>{item.label}</div>
-        <div style={{ marginTop: dense ? 6 : 8, fontSize: dense ? 24 : compact ? 28 : 34, lineHeight: 1, fontWeight: 900, color: "#0f172a" }}>
+        <div style={{ marginTop: dense ? 5 : 8, fontSize: dense ? 22 : compact ? 28 : 34, lineHeight: 1, fontWeight: 900, color: "#0f172a" }}>
           {item.value}
         </div>
-        <div style={{ marginTop: dense ? 7 : 10, fontSize: dense ? 12 : 13, fontWeight: 700, color: item.deltaColor }}>
+        <div style={{ marginTop: dense ? 5 : 10, fontSize: dense ? 11 : 13, fontWeight: 700, color: item.deltaColor, lineHeight: 1.35 }}>
           {item.delta}
         </div>
       </div>
@@ -414,14 +414,14 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false, dense =
       style={{
         ...glassPanelStyle({
           dense,
-          radius: dense ? 18 : 20,
-          padding: dense ? "12px 12px 10px" : "14px 14px 12px",
+          radius: dense ? 16 : 20,
+          padding: dense ? "11px 11px 10px" : "14px 14px 12px",
         }),
         background: disabled
           ? "linear-gradient(135deg, rgba(248,250,252,0.94), rgba(241,245,249,0.84))"
           : "linear-gradient(135deg, rgba(255,255,255,0.86), rgba(246,250,255,0.72))",
         display: "grid",
-        gap: dense ? 10 : 12,
+        gap: dense ? 8 : 12,
         justifyItems: "start",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.55 : 1,
@@ -431,9 +431,9 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false, dense =
     >
       <div
         style={{
-          width: dense ? 42 : 50,
-          height: dense ? 42 : 50,
-          borderRadius: dense ? 14 : 18,
+          width: dense ? 38 : 50,
+          height: dense ? 38 : 50,
+          borderRadius: dense ? 12 : 18,
           display: "grid",
           placeItems: "center",
           color,
@@ -442,7 +442,7 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false, dense =
       >
         {icon}
       </div>
-      <div style={{ fontSize: dense ? 13 : 14, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>{label}</div>
+      <div style={{ fontSize: dense ? 12 : 14, fontWeight: 800, color: "#0f172a", lineHeight: 1.25 }}>{label}</div>
     </button>
   );
 }
@@ -576,6 +576,12 @@ export function Dashboard({
   const activeFormsCount = new Set(filteredClasses.map((cls) => normalize(cls.form)).filter(Boolean)).size;
   const loginEventsCount = authLogs.length;
   const homepageAnnouncementCount = (overview.announcements || []).length;
+  const operationalStats = [
+    ["Published Classes", `${publishedClassesCount} / ${filteredClasses.length || 0}`, "#16a34a"],
+    ["Auth Success", `${successfulAuthRate}%`, "#2563eb"],
+    ["Data Complete", `${dataCompleteness}%`, "#7c3aed"],
+    ["Active Forms", `${activeFormsCount}`, "#ea580c"],
+  ];
 
   const welcomeName = currentUser?.displayName || currentUser?.username || "Administrator";
   const latestSuccessLog = authLogs.find((log) => log.status === "success" && log.username === currentUser?.username);
@@ -719,37 +725,37 @@ export function Dashboard({
       style={{
         flex: 1,
         overflowY: "auto",
-        padding: compact ? 14 : 20,
+        padding: dense ? 10 : compact ? 14 : 20,
         background: pageBackground,
       }}
     >
-      <div ref={dashboardRef} style={{ maxWidth: 1460, margin: "0 auto", display: "grid", gap: dense ? 14 : compact ? 16 : 20 }}>
+      <div ref={dashboardRef} style={{ maxWidth: 1460, margin: "0 auto", display: "grid", gap: dense ? 12 : compact ? 16 : 20 }}>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: compact ? "1fr" : "minmax(0, 1.25fr) minmax(320px, 0.75fr)",
-            gap: 18,
+            gap: dense ? 12 : 18,
           }}
         >
           <div
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: dense ? 15 : compact ? 18 : 22,
+              padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gridTemplateColumns: compact ? "1fr" : "auto 1fr",
-              gap: compact ? 16 : 22,
+              gap: dense ? 12 : compact ? 16 : 22,
               alignItems: "center",
             }}
           >
-            <div style={{ display: "grid", justifyItems: compact ? "start" : "center", gap: 12 }}>
+            <div style={{ display: "grid", justifyItems: compact ? "start" : "center", gap: dense ? 8 : 12 }}>
               <div
                 style={{
-                  width: compact ? 94 : 122,
-                  height: compact ? 94 : 122,
+                  width: dense ? 74 : compact ? 94 : 122,
+                  height: dense ? 74 : compact ? 94 : 122,
                   borderRadius: "50%",
                   background: "linear-gradient(145deg, #dbeafe, #99f6e4)",
-                  padding: 5,
+                  padding: dense ? 4 : 5,
                   boxShadow: "0 18px 40px rgba(15,23,42,0.10)",
                 }}
               >
@@ -761,7 +767,7 @@ export function Dashboard({
                     background: "linear-gradient(145deg, #1f3c88, #11998e)",
                     color: "#fff",
                     fontWeight: 900,
-                    fontSize: compact ? 28 : 36,
+                    fontSize: dense ? 22 : compact ? 28 : 36,
                     display: "grid",
                     placeItems: "center",
                   }}
@@ -771,16 +777,16 @@ export function Dashboard({
               </div>
               <div
                 style={{
-                  width: 46,
-                  height: 46,
+                  width: dense ? 36 : 46,
+                  height: dense ? 36 : 46,
                   borderRadius: "50%",
                   background: "linear-gradient(145deg, #14b8a6, #0f8b8d)",
                   color: "#fff",
                   display: "grid",
                   placeItems: "center",
                   boxShadow: "0 16px 30px rgba(15,139,141,0.22)",
-                  marginTop: compact ? -64 : -70,
-                  marginLeft: compact ? 60 : 78,
+                  marginTop: dense ? -50 : compact ? -64 : -70,
+                  marginLeft: dense ? 46 : compact ? 60 : 78,
                 }}
               >
                 <ShieldIcon />
@@ -789,14 +795,43 @@ export function Dashboard({
 
             <div style={{ minWidth: 0 }}>
               <div style={{ ...pillStyle({ tone: "teal" }), display: "inline-flex" }}>Operations Console</div>
-              <div style={{ fontSize: compact ? 16 : 18, color: "#0f172a", fontWeight: 700, marginTop: 12 }}>Welcome back,</div>
-              <div style={{ fontSize: compact ? 34 : 44, lineHeight: 1.02, marginTop: 8, fontWeight: 950, color: "#0f172a", letterSpacing: "-0.03em" }}>
+              <div style={{ fontSize: dense ? 14 : compact ? 16 : 18, color: "#0f172a", fontWeight: 700, marginTop: dense ? 10 : 12 }}>Welcome back,</div>
+              <div style={{ fontSize: dense ? 28 : compact ? 34 : 44, lineHeight: 1.02, marginTop: 8, fontWeight: 950, color: "#0f172a", letterSpacing: "-0.03em" }}>
                 {welcomeName}
               </div>
-              <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <div style={{ marginTop: dense ? 10 : 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <span style={pillStyle({ tone: "blue" })}>{formatRole(currentUser?.role)}</span>
-                <span style={{ fontSize: 16, color: "#475569", fontWeight: 600 }}>Bonde Secondary School</span>
+                <span style={{ fontSize: dense ? 14 : 16, color: "#475569", fontWeight: 600 }}>Bonde Secondary School</span>
               </div>
+              {dense && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gap: 8,
+                  }}
+                >
+                  {[
+                    ["Students", totalStudents.toLocaleString()],
+                    ["Pass Rate", `${passRate}%`],
+                    ["Results", totalResults.toLocaleString()],
+                    ["Teachers", teacherCount.toLocaleString()],
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ ...softCardStyle({ padding: 10, radius: 16 }), display: "grid", gap: 2 }}>
+                      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
+                      <div style={{ fontSize: 18, color: "#0f172a", fontWeight: 900 }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!dense && (
+                <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <span style={pillStyle({ tone: "teal" })}>{totalStudents.toLocaleString()} students</span>
+                  <span style={pillStyle({ tone: "amber" })}>{teacherCount.toLocaleString()} staff</span>
+                  <span style={pillStyle({ tone: "blue" })}>{passRate}% pass rate</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -851,7 +886,7 @@ export function Dashboard({
               : isTablet
               ? "repeat(3, minmax(0, 1fr))"
               : "repeat(5, minmax(0, 1fr))",
-            gap: 16,
+            gap: dense ? 10 : 16,
           }}
         >
           {kpiItems.map((item) => (
@@ -863,7 +898,7 @@ export function Dashboard({
           style={{
             ...glassPanel,
             borderRadius: 30,
-            padding: dense ? 15 : compact ? 18 : 22,
+            padding: dense ? 14 : compact ? 18 : 22,
           }}
         >
           <div
@@ -873,7 +908,7 @@ export function Dashboard({
               flexDirection: compact ? "column" : "row",
               justifyContent: "space-between",
               gap: 14,
-              marginBottom: 18,
+              marginBottom: dense ? 14 : 18,
             }}
           >
             <div>
@@ -904,7 +939,7 @@ export function Dashboard({
 
           <div style={{ overflowX: "auto" }}>
             <div style={{ minWidth: compact ? 700 : 0 }}>
-              <svg viewBox="0 0 860 310" width="100%" height={compact ? 300 : 310} role="img" aria-label="Results overview chart">
+              <svg viewBox="0 0 860 310" width="100%" height={dense ? 248 : compact ? 300 : 310} role="img" aria-label="Results overview chart">
                 <defs>
                   <linearGradient id="dashboardArea" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="rgba(14,165,233,0.22)" />
@@ -944,14 +979,14 @@ export function Dashboard({
           style={{
             display: "grid",
             gridTemplateColumns: compact ? "1fr" : "minmax(0, 1.15fr) minmax(320px, 0.85fr)",
-            gap: 18,
+            gap: dense ? 12 : 18,
           }}
         >
           <div
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: dense ? 15 : compact ? 18 : 22,
+              padding: dense ? 14 : compact ? 18 : 22,
             }}
           >
             <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900, marginBottom: 16 }}>
@@ -960,8 +995,8 @@ export function Dashboard({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))",
-                gap: 14,
+                gridTemplateColumns: dense ? "repeat(2, minmax(0, 1fr))" : isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))",
+                gap: dense ? 10 : 14,
               }}
             >
               {quickActions.map((action) => (
@@ -974,9 +1009,9 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: dense ? 15 : compact ? 18 : 22,
+              padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
-              gap: 18,
+              gap: dense ? 14 : 18,
             }}
           >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
@@ -988,6 +1023,37 @@ export function Dashboard({
                   </div>
                 </div>
 
+            {dense ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: 10,
+                }}
+              >
+                {operationalStats.map(([label, value, color]) => (
+                  <div key={label} style={{ ...softCardStyle({ padding: 12, radius: 18 }), display: "grid", gap: 4 }}>
+                    <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
+                    <div style={{ fontSize: 22, color, fontWeight: 950, lineHeight: 1 }}>{value}</div>
+                  </div>
+                ))}
+                <div
+                  style={{
+                    ...softCardStyle({ padding: 12, radius: 18 }),
+                    gridColumn: "1 / -1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                    Activity logs / announcements
+                  </div>
+                  <div style={{ fontSize: 18, color: "#0f8b8d", fontWeight: 950 }}>{loginEventsCount} / {homepageAnnouncementCount}</div>
+                </div>
+              </div>
+            ) : (
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "160px 1fr", gap: 18, alignItems: "center" }}>
               <div style={{ display: "grid", placeItems: "center" }}>
                   <div
@@ -1021,12 +1087,7 @@ export function Dashboard({
                 </div>
 
                 <div style={{ display: "grid", gap: 12 }}>
-                  {[
-                  ["Published Classes", `${publishedClassesCount} of ${filteredClasses.length}`, "#16a34a"],
-                  ["Auth Success Rate", `${successfulAuthRate}%`, "#2563eb"],
-                  ["Data Completeness", `${dataCompleteness}%`, "#7c3aed"],
-                    ["Active Forms", `${activeFormsCount}`, "#ea580c"],
-                  ].map(([label, value, color]) => (
+                  {operationalStats.map(([label, value, color]) => (
                     <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                       <div style={{ fontSize: 15, color: "#334155", fontWeight: 700 }}>{label}</div>
                       <div style={{ fontSize: 15, color, fontWeight: 900 }}>{value}</div>
@@ -1038,6 +1099,7 @@ export function Dashboard({
                   </div>
                 </div>
               </div>
+            )}
           </div>
         </div>
 
@@ -1045,14 +1107,14 @@ export function Dashboard({
           style={{
             display: "grid",
             gridTemplateColumns: compact ? "1fr" : "minmax(0, 1.15fr) minmax(340px, 0.85fr)",
-            gap: 18,
+            gap: dense ? 12 : 18,
           }}
         >
           <div
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: dense ? 15 : compact ? 18 : 22,
+              padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gap: 14,
             }}
@@ -1084,7 +1146,7 @@ export function Dashboard({
                       style={{
                         ...softCardStyle({ padding: compact ? "12px 13px" : "14px 14px", radius: 18 }),
                         display: "grid",
-                        gridTemplateColumns: "auto 1fr auto",
+                        gridTemplateColumns: dense ? "auto 1fr" : "auto 1fr auto",
                         gap: 12,
                         alignItems: "start",
                       }}
@@ -1106,9 +1168,14 @@ export function Dashboard({
                         <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 800 }}>{item.title}</div>
                         <div style={{ marginTop: 4, fontSize: 13, color: "#64748b", lineHeight: 1.45 }}>{item.subtitle}</div>
                       </div>
-                      <div style={{ fontSize: 13, color: "#475569", fontWeight: 700, whiteSpace: "nowrap" }}>
+                      {!dense && <div style={{ fontSize: 13, color: "#475569", fontWeight: 700, whiteSpace: "nowrap" }}>
                         {formatDateTime(item.time)}
-                      </div>
+                      </div>}
+                      {dense && (
+                        <div style={{ gridColumn: "2", fontSize: 11, color: "#64748b", fontWeight: 700 }}>
+                          {formatDateTime(item.time)}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1122,7 +1189,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: dense ? 15 : compact ? 18 : 22,
+              padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gap: 14,
             }}
@@ -1157,7 +1224,7 @@ export function Dashboard({
                     borderRadius: 22,
                     border: `1px solid ${tone.border}`,
                     background: tone.background,
-                    padding: "16px 16px 14px",
+                    padding: dense ? "14px 14px 12px" : "16px 16px 14px",
                   }}
                 >
                   <div style={{ color: tone.chip, fontSize: 12, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>
@@ -1183,7 +1250,7 @@ export function Dashboard({
           style={{
             display: "grid",
             gridTemplateColumns: compact ? "1fr" : "minmax(0, 1fr) minmax(320px, 0.9fr)",
-            gap: 18,
+            gap: dense ? 12 : 18,
             alignItems: "start",
           }}
         >
@@ -1191,7 +1258,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: dense ? 15 : compact ? 18 : 22,
+              padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gap: 16,
               alignSelf: "start",
@@ -1214,7 +1281,7 @@ export function Dashboard({
                   Search by student name or CNO, then jump straight into that learner&apos;s profile and report history.
                 </div>
               </div>
-              <div
+              {!dense && <div
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -1232,12 +1299,12 @@ export function Dashboard({
               >
                 <SearchIcon />
                 Quick Access
-              </div>
+              </div>}
             </div>
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: isXs ? "1fr" : "minmax(0, 1fr) auto auto",
+                gridTemplateColumns: isXs ? "1fr" : dense ? "minmax(0, 1fr) repeat(2, minmax(88px, auto))" : "minmax(0, 1fr) auto auto",
                 gap: 10,
               }}
             >
@@ -1249,7 +1316,7 @@ export function Dashboard({
                   gap: 10,
                   borderRadius: 18,
                   border: "1px solid rgba(191,219,254,0.55)",
-                  padding: dense ? "10px 12px" : "12px 14px",
+                  padding: dense ? "9px 11px" : "12px 14px",
                   background: "rgba(255,255,255,0.72)",
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
                   backdropFilter: "blur(16px)",
@@ -1319,10 +1386,10 @@ export function Dashboard({
                         background: "rgba(255,255,255,0.74)",
                         borderRadius: 20,
                         padding: "14px 16px",
-                        display: "grid",
-                        gridTemplateColumns: compact ? "1fr auto" : "minmax(0, 1fr) auto auto",
-                        gap: 10,
-                        alignItems: "center",
+                  display: "grid",
+                  gridTemplateColumns: dense ? "1fr auto" : compact ? "1fr auto" : "minmax(0, 1fr) auto auto",
+                  gap: 10,
+                  alignItems: "center",
                         textAlign: "left",
                         cursor: "pointer",
                         boxShadow: "0 12px 30px rgba(15,23,42,0.04)",
@@ -1405,7 +1472,7 @@ export function Dashboard({
             style={{
               ...glassPanel,
               borderRadius: 30,
-              padding: dense ? 15 : compact ? 18 : 22,
+              padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gap: 14,
             }}
