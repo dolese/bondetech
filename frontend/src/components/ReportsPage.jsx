@@ -23,6 +23,7 @@ const TEMPLATE_OPTIONS = [
 ];
 const REPORT_CARD_PAPER_SIZE = "a4";
 const REPORT_CARD_ORIENTATION = "portrait";
+const PREVIEW_URL_TIMEOUT_MS = 60000;
 
 function getClassLabel(classData = {}) {
   const base = [classData.form, classData.stream].filter(Boolean).join(" ").trim();
@@ -226,18 +227,24 @@ export function ReportsPage({
     };
   }, [allClasses, classData.id, classData.year]);
 
-  const exportAllPdf = async () => {
-    if (exportingZip || !present.length) return;
-    setExportingZip(true);
-    setExportError("");
+  const waitForRender = () =>
+    new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
+    );
+
+  const buildClassReportFileName = () => {
+    const safeClass =
+      (classData.name || t("reportsClassFallback", "class"))
+        .replace(/[^a-z0-9-_ ]/gi, "")
+        .trim() || t("reportsClassFallback", "class");
+    return `${safeClass}-report-cards.pdf`;
+  };
+
+  const buildClassReportPdfBlob = async () => {
     let container = null;
     let root = null;
     try {
-      const safeClass =
-        (classData.name || t("reportsClassFallback", "class"))
-          .replace(/[^a-z0-9-_ ]/gi, "")
-          .trim() || t("reportsClassFallback", "class");
-      const fileName = `${safeClass}-report-cards.pdf`;
+      const fileName = buildClassReportFileName();
       container = document.createElement("div");
       container.style.position = "fixed";
       container.style.left = "0";
@@ -284,10 +291,9 @@ export function ReportsPage({
           </div>,
         );
       });
+
       const exportNode = container.firstChild;
-      await new Promise((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(resolve)),
-      );
+      await waitForRender();
       validatePdfExportElement(exportNode);
       const blob = await exportElementToPdfBlob(exportNode, {
         fileName,
@@ -296,6 +302,21 @@ export function ReportsPage({
         margin: 0,
         pagebreak: { mode: ["css", "legacy"] },
       });
+      return { blob, fileName };
+    } finally {
+      if (root) root.unmount();
+      if (container?.parentNode) {
+        container.parentNode.removeChild(container);
+      }
+    }
+  };
+
+  const exportAllPdf = async () => {
+    if (exportingZip || !present.length) return;
+    setExportingZip(true);
+    setExportError("");
+    try {
+      const { blob, fileName } = await buildClassReportPdfBlob();
       saveAs(blob, fileName);
     } catch (error) {
       console.error("Bulk PDF export failed:", error);
@@ -306,10 +327,6 @@ export function ReportsPage({
         ),
       );
     } finally {
-      if (root) root.unmount();
-      if (container?.parentNode) {
-        container.parentNode.removeChild(container);
-      }
       setExportingZip(false);
     }
   };
@@ -318,79 +335,15 @@ export function ReportsPage({
     if (exportingZip || !present.length) return;
     setExportingZip(true);
     setExportError("");
-    let container = null;
-    let root = null;
     let previewUrl = null;
     try {
-      const safeClass =
-        (classData.name || t("reportsClassFallback", "class"))
-          .replace(/[^a-z0-9-_ ]/gi, "")
-          .trim() || t("reportsClassFallback", "class");
-      const fileName = `${safeClass}-report-cards.pdf`;
-      container = document.createElement("div");
-      container.style.position = "fixed";
-      container.style.left = "0";
-      container.style.top = "0";
-      container.style.pointerEvents = "none";
-      container.style.zIndex = "-1";
-      container.style.width = "210mm";
-      container.style.minHeight = "100vh";
-      container.style.overflow = "visible";
-      container.style.background = "#fff";
-      document.body.appendChild(container);
-      root = createRoot(container);
-
-      flushSync(() => {
-        root.render(
-          <div style={{ width: "210mm", background: "#fff" }}>
-            {present.map((student, index) => (
-              <div
-                key={student.id}
-                style={{
-                  width: "210mm",
-                  minHeight: "297mm",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "flex-start",
-                  background: "#fff",
-                  pageBreakInside: "avoid",
-                  breakInside: "avoid",
-                  pageBreakAfter: index === present.length - 1 ? "auto" : "always",
-                  breakAfter: index === present.length - 1 ? "auto" : "page",
-                }}
-              >
-                <div className="report-card-page">
-                  <ReportCardPrint
-                    student={student}
-                    classData={classData}
-                    template={template}
-                    paperSize={REPORT_CARD_PAPER_SIZE}
-                    orientation={REPORT_CARD_ORIENTATION}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>,
-        );
-      });
-      const exportNode = container.firstChild;
-      await new Promise((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(resolve)),
-      );
-      validatePdfExportElement(exportNode);
-      const blob = await exportElementToPdfBlob(exportNode, {
-        fileName,
-        format: REPORT_CARD_PAPER_SIZE,
-        orientation: REPORT_CARD_ORIENTATION,
-        margin: 0,
-        pagebreak: { mode: ["css", "legacy"] },
-      });
+      const { blob, fileName } = await buildClassReportPdfBlob();
       previewUrl = URL.createObjectURL(blob);
       const previewWindow = window.open(previewUrl, "_blank", "noopener,noreferrer");
       if (!previewWindow) {
         saveAs(blob, fileName);
       } else {
-        setTimeout(() => URL.revokeObjectURL(previewUrl), 60000);
+        setTimeout(() => URL.revokeObjectURL(previewUrl), PREVIEW_URL_TIMEOUT_MS);
       }
     } catch (error) {
       console.error("Bulk PDF preview failed:", error);
@@ -402,10 +355,6 @@ export function ReportsPage({
       );
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     } finally {
-      if (root) root.unmount();
-      if (container?.parentNode) {
-        container.parentNode.removeChild(container);
-      }
       setExportingZip(false);
     }
   };
