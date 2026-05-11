@@ -2,6 +2,22 @@ function formatClassLabel(cls = {}) {
   return [cls.form, cls.stream].filter(Boolean).join(" ").trim();
 }
 
+export const DEFAULT_TIMETABLE_ACTIVITY_OPTIONS = [
+  "Morning Test",
+  "Test",
+  "Religion",
+  "Clubs",
+  "Cleanliness",
+  "Subject Clubs",
+  "Shamba",
+  "Sports and Games",
+  "Fema Club",
+  "Debate",
+  "Class Meeting",
+  "Debate Midday Class Meeting",
+  "Assembly",
+];
+
 export const DEFAULT_TIMETABLE_DAYS = [
   { id: "monday", label: "Monday", shortLabel: "Mon", enabled: true },
   { id: "tuesday", label: "Tuesday", shortLabel: "Tue", enabled: true },

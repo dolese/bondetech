@@ -1,5 +1,9 @@
 import React from "react";
-import { buildSlotKey, isSharedTimetablePeriod } from "../../utils/timetable";
+import {
+  buildSlotKey,
+  DEFAULT_TIMETABLE_ACTIVITY_OPTIONS,
+  isSharedTimetablePeriod,
+} from "../../utils/timetable";
 import "./Timetable.css";
 import { useI18n } from "../../i18n";
 
@@ -24,6 +28,7 @@ export function TimetableGrid({
   periods,
 }) {
   const { t } = useI18n();
+  const activityOptions = DEFAULT_TIMETABLE_ACTIVITY_OPTIONS;
   return (
     <>
       <section className="tt-section">
@@ -224,11 +229,20 @@ export function TimetableGrid({
                             <option value="">
                               {t("ttSelectSubject", "Select subject")}
                             </option>
-                            {(classData?.subjects || []).map((subject) => (
-                              <option key={subject} value={subject}>
-                                {subject}
-                              </option>
-                            ))}
+                            <optgroup label={t("ttSubjects", "Subjects")}>
+                              {(classData?.subjects || []).map((subject) => (
+                                <option key={subject} value={subject}>
+                                  {subject}
+                                </option>
+                              ))}
+                            </optgroup>
+                            <optgroup label={t("ttActivities", "Activities")}>
+                              {activityOptions.map((activity) => (
+                                <option key={activity} value={activity}>
+                                  {activity}
+                                </option>
+                              ))}
+                            </optgroup>
                           </select>
                         </td>
                         <td className="tt-body-cell">
