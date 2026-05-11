@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { exportElementToPdf } from "../utils/pdfExport";
 import { ReportCardPrint } from "./ReportCardPrint";
+import { useI18n } from "../i18n";
 
 const TEMPLATE_OPTIONS = [
   { label: "Official", value: "official" },
@@ -12,26 +13,52 @@ const REPORT_CARD_ORIENTATION = "portrait";
 const REPORT_CARD_PREVIEW_WIDTH = 820;
 
 export function ReportCardModal({ student, classData, onClose, autoExport = false, silent = false }) {
+  const { t } = useI18n();
   const cardRef = useRef(null);
   const [template, setTemplate] = useState("official");
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportError, setExportError] = useState("");
   const previewWidth = useMemo(() => REPORT_CARD_PREVIEW_WIDTH, []);
 
   useEffect(() => {
     if (!autoExport || !student) return;
     const name = (student?.name || "student").replace(/[^a-z0-9-_ ]/gi, "");
     const date = new Date().toISOString().slice(0, 10);
+    let cancelled = false;
+    const runExport = async () => {
+      setExportError("");
+      setExportingPdf(true);
+      try {
+        await exportElementToPdf(
+          cardRef.current,
+          `${name}-report-${date}.pdf`,
+          REPORT_CARD_ORIENTATION,
+          REPORT_CARD_PAPER_SIZE,
+          0
+        );
+        if (!cancelled && onClose) onClose();
+      } catch (error) {
+        console.error("Report card export failed:", error);
+        if (!cancelled) {
+          setExportError(
+            t(
+              "reportsPdfExportFailed",
+              "PDF export failed. Please check internet/images and try again.",
+            ),
+          );
+        }
+      } finally {
+        if (!cancelled) setExportingPdf(false);
+      }
+    };
     const raf = requestAnimationFrame(() => {
-      exportElementToPdf(
-        cardRef.current,
-        `${name}-report-${date}.pdf`,
-        REPORT_CARD_ORIENTATION,
-        REPORT_CARD_PAPER_SIZE,
-        0
-      );
-      if (onClose) setTimeout(onClose, 0);
+      runExport();
     });
-    return () => cancelAnimationFrame(raf);
-  }, [autoExport, onClose, student, template]);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
+  }, [autoExport, onClose, student, t, template]);
 
   if (!student) return null;
 
@@ -54,16 +81,30 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
         gridTemplateRows: "auto 1fr",
       };
 
-  const exportCurrent = () => {
+  const exportCurrent = async () => {
     const safeName = (student.name || "student").replace(/[^a-z0-9-_ ]/gi, "");
     const date = new Date().toISOString().slice(0, 10);
-    exportElementToPdf(
-      cardRef.current,
-      `${safeName}-report-${date}.pdf`,
-      REPORT_CARD_ORIENTATION,
-      REPORT_CARD_PAPER_SIZE,
-      0
-    );
+    setExportError("");
+    setExportingPdf(true);
+    try {
+      await exportElementToPdf(
+        cardRef.current,
+        `${safeName}-report-${date}.pdf`,
+        REPORT_CARD_ORIENTATION,
+        REPORT_CARD_PAPER_SIZE,
+        0
+      );
+    } catch (error) {
+      console.error("Report card export failed:", error);
+      setExportError(
+        t(
+          "reportsPdfExportFailed",
+          "PDF export failed. Please check internet/images and try again.",
+        ),
+      );
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   return (
@@ -172,8 +213,11 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
                   cursor: "pointer",
                   alignSelf: "end",
                 }}
+                disabled={exportingPdf}
               >
-                Download PDF
+                {exportingPdf
+                  ? t("reportsPreparingPdf", "Preparing PDF...")
+                  : "Download PDF"}
               </button>
               <button
                 onClick={onClose}
@@ -191,6 +235,22 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
                 ×
               </button>
             </div>
+          </div>
+        )}
+        {!silent && exportError && (
+          <div
+            style={{
+              margin: "10px 16px 0",
+              border: "1px solid #f5c2c2",
+              background: "#fff1f1",
+              color: "#8b2500",
+              borderRadius: 8,
+              padding: "8px 10px",
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            {exportError}
           </div>
         )}
 

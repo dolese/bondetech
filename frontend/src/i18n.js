@@ -68,6 +68,9 @@ const dictionary = {
     reportsUnlock: "Staff report downloads unlock after results are published.",
     reportsPreparingPdf: "Preparing PDF...",
     reportsDownloadAllPdfs: "Download all PDFs",
+    reportsPreviewPdf: "Preview PDF",
+    reportsPdfExportFailed:
+      "PDF export failed. Please check internet/images and try again.",
     studentParentLogin: "Student / Parent Login",
     portalAccess: "Portal Access",
     noExamYet: "No exam yet",
@@ -274,6 +277,9 @@ const dictionary = {
     reportsUnlock: "Upakuaji wa ripoti za walimu utafunguka baada ya matokeo kuchapishwa.",
     reportsPreparingPdf: "Inaandaa PDF...",
     reportsDownloadAllPdfs: "Pakua PDF zote",
+    reportsPreviewPdf: "Hakiki PDF",
+    reportsPdfExportFailed:
+      "Utoaji wa PDF umeshindikana. Tafadhali hakiki intaneti/picha kisha ujaribu tena.",
     studentParentLogin: "Kuingia kwa Mwanafunzi / Mzazi",
     portalAccess: "Ufikiaji wa Tovuti",
     noExamYet: "Bado hakuna mtihani",

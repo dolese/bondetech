@@ -5,7 +5,10 @@ import {
   EXAM_TYPES,
   getMonthlyExamKey,
 } from "../utils/constants";
-import { exportElementToPdfBlob } from "../utils/pdfExport";
+import {
+  exportElementToPdfBlob,
+  validatePdfExportElement,
+} from "../utils/pdfExport";
 import { useViewport } from "../utils/useViewport";
 import { ReportCardPrint } from "./ReportCardPrint";
 import { createRoot } from "react-dom/client";
@@ -63,27 +66,6 @@ function averageOf(values) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function waitForAnimationFrame() {
-  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
-}
-
-async function waitForImages(container) {
-  const images = Array.from(container.querySelectorAll("img"));
-  await Promise.all(
-    images.map(
-      (image) =>
-        new Promise((resolve) => {
-          if (image.complete && image.naturalWidth > 0) {
-            resolve();
-            return;
-          }
-          image.addEventListener("load", resolve, { once: true });
-          image.addEventListener("error", resolve, { once: true });
-        }),
-    ),
-  );
-}
-
 export function ReportsPage({
   classData,
   computed,
@@ -93,6 +75,7 @@ export function ReportsPage({
   const { isMobile, isTablet } = useViewport();
   const { t } = useI18n();
   const [exportingZip, setExportingZip] = useState(false);
+  const [exportError, setExportError] = useState("");
   const [template, setTemplate] = useState("official");
   const schoolInfo = classData.school_info ?? DEFAULT_SCHOOL;
   const present = (computed ?? [])
@@ -246,12 +229,15 @@ export function ReportsPage({
   const exportAllPdf = async () => {
     if (exportingZip || !present.length) return;
     setExportingZip(true);
+    setExportError("");
+    let container = null;
+    let root = null;
     try {
       const safeClass =
         (classData.name || t("reportsClassFallback", "class"))
           .replace(/[^a-z0-9-_ ]/gi, "")
           .trim() || t("reportsClassFallback", "class");
-      const container = document.createElement("div");
+      container = document.createElement("div");
       container.style.position = "fixed";
       container.style.left = "-9999px";
       container.style.top = "0";
@@ -261,7 +247,7 @@ export function ReportsPage({
       container.style.overflow = "visible";
       container.style.background = "#fff";
       document.body.appendChild(container);
-      const root = createRoot(container);
+      root = createRoot(container);
 
       flushSync(() => {
         root.render(
@@ -292,29 +278,37 @@ export function ReportsPage({
           </div>,
         );
       });
-
-      if (document.fonts?.ready) {
-        await document.fonts.ready;
-      }
-      await waitForImages(container);
-      await waitForAnimationFrame();
-      await waitForAnimationFrame();
-      const blob = await exportElementToPdfBlob(container.firstChild, {
+      const exportNode = container.firstChild;
+      validatePdfExportElement(exportNode);
+      const blob = await exportElementToPdfBlob(exportNode, {
         fileName: `${safeClass}-report-cards.pdf`,
         format: REPORT_CARD_PAPER_SIZE,
         orientation: REPORT_CARD_ORIENTATION,
         margin: 0,
         pagebreak: { mode: ["css", "legacy"] },
       });
-
-      root.unmount();
-      document.body.removeChild(container);
-      if (blob) {
-        saveAs(blob, `${safeClass}-report-cards.pdf`);
-      }
+      saveAs(blob, `${safeClass}-report-cards.pdf`);
+    } catch (error) {
+      console.error("Bulk PDF export failed:", error);
+      setExportError(
+        t(
+          "reportsPdfExportFailed",
+          "PDF export failed. Please check internet/images and try again.",
+        ),
+      );
     } finally {
+      if (root) root.unmount();
+      if (container?.parentNode) {
+        container.parentNode.removeChild(container);
+      }
       setExportingZip(false);
     }
+  };
+
+  const previewPdf = () => {
+    const targetStudentId = selectedStudentId || present[0]?.id;
+    if (!targetStudentId) return;
+    onOpenReportCard(targetStudentId);
   };
 
   const currentAvg = averageOf(
@@ -413,25 +407,71 @@ export function ReportsPage({
               {schoolInfo.exam || DEFAULT_EXAM_TYPE}
             </div>
           </div>
-          <button
+          <div
             style={{
-              padding: "10px 16px",
-              background: exportingZip ? "#9ca3af" : "#003366",
-              color: "#fff",
-              border: "none",
-              borderRadius: 10,
-              cursor: exportingZip ? "not-allowed" : "pointer",
-              fontWeight: 800,
-              fontSize: 12,
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              width: isMobile ? "100%" : "auto",
+              justifyContent: isMobile ? "stretch" : "flex-end",
+              paddingLeft: isMobile ? "env(safe-area-inset-left, 0px)" : 0,
+              paddingRight: isMobile
+                ? "env(safe-area-inset-right, 0px)"
+                : 0,
             }}
-            onClick={exportAllPdf}
-            disabled={exportingZip || !present.length}
           >
-            {exportingZip
-              ? t("reportsPreparingPdf", "Preparing PDF...")
-              : t("reportsDownloadAllPdfs", "Download all PDFs")}
-          </button>
+            <button
+              style={{
+                padding: "10px 16px",
+                background: "#475569",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                cursor: !present.length ? "not-allowed" : "pointer",
+                fontWeight: 800,
+                fontSize: 12,
+                flex: isMobile ? "1 1 100%" : "0 0 auto",
+              }}
+              onClick={previewPdf}
+              disabled={!present.length}
+            >
+              {t("reportsPreviewPdf", "Preview PDF")}
+            </button>
+            <button
+              style={{
+                padding: "10px 16px",
+                background: exportingZip ? "#9ca3af" : "#003366",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                cursor: exportingZip || !present.length ? "not-allowed" : "pointer",
+                fontWeight: 800,
+                fontSize: 12,
+                flex: isMobile ? "1 1 100%" : "0 0 auto",
+              }}
+              onClick={exportAllPdf}
+              disabled={exportingZip || !present.length}
+            >
+              {exportingZip
+                ? t("reportsPreparingPdf", "Preparing PDF...")
+                : t("reportsDownloadAllPdfs", "Download all PDFs")}
+            </button>
+          </div>
         </div>
+        {exportError && (
+          <div
+            style={{
+              fontSize: 12,
+              color: "#8b2500",
+              background: "#fff1f1",
+              border: "1px solid #f5c2c2",
+              borderRadius: 8,
+              padding: "8px 10px",
+            }}
+          >
+            {exportError}
+          </div>
+        )}
 
         <div
           style={{
