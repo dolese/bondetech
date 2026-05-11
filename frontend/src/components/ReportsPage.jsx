@@ -253,10 +253,9 @@ export function ReportsPage({
           .trim() || t("reportsClassFallback", "class");
       const container = document.createElement("div");
       container.style.position = "fixed";
-      container.style.left = "0";
+      container.style.left = "-9999px";
       container.style.top = "0";
       container.style.pointerEvents = "none";
-      container.style.zIndex = "-1";
       container.style.width = "210mm";
       container.style.minHeight = "100vh";
       container.style.overflow = "visible";

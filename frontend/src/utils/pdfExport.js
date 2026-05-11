@@ -11,7 +11,7 @@ function buildPdfOptions({
     margin,
     filename: fileName,
     image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
+    html2canvas: { scale: 2, useCORS: true, logging: false, imageTimeout: 15000 },
     jsPDF: { unit: "mm", format, orientation },
     pagebreak: pagebreak ?? { mode: ["css", "legacy"] },
   };
@@ -32,7 +32,10 @@ export const exportElementToPdf = (
 export const exportElementToPdfBlob = async (element, options = {}) => {
   if (!element) return null;
 
-  const worker = html2pdf().set(buildPdfOptions(options)).from(element);
-  const blob = await worker.outputPdf("blob");
+  const blob = await html2pdf()
+    .set(buildPdfOptions(options))
+    .from(element)
+    .toPdf()
+    .outputPdf("blob");
   return blob;
 };
