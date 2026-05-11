@@ -23,7 +23,8 @@ const TEMPLATE_OPTIONS = [
 ];
 const REPORT_CARD_PAPER_SIZE = "a4";
 const REPORT_CARD_ORIENTATION = "portrait";
-const PREVIEW_URL_TIMEOUT_MS = 300000;
+const PREVIEW_URL_CHECK_INTERVAL_MS = 1000;
+const PREVIEW_URL_MAX_LIFETIME_MS = 1800000;
 
 function getClassLabel(classData = {}) {
   const base = [classData.form, classData.stream].filter(Boolean).join(" ").trim();
@@ -340,14 +341,28 @@ export function ReportsPage({
     try {
       const { blob, fileName } = await buildClassReportPdfBlob();
       previewUrl = URL.createObjectURL(blob);
+      const cleanupPreviewUrl = () => {
+        if (!previewUrl) return;
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+      };
       const previewWindow = window.open(previewUrl, "_blank", "noopener,noreferrer");
       if (!previewWindow) {
         saveAs(blob, fileName);
-        URL.revokeObjectURL(previewUrl);
-        previewUrl = null;
+        cleanupPreviewUrl();
       } else {
         previewOpened = true;
-        setTimeout(() => URL.revokeObjectURL(previewUrl), PREVIEW_URL_TIMEOUT_MS);
+        const openedAt = Date.now();
+        const revokeWhenClosed = () => {
+          if (!previewUrl) return;
+          const exceededLifetime = Date.now() - openedAt >= PREVIEW_URL_MAX_LIFETIME_MS;
+          if (previewWindow.closed || exceededLifetime) {
+            cleanupPreviewUrl();
+            return;
+          }
+          setTimeout(revokeWhenClosed, PREVIEW_URL_CHECK_INTERVAL_MS);
+        };
+        setTimeout(revokeWhenClosed, PREVIEW_URL_CHECK_INTERVAL_MS);
       }
     } catch (error) {
       console.error("Bulk PDF preview failed:", error);
