@@ -9,6 +9,7 @@ import { exportElementToPdfBlob } from "../utils/pdfExport";
 import { useViewport } from "../utils/useViewport";
 import { ReportCardPrint } from "./ReportCardPrint";
 import { createRoot } from "react-dom/client";
+import { flushSync } from "react-dom";
 import { withPositions } from "../utils/grading";
 import { saveAs } from "file-saver";
 import { useI18n } from "../i18n";
@@ -60,6 +61,27 @@ function buildExamComputed(classData, exam, rawStudents) {
 function averageOf(values) {
   if (!values.length) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function waitForAnimationFrame() {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+}
+
+async function waitForImages(container) {
+  const images = Array.from(container.querySelectorAll("img"));
+  await Promise.all(
+    images.map(
+      (image) =>
+        new Promise((resolve) => {
+          if (image.complete && image.naturalWidth > 0) {
+            resolve();
+            return;
+          }
+          image.addEventListener("load", resolve, { once: true });
+          image.addEventListener("error", resolve, { once: true });
+        }),
+    ),
+  );
 }
 
 export function ReportsPage({
@@ -230,43 +252,53 @@ export function ReportsPage({
           .replace(/[^a-z0-9-_ ]/gi, "")
           .trim() || t("reportsClassFallback", "class");
       const container = document.createElement("div");
-      container.style.position = "fixed";
-      container.style.left = "-9999px";
+      container.style.position = "absolute";
+      container.style.left = "0";
       container.style.top = "0";
+      container.style.opacity = "0";
+      container.style.pointerEvents = "none";
+      container.style.zIndex = "-1";
       container.style.width = "210mm";
       container.style.background = "#fff";
       document.body.appendChild(container);
       const root = createRoot(container);
 
-      root.render(
-        <div style={{ width: "210mm", background: "#fff" }}>
-          {present.map((student, index) => (
-            <div
-              key={student.id}
-              style={{
-                width: "210mm",
-                minHeight: "297mm",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "flex-start",
-                background: "#fff",
-                pageBreakAfter: index === present.length - 1 ? "auto" : "always",
-                breakAfter: index === present.length - 1 ? "auto" : "page",
-              }}
-            >
-              <ReportCardPrint
-                student={student}
-                classData={classData}
-                template={template}
-                paperSize={REPORT_CARD_PAPER_SIZE}
-                orientation={REPORT_CARD_ORIENTATION}
-              />
-            </div>
-          ))}
-        </div>,
-      );
+      flushSync(() => {
+        root.render(
+          <div style={{ width: "210mm", background: "#fff" }}>
+            {present.map((student, index) => (
+              <div
+                key={student.id}
+                style={{
+                  width: "210mm",
+                  minHeight: "297mm",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "flex-start",
+                  background: "#fff",
+                  pageBreakAfter: index === present.length - 1 ? "auto" : "always",
+                  breakAfter: index === present.length - 1 ? "auto" : "page",
+                }}
+              >
+                <ReportCardPrint
+                  student={student}
+                  classData={classData}
+                  template={template}
+                  paperSize={REPORT_CARD_PAPER_SIZE}
+                  orientation={REPORT_CARD_ORIENTATION}
+                />
+              </div>
+            ))}
+          </div>,
+        );
+      });
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+      await waitForImages(container);
+      await waitForAnimationFrame();
+      await waitForAnimationFrame();
       const blob = await exportElementToPdfBlob(container.firstChild, {
         fileName: `${safeClass}-report-cards.pdf`,
         format: REPORT_CARD_PAPER_SIZE,
