@@ -112,7 +112,7 @@ export function StudentManagementPage({
       .filter((student) => {
         if (!needle) return true;
         const haystack = [
-          student.index_no,
+          student.index_no || student.indexNo,
           student.name,
           student.sex,
           student.status,
@@ -416,7 +416,7 @@ export function StudentManagementPage({
               {filteredStudents.map((student) => (
                 <tr key={`${student.classId}-${student.id}`} style={{ background: "rgba(255,255,255,0.52)" }}>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
-                    {student.index_no || "-"}
+                    {student.index_no || student.indexNo || "-"}
                   </td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
                     <div style={{ fontWeight: 800, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
@@ -438,7 +438,13 @@ export function StudentManagementPage({
                       <button
                         type="button"
                         onClick={() => onOpenStudentProfile?.(student.index_no || student.indexNo)}
-                        style={secondaryButtonStyle({ compact: true })}
+                        disabled={!(student.index_no || student.indexNo)}
+                        title={student.index_no || student.indexNo ? "Open academic profile" : "Student has no CNO/index number yet"}
+                        style={{
+                          ...secondaryButtonStyle({ compact: true }),
+                          opacity: student.index_no || student.indexNo ? 1 : 0.55,
+                          cursor: student.index_no || student.indexNo ? "pointer" : "not-allowed",
+                        }}
                       >
                         Profile
                       </button>
