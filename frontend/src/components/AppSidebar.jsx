@@ -180,19 +180,19 @@ export function AppSidebar({
     const visible = new Map(navItems.map((item) => [item.key, item]));
     const sectionOrder = [
       {
-        title: "ACADEMICS",
+        title: t("academicsSection").toUpperCase(),
         items: ["students", "student-management", "teachers", "results", "timetable"],
       },
       {
-        title: "COMMUNICATION",
+        title: t("communicationSection").toUpperCase(),
         items: ["parents"],
       },
       {
-        title: "REPORTS",
+        title: t("reportsSection").toUpperCase(),
         items: ["reports"],
       },
       {
-        title: "SYSTEM",
+        title: t("systemSection").toUpperCase(),
         items: ["settings", "account"],
       },
     ];
@@ -204,7 +204,7 @@ export function AppSidebar({
           .filter(Boolean),
       }))
       .filter((section) => section.items.length > 0);
-  }, [accountLabel, navItems]);
+  }, [accountLabel, navItems, t]);
 
   const renderNavButton = (item) => {
     const active = page === item.key;
@@ -370,7 +370,7 @@ export function AppSidebar({
                 BONDE OS
               </div>
               <div style={{ color: "#fff", fontWeight: 900, fontSize: 18, letterSpacing: -0.3 }}>{t("resultSystem")}</div>
-              <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 12.5, marginTop: 4 }}>Administrative workspace</div>
+              <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 12.5, marginTop: 4 }}>{t("administrativeWorkspace")}</div>
             </div>
           </div>
 
@@ -429,9 +429,9 @@ export function AppSidebar({
                   letterSpacing: 1.1,
                 }}
               >
-                HOME
-              </span>
-            </button>
+                  {t("homeBadge").toUpperCase()}
+                </span>
+              </button>
 
             <div style={{ display: "grid", gap: 12, marginBottom: 14 }}>
               {navSections.map((section) => (
@@ -475,7 +475,7 @@ export function AppSidebar({
             </div>
 
             <div style={{ ...sectionLabelStyle, marginBottom: 10 }}>
-              CLASSES
+              {t("classesSection").toUpperCase()}
             </div>
 
             <div id="nav-classes-group" style={{ display: "grid", gap: 8 }}>

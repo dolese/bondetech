@@ -218,12 +218,12 @@ export default function App() {
   const navItems = [
     ...classNavItems.filter((item) => canViewSettings || item.key !== "settings"),
     ...(canManageStudentsGlobally
-      ? [{ key: "student-management", label: "Student Management", requiresClass: false }]
+      ? [{ key: "student-management", label: t("studentManagement"), requiresClass: false }]
       : []),
     ...(canManageUsers
       ? [
-          { key: "teachers", label: "Teachers", requiresClass: false },
-          { key: "parents", label: "Parents", requiresClass: false },
+          { key: "teachers", label: t("teachers"), requiresClass: false },
+          { key: "parents", label: t("parents"), requiresClass: false },
         ]
       : []),
   ];
@@ -332,9 +332,9 @@ export default function App() {
     const saved = await API.saveSchoolSettings(nextSettings);
     const normalized = normalizeSchoolSettings(saved);
     setSchoolSettings(normalized);
-    showToast("School settings updated");
+    showToast(t("schoolSettingsUpdated"));
     return normalized;
-  }, [showToast]);
+  }, [showToast, t]);
 
   useEffect(() => {
     if (isMobile) {
@@ -441,8 +441,8 @@ export default function App() {
     if (page === "dashboard") return t("dashboard");
     if (page === "profile") return t("studentProfile");
     if (page === "account") return t("account");
-    if (page === "teachers") return "Teachers";
-    if (page === "parents") return "Parents";
+    if (page === "teachers") return t("teachers");
+    if (page === "parents") return t("parents");
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
@@ -467,7 +467,7 @@ export default function App() {
         background: "#f8fafc",
       }}
     >
-      <div style={{ fontSize: 52 }}>Classes</div>
+      <div style={{ fontSize: 52 }}>{t("classesSection")}</div>
       <div style={{ fontSize: 16, fontWeight: 700, color: "#003366" }}>{t("noClassSelected")}</div>
       <div style={{ fontSize: 13, color: "#555", textAlign: "center", maxWidth: 260, lineHeight: 1.5 }}>
         {`${t("selectClass")}...`}
@@ -656,8 +656,8 @@ export default function App() {
 
           {page === "teachers" && canManageUsers && (
             <PeopleDirectoryPage
-              title="Teachers"
-              description="These are the real teacher accounts created by the administrator in the system."
+              title={t("teachers")}
+              description={t("peopleTeachersDescription")}
               entries={teacherDirectory}
               tone="teal"
               onOpenTimetable={() => setPage("timetable")}
@@ -666,8 +666,8 @@ export default function App() {
 
           {page === "parents" && canManageUsers && (
             <PeopleDirectoryPage
-              title="Parents"
-              description="These parent records are picked automatically from guardian details saved during student registration."
+              title={t("parents")}
+              description={t("peopleParentsDescription")}
               entries={parentDirectory}
               tone="amber"
               onOpenStudentProfile={handleOpenStudentProfile}
@@ -884,4 +884,3 @@ const S = {
   btnGray: { background: "#eee", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
   btnRed: { background: "#cc2222", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", cursor: "pointer", fontWeight: 700, fontSize: 12 },
 };
-

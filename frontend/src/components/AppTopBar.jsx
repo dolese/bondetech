@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { LanguageToggle } from "./LanguageToggle";
+import { useI18n } from "../i18n";
 import { premiumFontStack } from "../utils/designSystem";
 
 function initialsFromUser(user) {
@@ -98,6 +99,7 @@ export function AppTopBar({
   onLogout,
   onOpenUserGuide,
 }) {
+  const { t } = useI18n();
   const failedCount = useMemo(
     () => authLogs.filter((log) => log.status === "failed").length,
     [authLogs]
@@ -106,10 +108,10 @@ export function AppTopBar({
 
   const roleLabel =
     currentUser?.role === "admin"
-      ? "Super Admin"
+      ? t("superAdmin")
       : currentUser?.role
       ? `${currentUser.role.slice(0, 1).toUpperCase()}${currentUser.role.slice(1)}`
-      : "Staff";
+      : t("staff");
 
   return (
     <div
@@ -157,7 +159,7 @@ export function AppTopBar({
               justifyContent: "center",
             }}
             onClick={onToggleSidebar}
-            title="Toggle menu"
+            title={t("toggleMenu")}
           >
             <MenuIcon />
           </button>
@@ -210,10 +212,10 @@ export function AppTopBar({
               textAlign: "left",
               fontFamily: uiFont,
             }}
-            title="Open search"
+            title={t("openSearch")}
           >
             <div style={{ color: "#64748b", fontSize: 15 }}>
-              Search students, results, users...
+              {t("searchStudentsResultsUsers")}
             </div>
             <div
               style={{
@@ -254,7 +256,7 @@ export function AppTopBar({
               padding: 4,
               fontFamily: uiFont,
             }}
-            title="User Guide"
+            title={t("userGuide")}
           >
             <HelpIcon />
           </button>
@@ -282,7 +284,7 @@ export function AppTopBar({
                 backdropFilter: "blur(18px)",
                 WebkitBackdropFilter: "blur(18px)",
               }}
-              title="Notifications"
+              title={t("notifications")}
             >
               <BellIcon />
               {failedCount > 0 && (
@@ -327,7 +329,7 @@ export function AppTopBar({
               padding: isMobile ? "4px 6px 4px 4px" : "6px 10px 6px 6px",
               borderRadius: 18,
             }}
-            title="Open account"
+            title={t("openAccountLabel")}
           >
             <div
               style={{
@@ -382,7 +384,7 @@ export function AppTopBar({
                 WebkitBackdropFilter: "blur(18px)",
               }}
               onClick={onLogout}
-              title="Log out"
+              title={t("logout")}
             >
               <LogoutIcon />
             </button>

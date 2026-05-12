@@ -1,13 +1,15 @@
 import React from "react";
 import "./Home.css";
 import { HomeIcon } from "./HomeIcons";
+import { useI18n } from "../../i18n";
 
-export function QuickCard({ icon, bg, badge, title, desc, onClick }) {
+export function QuickCard({ icon, bg, badge, title, desc, onClick, featured = false }) {
+  const { t } = useI18n();
   return (
     <div
       role="button"
       tabIndex={0}
-      className="quick-card"
+      className={`quick-card${featured ? " quick-card-login-glass" : ""}`}
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -40,7 +42,7 @@ export function QuickCard({ icon, bg, badge, title, desc, onClick }) {
       <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.7, flex: 1 }}>{desc}</div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 2 }}>
         <span style={{ fontSize: 11, fontWeight: 800, color: "#2563eb", letterSpacing: "0.04em", textTransform: "uppercase" }}>
-          Open
+          {t("openAction")}
         </span>
         <span
           style={{

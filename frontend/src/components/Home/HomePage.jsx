@@ -528,7 +528,7 @@ export function HomePage({ onOpenLogin }) {
                 onClick={() => setMobileMenuOpen((value) => !value)}
                 className="home-mobile-toggle"
                 style={{ cursor: "pointer", fontSize: 18, padding: 0 }}
-                aria-label="Menu"
+                aria-label={t("menu")}
               >
                 {mobileMenuOpen ? "x" : "="}
               </button>
@@ -539,11 +539,11 @@ export function HomePage({ onOpenLogin }) {
         {!isDesktop && mobileMenuOpen && (
           <div style={{ background: "#fff", borderTop: "1px solid #f1f5f9", padding: "2px 0 10px" }}>
             {[
-              { label: t("home"), meta: "Start", action: scrollToTop },
-              { label: t("results"), meta: "Portal", action: scrollToSearch },
-              { label: t("notices"), meta: "Updates", action: scrollToAnnouncements },
-              { label: t("aboutUs"), meta: "School", action: scrollToFooter },
-              { label: t("contactUs"), meta: "Support", action: scrollToFooter },
+              { label: t("home"), meta: t("start"), action: scrollToTop },
+              { label: t("results"), meta: t("portal"), action: scrollToSearch },
+              { label: t("notices"), meta: t("updates"), action: scrollToAnnouncements },
+              { label: t("aboutUs"), meta: t("school"), action: scrollToFooter },
+              { label: t("contactUs"), meta: t("support"), action: scrollToFooter },
             ].map(({ label, meta, action }) => (
               <button
                 key={label}
@@ -692,12 +692,12 @@ export function HomePage({ onOpenLogin }) {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div style={{ background: "#fffbeb", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: 10, color: "#92400e", fontWeight: 600, marginBottom: 3 }}>Published Classes</div>
+                <div style={{ fontSize: 10, color: "#92400e", fontWeight: 600, marginBottom: 3 }}>{t("publishedClassesLabel")}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>{stats.publishedClasses || 0}</div>
                 <div style={{ fontSize: 10, color: "#64748b" }}>{formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)}</div>
               </div>
               <div style={{ background: "#f5f3ff", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: 10, color: "#5b21b6", fontWeight: 600, marginBottom: 3 }}>Average Class Size</div>
+                <div style={{ fontSize: 10, color: "#5b21b6", fontWeight: 600, marginBottom: 3 }}>{t("averageClassSizeLabel")}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>{stats.averageClassSize || 0}</div>
                 <div style={{ fontSize: 10, color: "#64748b" }}>{formatCount(stats.monthlyExamCount, "monthly exam", "mitihani ya kila mwezi", language)}</div>
               </div>
@@ -711,7 +711,7 @@ export function HomePage({ onOpenLogin }) {
           <div className="glass-panel" style={{ borderRadius: 24, padding: isMobile ? "20px 16px" : "28px 28px" }}>
             <div className="home-section-header" style={{ marginBottom: 14 }}>
               <div>
-                <div className="home-section-kicker">Results Desk</div>
+                <div className="home-section-kicker">{t("resultsDesk")}</div>
                 <div className="home-section-title">{t("searchResultsHeading")}</div>
                 <div className="home-section-copy">{t("searchInstructions")}</div>
               </div>
@@ -824,7 +824,7 @@ export function HomePage({ onOpenLogin }) {
         <div className={containerClass}>
           <div className="home-section-header">
             <div>
-              <div className="home-section-kicker">Fast Routes</div>
+              <div className="home-section-kicker">{t("fastRoutes")}</div>
               <div className="home-section-title">{t("quickAccess")}</div>
             </div>
             <span onClick={scrollToSearch} className="home-link-inline">{t("viewAll")}</span>
@@ -837,7 +837,7 @@ export function HomePage({ onOpenLogin }) {
             }}
           >
             {quickAccess.map((item) => (
-              <QuickCard key={item.id} {...item} />
+              <QuickCard key={item.id} {...item} featured={item.id === "results"} />
             ))}
           </div>
         </div>
@@ -847,7 +847,7 @@ export function HomePage({ onOpenLogin }) {
         <div className={containerClass}>
           <div className="home-section-header">
             <div>
-              <div className="home-section-kicker">Performance Snapshot</div>
+              <div className="home-section-kicker">{t("performanceSnapshot")}</div>
               <div className="home-section-title">{t("portalHighlights")}</div>
             </div>
           </div>
@@ -905,7 +905,7 @@ export function HomePage({ onOpenLogin }) {
         <div className={containerClass}>
           <div className="home-section-header">
             <div>
-              <div className="home-section-kicker">Updates</div>
+              <div className="home-section-kicker">{t("updates")}</div>
               <div className="home-section-title">{t("recentAnnouncements")}</div>
             </div>
             <span onClick={scrollToAnnouncements} className="home-link-inline">{t("viewAll")}</span>
@@ -929,7 +929,7 @@ export function HomePage({ onOpenLogin }) {
         <div className={containerClass}>
           <div className="home-section-header">
             <div>
-              <div className="home-section-kicker">Explore</div>
+              <div className="home-section-kicker">{t("explore")}</div>
               <div className="home-section-title">{t("resultsCategories")}</div>
             </div>
           </div>
@@ -945,7 +945,7 @@ export function HomePage({ onOpenLogin }) {
         <div className={containerClass}>
           <div className="home-section-header">
             <div>
-              <div className="home-section-kicker">Why Bonde Portal</div>
+              <div className="home-section-kicker">{t("whyBondePortal")}</div>
               <div className="home-section-title">{t("whyUseSystem")}</div>
             </div>
           </div>
