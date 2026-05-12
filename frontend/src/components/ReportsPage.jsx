@@ -17,6 +17,8 @@ import { withPositions } from "../utils/grading";
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
 import { useI18n } from "../i18n";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 const TEMPLATE_OPTIONS = [
   { label: "Official", value: "official" },
@@ -69,6 +71,35 @@ function averageOf(values) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+function waitForAnimationFrame() {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+}
+
+async function waitForImages(container) {
+  const images = Array.from(container.querySelectorAll("img"));
+  await Promise.all(
+    images.map(
+      (image) =>
+        new Promise((resolve) => {
+          if (image.complete && image.naturalWidth > 0) {
+            resolve();
+            return;
+          }
+          image.addEventListener("load", resolve, { once: true });
+          image.addEventListener("error", resolve, { once: true });
+        }),
+    ),
+  );
+}
+
+async function waitForRenderStability(container) {
+  if (document.fonts?.ready) {
+    await document.fonts.ready;
+  }
+  await waitForImages(container);
+  await waitForAnimationFrame();
+  await waitForAnimationFrame();
+}
 export function ReportsPage({
   classData,
   computed,
@@ -252,54 +283,70 @@ export function ReportsPage({
       container.style.left = "0";
       container.style.top = "0";
       container.style.pointerEvents = "none";
-      container.style.zIndex = "-1";
+      container.style.zIndex = "2147483647";
       container.style.width = "210mm";
-      container.style.minHeight = "100vh";
-      container.style.overflow = "visible";
+      container.style.minHeight = "297mm";
+      container.style.overflow = "hidden";
       container.style.background = "#fff";
+      container.style.opacity = "1";
       document.body.appendChild(container);
       root = createRoot(container);
 
-      flushSync(() => {
-        root.render(
-          <div style={{ width: "210mm", background: "#fff" }}>
-            {present.map((student, index) => (
-              <div
-                key={student.id}
-                style={{
-                  width: "210mm",
-                  background: "#fff",
-                  pageBreakInside: "avoid",
-                  breakInside: "avoid",
-                  pageBreakAfter: index === present.length - 1 ? "auto" : "always",
-                  breakAfter: index === present.length - 1 ? "auto" : "page",
-                }}
-              >
-                <div className="report-card-page">
-                  <ReportCardPrint
-                    student={student}
-                    classData={classData}
-                    template={template}
-                    paperSize={REPORT_CARD_PAPER_SIZE}
-                    orientation={REPORT_CARD_ORIENTATION}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>,
-        );
+      const pdf = new jsPDF({
+        orientation: REPORT_CARD_ORIENTATION,
+        unit: "mm",
+        format: REPORT_CARD_PAPER_SIZE,
+        compress: true,
       });
 
-      const exportNode = container.firstChild;
-      await waitForRender();
-      validatePdfExportElement(exportNode);
-      const blob = await exportElementToPdfBlob(exportNode, {
-        fileName,
-        format: REPORT_CARD_PAPER_SIZE,
-        orientation: REPORT_CARD_ORIENTATION,
-        margin: 0,
-        pagebreak: { mode: ["css", "legacy"] },
-      });
+      for (let index = 0; index < present.length; index += 1) {
+        const student = present[index];
+        flushSync(() => {
+          root.render(
+            <div
+              style={{
+                width: "210mm",
+                minHeight: "297mm",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "flex-start",
+                background: "#fff",
+              }}
+            >
+              <ReportCardPrint
+                student={student}
+                classData={classData}
+                template={template}
+                paperSize={REPORT_CARD_PAPER_SIZE}
+                orientation={REPORT_CARD_ORIENTATION}
+              />
+            </div>,
+          );
+        });
+
+        await waitForRenderStability(container);
+        const pageElement = container.firstChild;
+        if (!pageElement) {
+          throw new Error("Report card export page did not render.");
+        }
+
+        const canvas = await html2canvas(pageElement, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+          windowWidth: pageElement.scrollWidth,
+          windowHeight: pageElement.scrollHeight,
+        });
+        const imageData = canvas.toDataURL("image/png");
+
+        if (index > 0) {
+          pdf.addPage(REPORT_CARD_PAPER_SIZE, REPORT_CARD_ORIENTATION);
+        }
+        pdf.addImage(imageData, "PNG", 0, 0, 210, 297, undefined, "FAST");
+      }
+
+      const blob = pdf.output("blob");
       return { blob, fileName };
     } finally {
       if (root) root.unmount();
