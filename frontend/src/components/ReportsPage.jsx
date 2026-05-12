@@ -15,6 +15,7 @@ import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { withPositions } from "../utils/grading";
 import { saveAs } from "file-saver";
+import JSZip from "jszip";
 import { useI18n } from "../i18n";
 
 const TEMPLATE_OPTIONS = [
@@ -267,10 +268,6 @@ export function ReportsPage({
                 key={student.id}
                 style={{
                   width: "210mm",
-                  minHeight: "297mm",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "flex-start",
                   background: "#fff",
                   pageBreakInside: "avoid",
                   breakInside: "avoid",
@@ -309,6 +306,81 @@ export function ReportsPage({
       if (container?.parentNode) {
         container.parentNode.removeChild(container);
       }
+    }
+  };
+
+  const exportAllZip = async () => {
+    if (exportingZip || !present.length) return;
+    setExportingZip(true);
+    setExportError("");
+    try {
+      const zip = new JSZip();
+      for (const student of present) {
+        let container = null;
+        let root = null;
+        try {
+          container = document.createElement("div");
+          container.style.position = "fixed";
+          container.style.left = "0";
+          container.style.top = "0";
+          container.style.pointerEvents = "none";
+          container.style.zIndex = "-1";
+          container.style.width = "210mm";
+          container.style.background = "#fff";
+          document.body.appendChild(container);
+          root = createRoot(container);
+
+          flushSync(() => {
+            root.render(
+              <div style={{ width: "210mm", background: "#fff" }}>
+                <div className="report-card-page">
+                  <ReportCardPrint
+                    student={student}
+                    classData={classData}
+                    template={template}
+                    paperSize={REPORT_CARD_PAPER_SIZE}
+                    orientation={REPORT_CARD_ORIENTATION}
+                  />
+                </div>
+              </div>,
+            );
+          });
+
+          const exportNode = container.firstChild;
+          await waitForRender();
+          validatePdfExportElement(exportNode);
+          const blob = await exportElementToPdfBlob(exportNode, {
+            fileName: `${student.name || "student"}-report-card.pdf`,
+            format: REPORT_CARD_PAPER_SIZE,
+            orientation: REPORT_CARD_ORIENTATION,
+            margin: 0,
+            pagebreak: { mode: ["css", "legacy"] },
+          });
+          const safeName = String(student.name || student.cno || student.id || "student")
+            .replace(/[^\w.-]+/g, "_")
+            .replace(/^_+|_+$/g, "");
+          zip.file(`${String(student.posn || "").padStart(3, "0")}-${safeName}-report-card.pdf`, blob);
+        } finally {
+          if (root) root.unmount();
+          if (container?.parentNode) container.parentNode.removeChild(container);
+        }
+      }
+      const classSlug = getClassLabel(classData)
+        .replace(/[^\w.-]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase();
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      saveAs(zipBlob, `${classSlug || "class"}-report-cards.zip`);
+    } catch (error) {
+      console.error("Zip PDF export failed:", error);
+      setExportError(
+        t(
+          "reportsPdfExportFailed",
+          "PDF export failed. Please check internet/images and try again.",
+        ),
+      );
+    } finally {
+      setExportingZip(false);
     }
   };
 
@@ -522,6 +594,25 @@ export function ReportsPage({
               {exportingZip
                 ? t("reportsPreparingPdf", "Preparing PDF...")
                 : t("reportsDownloadAllPdfs", "Download all PDFs")}
+            </button>
+            <button
+              style={{
+                padding: "10px 16px",
+                background: exportingZip ? "#9ca3af" : "#0b6b3a",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                cursor: exportingZip || !present.length ? "not-allowed" : "pointer",
+                fontWeight: 800,
+                fontSize: 12,
+                flex: isMobile ? "1 1 100%" : "0 0 auto",
+              }}
+              onClick={exportAllZip}
+              disabled={exportingZip || !present.length}
+            >
+              {exportingZip
+                ? t("reportsPreparingPdf", "Preparing PDF...")
+                : t("reportsExportAllZip", "Export all ZIP")}
             </button>
           </div>
         </div>
