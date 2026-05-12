@@ -1,7 +1,8 @@
 import React from "react";
 import "./Home.css";
+import { HomeIcon } from "./HomeIcons";
 
-export function QuickCard({ bg, badge, title, desc, onClick }) {
+export function QuickCard({ icon, bg, badge, title, desc, onClick }) {
   return (
     <div
       role="button"
@@ -23,8 +24,14 @@ export function QuickCard({ bg, badge, title, desc, onClick }) {
             borderRadius: 16,
             background: `linear-gradient(135deg, ${bg}, rgba(255,255,255,0.96))`,
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#173b74",
           }}
-        />
+        >
+          <HomeIcon name={icon} label={title} size={20} />
+        </div>
         <span style={{ fontSize: 10, fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.08em" }}>
           {badge}
         </span>

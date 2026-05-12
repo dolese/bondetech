@@ -11,6 +11,7 @@ import { QuickCard } from "./QuickCard";
 import { AnnouncementRow } from "./AnnouncementRow";
 import { CategoryChip, FeatureChip } from "./Chips";
 import { MiniBarChart } from "./MiniBarChart";
+import { HomeIcon } from "./HomeIcons";
 import "./Home.css";
 
 const DEFAULT_HERO_SLIDES = [
@@ -117,6 +118,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
   return [
     {
       id: "results",
+      icon: "results",
       bg: "#dbeafe",
       badge: publishedLabel,
       title: t("checkResults"),
@@ -129,6 +131,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     },
     {
       id: "performance",
+      icon: "performance",
       bg: "#d1fae5",
       badge: studentLabel,
       title: t("classPerformance"),
@@ -139,6 +142,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     },
     {
       id: "timetable",
+      icon: "timetable",
       bg: "#fef3c7",
       badge: monthlyLabel,
       title: t("examTimetable"),
@@ -155,6 +159,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     },
     {
       id: "announcements",
+      icon: "announcements",
       bg: "#ede9fe",
       badge: formatCount(announcementCount, "live update", "taarifa hai", language),
       title: t("announcements"),
@@ -165,6 +170,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     },
     {
       id: "reports",
+      icon: "reports",
       bg: "#fee2e2",
       badge: formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language),
       title: t("downloadReport"),
@@ -177,6 +183,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     },
     {
       id: "login",
+      icon: "login",
       bg: "#cffafe",
       badge: stats.latestYear ? (language === "sw" ? `Mwaka ${stats.latestYear}` : `Year ${stats.latestYear}`) : t("portalAccess"),
       title: t("studentParentLogin"),
@@ -194,12 +201,12 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
 
 function buildPerformanceStats(stats, latestExamLabel, t) {
   return [
-    { key: "students", color: "#2563eb", value: Number(stats.totalStudents || 0).toLocaleString(), label: t("totalStudents") },
-    { key: "classes", color: "#059669", value: String(stats.totalClasses || 0), label: t("activeClasses") },
-    { key: "exam", color: "#7c3aed", value: latestExamLabel || t("noExamYet"), label: t("latestExam") },
-    { key: "published", color: "#d97706", value: String(stats.publishedClasses || 0), label: t("publishedClasses") },
-    { key: "forms", color: "#0891b2", value: String(stats.activeForms || 0), label: t("activeForms") },
-    { key: "monthly", color: "#dc2626", value: String(stats.monthlyExamCount || 0), label: t("monthlyExams") },
+    { key: "students", icon: "students", value: Number(stats.totalStudents || 0).toLocaleString(), label: t("totalStudents") },
+    { key: "classes", icon: "classes", value: String(stats.totalClasses || 0), label: t("activeClasses") },
+    { key: "exam", icon: "exam", value: latestExamLabel || t("noExamYet"), label: t("latestExam") },
+    { key: "published", icon: "published", value: String(stats.publishedClasses || 0), label: t("publishedClasses") },
+    { key: "forms", icon: "forms", value: String(stats.activeForms || 0), label: t("activeForms") },
+    { key: "monthly", icon: "monthly", value: String(stats.monthlyExamCount || 0), label: t("monthlyExams") },
   ];
 }
 
@@ -460,23 +467,23 @@ export function HomePage({ onOpenLogin }) {
   const containerClass = `home-content-wrapper ${isMobile ? 'home-content-wrapper-mobile' : 'home-content-wrapper-desktop'}`;
 
   const categories = [
-    { label: language === "sw" ? "Kidato I\nMatokeo" : "Form I\nResults", color: "#2563eb", bg: "#dbeafe" },
-    { label: language === "sw" ? "Kidato II\nMatokeo" : "Form II\nResults", color: "#2563eb", bg: "#dbeafe" },
-    { label: language === "sw" ? "Kidato III\nMatokeo" : "Form III\nResults", color: "#2563eb", bg: "#dbeafe" },
-    { label: language === "sw" ? "Kidato IV\nMatokeo" : "Form IV\nResults", color: "#2563eb", bg: "#dbeafe" },
-    { label: language === "sw" ? "Mtihani wa\nMuhula" : "Terminal\nExams", color: "#dc2626", bg: "#fee2e2" },
-    { label: language === "sw" ? "Mitihani ya\nKati" : "Midterm\nExams", color: "#dc2626", bg: "#fee2e2" },
-    { label: language === "sw" ? "Mitihani ya\nMwisho" : "Annual\nExams", color: "#7c3aed", bg: "#ede9fe" },
-    { label: language === "sw" ? "Mitihani ya\nMock" : "Mock\nExams", color: "#0891b2", bg: "#cffafe" },
+    { label: language === "sw" ? "Kidato I\nMatokeo" : "Form I\nResults", color: "#2563eb", bg: "#dbeafe", icon: "results" },
+    { label: language === "sw" ? "Kidato II\nMatokeo" : "Form II\nResults", color: "#2563eb", bg: "#dbeafe", icon: "results" },
+    { label: language === "sw" ? "Kidato III\nMatokeo" : "Form III\nResults", color: "#2563eb", bg: "#dbeafe", icon: "results" },
+    { label: language === "sw" ? "Kidato IV\nMatokeo" : "Form IV\nResults", color: "#2563eb", bg: "#dbeafe", icon: "results" },
+    { label: language === "sw" ? "Mtihani wa\nMuhula" : "Terminal\nExams", color: "#dc2626", bg: "#fee2e2", icon: "exam" },
+    { label: language === "sw" ? "Mitihani ya\nKati" : "Midterm\nExams", color: "#dc2626", bg: "#fee2e2", icon: "monthly" },
+    { label: language === "sw" ? "Mitihani ya\nMwisho" : "Annual\nExams", color: "#7c3aed", bg: "#ede9fe", icon: "reports" },
+    { label: language === "sw" ? "Mitihani ya\nMock" : "Mock\nExams", color: "#0891b2", bg: "#cffafe", icon: "timetable" },
   ];
 
   const features = [
-    { bg: "#dbeafe", label: language === "sw" ? "Ufikiaji\nSalama" : "Secure\nAccess" },
-    { bg: "#d1fae5", label: language === "sw" ? "Ukaguzi wa\nMatokeo Haraka" : "Fast Results\nChecking" },
-    { bg: "#ede9fe", label: language === "sw" ? "Inaendana na\nSimu" : "Mobile\nResponsive" },
-    { bg: "#fef3c7", label: language === "sw" ? "Upakuaji Rahisi\nwa Ripoti" : "Easy Report\nDownload" },
-    { bg: "#d1fae5", label: language === "sw" ? "Ufuatiliaji wa\nUtendaji" : "Performance\nTracking" },
-    { bg: "#fee2e2", label: language === "sw" ? "Taarifa Mahali\nPamoja" : "Notices in\nOne Place" },
+    { bg: "#dbeafe", label: language === "sw" ? "Ufikiaji\nSalama" : "Secure\nAccess", icon: "secure" },
+    { bg: "#d1fae5", label: language === "sw" ? "Ukaguzi wa\nMatokeo Haraka" : "Fast Results\nChecking", icon: "search" },
+    { bg: "#ede9fe", label: language === "sw" ? "Inaendana na\nSimu" : "Mobile\nResponsive", icon: "mobile" },
+    { bg: "#fef3c7", label: language === "sw" ? "Upakuaji Rahisi\nwa Ripoti" : "Easy Report\nDownload", icon: "download" },
+    { bg: "#d1fae5", label: language === "sw" ? "Ufuatiliaji wa\nUtendaji" : "Performance\nTracking", icon: "performance" },
+    { bg: "#fee2e2", label: language === "sw" ? "Taarifa Mahali\nPamoja" : "Notices in\nOne Place", icon: "announcements" },
   ];
 
   return (
@@ -618,8 +625,36 @@ export function HomePage({ onOpenLogin }) {
                 { label: t("activeForms"), value: String(stats.activeForms || 0) },
               ].map((metric) => (
                 <div key={metric.label} className="home-hero-metric">
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    {metric.label}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 12,
+                        background: "rgba(255,255,255,0.10)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                      }}
+                    >
+                      <HomeIcon
+                        name={
+                          metric.label === t("totalStudents")
+                            ? "students"
+                            : metric.label === t("publishedClasses")
+                              ? "published"
+                              : "forms"
+                        }
+                        label={metric.label}
+                        size={16}
+                        color="#ffffff"
+                      />
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.74)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      {metric.label}
+                    </div>
                   </div>
                   <div style={{ fontSize: isMobile ? 23 : 28, fontWeight: 800, color: "#fff", marginTop: 6 }}>
                     {metric.value}
@@ -835,7 +870,23 @@ export function HomePage({ onOpenLogin }) {
                       : undefined,
                 }}
               >
-                <div style={{ width: 16, height: 16, borderRadius: 999, background: stat.color, margin: "0 auto 8px" }} />
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 14,
+                    margin: "0 auto 10px",
+                    background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,244,251,0.96))",
+                    border: "1px solid rgba(214, 224, 237, 0.9)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#173b74",
+                  }}
+                >
+                  <HomeIcon name={stat.icon} label={stat.label} size={18} />
+                </div>
                 <div style={{ fontSize: isMobile ? 14 : 18, fontWeight: 800, color: "#0f2d6e" }}>{stat.value}</div>
                 <div style={{ fontSize: isMobile ? 9 : 11, color: "#64748b", marginTop: 3 }}>{stat.label}</div>
                 {stat.description && (
