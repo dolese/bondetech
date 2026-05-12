@@ -1380,7 +1380,7 @@ export function Dashboard({
                   {searchResults.map((student) => (
                     <button
                       key={`${student.classId}-${student.studentId}`}
-                      onClick={() => onViewProfile?.(student.indexNo)}
+                      onClick={() => onViewProfile?.(student.admissionNo || student.indexNo)}
                       style={{
                         border: "1px solid rgba(191,219,254,0.5)",
                         background: "rgba(255,255,255,0.74)",
@@ -1400,7 +1400,7 @@ export function Dashboard({
                           {student.name}
                         </div>
                         <div style={{ marginTop: 5, fontSize: 13, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: dense ? "normal" : "nowrap", lineHeight: dense ? 1.45 : undefined }}>
-                          {student.indexNo} | {student.className} | {student.form} {student.year}
+                          {(student.admissionNo || student.indexNo)} | {student.className} | {student.form} {student.year}
                         </div>
                       </div>
                       {!compact && (

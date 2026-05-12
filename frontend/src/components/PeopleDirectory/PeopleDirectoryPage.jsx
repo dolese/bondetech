@@ -22,6 +22,7 @@ function matchesSearch(entry, query) {
     entry.username,
     ...(entry.students || []).flatMap((student) => [
       student.name,
+      student.admissionNo,
       student.indexNo,
       student.classLabel,
     ]),

@@ -3,7 +3,7 @@ const router = express.Router();
 const { getDb } = require("../db");
 const {
   searchStudentsDirectory,
-  getStudentProfileByIndexNo,
+  getStudentProfileByAdmissionNo,
 } = require("../../lib/studentDirectory");
 
 router.get("/search", async (req, res) => {
@@ -15,15 +15,15 @@ router.get("/search", async (req, res) => {
   }
 });
 
-router.get("/:indexNo/profile", async (req, res) => {
+router.get("/:admissionNo/profile", async (req, res) => {
   try {
-    const profile = await getStudentProfileByIndexNo(
+    const profile = await getStudentProfileByAdmissionNo(
       getDb(),
-      decodeURIComponent(req.params.indexNo || "")
+      decodeURIComponent(req.params.admissionNo || "")
     );
     res.json(profile);
   } catch (err) {
-    const status = /indexno is required/i.test(err.message)
+    const status = /admissionno is required/i.test(err.message)
       ? 400
       : /student not found/i.test(err.message)
       ? 404

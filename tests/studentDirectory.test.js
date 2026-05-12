@@ -3,7 +3,7 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const { getStudentProfileByIndexNo } = require("../lib/studentDirectory");
+const { getStudentProfileByAdmissionNo } = require("../lib/studentDirectory");
 const { FakeFirestore } = require("./helpers/fakeFirestore");
 
 test("student profile preserves the stored sex from matching student records", async () => {
@@ -17,6 +17,7 @@ test("student profile preserves the stored sex from matching student records", a
         __collections: {
           students: {
             student_1: {
+              admission_no: "ADM-0007",
               index_no: "S6509/0007",
               name: "Neema",
               sex: "F",
@@ -36,6 +37,7 @@ test("student profile preserves the stored sex from matching student records", a
         __collections: {
           students: {
             student_2: {
+              admission_no: "ADM-0007",
               index_no: "S6509/0007",
               name: "Neema",
               sex: "F",
@@ -50,9 +52,10 @@ test("student profile preserves the stored sex from matching student records", a
     },
   });
 
-  const profile = await getStudentProfileByIndexNo(db, "S6509/0007");
+  const profile = await getStudentProfileByAdmissionNo(db, "ADM-0007");
 
   assert.equal(profile.name, "Neema");
+  assert.equal(profile.admissionNo, "ADM-0007");
   assert.equal(profile.sex, "F");
   assert.equal(profile.entries.length, 2);
   assert.deepEqual(

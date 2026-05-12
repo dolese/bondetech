@@ -402,7 +402,7 @@ export function HomePage({ onOpenLogin }) {
       if (results.length === 0) {
         setSearchError(t("noResultsFound"));
       } else if (results.length === 1) {
-        setProfileIndexNo(results[0].indexNo);
+        setProfileIndexNo(results[0].admissionNo || results[0].indexNo);
       } else {
         setSearchResults(results);
       }
@@ -779,11 +779,11 @@ export function HomePage({ onOpenLogin }) {
                     role="button"
                     tabIndex={0}
                     key={`${result.classId}-${result.id}`}
-                    onClick={() => setProfileIndexNo(result.indexNo)}
+                    onClick={() => setProfileIndexNo(result.admissionNo || result.indexNo)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        setProfileIndexNo(result.indexNo);
+                        setProfileIndexNo(result.admissionNo || result.indexNo);
                       }
                     }}
                     style={{
@@ -808,7 +808,7 @@ export function HomePage({ onOpenLogin }) {
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{result.name}</div>
                       <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-                        {result.indexNo} | {result.form} | {result.year}
+                        {result.admissionNo || result.indexNo} | {result.form} | {result.year}
                       </div>
                     </div>
                     <span style={{ fontSize: 14, color: "#2563eb", fontWeight: 700 }}>{t("view")}</span>
@@ -1097,7 +1097,7 @@ export function HomePage({ onOpenLogin }) {
                 x
               </button>
             </div>
-            <StudentProfilePage indexNo={profileIndexNo} onBack={() => setProfileIndexNo(null)} />
+            <StudentProfilePage admissionNo={profileIndexNo} onBack={() => setProfileIndexNo(null)} />
           </div>
         </div>
       )}

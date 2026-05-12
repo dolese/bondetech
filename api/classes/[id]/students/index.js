@@ -50,7 +50,7 @@ module.exports = async (req, res) => {
     } catch (err) {
       const status = /class not found/i.test(err.message)
         ? 404
-        : /student name is required/i.test(err.message)
+        : /student name is required|admission number is required|already exists/i.test(err.message)
         ? 400
         : 500;
       return sendJson(res, status, { error: err.message });

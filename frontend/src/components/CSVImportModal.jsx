@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Papa from "papaparse";
-import { validateStudent } from "../utils/validation";
 import { useViewport } from "../utils/useViewport";
 import { API } from "../api";
 
@@ -24,9 +23,9 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
   };
 
   const downloadTemplate = () => {
-    const header = ["cno", "name", "sex", ...subjects];
+    const header = ["source_signature", "admission_no", "cno", "name", "sex", ...subjects];
     const exampleScores = subjects.map((_, i) => 50 + i * 3);
-    const example = [`${CNO_PREFIX}/0001`, "John Doe", "M", ...exampleScores];
+    const example = ["bondetech-export-students-v1", "ADM-0001", `${CNO_PREFIX}/0001`, "John Doe", "M", ...exampleScores];
     const csv = [header.map(csvEscape).join(","), example.map(csvEscape).join(",")].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -47,14 +46,16 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
     const hasHeader = headerGuess.some(h => h.includes("index") || h.includes("admission") || h.includes("candidate") || h === "cno" || h.includes("name") || h.includes("sex"));
 
     let scoreCols = Array(subjects.length).fill(null);
-    let colMap = { indexNo: 0, name: 1, sex: 2 };
+    let colMap = { signature: null, admissionNo: null, indexNo: null, name: null, sex: null };
     let startLine = 0;
 
     if (hasHeader) {
       startLine = 1;
-      colMap = { indexNo: null, name: null, sex: null };
+      colMap = { signature: null, admissionNo: null, indexNo: null, name: null, sex: null };
       headerGuess.forEach((h, idx) => {
-        if (h.includes("index") || h.includes("admission") || h.includes("candidate") || h === "cno") colMap.indexNo = idx;
+        if (h === "source_signature" || h === "signature") colMap.signature = idx;
+        else if (h.includes("admission")) colMap.admissionNo = idx;
+        if (h.includes("index") || h.includes("candidate") || h === "cno") colMap.indexNo = idx;
         else if (h === "name" || h.includes("student")) colMap.name = idx;
         else if (h === "sex" || h === "gender") colMap.sex = idx;
         else {
@@ -87,6 +88,8 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
       });
       return {
         rowNum: idx + 1,
+        sourceSignature: String(get(colMap.signature, "")),
+        admissionNo: String(get(colMap.admissionNo, "")),
         index_no: String(get(colMap.indexNo, "")),
         name: String(get(colMap.name, "")),
         sex: String(get(colMap.sex, "M") || "M"),
@@ -112,13 +115,24 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
     });
 
     const validationErrors = [];
-    withPreview.forEach((row, i) => {
-      const validation = validateStudent(row);
-      if (!validation.valid) {
-        validationErrors.push({
-          row: row.rowNum,
-          errors: validation.errors,
-        });
+    const hasSignature = hasHeader && colMap.signature != null;
+    const hasAdmission = hasHeader && colMap.admissionNo != null;
+    if (!hasSignature) {
+      validationErrors.push({ row: 1, errors: { source_signature: "Missing source_signature column from exported file." } });
+    }
+    if (!hasAdmission) {
+      validationErrors.push({ row: 1, errors: { admission_no: "Missing admission_no column from exported file." } });
+    }
+    withPreview.forEach((row) => {
+      const rowErrors = {};
+      if (String(row.sourceSignature || "").trim() !== "bondetech-export-students-v1") {
+        rowErrors.source_signature = "Invalid source signature";
+      }
+      if (!String(row.admissionNo || "").trim()) {
+        rowErrors.admissionNo = "Admission number is required";
+      }
+      if (Object.keys(rowErrors).length > 0) {
+        validationErrors.push({ row: row.rowNum, errors: rowErrors });
       }
     });
 
@@ -309,7 +323,7 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
       <div style={styles.modal} onClick={e => e.stopPropagation()}>
         <div style={styles.header}>
           <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900 }}>
-            📤 Import Students (CSV)
+            📤 Sync Marks (CSV)
           </h2>
           <button style={styles.closeBtn} onClick={onClose}>
             ✕
@@ -319,7 +333,7 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
         <div style={styles.content}>
           {/* Sync from URL Section */}
           <div style={styles.section}>
-            <label style={styles.label}>🔗 Sync from Online Spreadsheet</label>
+            <label style={styles.label}>🔗 Sync from Exported CSV URL</label>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input
                 type="url"
@@ -358,9 +372,7 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
               <div style={{ fontSize: 11, color: "#c00", marginTop: 4 }}>⚠ {fetchError}</div>
             )}
             <div style={{ ...styles.helpText, marginTop: 0 }}>
-              Google Sheets: share the sheet publicly, paste its link above and click Fetch.
-              The sheet must be <strong>publicly accessible</strong> (anyone with the link can view).
-              Plain <code>.csv</code> links also work.
+              Use only CSV files exported from this app. New students are not created during sync.
             </div>
           </div>
 
@@ -382,9 +394,9 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
               style={styles.textarea}
             />
             <div style={styles.helpText}>
-              📋 Format: <strong>cno,name,sex,subjects...</strong> (one student per line)
+              📋 Required columns: <strong>source_signature, admission_no</strong> and subject columns from this class.
               <br />
-              Sex: M or F | Scores: 00-100 or ABS
+              Sync updates marks only for existing registered students.
               <br />
               Header row supported. Subject names must match this class.
             </div>
@@ -531,8 +543,8 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
               opacity: errors.length > 0 || preview.length === 0 ? 0.6 : 1,
             }}
           >
-            {importing ? "Importing..." : "✓ Import Students"}
-          </button>
+              {importing ? "Syncing..." : "✓ Sync Marks"}
+            </button>
         </div>
       </div>
     </div>

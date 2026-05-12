@@ -12,24 +12,24 @@ import { useViewport } from "../utils/useViewport";
  * scores, grades, totals, and division.
  *
  * Props:
- *   indexNo  – the student's candidate number
+ *   admissionNo  – the student's immutable admission number
  *   onBack   – called when the user clicks "Back"
  */
-export function StudentProfilePage({ indexNo, onBack }) {
+export function StudentProfilePage({ admissionNo, onBack }) {
   const { isXs, isMobile } = useViewport();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!indexNo) return;
+    if (!admissionNo) return;
     setLoading(true);
     setError(null);
-    API.getStudentProfile(indexNo)
+    API.getStudentProfile(admissionNo)
       .then(setProfile)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [indexNo]);
+  }, [admissionNo]);
 
   const styles = {
     panel: {
@@ -116,7 +116,7 @@ export function StudentProfilePage({ indexNo, onBack }) {
             {profile.name || "Unknown Student"}
           </h2>
           <div style={{ fontSize: 12, color: "#666" }}>
-            CNO: <strong>{profile.indexNo}</strong> · Sex: {profile.sex === "F" ? "Female" : "Male"}
+            Admission No: <strong>{profile.admissionNo}</strong> · Sex: {profile.sex === "F" ? "Female" : "Male"}
           </div>
         </div>
       </div>
@@ -128,9 +128,10 @@ export function StudentProfilePage({ indexNo, onBack }) {
           const examEntries = Object.entries(entry.examScores ?? {});
           return (
             <div key={`${entry.classId}-${ei}`} style={styles.card}>
-              <div style={styles.cardTitle}>
-                📚 {entry.className} — {entry.form} {entry.year}
-              </div>
+                <div style={styles.cardTitle}>
+                 📚 {entry.className} — {entry.form} {entry.year}
+                 {entry.indexNo ? ` · CNO ${entry.indexNo}` : ""}
+               </div>
 
               {examEntries.length === 0 ? (
                 <div style={{ fontSize: 11, color: "#888" }}>No exam scores recorded.</div>

@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
 import JSZip from "jszip";
-import { validateStudent } from "../utils/validation";
 import { useViewport } from "../utils/useViewport";
 import { API } from "../api";
 
@@ -177,6 +176,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
 
     // Recognised exact and prefix/suffix patterns for each identity column.
     const STUDENT_ID_HEADERS = new Set(["cno", "admission_no", "admissionno", "index_no", "indexno", "candidate_no", "candidateno"]);
+    const signatureIdx = hNorm.findIndex(h => h === "source signature" || h === "source_signature");
+    const admissionIdx = hNorm.findIndex(h => h === "admission no" || h === "admission_no" || h === "admission");
     const cnoIdx = hNorm.findIndex(h => STUDENT_ID_HEADERS.has(h));
     const nameIdx = hNorm.findIndex(h => h === "name" || h === "student_name" || h === "studentname");
     const sexIdx = hNorm.findIndex(h => h === "sex" || h === "gender");
@@ -194,6 +195,10 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     const unmappedSubjects = subjects.filter((_, i) => subjectCols[i] === -1);
     if (unmappedSubjects.length > 0) {
       setWarnings([`Some subjects were not found in the XLSX and will be blank: ${unmappedSubjects.join(", ")}`]);
+    }
+    if (signatureIdx === -1 || admissionIdx === -1) {
+      setParseError("Invalid export format. Required columns: Source Signature and Admission No.");
+      return;
     }
 
     const validRows = [];
@@ -217,6 +222,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
       });
 
       const mapped = {
+        sourceSignature: signatureIdx >= 0 ? String(row[headers[signatureIdx]] ?? "").trim() : "",
+        admissionNo: admissionIdx >= 0 ? String(row[headers[admissionIdx]] ?? "").trim() : "",
         indexNo: cnoIdx >= 0 ? String(row[headers[cnoIdx]] ?? "").trim() : "",
         name: nameIdx >= 0 ? String(row[headers[nameIdx]] ?? "").trim() : "",
         sex: sexVal,
@@ -224,9 +231,15 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
         scores,
       };
 
-      const validation = validateStudent(mapped);
-      if (!validation.valid) {
-        errs.push({ row: i + DATA_ROW_OFFSET, errors: Object.values(validation.errors) });
+      const rowErrors = [];
+      if (mapped.sourceSignature !== "bondetech-export-students-v1") {
+        rowErrors.push("invalid source signature");
+      }
+      if (!mapped.admissionNo) {
+        rowErrors.push("admission number is required");
+      }
+      if (rowErrors.length > 0) {
+        errs.push({ row: i + DATA_ROW_OFFSET, errors: rowErrors });
       } else {
         validRows.push(mapped);
       }
@@ -291,16 +304,21 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
       const norm = (s) => String(s ?? "").trim().toLowerCase();
       const hNorm = headers.map(norm);
       const STUDENT_ID_HEADERS = new Set(["cno", "admission_no", "admissionno", "index_no", "indexno", "candidate_no", "candidateno"]);
-      const cnoIdx = hNorm.findIndex((h) => STUDENT_ID_HEADERS.has(h));
+       const signatureIdx = hNorm.findIndex((h) => h === "source signature" || h === "source_signature");
+       const admissionIdx = hNorm.findIndex((h) => h === "admission no" || h === "admission_no" || h === "admission");
+       const cnoIdx = hNorm.findIndex((h) => STUDENT_ID_HEADERS.has(h));
       const nameIdx = hNorm.findIndex((h) => h === "name" || h === "student_name" || h === "studentname");
       const sexIdx = hNorm.findIndex((h) => h === "sex" || h === "gender");
       const statusIdx = hNorm.findIndex((h) => h === "status");
       const DATA_ROW_OFFSET = 2;
       const subjectCols = subjects.map((subj) => hNorm.findIndex((h) => h === norm(subj)));
-      const unmappedSubjects = subjects.filter((_, i) => subjectCols[i] === -1);
-      if (unmappedSubjects.length > 0) {
-        setWarnings([`Some subjects were not found in the XLSX and will be blank: ${unmappedSubjects.join(", ")}`]);
-      }
+       const unmappedSubjects = subjects.filter((_, i) => subjectCols[i] === -1);
+       if (unmappedSubjects.length > 0) {
+         setWarnings([`Some subjects were not found in the XLSX and will be blank: ${unmappedSubjects.join(", ")}`]);
+       }
+       if (signatureIdx === -1 || admissionIdx === -1) {
+         throw new Error("Invalid export format. Required columns: Source Signature and Admission No.");
+       }
 
       const validRows = [];
       const errs = [];
@@ -323,6 +341,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
         });
 
         const mapped = {
+          sourceSignature: signatureIdx >= 0 ? String(row[headers[signatureIdx]] ?? "").trim() : "",
+          admissionNo: admissionIdx >= 0 ? String(row[headers[admissionIdx]] ?? "").trim() : "",
           indexNo: cnoIdx >= 0 ? String(row[headers[cnoIdx]] ?? "").trim() : "",
           name: nameIdx >= 0 ? String(row[headers[nameIdx]] ?? "").trim() : "",
           sex: sexVal,
@@ -330,9 +350,11 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
           scores,
         };
 
-        const validation = validateStudent(mapped);
-        if (!validation.valid) {
-          errs.push({ row: i + DATA_ROW_OFFSET, errors: Object.values(validation.errors) });
+        const rowErrors = [];
+        if (mapped.sourceSignature !== "bondetech-export-students-v1") rowErrors.push("invalid source signature");
+        if (!mapped.admissionNo) rowErrors.push("admission number is required");
+        if (rowErrors.length > 0) {
+          errs.push({ row: i + DATA_ROW_OFFSET, errors: rowErrors });
         } else {
           validRows.push(mapped);
         }
@@ -504,10 +526,10 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
 
         <div style={styles.body}>
           <div style={{ fontSize: 11, color: "#555" }}>
-            Import students from an Excel (.xlsx) file. The file should contain columns for
-            <strong> CNO</strong>, <strong>Name</strong>, <strong>Sex</strong>, and one column per
-            subject (matching this class's subjects). Additional columns like Total, Grade, etc. are
-            ignored. The first row must be a header row.
+             Sync marks from an Excel (.xlsx) file exported by this app. The file should contain columns for
+             <strong> Source Signature</strong>, <strong>Admission No</strong>, <strong>CNO</strong>, and one column per
+             subject (matching this class's subjects). Additional columns like Total, Grade, etc. are
+             ignored. The first row must be a header row.
           </div>
 
           <div style={styles.section}>
@@ -609,14 +631,14 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
           {parsed && parsed.students.length > 0 && (
             <>
               <div style={styles.infoBox}>
-                ✅ {parsed.students.length} student{parsed.students.length !== 1 ? "s" : ""} ready to
-                import. Showing first {Math.min(5, parsed.students.length)} below.
+               ✅ {parsed.students.length} row{parsed.students.length !== 1 ? "s" : ""} ready to
+                sync. Showing first {Math.min(5, parsed.students.length)} below.
               </div>
               <div style={{ overflowX: "auto" }}>
                 <table style={styles.table}>
                   <thead>
                     <tr>
-                      {["CNO", "Name", "Sex", "Status", ...subjects.slice(0, 5)].map((h) => (
+                       {["Admission No", "CNO", "Name", "Sex", "Status", ...subjects.slice(0, 5)].map((h) => (
                         <th key={h} style={styles.th}>{h}</th>
                       ))}
                       {subjects.length > 5 && <th style={styles.th}>+{subjects.length - 5} more</th>}
@@ -625,7 +647,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
                   <tbody>
                     {preview.map((s, i) => (
                       <tr key={i}>
-                        <td style={styles.td}>{s.indexNo || "—"}</td>
+                         <td style={styles.td}>{s.admissionNo || "—"}</td>
+                         <td style={styles.td}>{s.indexNo || "—"}</td>
                         <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
                         <td style={styles.td}>{s.sex}</td>
                         <td style={styles.td}>{s.status}</td>
@@ -660,8 +683,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
               onClick={handleImport}
               disabled={!parsed || !parsed.students.length || importing}
             >
-              {importing ? "Importing…" : `Import ${parsed?.students.length ?? 0} Students`}
-            </button>
+               {importing ? "Syncing…" : `Sync ${parsed?.students.length ?? 0} Rows`}
+             </button>
           </div>
         </div>
       </div>

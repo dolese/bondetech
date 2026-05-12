@@ -26,6 +26,7 @@ const normalizeStudent = (student) => {
   const scores = Array.isArray(examScores[DEFAULT_EXAM_TYPE]) ? examScores[DEFAULT_EXAM_TYPE] : legacyScores;
   return {
     ...student,
+    admission_no: student.admission_no ?? student.admissionNo ?? student.index_no ?? student.indexNo ?? "",
     index_no: student.index_no ?? student.indexNo ?? "",
     dateOfBirth: student.dateOfBirth ?? student.date_of_birth ?? "",
     parentName: student.parentName ?? student.parent_name ?? "",
@@ -61,6 +62,7 @@ const normalizeClass = (cls) => ({
 });
 
 const toApiStudent = (student) => ({
+  admissionNo: student.admissionNo ?? student.admission_no ?? "",
   indexNo: student.indexNo ?? student.index_no ?? "",
   name: student.name ?? "",
   sex: student.sex ?? "M",
@@ -386,14 +388,21 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     if (!activeClass) return;
     try {
       const payload = rows.map((row) => toApiStudent({ ...row, examType: activeExam }));
-      const result = await API.bulkImport(activeClass.id, payload, activeExam);
+      const result = await API.bulkImport(
+        activeClass.id,
+        payload,
+        activeExam,
+        "bondetech-export-students-v1",
+      );
       await refreshClass(activeClass.id);
-      const { created = 0, updated = 0, skipped = 0 } = result ?? {};
+      const { matched = 0, created = 0, updated = 0, rejected = 0, skipped = 0 } = result ?? {};
       const parts = [];
+      if (matched > 0) parts.push(`${matched} matched`);
       if (created > 0) parts.push(`${created} new`);
       if (updated > 0) parts.push(`${updated} updated`);
+      if (rejected > 0) parts.push(`${rejected} rejected`);
       if (skipped > 0) parts.push(`${skipped} unchanged`);
-      showToast?.(parts.length ? `Import done: ${parts.join(", ")}` : "Nothing to import");
+      showToast?.(parts.length ? `Marks sync done: ${parts.join(", ")}` : "Nothing to sync");
     } catch (err) {
       showToast?.(err.message, "error");
     }

@@ -195,16 +195,16 @@ export function PersonCard({
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>{student.name}</div>
                   <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-                    {student.indexNo ? `${student.indexNo} | ` : ""}
+                    {(student.admissionNo || student.indexNo) ? `${student.admissionNo || student.indexNo} | ` : ""}
                     {student.classLabel}
                   </div>
                 </div>
                 <div className="dir-student-actions">
-                  {student.indexNo && onOpenStudentProfile ? (
+                  {(student.admissionNo || student.indexNo) && onOpenStudentProfile ? (
                     <button
                       type="button"
                       className="dir-mini-btn"
-                      onClick={() => onOpenStudentProfile(student.indexNo)}
+                      onClick={() => onOpenStudentProfile(student.admissionNo || student.indexNo)}
                     >
                       Open Profile
                     </button>

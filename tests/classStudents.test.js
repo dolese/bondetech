@@ -25,6 +25,7 @@ function createSeedDb() {
         __collections: {
           students: {
             student_1: {
+              admission_no: "ADM-0001",
               index_no: "S6509/0001",
               name: "Baraka",
               sex: "M",
@@ -47,6 +48,7 @@ test("creating a student for the default exam also stores the legacy top-level s
   const db = createSeedDb();
 
   const created = await createStudentRecord(db, "class_1", {
+    admissionNo: "ADM-0002",
     name: "Neema",
     scores: [66, 77],
   });
@@ -57,6 +59,18 @@ test("creating a student for the default exam also stores the legacy top-level s
   const stored = await db.collection("classes").doc("class_1").collection("students").doc(created.id).get();
   assert.deepEqual(stored.data().scores, [66, 77]);
   assert.deepEqual(stored.data().exam_scores[DEFAULT_EXAM_TYPE], [66, 77]);
+});
+
+test("creating a student requires admission number", async () => {
+  const db = createSeedDb();
+  await assert.rejects(
+    () =>
+      createStudentRecord(db, "class_1", {
+        name: "No Admission",
+        scores: [50, 50],
+      }),
+    /admission number is required/i
+  );
 });
 
 test("updating a non-default exam keeps the default exam in top-level scores", async () => {
@@ -77,6 +91,17 @@ test("updating a non-default exam keeps the default exam in top-level scores", a
   assert.equal(auditLogs.empty, false);
 });
 
+test("admission number is immutable after assignment", async () => {
+  const db = createSeedDb();
+  await assert.rejects(
+    () =>
+      updateStudentRecord(db, "class_1", "student_1", {
+        admissionNo: "ADM-9999",
+      }),
+    /immutable/i
+  );
+});
+
 test("bulk import updates an alternate exam without bleeding marks into the default exam", async () => {
   const db = createSeedDb();
 
@@ -85,6 +110,7 @@ test("bulk import updates an alternate exam without bleeding marks into the defa
     "class_1",
     [
       {
+        admissionNo: "ADM-0001",
         indexNo: "S6509/0001",
         name: "Baraka",
         sex: "M",
@@ -103,7 +129,7 @@ test("bulk import updates an alternate exam without bleeding marks into the defa
   assert.deepEqual(updated.data().exam_scores["April Exam"], [15, 25]);
 });
 
-test("bulk import updates existing students by CNO and creates only new rows", async () => {
+test("bulk import updates marks only for matched students and rejects unmatched rows", async () => {
   const db = createSeedDb();
 
   const result = await bulkImportStudents(
@@ -111,6 +137,7 @@ test("bulk import updates existing students by CNO and creates only new rows", a
     "class_1",
     [
       {
+        admissionNo: "ADM-0001",
         indexNo: "S6509/0001",
         name: "Baraka Updated",
         sex: "M",
@@ -118,6 +145,7 @@ test("bulk import updates existing students by CNO and creates only new rows", a
         scores: [91, 82],
       },
       {
+        admissionNo: "ADM-0002",
         indexNo: "",
         name: "Asha",
         sex: "F",
@@ -125,6 +153,7 @@ test("bulk import updates existing students by CNO and creates only new rows", a
         scores: [55, 65],
       },
       {
+        admissionNo: "ADM-0003",
         indexNo: "",
         name: "Juma",
         sex: "M",
@@ -136,26 +165,29 @@ test("bulk import updates existing students by CNO and creates only new rows", a
   );
 
   assert.equal(result.updated, 1);
-  assert.equal(result.created, 2);
+  assert.equal(result.created, 0);
+  assert.equal(result.rejected, 2);
+  assert.equal(result.matched, 1);
 
   const students = await db.collection("classes").doc("class_1").collection("students").get();
-  assert.equal(students.docs.length, 3);
+  assert.equal(students.docs.length, 1);
 
   const byName = Object.fromEntries(students.docs.map((doc) => [doc.data().name, doc.data()]));
-  assert.equal(byName["Baraka Updated"].index_no, "S6509/0001");
-  assert.equal(byName["Asha"].index_no, "S6509/0002");
-  assert.equal(byName["Juma"].index_no, "S6509/0003");
+  assert.equal(byName["Baraka"].index_no, "S6509/0001");
+  assert.deepEqual(byName["Baraka"].scores, [91, 82]);
 });
 
 test("reorder action sorts female students first and regenerates sequential CNO values", async () => {
   const db = createSeedDb();
 
   await createStudentRecord(db, "class_1", {
+    admissionNo: "ADM-0002",
     name: "Zainabu",
     sex: "F",
     scores: [74, 84],
   });
   await createStudentRecord(db, "class_1", {
+    admissionNo: "ADM-0003",
     name: "Amina",
     sex: "F",
     scores: [64, 54],

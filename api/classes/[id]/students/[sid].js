@@ -30,7 +30,11 @@ module.exports = async (req, res) => {
       const updated = await updateStudentRecord(db, classId, studentId, body);
       return sendJson(res, 200, updated);
     } catch (err) {
-      const status = /class not found|student not found/i.test(err.message) ? 404 : 500;
+      const status = /class not found|student not found/i.test(err.message)
+        ? 404
+        : /required|immutable|already exists/i.test(err.message)
+        ? 400
+        : 500;
       return sendJson(res, status, { error: err.message });
     }
   }

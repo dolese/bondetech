@@ -19,6 +19,12 @@ export const validate = {
         errors.indexNo = "Candidate number must be text";
       }
     }
+    const admissionVal = data.admissionNo ?? data.admission_no;
+    if (data.requireAdmissionNo && (!admissionVal || !String(admissionVal).trim())) {
+      errors.admissionNo = "Admission number is required";
+    } else if (admissionVal !== undefined && admissionVal !== null && typeof admissionVal !== "string") {
+      errors.admissionNo = "Admission number must be text";
+    }
 
     if (!["M", "F"].includes(data.sex)) {
       errors.sex = "Sex must be M or F";

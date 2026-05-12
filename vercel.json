@@ -43,8 +43,8 @@
       "destination": "/api/students/search.js"
     },
     {
-      "source": "/api/students/:indexNo/profile",
-      "destination": "/api/students/[indexNo].js?indexNo=:indexNo"
+      "source": "/api/students/:admissionNo/profile",
+      "destination": "/api/students/[admissionNo].js?admissionNo=:admissionNo"
     },
     {
       "source": "/api/proxy-csv",

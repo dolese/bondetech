@@ -105,6 +105,7 @@ export function EntryPanel({
   const [metaError, setMetaError] = useState("");
   const [updatingMeta, setUpdatingMeta] = useState(false);
   const [newStudent, setNewStudent] = useState({
+    admission_no: "",
     index_no: "",
     firstName: "",
     lastName: "",
@@ -164,7 +165,8 @@ export function EntryPanel({
     .filter(s =>
       search === "" ||
       s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.index_no.toString().includes(search)
+      s.index_no.toString().includes(search) ||
+      String(s.admission_no || s.admissionNo || "").toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
       let aVal = sortBy === "index" ? a.index_no : a[sortBy];
@@ -212,6 +214,7 @@ export function EntryPanel({
       .join(" ");
     const validation = validateStudent({
       ...newStudent,
+      requireAdmissionNo: true,
       name: registrationName || newStudent.name,
     });
     if (!validation.valid) {
@@ -226,6 +229,10 @@ export function EntryPanel({
       setErrors((prev) => ({ ...prev, parentName: "Guardian name is required" }));
       return;
     }
+    if (!String(newStudent.admission_no || "").trim()) {
+      setErrors((prev) => ({ ...prev, admission_no: "Admission number is required" }));
+      return;
+    }
     const scores = (classData.subjects ?? []).map(() => null);
     await onAddStudent({
       ...newStudent,
@@ -234,6 +241,7 @@ export function EntryPanel({
       examType: effectiveExam,
     });
     setNewStudent({
+      admission_no: "",
       index_no: "",
       firstName: "",
       lastName: "",
@@ -259,10 +267,14 @@ export function EntryPanel({
   };
 
   const exportCsv = () => {
-    const header = ["admission_no", "name", "sex", ...subjects].map(csvEscape).join(",");
+    const header = ["source_signature", "admission_no", "cno", "name", "sex", ...subjects]
+      .map(csvEscape)
+      .join(",");
     const rows = (computed ?? []).map((s) => {
       const scores = subjects.map((_, si) => s.grades?.[si]?.score ?? "");
       return [
+        "bondetech-export-students-v1",
+        s.admission_no ?? s.admissionNo ?? "",
         s.index_no ?? "",
         s.name ?? "",
         s.sex ?? "",
@@ -281,6 +293,7 @@ export function EntryPanel({
 
   const exportJson = () => {
     const payload = {
+      sourceSignature: "bondetech-export-students-v1",
       className: classData.name ?? "",
       subjects,
       students: classData.students ?? [],
@@ -296,7 +309,12 @@ export function EntryPanel({
 
   const handleExportXlsx = () => {
     const headers = [
-      "CNO", "Name", "Sex", "Status",
+      "Source Signature",
+      "Admission No",
+      "CNO",
+      "Name",
+      "Sex",
+      "Status",
       ...subjects,
       "Total", "Average", "Grade", "Division", "Points", "Position",
     ];
@@ -306,6 +324,8 @@ export function EntryPanel({
         return (v !== null && v !== undefined) ? Number(v) : "";
       });
       return [
+        "bondetech-export-students-v1",
+        s.admission_no ?? s.admissionNo ?? "",
         s.index_no ?? "",
         s.name ?? "",
         s.sex ?? "",
@@ -442,9 +462,9 @@ export function EntryPanel({
   };
 
   const importActions = [
-    { label: "Import CSV", onClick: () => onShowModal("csv-import") },
-    { label: "Import JSON", onClick: () => onShowModal("json-import") },
-    { label: "Import XLSX", onClick: () => onShowModal("xlsx-import") },
+    { label: "Sync Marks (CSV)", onClick: () => onShowModal("csv-import") },
+    { label: "Sync Marks (JSON)", onClick: () => onShowModal("json-import") },
+    { label: "Sync Marks (XLSX)", onClick: () => onShowModal("xlsx-import") },
   ];
 
   const exportActions = [
@@ -761,9 +781,9 @@ export function EntryPanel({
           >
             <div
               style={styles.infoBadge}
-              title="Safe import updates existing students by CNO and adds only new rows. Existing CNO values remain unchanged unless an administrator uses the reorder action."
+               title="Marks sync updates scores only for existing students by Admission Number; it never creates students or edits biodata."
             >
-              Safe Import ⓘ
+              Marks Sync ⓘ
             </div>
             <button
               onClick={() => setBulkMode(!bulkMode)}
@@ -1022,7 +1042,7 @@ export function EntryPanel({
             </div>
             <input
               type="text"
-              placeholder="🔍 Search name, CNO, or status"
+               placeholder="🔍 Search name, Admission No, CNO, or status"
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{
@@ -1222,7 +1242,14 @@ export function EntryPanel({
                 }}
               >
                 <TextInput
-                  label="CNO (Auto)"
+                  label="Admission No"
+                  value={newStudent.admission_no}
+                  onChange={v => setNewStudent({ ...newStudent, admission_no: v })}
+                  error={errors.admission_no}
+                  required
+                />
+                <TextInput
+                  label="CNO (Optional)"
                   value={newStudent.index_no}
                   onChange={v => setNewStudent({ ...newStudent, index_no: v })}
                   error={errors.index_no}
@@ -1422,6 +1449,7 @@ export function EntryPanel({
                       {s.index_no}
                     </td>
                     <td style={{ padding: "4px 6px", textAlign: "left", border: "1px solid #d2def5" }}>{s.name}</td>
+                    {/* Admission number (immutable identity) */}
                     {subjects.map((_, si) => (
                       <td key={si} style={{ padding: "4px 4px", textAlign: "center", border: "1px solid #d2def5" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
@@ -1486,6 +1514,7 @@ export function EntryPanel({
                     ✎ Editing: {s.name}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", marginBottom: 10, fontSize: 11, color: "#334155" }}>
+                    <span>Admission No: <b>{editData.admission_no || editData.admissionNo || "—"}</b></span>
                     <span>CNO: <b>{editData.index_no || "—"}</b></span>
                     <span>Sex: <b>{editData.sex || "—"}</b></span>
                     <span>Status: <b>{editData.status || "—"}</b></span>
@@ -1788,7 +1817,12 @@ export function EntryPanel({
                       border: "1px solid #d2def5",
                     }}
                   >
-                    {s.name}
+                    <div style={{ display: "grid", gap: 2 }}>
+                      <span>{s.name}</span>
+                      <span style={{ fontSize: 10, color: "#64748b" }}>
+                        Adm: {s.admission_no || s.admissionNo || "—"}
+                      </span>
+                    </div>
                   </td>
                   <td
                     style={{

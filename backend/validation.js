@@ -20,6 +20,12 @@ function validateStudent(data) {
     }
   }
 
+  if (data.requireAdmissionNo && (!data.admissionNo || !String(data.admissionNo).trim())) {
+    errors.admissionNo = "Admission number is required";
+  } else if (data.admissionNo !== undefined && data.admissionNo !== null && typeof data.admissionNo !== "string") {
+    errors.admissionNo = "Admission number must be text";
+  }
+
   if (!["M", "F"].includes(data.sex)) {
     errors.sex = "Sex must be M or F";
   }

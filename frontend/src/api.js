@@ -111,7 +111,8 @@ export const API = {
     return get(`/classes/${cid}/students${qs ? `?${qs}` : ""}`);
   },
   addStudent:     (cid, data)   => post(`/classes/${cid}/students`, data),
-  bulkImport:     (cid, students, examType) => post(`/classes/${cid}/students/bulk`, { students, examType }),
+  bulkImport:     (cid, students, examType, sourceSignature = "") =>
+    post(`/classes/${cid}/students/bulk`, { students, examType, sourceSignature }),
   reorderStudentCnos: (cid)     => patch(`/classes/${cid}/students`, { action: "reorder-cnos" }),
   updateStudent:  (cid, sid, data) => put(`/classes/${cid}/students/${sid}`, data),
   deleteStudent:  (cid, sid)    => del(`/classes/${cid}/students/${sid}`),
@@ -124,7 +125,7 @@ export const API = {
     if (opts.limit) params.set("limit", opts.limit);
     return get(`/students/search?${params.toString()}`);
   },
-  getStudentProfile: (indexNo)  => get(`/students/${encodeURIComponent(indexNo)}/profile`),
+  getStudentProfile: (admissionNo)  => get(`/students/${encodeURIComponent(admissionNo)}/profile`),
 
   // Backup & Restore
   backup:          ()           => get("/backup"),

@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import { validateStudent } from "../utils/validation";
 import { useViewport } from "../utils/useViewport";
 
 export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
@@ -48,8 +47,13 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
     let importedSubjects = [];
 
     if (Array.isArray(data)) {
-      students = data;
+      setErrors([{ msg: "Use exported JSON format from this app (object with sourceSignature and students)." }]);
+      return;
     } else if (data && Array.isArray(data.students)) {
+      if (String(data.sourceSignature || "").trim() !== "bondetech-export-students-v1") {
+        setErrors([{ msg: "Invalid export signature. Use a JSON file exported by this app." }]);
+        return;
+      }
       students = data.students;
       if (Array.isArray(data.subjects)) {
         importedSubjects = data.subjects;
@@ -71,30 +75,19 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
     students.forEach((s, i) => {
       const rawScores = Array.isArray(s.scores) ? s.scores : [];
 
-      const sexVal = s.sex === "F" ? "F" : "M";
-      if (s.sex !== undefined && s.sex !== "M" && s.sex !== "F") {
-        coercionWarnings.push(`Row ${i + 1}: sex "${s.sex}" is not M or F — defaulted to M`);
-      }
-
-      const validStatuses = ["present", "absent", "incomplete"];
-      const statusVal = validStatuses.includes(s.status) ? s.status : "present";
-      if (s.status !== undefined && !validStatuses.includes(s.status)) {
-        coercionWarnings.push(`Row ${i + 1}: status "${s.status}" is not valid — defaulted to present`);
-      }
-
       const mapped = {
+        admissionNo: String(s.admissionNo ?? s.admission_no ?? "").trim(),
         indexNo: String(s.indexNo ?? s.index_no ?? "").trim(),
         name: String(s.name ?? "").trim(),
-        sex: sexVal,
-        status: statusVal,
+        sex: s.sex === "F" ? "F" : "M",
+        status: ["present", "absent", "incomplete"].includes(s.status) ? s.status : "present",
         scores: mapScores(rawScores, importedSubjects),
       };
-      const validation = validateStudent(mapped);
-      if (!validation.valid) {
-        errs.push({ row: i + 1, errors: Object.values(validation.errors) });
-      } else {
-        validRows.push(mapped);
+      if (!mapped.admissionNo) {
+        errs.push({ row: i + 1, errors: ["admissionNo is required"] });
+        return;
       }
+      validRows.push(mapped);
     });
 
     setParsed({ students: validRows, importedSubjects, coercionWarnings });
@@ -326,13 +319,13 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
 
         <div style={styles.body}>
           <div style={{ fontSize: 11, color: "#555" }}>
-            Import students from a JSON file previously exported from this system. Scores are mapped by
+            Sync marks from a JSON file previously exported from this system. Scores are mapped by
             subject name automatically.
           </div>
 
           {/* File upload */}
           <div style={styles.section}>
-            <div style={styles.label}>Step 1 — Choose a JSON file</div>
+             <div style={styles.label}>Step 1 — Choose an exported JSON file</div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <button style={styles.fileBtn} onClick={() => fileRef.current?.click()}>
                 📂 Browse File
@@ -405,14 +398,14 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
           {parsed && parsed.students.length > 0 && (
             <>
               <div style={styles.infoBox}>
-                ✅ {parsed.students.length} student{parsed.students.length !== 1 ? "s" : ""} ready to
-                import. Showing first {Math.min(5, parsed.students.length)} below.
+                 ✅ {parsed.students.length} row{parsed.students.length !== 1 ? "s" : ""} ready to
+                sync. Showing first {Math.min(5, parsed.students.length)} below.
               </div>
               <div style={{ overflowX: "auto" }}>
                 <table style={styles.table}>
                   <thead>
                     <tr>
-                      {["CNO", "Name", "Sex", "Status", ...subjects.slice(0, 5)].map((h) => (
+                      {["Admission No", "CNO", "Name", "Sex", "Status", ...subjects.slice(0, 5)].map((h) => (
                         <th key={h} style={styles.th}>
                           {h}
                         </th>
@@ -425,7 +418,8 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
                   <tbody>
                     {preview.map((s, i) => (
                       <tr key={i}>
-                        <td style={styles.td}>{s.indexNo || "—"}</td>
+                         <td style={styles.td}>{s.admissionNo || "—"}</td>
+                         <td style={styles.td}>{s.indexNo || "—"}</td>
                         <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
                         <td style={styles.td}>{s.sex}</td>
                         <td style={styles.td}>{s.status}</td>
@@ -461,8 +455,8 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
               onClick={handleImport}
               disabled={!parsed || !parsed.students.length || importing}
             >
-              {importing ? "Importing…" : `Import ${parsed?.students.length ?? 0} Students`}
-            </button>
+               {importing ? "Syncing…" : `Sync ${parsed?.students.length ?? 0} Rows`}
+             </button>
           </div>
         </div>
       </div>

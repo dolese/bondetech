@@ -91,6 +91,16 @@ describe("validate.student", () => {
   it("accepts string indexNo", () => {
     expect(validate.student({ ...valid, indexNo: "S001" }).valid).toBe(true);
   });
+
+  it("requires admissionNo when requireAdmissionNo is true", () => {
+    const { valid: ok, errors } = validate.student({ ...valid, requireAdmissionNo: true, admissionNo: "" });
+    expect(ok).toBe(false);
+    expect(errors.admissionNo).toBeDefined();
+  });
+
+  it("accepts string admissionNo", () => {
+    expect(validate.student({ ...valid, admissionNo: "ADM-0001" }).valid).toBe(true);
+  });
 });
 
 // ─── validate.class ──────────────────────────────────────────────────────────

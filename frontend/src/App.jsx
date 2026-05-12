@@ -69,6 +69,7 @@ function buildParentDirectory(classes) {
         key: `${cls.id}-${student.id}`,
         studentId: student.id,
         name: student.name || "Unnamed Student",
+        admissionNo: student.admission_no || student.admissionNo || student.index_no || student.indexNo || "",
         indexNo: student.index_no || student.indexNo || "",
         classLabel: getClassDisplayLabel(cls),
       });
@@ -399,9 +400,9 @@ export default function App() {
     setModalType("report-card");
   }, [activeComputed]);
 
-  const handleOpenStudentProfile = useCallback((indexNo) => {
-    if (!indexNo) return;
-    setSearchProfileIndexNo(indexNo);
+  const handleOpenStudentProfile = useCallback((admissionNo) => {
+    if (!admissionNo) return;
+    setSearchProfileIndexNo(admissionNo);
     setPage("profile");
     if (isMobile) setSideOpen(false);
   }, [isMobile]);
@@ -743,7 +744,7 @@ export default function App() {
 
           {page === "profile" && searchProfileIndexNo && (
             <StudentProfilePage
-              indexNo={searchProfileIndexNo}
+              admissionNo={searchProfileIndexNo}
               onBack={() => setPage("dashboard")}
             />
           )}

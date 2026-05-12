@@ -24,6 +24,7 @@ function makeEmptyForm() {
     classGroupKey: "",
     stream: "",
     id: "",
+    admission_no: "",
     index_no: "",
     name: "",
     sex: "M",
@@ -113,6 +114,7 @@ export function StudentManagementPage({
         if (!needle) return true;
         const haystack = [
           student.index_no || student.indexNo,
+          student.admission_no || student.admissionNo,
           student.name,
           student.sex,
           student.status,
@@ -158,6 +160,7 @@ export function StudentManagementPage({
       classGroupKey: [targetClass?.form || student.form, targetClass?.year || student.year].filter(Boolean).join("|"),
       stream: String(targetClass?.stream || student.stream || "").trim().toUpperCase(),
       id: student.id,
+      admission_no: student.admission_no || student.admissionNo || "",
       index_no: student.index_no || "",
       name: student.name || "",
       sex: student.sex || "M",
@@ -222,10 +225,12 @@ export function StudentManagementPage({
   const handleSave = async () => {
     if (!form.classId || !form.stream) return;
     if (!String(form.name || "").trim()) return;
+    if (!String(form.admission_no || "").trim()) return;
     setSaving(true);
     const payload = {
       ...form,
       name: String(form.name || "").trim(),
+      admission_no: String(form.admission_no || "").trim(),
       index_no: String(form.index_no || "").trim(),
       parentName: String(form.parentName || "").trim(),
       parentPhone: String(form.parentPhone || "").trim(),
@@ -362,7 +367,7 @@ export function StudentManagementPage({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by student name, CNO, parent, or class"
+            placeholder="Search by student name, admission no, CNO, parent, or class"
             style={fieldStyle()}
           />
           <select
@@ -391,7 +396,7 @@ export function StudentManagementPage({
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 960 }}>
             <thead>
               <tr>
-                {["CNO", "Student", "Sex", "Status", "Class", "Guardian", "Phone", "Actions"].map((label) => (
+                {["Admission No", "CNO", "Student", "Sex", "Status", "Class", "Guardian", "Phone", "Actions"].map((label) => (
                   <th
                     key={label}
                     style={{
@@ -416,6 +421,9 @@ export function StudentManagementPage({
               {filteredStudents.map((student) => (
                 <tr key={`${student.classId}-${student.id}`} style={{ background: "rgba(255,255,255,0.52)" }}>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
+                    {student.admission_no || student.admissionNo || "-"}
+                  </td>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
                     {student.index_no || student.indexNo || "-"}
                   </td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
@@ -437,13 +445,13 @@ export function StudentManagementPage({
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button
                         type="button"
-                        onClick={() => onOpenStudentProfile?.(student.index_no || student.indexNo)}
-                        disabled={!(student.index_no || student.indexNo)}
-                        title={student.index_no || student.indexNo ? "Open academic profile" : "Student has no CNO/index number yet"}
+                        onClick={() => onOpenStudentProfile?.(student.admission_no || student.admissionNo || student.index_no || student.indexNo)}
+                        disabled={!(student.admission_no || student.admissionNo || student.index_no || student.indexNo)}
+                        title={student.admission_no || student.admissionNo || student.index_no || student.indexNo ? "Open academic profile" : "Student has no admission number yet"}
                         style={{
                           ...secondaryButtonStyle({ compact: true }),
-                          opacity: student.index_no || student.indexNo ? 1 : 0.55,
-                          cursor: student.index_no || student.indexNo ? "pointer" : "not-allowed",
+                          opacity: student.admission_no || student.admissionNo || student.index_no || student.indexNo ? 1 : 0.55,
+                          cursor: student.admission_no || student.admissionNo || student.index_no || student.indexNo ? "pointer" : "not-allowed",
                         }}
                       >
                         Profile
@@ -564,6 +572,16 @@ export function StudentManagementPage({
                     </option>
                   ))}
                 </select>
+              </label>
+
+              <label style={{ display: "grid", gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Admission No</span>
+                <input
+                  value={form.admission_no}
+                  onChange={(event) => updateField("admission_no", event.target.value)}
+                  placeholder="Required"
+                  style={fieldStyle()}
+                />
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
@@ -706,11 +724,11 @@ export function StudentManagementPage({
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={saving || !form.classId || !form.stream || !String(form.name || "").trim()}
+                disabled={saving || !form.classId || !form.stream || !String(form.name || "").trim() || !String(form.admission_no || "").trim()}
                 style={{
                   ...primaryButtonStyle(),
                   cursor: saving ? "not-allowed" : "pointer",
-                  opacity: saving || !form.classId || !form.stream || !String(form.name || "").trim() ? 0.65 : 1,
+                  opacity: saving || !form.classId || !form.stream || !String(form.name || "").trim() || !String(form.admission_no || "").trim() ? 0.65 : 1,
                 }}
               >
                 {saving ? "Saving..." : modalMode === "edit" ? "Save Changes" : "Add Student"}
