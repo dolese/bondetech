@@ -16,13 +16,41 @@ export function QuickCard({ bg, badge, title, desc, onClick }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 12, background: bg }} />
+        <div
+          style={{
+            width: 50,
+            height: 50,
+            borderRadius: 16,
+            background: `linear-gradient(135deg, ${bg}, rgba(255,255,255,0.96))`,
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
+          }}
+        />
         <span style={{ fontSize: 10, fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.08em" }}>
           {badge}
         </span>
       </div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{title}</div>
-      <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.6 }}>{desc}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "#1a2040", letterSpacing: "-0.01em" }}>{title}</div>
+      <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.7, flex: 1 }}>{desc}</div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 2 }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: "#2563eb", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+          Open
+        </span>
+        <span
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 999,
+            background: "rgba(37,99,235,0.10)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#2563eb",
+            fontWeight: 900,
+          }}
+        >
+          {">"}
+        </span>
+      </div>
     </div>
   );
 }

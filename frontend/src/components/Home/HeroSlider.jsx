@@ -23,7 +23,16 @@ export function HeroSlider({ slides = [], currentIndex = 0, onSelect }) {
           width: "100%",
           height: "100%",
           background:
-            "linear-gradient(135deg, rgba(12, 36, 97, 0.84) 0%, rgba(26, 58, 143, 0.68) 45%, rgba(30, 82, 184, 0.82) 100%)",
+            "linear-gradient(135deg, rgba(8, 28, 77, 0.9) 0%, rgba(13, 47, 116, 0.72) 40%, rgba(19, 60, 140, 0.84) 100%)",
+          zIndex: 1,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(circle at top right, rgba(255, 193, 61, 0.16), transparent 26%), radial-gradient(circle at bottom left, rgba(34, 211, 238, 0.12), transparent 34%)",
           zIndex: 1,
         }}
       />

@@ -455,6 +455,7 @@ export function HomePage({ onOpenLogin }) {
   const heroDescription = resolveHeroText(currentHeroSlide, language, "description", "descriptionSw")
     || t("getInstantResults");
   const navBg = "#0f2d6e";
+  const isCompactScreen = isMobile || isTablet;
   
   const containerClass = `home-content-wrapper ${isMobile ? 'home-content-wrapper-mobile' : 'home-content-wrapper-desktop'}`;
 
@@ -480,13 +481,13 @@ export function HomePage({ onOpenLogin }) {
 
   return (
     <div className="home-container">
-      <nav style={{ background: "#fff", borderBottom: "1.5px solid #e8edf5", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
+      <nav className="home-nav-shell" style={{ position: "sticky", top: 0, zIndex: 100 }}>
         <div className={containerClass} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: isMobile ? 60 : 68 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <SchoolCrest size={isMobile ? 36 : 44} />
             <div>
               <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 800, color: navBg, letterSpacing: 0.3, lineHeight: 1.2 }}>BONDE SECONDARY SCHOOL</div>
-              <div style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, color: "#2563eb", letterSpacing: 1, textTransform: "uppercase" }}>{t("resultSystem")}</div>
+              <div style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, color: "#1ea4b8", letterSpacing: 1, textTransform: "uppercase" }}>{t("resultSystem")}</div>
             </div>
           </div>
 
@@ -499,7 +500,7 @@ export function HomePage({ onOpenLogin }) {
                 { label: t("aboutUs"), action: scrollToFooter },
                 { label: t("contactUs"), action: scrollToFooter },
               ].map(({ label, action }) => (
-                <span key={label} onClick={action} style={{ fontSize: 13, fontWeight: 600, color: label === t("home") ? "#2563eb" : "#475569", cursor: "pointer", transition: "color 0.15s" }}>
+                <span key={label} onClick={action} className={`home-nav-link ${label === t("home") ? "active" : ""}`}>
                   {label}
                 </span>
               ))}
@@ -518,10 +519,11 @@ export function HomePage({ onOpenLogin }) {
             ) : (
               <button
                 onClick={() => setMobileMenuOpen((value) => !value)}
-                style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 22, color: navBg, padding: 4 }}
+                className="home-mobile-toggle"
+                style={{ cursor: "pointer", fontSize: 18, padding: 0 }}
                 aria-label="Menu"
               >
-                {mobileMenuOpen ? "×" : "☰"}
+                {mobileMenuOpen ? "x" : "="}
               </button>
             )}
           </div>
@@ -548,7 +550,7 @@ export function HomePage({ onOpenLogin }) {
                   <span className="landing-mobile-link-title">{label}</span>
                   <span className="landing-mobile-link-meta">{meta}</span>
                 </span>
-                <span className="landing-mobile-link-arrow">›</span>
+                <span className="landing-mobile-link-arrow">{">"}</span>
               </button>
             ))}
             <div className="landing-mobile-menu">
@@ -567,11 +569,10 @@ export function HomePage({ onOpenLogin }) {
       </nav>
 
       <section
+        className="home-hero-shell"
         style={{
-          backgroundColor: "#0c2461",
           padding: isMobile ? "32px 0 36px" : "56px 0 64px",
           position: "relative",
-          overflow: "hidden",
         }}
       >
         <HeroSlider slides={resolvedHeroSlides} currentIndex={currentHeroIndex} onSelect={setCurrentHeroIndex} />
@@ -594,15 +595,15 @@ export function HomePage({ onOpenLogin }) {
             <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: "5px 14px", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 18 }}>
               {heroBadge}
             </div>
-            <h1 style={{ fontSize: isMobile ? 28 : 42, fontWeight: 800, lineHeight: 1.2, margin: "0 0 16px", letterSpacing: -0.5, maxWidth: 560 }}>
+            <h1 className="home-serif-title" style={{ fontSize: isMobile ? 30 : 48, fontWeight: 700, lineHeight: 1.08, margin: "0 0 16px", letterSpacing: -0.8, maxWidth: 620 }}>
               {heroTitle}
             </h1>
-            <p style={{ fontSize: isMobile ? 13 : 15, color: "rgba(255,255,255,0.80)", lineHeight: 1.7, marginBottom: 28, maxWidth: 460 }}>
+            <p style={{ fontSize: isMobile ? 13 : 15, color: "rgba(255,255,255,0.82)", lineHeight: 1.8, marginBottom: 28, maxWidth: 500 }}>
               {heroDescription}
             </p>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
-              <button className="landing-btn-outline" onClick={() => runHeroAction(currentHeroSlide.primaryAction)}>
+              <button className="landing-btn-solid" onClick={() => runHeroAction(currentHeroSlide.primaryAction)}>
                 {getHeroActionLabel(currentHeroSlide.primaryAction)}
               </button>
               <button className="landing-btn-outline" onClick={() => runHeroAction(currentHeroSlide.secondaryAction)}>
@@ -610,16 +611,25 @@ export function HomePage({ onOpenLogin }) {
               </button>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: "rgba(255,255,255,0.70)", flexWrap: "wrap" }}>
-              <span>{formatCount(stats.totalStudents, "student", "wanafunzi", language)}</span>
-              <span style={{ opacity: 0.4 }}>|</span>
-              <span>{formatCount(stats.publishedClasses, "published class", "madarasa yaliyochapishwa", language)}</span>
-              <span style={{ opacity: 0.4 }}>|</span>
-              <span>{formatCount(stats.activeForms, "active form", "vidato hai", language)}</span>
+            <div className="home-hero-metrics" style={{ maxWidth: 620 }}>
+              {[
+                { label: t("totalStudents"), value: Number(stats.totalStudents || 0).toLocaleString() },
+                { label: t("publishedClasses"), value: String(stats.publishedClasses || 0) },
+                { label: t("activeForms"), value: String(stats.activeForms || 0) },
+              ].map((metric) => (
+                <div key={metric.label} className="home-hero-metric">
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    {metric.label}
+                  </div>
+                  <div style={{ fontSize: isMobile ? 23 : 28, fontWeight: 800, color: "#fff", marginTop: 6 }}>
+                    {metric.value}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? "18px 16px" : "22px 20px", boxShadow: "0 16px 48px rgba(0,0,0,0.20)", width: "100%" }}>
+          <div className="home-hero-panel" style={{ borderRadius: 24, padding: isMobile ? "18px 16px" : "22px 20px", width: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{t("latestExam")}: {latestExamLabel}</div>
               <span style={{ fontSize: 11, color: "#64748b" }}>{stats.latestYear || t("currentYear")}</span>
@@ -661,18 +671,19 @@ export function HomePage({ onOpenLogin }) {
         </div>
       </section>
 
-      <section ref={searchSectionRef} style={{ padding: isMobile ? "24px 0" : "32px 0" }}>
+      <section ref={searchSectionRef} style={{ padding: isMobile ? "28px 0" : "38px 0" }}>
         <div className={containerClass}>
-          <div className="glass-panel" style={{ borderRadius: 20, padding: isMobile ? "20px 16px" : "28px 28px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("searchResultsHeading")}</span>
+          <div className="glass-panel" style={{ borderRadius: 24, padding: isMobile ? "20px 16px" : "28px 28px" }}>
+            <div className="home-section-header" style={{ marginBottom: 14 }}>
+              <div>
+                <div className="home-section-kicker">Results Desk</div>
+                <div className="home-section-title">{t("searchResultsHeading")}</div>
+                <div className="home-section-copy">{t("searchInstructions")}</div>
               </div>
               {homepageStatus === "fallback" && (
                 <span style={{ fontSize: 11, color: "#64748b" }}>{t("liveOverviewUnavailable")}</span>
               )}
             </div>
-            <p style={{ fontSize: 12, color: "#64748b", marginBottom: 18 }}>{t("searchInstructions")}</p>
 
             <form onSubmit={handleSearch}>
               <div
@@ -716,27 +727,7 @@ export function HomePage({ onOpenLogin }) {
                 <div style={{ fontSize: 12, color: "#b42318", fontWeight: 600, marginBottom: 10 }}>{searchError}</div>
               )}
 
-              <button
-                type="submit"
-                disabled={searching}
-                style={{
-                  width: "100%",
-                  background: searching ? "#6b82b8" : "#1a3a8f",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 12,
-                  padding: isMobile ? "13px 0" : "14px 0",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: searching ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  boxShadow: "0 4px 14px rgba(26,58,143,0.25)",
-                  transition: "background 0.2s",
-                }}
-              >
+              <button type="submit" disabled={searching} className="landing-btn-solid" style={{ width: "100%", padding: isMobile ? "14px 0" : "15px 0" }}>
                 {searching ? t("searching") : t("searchResultsButton")}
               </button>
             </form>
@@ -794,11 +785,14 @@ export function HomePage({ onOpenLogin }) {
         </div>
       </section>
 
-      <section style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
+      <section style={{ padding: isMobile ? "8px 0 28px" : "8px 0 34px" }}>
         <div className={containerClass}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("quickAccess")}</span>
-            <span onClick={scrollToSearch} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>{t("viewAll")}</span>
+          <div className="home-section-header">
+            <div>
+              <div className="home-section-kicker">Fast Routes</div>
+              <div className="home-section-title">{t("quickAccess")}</div>
+            </div>
+            <span onClick={scrollToSearch} className="home-link-inline">{t("viewAll")}</span>
           </div>
           <div
             style={{
@@ -814,29 +808,31 @@ export function HomePage({ onOpenLogin }) {
         </div>
       </section>
 
-      <section style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
+      <section style={{ padding: isMobile ? "8px 0 28px" : "8px 0 34px" }}>
         <div className={containerClass}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("portalHighlights")}</span>
+          <div className="home-section-header">
+            <div>
+              <div className="home-section-kicker">Performance Snapshot</div>
+              <div className="home-section-title">{t("portalHighlights")}</div>
+            </div>
           </div>
           <div
             className="glass-panel"
             style={{
-              borderRadius: 18,
-              display: "grid",
-              gridTemplateColumns: isXs ? "1fr 1fr" : isMobile ? "repeat(2, 1fr)" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
-              gap: 0,
+              borderRadius: 22,
               overflow: "hidden",
             }}
           >
+            <div className="home-highlight-grid">
             {performanceStats.map((stat, index) => (
               <div
                 key={stat.key || `${stat.label}-${index}`}
+                className="home-highlight-cell"
                 style={{
-                  padding: isMobile ? "16px 8px" : "20px 16px",
-                  textAlign: "center",
-                  borderRight: index < performanceStats.length - 1 ? "1px solid #f1f5f9" : "none",
-                  borderBottom: (isMobile || isTablet) && index < (isXs ? 4 : isMobile ? 4 : 3) ? "1px solid #f1f5f9" : "none",
+                  borderBottom:
+                    isCompactScreen && index < performanceStats.length - 2
+                      ? "1px solid rgba(241, 245, 249, 0.9)"
+                      : undefined,
                 }}
               >
                 <div style={{ width: 16, height: 16, borderRadius: 999, background: stat.color, margin: "0 auto 8px" }} />
@@ -849,19 +845,21 @@ export function HomePage({ onOpenLogin }) {
                 )}
               </div>
             ))}
+            </div>
           </div>
         </div>
       </section>
 
-      <section ref={announcementsSectionRef} style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
+      <section ref={announcementsSectionRef} style={{ padding: isMobile ? "8px 0 28px" : "8px 0 34px" }}>
         <div className={containerClass}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("recentAnnouncements")}</span>
+          <div className="home-section-header">
+            <div>
+              <div className="home-section-kicker">Updates</div>
+              <div className="home-section-title">{t("recentAnnouncements")}</div>
             </div>
-            <span onClick={scrollToAnnouncements} style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}>{t("viewAll")}</span>
+            <span onClick={scrollToAnnouncements} className="home-link-inline">{t("viewAll")}</span>
           </div>
-          <div className="glass-panel" style={{ borderRadius: 18, overflow: "hidden" }}>
+          <div className="glass-panel" style={{ borderRadius: 22, overflow: "hidden" }}>
             {announcements.map((announcement) => (
               <AnnouncementRow
                 key={announcement.id}
@@ -876,12 +874,15 @@ export function HomePage({ onOpenLogin }) {
         </div>
       </section>
 
-      <section style={{ padding: isMobile ? "4px 0 24px" : "4px 0 32px" }}>
+      <section style={{ padding: isMobile ? "8px 0 28px" : "8px 0 34px" }}>
         <div className={containerClass}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("resultsCategories")}</span>
+          <div className="home-section-header">
+            <div>
+              <div className="home-section-kicker">Explore</div>
+              <div className="home-section-title">{t("resultsCategories")}</div>
+            </div>
           </div>
-          <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isXs ? "repeat(2, minmax(0, 1fr))" : isCompactScreen ? "repeat(4, minmax(0, 1fr))" : "repeat(8, minmax(0, 1fr))", gap: 10 }}>
             {categories.map((category) => (
               <CategoryChip key={category.label} {...category} onClick={() => handleCategoryClick(category.label)} />
             ))}
@@ -889,15 +890,18 @@ export function HomePage({ onOpenLogin }) {
         </div>
       </section>
 
-      <section style={{ padding: isMobile ? "4px 0 28px" : "4px 0 40px" }}>
+      <section style={{ padding: isMobile ? "8px 0 32px" : "8px 0 42px" }}>
         <div className={containerClass}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#0f2d6e" }}>{t("whyUseSystem")}</span>
+          <div className="home-section-header">
+            <div>
+              <div className="home-section-kicker">Why Bonde Portal</div>
+              <div className="home-section-title">{t("whyUseSystem")}</div>
+            </div>
           </div>
           <div
             className="glass-panel"
             style={{
-              borderRadius: 18,
+              borderRadius: 22,
               display: "grid",
               gridTemplateColumns: isXs ? "1fr 1fr" : isMobile ? "repeat(2, 1fr)" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
               gap: 0,
@@ -919,7 +923,7 @@ export function HomePage({ onOpenLogin }) {
         </div>
       </section>
 
-      <footer ref={footerRef} style={{ background: "#0c2461", color: "#fff", padding: isMobile ? "32px 0 0" : "48px 0 0" }}>
+      <footer ref={footerRef} className="home-footer-shell" style={{ color: "#fff", padding: isMobile ? "32px 0 0" : "52px 0 0" }}>
         <div
           className={containerClass}
           style={{

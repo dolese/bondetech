@@ -16,6 +16,12 @@ export function MiniBarChart({ bars }) {
 
   return (
     <svg width={normalized.length * (width + gap) - gap} height={maxHeight + 20} style={{ display: "block", overflow: "visible" }}>
+      <defs>
+        <linearGradient id="homeBarGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1ea4b8" />
+          <stop offset="100%" stopColor="#1c4ed8" />
+        </linearGradient>
+      </defs>
       {normalized.map((bar, index) => {
         const height = bar.value > 0 ? Math.max(12, Math.round((bar.value / maxValue) * maxHeight)) : 8;
         return (
@@ -26,7 +32,7 @@ export function MiniBarChart({ bars }) {
               width={width}
               height={height}
               rx={4}
-              fill={bar.value > 0 ? "#2563eb" : "#cbd5e1"}
+              fill={bar.value > 0 ? "url(#homeBarGradient)" : "#cbd5e1"}
             />
             <text
               x={index * (width + gap) + width / 2}
