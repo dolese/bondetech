@@ -15,6 +15,14 @@ const PAGE_MARGIN = 12;
 const PAGE_HEADER_HEIGHT = 56;
 const SUMMARY_START_Y = 76;
 const TABLE_START_Y = 152;
+const RESULT_TABLE_WIDTHS = {
+  cno: 18,
+  name: 52,
+  sex: 10,
+  points: 15,
+  division: 17,
+  remarks: 28,
+};
 
 function loadImageAsDataUrl(src) {
   return new Promise((resolve) => {
@@ -307,12 +315,19 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const subjectStartIndex = 3;
   const columnStyles = {
-    0: { cellWidth: 18, halign: "center" },
-    1: { cellWidth: 52, halign: "left" },
-    2: { cellWidth: 10, halign: "center" },
+    0: { cellWidth: RESULT_TABLE_WIDTHS.cno, halign: "center" },
+    1: { cellWidth: RESULT_TABLE_WIDTHS.name, halign: "left" },
+    2: { cellWidth: RESULT_TABLE_WIDTHS.sex, halign: "center" },
   };
   const remainingWidth =
-    pageWidth - PAGE_MARGIN * 2 - 18 - 52 - 10 - 15 - 17 - (model.hasRemarks ? 28 : 0);
+    pageWidth -
+    PAGE_MARGIN * 2 -
+    RESULT_TABLE_WIDTHS.cno -
+    RESULT_TABLE_WIDTHS.name -
+    RESULT_TABLE_WIDTHS.sex -
+    RESULT_TABLE_WIDTHS.points -
+    RESULT_TABLE_WIDTHS.division -
+    (model.hasRemarks ? RESULT_TABLE_WIDTHS.remarks : 0);
   const subjectWidth = Math.max(10, Math.min(16, remainingWidth / Math.max(model.subjects.length, 1)));
 
   model.subjects.forEach((_, index) => {
@@ -320,10 +335,10 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
   });
 
   const totalStart = subjectStartIndex + model.subjects.length;
-  columnStyles[totalStart] = { cellWidth: 15, halign: "center" };
-  columnStyles[totalStart + 1] = { cellWidth: 17, halign: "center" };
+  columnStyles[totalStart] = { cellWidth: RESULT_TABLE_WIDTHS.points, halign: "center" };
+  columnStyles[totalStart + 1] = { cellWidth: RESULT_TABLE_WIDTHS.division, halign: "center" };
   if (model.hasRemarks) {
-    columnStyles[totalStart + 2] = { cellWidth: 28, halign: "left" };
+    columnStyles[totalStart + 2] = { cellWidth: RESULT_TABLE_WIDTHS.remarks, halign: "left" };
   }
 
   autoTable(doc, {

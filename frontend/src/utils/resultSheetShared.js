@@ -28,6 +28,8 @@ function compareByCno(left, right) {
   if (leftIsNumeric && rightIsNumeric) {
     const diff = Number(leftCno) - Number(rightCno);
     if (diff !== 0) return diff;
+  } else if (leftIsNumeric !== rightIsNumeric) {
+    return leftIsNumeric ? -1 : 1;
   } else {
     const diff = leftCno.localeCompare(rightCno, "en", { numeric: true, sensitivity: "base" });
     if (diff !== 0) return diff;
