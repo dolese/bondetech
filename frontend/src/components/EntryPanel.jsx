@@ -384,7 +384,6 @@ export function EntryPanel({
     setInstructionNoticeType("success");
     try {
       await onUpdateSchool?.(nextSchoolInfo);
-      setInstructionNoticeType("success");
       setInstructionNotice(
         nextSchoolInfo.reportInstruction
           ? "Maagizo yamehifadhiwa kwa darasa hili."
