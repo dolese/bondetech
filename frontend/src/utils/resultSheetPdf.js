@@ -21,7 +21,6 @@ const RESULT_TABLE_WIDTHS = {
   sex: 10,
   points: 15,
   division: 17,
-  remarks: 28,
 };
 
 function loadImageAsDataUrl(src) {
@@ -326,8 +325,7 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
     RESULT_TABLE_WIDTHS.name -
     RESULT_TABLE_WIDTHS.sex -
     RESULT_TABLE_WIDTHS.points -
-    RESULT_TABLE_WIDTHS.division -
-    (model.hasRemarks ? RESULT_TABLE_WIDTHS.remarks : 0);
+    RESULT_TABLE_WIDTHS.division;
   const subjectWidth = Math.max(10, Math.min(16, remainingWidth / Math.max(model.subjects.length, 1)));
 
   model.subjects.forEach((_, index) => {
@@ -337,9 +335,6 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
   const totalStart = subjectStartIndex + model.subjects.length;
   columnStyles[totalStart] = { cellWidth: RESULT_TABLE_WIDTHS.points, halign: "center" };
   columnStyles[totalStart + 1] = { cellWidth: RESULT_TABLE_WIDTHS.division, halign: "center" };
-  if (model.hasRemarks) {
-    columnStyles[totalStart + 2] = { cellWidth: RESULT_TABLE_WIDTHS.remarks, halign: "left" };
-  }
 
   autoTable(doc, {
     startY: TABLE_START_Y,

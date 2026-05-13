@@ -389,7 +389,6 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
                   ...model.subjects,
                   "POINTS",
                   "DIVISION",
-                  ...(model.hasRemarks ? ["REMARKS"] : []),
                 ].map((heading) => (
                   <th key={heading} style={styles.th}>
                     {heading}
@@ -425,11 +424,6 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
                   >
                     {getDivisionDisplay(student)}
                   </td>
-                  {model.hasRemarks && (
-                    <td style={{ ...styles.td, textAlign: "left" }}>
-                      {student.remarks ? student.remarks.trim() : ""}
-                    </td>
-                  )}
                 </tr>
               ))}
             </tbody>
