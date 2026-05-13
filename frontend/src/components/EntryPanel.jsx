@@ -94,6 +94,7 @@ export function EntryPanel({
   });
   const [savingInstruction, setSavingInstruction] = useState(false);
   const [instructionNotice, setInstructionNotice] = useState("");
+  const [instructionNoticeType, setInstructionNoticeType] = useState("success");
   const [showInstructionPanel, setShowInstructionPanel] = useState(false);
   const [showImportMenu, setShowImportMenu] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -130,6 +131,7 @@ export function EntryPanel({
       ...(classData.school_info ?? {}),
     });
     setInstructionNotice("");
+    setInstructionNoticeType("success");
     setShowInstructionPanel(false);
     setShowImportMenu(false);
     setShowExportMenu(false);
@@ -379,6 +381,7 @@ export function EntryPanel({
     setSchoolInfo(nextSchoolInfo);
     setSavingInstruction(true);
     setInstructionNotice("");
+    setInstructionNoticeType("success");
     try {
       await onUpdateSchool?.(nextSchoolInfo);
       setInstructionNotice(
@@ -386,6 +389,9 @@ export function EntryPanel({
           ? "Maagizo yamehifadhiwa kwa darasa hili."
           : "Maagizo yameondolewa kwa darasa hili."
       );
+    } catch (error) {
+      setInstructionNoticeType("error");
+      setInstructionNotice(error?.message || "Imeshindikana kuhifadhi maagizo ya darasa hili.");
     } finally {
       setSavingInstruction(false);
     }
@@ -921,12 +927,13 @@ export function EntryPanel({
             onChange={(e) => {
               setSchoolInfo({ ...schoolInfo, reportInstruction: e.target.value });
               setInstructionNotice("");
+              setInstructionNoticeType("success");
             }}
             placeholder="Andika maagizo ya jumla yatakayoonekana kwenye report card za darasa hili..."
             style={styles.instructionTextarea}
           />
           {instructionNotice && (
-            <div style={{ fontSize: 11, color: "#0b6b3a", fontWeight: 700 }}>
+            <div style={{ fontSize: 11, color: instructionNoticeType === "error" ? "#9f1239" : "#0b6b3a", fontWeight: 700 }}>
               {instructionNotice}
             </div>
           )}

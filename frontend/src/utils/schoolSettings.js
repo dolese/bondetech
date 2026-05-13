@@ -44,7 +44,7 @@ export function mergeClassSchoolInfo(classInfo = {}, schoolSettings = {}) {
     exam: localInfo.exam ?? globalSettings.exam ?? DEFAULT_EXAM_TYPE,
     year: localInfo.year ?? globalSettings.year,
     reportInstruction: String(
-      localInfo.reportInstruction ?? localInfo.report_instruction ?? globalSettings.reportInstruction ?? ""
+      localInfo.reportInstruction ?? localInfo.report_instruction ?? ""
     ).trim(),
     export_branding: {
       ...(globalSettings.export_branding ?? {}),

@@ -429,6 +429,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
       showToast?.("Class report settings updated");
     } catch (err) {
       showToast?.(err.message, "error");
+      throw err;
     }
   }, [activeClass, refreshClass, showToast]);
 
