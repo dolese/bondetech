@@ -60,26 +60,33 @@ const normalizeClass = (cls) => ({
   composite_config: cls.composite_config ?? cls.compositeConfig ?? {},
 });
 
-const toApiStudent = (student) => ({
-  indexNo: student.indexNo ?? student.index_no ?? "",
-  name: student.name ?? "",
-  sex: student.sex ?? "M",
-  status: student.status ?? "present",
-  dateOfBirth: student.dateOfBirth ?? student.date_of_birth ?? "",
-  parentName: student.parentName ?? student.parent_name ?? "",
-  parentPhone: student.parentPhone ?? student.parent_phone ?? "",
-  address: student.address ?? "",
-  previousSchool: student.previousSchool ?? student.previous_school ?? "",
-  remarks: student.remarks ?? "",
-  conduct:
-    student.conduct && typeof student.conduct === "object"
-      ? { ...DEFAULT_CONDUCT, ...student.conduct }
-      : { ...DEFAULT_CONDUCT },
-  scores: Array.isArray(student.scores)
-    ? student.scores
-    : (student.grades ?? []).map((grade) => grade?.score ?? ""),
-  examType: student.examType,
-});
+const toApiStudent = (student) => {
+  const result = {
+    indexNo: student.indexNo ?? student.index_no ?? "",
+    name: student.name ?? "",
+    sex: student.sex ?? "M",
+    status: student.status ?? "present",
+    dateOfBirth: student.dateOfBirth ?? student.date_of_birth ?? "",
+    parentName: student.parentName ?? student.parent_name ?? "",
+    parentPhone: student.parentPhone ?? student.parent_phone ?? "",
+    address: student.address ?? "",
+    previousSchool: student.previousSchool ?? student.previous_school ?? "",
+    remarks: student.remarks ?? "",
+    conduct:
+      student.conduct && typeof student.conduct === "object"
+        ? { ...DEFAULT_CONDUCT, ...student.conduct }
+        : { ...DEFAULT_CONDUCT },
+    examType: student.examType,
+  };
+
+  if (Array.isArray(student.scores)) {
+    result.scores = student.scores;
+  } else if (Array.isArray(student.grades)) {
+    result.scores = student.grades.map((grade) => grade?.score ?? "");
+  }
+
+  return result;
+};
 
 export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } = {}) {
   const [classes, setClasses] = useState([]);
