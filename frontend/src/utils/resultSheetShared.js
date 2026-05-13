@@ -65,7 +65,6 @@ export function buildResultSheetModel(classData, computed) {
     schoolInfo.form ||
     classData.name ||
     "";
-  const hasRemarks = students.some((student) => student.remarks && student.remarks.trim());
 
   const completeStudents = students.filter((student) => student.resultStatus === "COMPLETE");
   const incompleteStudents = students.filter((student) => student.resultStatus === "INCOMPLETE");
@@ -133,7 +132,6 @@ export function buildResultSheetModel(classData, computed) {
     subjects,
     students,
     schoolInfo,
-    hasRemarks,
     gradeCount,
     divisionCount,
     passCount,
@@ -172,7 +170,6 @@ export function getResultSheetHead(model) {
       ...model.subjects,
       "POINTS",
       "DIVISION",
-      ...(model.hasRemarks ? ["REMARKS"] : []),
     ],
   ];
 }
@@ -195,7 +192,6 @@ export function getResultSheetBody(model, students = model.students) {
     }),
     student.points ?? "-",
     getDivisionDisplay(student),
-    ...(model.hasRemarks ? [student.remarks ? student.remarks.trim() : ""] : []),
   ]);
 }
 
