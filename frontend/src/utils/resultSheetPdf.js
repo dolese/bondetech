@@ -305,15 +305,14 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
   drawSummaryBlocks(doc, model);
 
   const pageWidth = doc.internal.pageSize.getWidth();
-  const subjectStartIndex = 4;
+  const subjectStartIndex = 3;
   const columnStyles = {
-    0: { cellWidth: 10, halign: "center" },
-    1: { cellWidth: 18, halign: "center" },
-    2: { cellWidth: 48, halign: "left" },
-    3: { cellWidth: 10, halign: "center" },
+    0: { cellWidth: 18, halign: "center" },
+    1: { cellWidth: 52, halign: "left" },
+    2: { cellWidth: 10, halign: "center" },
   };
   const remainingWidth =
-    pageWidth - PAGE_MARGIN * 2 - 10 - 18 - 48 - 10 - 15 - 17 - (model.hasRemarks ? 28 : 0);
+    pageWidth - PAGE_MARGIN * 2 - 18 - 52 - 10 - 15 - 17 - (model.hasRemarks ? 28 : 0);
   const subjectWidth = Math.max(10, Math.min(16, remainingWidth / Math.max(model.subjects.length, 1)));
 
   model.subjects.forEach((_, index) => {

@@ -18,6 +18,24 @@ function toNumber(value) {
   return Number.isFinite(num) ? num : 0;
 }
 
+function compareByCno(left, right) {
+  const leftCno = String(left?.index_no ?? "").trim();
+  const rightCno = String(right?.index_no ?? "").trim();
+  const numericOnly = /^\d+$/;
+  const leftIsNumeric = numericOnly.test(leftCno);
+  const rightIsNumeric = numericOnly.test(rightCno);
+
+  if (leftIsNumeric && rightIsNumeric) {
+    const diff = Number(leftCno) - Number(rightCno);
+    if (diff !== 0) return diff;
+  } else {
+    const diff = leftCno.localeCompare(rightCno, "en", { numeric: true, sensitivity: "base" });
+    if (diff !== 0) return diff;
+  }
+
+  return String(left?.name || "").localeCompare(String(right?.name || ""), "en");
+}
+
 function averageOf(values) {
   if (!values.length) return "0.0";
   return (values.reduce((sum, value) => sum + toNumber(value), 0) / values.length).toFixed(1);
@@ -37,15 +55,7 @@ export function buildResultSheetModel(classData, computed) {
   const subjects = classData.subjects ?? [];
   const students = (computed ?? [])
     .filter(Boolean)
-    .sort((left, right) => {
-      const statusRank = { COMPLETE: 0, INCOMPLETE: 1, ABSENT: 2 };
-      const statusDiff =
-        (statusRank[left.resultStatus] ?? 9) - (statusRank[right.resultStatus] ?? 9);
-      if (statusDiff !== 0) return statusDiff;
-      const posDiff = (left.posn ?? Infinity) - (right.posn ?? Infinity);
-      if (posDiff !== 0) return posDiff;
-      return String(left.name || "").localeCompare(String(right.name || ""), "en");
-    });
+    .sort(compareByCno);
   const schoolInfo = { ...DEFAULT_SCHOOL, ...(classData.school_info ?? {}) };
   const classLabel =
     [classData.form, classData.stream].filter(Boolean).join(" ").trim() ||
@@ -154,8 +164,7 @@ export function buildResultSheetModel(classData, computed) {
 export function getResultSheetHead(model) {
   return [
     [
-      "Rank",
-      "Adm No",
+      "CNO",
       "Student Name",
       "Sex",
       ...model.subjects,
@@ -175,7 +184,6 @@ export function getDivisionDisplay(student) {
 
 export function getResultSheetBody(model, students = model.students) {
   return students.map((student) => [
-    student.posn ?? "-",
     student.index_no ?? "",
     student.name ?? "",
     student.sex ?? "",
