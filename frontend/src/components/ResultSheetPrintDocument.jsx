@@ -383,8 +383,7 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
             <thead>
               <tr>
                 {[
-                  "Rank",
-                  "Adm No",
+                  "CNO",
                   "Student Name",
                   "Sex",
                   ...model.subjects,
@@ -401,7 +400,6 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
             <tbody>
               {page.students.map((student) => (
                 <tr key={student.id}>
-                  <td style={{ ...styles.td, fontWeight: 800 }}>{student.posn ?? "-"}</td>
                   <td style={styles.td}>{student.index_no}</td>
                   <td style={{ ...styles.td, textAlign: "left", fontWeight: 500 }}>{student.name}</td>
                   <td style={styles.td}>{student.sex}</td>
