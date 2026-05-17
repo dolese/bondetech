@@ -254,17 +254,24 @@ export function TimetablePage({
     () => normalizedGlobalTimetable.periods,
     [normalizedGlobalTimetable],
   );
+  const effectiveClasses = useMemo(
+    () =>
+      (allClasses || []).map((cls) =>
+        cls?.id === classData?.id ? { ...cls, timetable: classTimetable } : cls,
+      ),
+    [allClasses, classData?.id, classTimetable],
+  );
   const sortedClasses = useMemo(
-    () => [...(allClasses || [])].sort(compareClasses),
-    [allClasses],
+    () => [...effectiveClasses].sort(compareClasses),
+    [effectiveClasses],
   );
   const teacherSuggestions = useMemo(
     () => buildTeacherSuggestions(teacherEntries),
     [teacherEntries],
   );
   const teacherLoadSummary = useMemo(
-    () => buildTeacherLoadSummary(allClasses || []),
-    [allClasses],
+    () => buildTeacherLoadSummary(effectiveClasses),
+    [effectiveClasses],
   );
   const editableRooms = useMemo(
     () =>
@@ -274,13 +281,12 @@ export function TimetablePage({
     [globalTimetable],
   );
   const derivedRooms = useMemo(
-    () =>
-      buildDerivedRooms(allClasses || [], classTimetable.subjectTargets || []),
-    [allClasses, classTimetable.subjectTargets],
+    () => buildDerivedRooms(effectiveClasses, classTimetable.subjectTargets || []),
+    [effectiveClasses, classTimetable.subjectTargets],
   );
   const roomDirectoryRows = useMemo(() => {
     const configuredNamedRooms = editableRooms.filter((room) => room.name);
-    const usageRows = buildRoomLoadSummary(allClasses || [], [
+    const usageRows = buildRoomLoadSummary(effectiveClasses, [
       ...configuredNamedRooms,
       ...derivedRooms,
     ]);
@@ -333,7 +339,7 @@ export function TimetablePage({
       }));
 
     return [...configuredRows, ...derivedOnlyRows];
-  }, [allClasses, derivedRooms, editableRooms]);
+  }, [derivedRooms, editableRooms, effectiveClasses]);
   const subjectLoadSummary = useMemo(
     () => buildSubjectLoadSummary({ ...classData, timetable: classTimetable }),
     [classData, classTimetable],
@@ -343,20 +349,20 @@ export function TimetablePage({
     [subjectLoadSummary],
   );
   const teacherConflicts = useMemo(
-    () => detectTeacherConflicts(allClasses || []),
-    [allClasses],
+    () => detectTeacherConflicts(effectiveClasses),
+    [effectiveClasses],
   );
   const roomConflicts = useMemo(
-    () => detectRoomConflicts(allClasses || []),
-    [allClasses],
+    () => detectRoomConflicts(effectiveClasses),
+    [effectiveClasses],
   );
   const availabilityConflicts = useMemo(
     () =>
       detectTeacherAvailabilityConflicts(
-        allClasses || [],
+        effectiveClasses,
         normalizedGlobalTimetable,
       ),
-    [allClasses, normalizedGlobalTimetable],
+    [effectiveClasses, normalizedGlobalTimetable],
   );
   const activeClassLabel = useMemo(
     () => [classData?.form, classData?.stream].filter(Boolean).join(" "),
@@ -425,9 +431,8 @@ export function TimetablePage({
   }, [roomDirectoryRows, selectedRoomKey]);
 
   const selectedTeacherSchedule = useMemo(
-    () =>
-      buildTeacherSchedule(days, periods, allClasses || [], selectedTeacherKey),
-    [allClasses, days, periods, selectedTeacherKey],
+    () => buildTeacherSchedule(days, periods, effectiveClasses, selectedTeacherKey),
+    [days, effectiveClasses, periods, selectedTeacherKey],
   );
   const selectedTeacherUnavailable = useMemo(
     () =>
@@ -449,8 +454,8 @@ export function TimetablePage({
     [roomDirectoryRows, selectedRoomKey],
   );
   const selectedRoomSchedule = useMemo(
-    () => buildRoomSchedule(days, periods, allClasses || [], selectedRoomKey),
-    [allClasses, days, periods, selectedRoomKey],
+    () => buildRoomSchedule(days, periods, effectiveClasses, selectedRoomKey),
+    [days, effectiveClasses, periods, selectedRoomKey],
   );
   const teacherSuggestionId = `timetable-teacher-list-${classData?.id || "class"}`;
 
