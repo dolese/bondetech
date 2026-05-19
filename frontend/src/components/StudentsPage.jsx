@@ -10,6 +10,7 @@ export function StudentsPage({
   onAddStudent,
   onReorderStudentCnos,
   canDeleteStudents,
+  onUpdateSchool,
   activeExam,
   onChangeExam,
 }) {
@@ -24,6 +25,7 @@ export function StudentsPage({
       onAddStudent={onAddStudent}
       onReorderStudentCnos={onReorderStudentCnos}
       canDeleteStudents={canDeleteStudents}
+      onUpdateSchool={onUpdateSchool}
       hideSettings
       activeExam={activeExam}
       onChangeExam={onChangeExam}
