@@ -452,12 +452,14 @@ export function Dashboard({
   managedUsers = [],
   authLogs = [],
   allComputed = [],
+  teacherScope = null,
   onLoadUsers,
   onLoadAuthLogs,
   onOpenClass,
   onViewProfile,
   onOpenAccount,
   onOpenReports,
+  onOpenTimetable,
   onOpenSettings,
   onExportBackup,
 }) {
@@ -564,6 +566,7 @@ export function Dashboard({
   const previousPassRate = calculatePassRate(previousStudents.filter((student) => student?.total !== null));
   const chartSeries = useMemo(() => buildOverviewSeries(filteredClasses), [filteredClasses]);
   const activities = useMemo(() => buildActivities(authLogs, filteredClasses), [authLogs, filteredClasses]);
+  const isTeacherPortal = currentUser?.role === "teacher";
 
   const successfulAuthRate = authLogs.length
     ? Math.round((authLogs.filter((log) => log.status === "success").length / authLogs.length) * 100)
@@ -586,8 +589,52 @@ export function Dashboard({
   const welcomeName = currentUser?.displayName || currentUser?.username || "Administrator";
   const latestSuccessLog = authLogs.find((log) => log.status === "success" && log.username === currentUser?.username);
   const lastLogin = currentUser?.lastLoginAt || latestSuccessLog?.createdAt || "";
+  const teacherAssignedClasses = teacherScope?.assignedClasses || 0;
+  const teacherAssignedPeriods = teacherScope?.assignedPeriods || 0;
+  const teacherSubjectCount = teacherScope?.subjectCount || 0;
 
-  const kpiItems = [
+  const kpiItems = isTeacherPortal ? [
+    {
+      label: "Assigned Classes",
+      value: teacherAssignedClasses.toLocaleString(),
+      icon: <TeacherIcon />,
+      color: "#0f8b8d",
+      iconBackground: "linear-gradient(145deg, rgba(20,184,166,0.14), rgba(103,232,249,0.18))",
+      shadow: "rgba(15,139,141,0.14)",
+      delta: `${filteredClasses.length.toLocaleString()} visible class workspace${filteredClasses.length === 1 ? "" : "s"}`,
+      deltaColor: "#059669",
+    },
+    {
+      label: "Teaching Periods",
+      value: teacherAssignedPeriods.toLocaleString(),
+      icon: <ClipboardIcon />,
+      color: "#2563eb",
+      iconBackground: "linear-gradient(145deg, rgba(59,130,246,0.14), rgba(191,219,254,0.24))",
+      shadow: "rgba(37,99,235,0.14)",
+      delta: "Counted from timetable assignments",
+      deltaColor: "#2563eb",
+    },
+    {
+      label: "Subjects Taught",
+      value: teacherSubjectCount.toLocaleString(),
+      icon: <BookIcon />,
+      color: "#d97706",
+      iconBackground: "linear-gradient(145deg, rgba(251,146,60,0.16), rgba(254,215,170,0.24))",
+      shadow: "rgba(217,119,6,0.16)",
+      delta: "Distinct subjects in current timetable",
+      deltaColor: "#b45309",
+    },
+    {
+      label: "Result Coverage",
+      value: `${dataCompleteness}%`,
+      icon: <PieIcon />,
+      color: "#7c3aed",
+      iconBackground: "linear-gradient(145deg, rgba(167,139,250,0.16), rgba(221,214,254,0.24))",
+      shadow: "rgba(124,58,237,0.14)",
+      delta: `${totalResults.toLocaleString()} entered marks`,
+      deltaColor: "#7c3aed",
+    },
+  ] : [
     {
       label: "Total Students",
       value: totalStudents.toLocaleString(),
@@ -651,7 +698,42 @@ export function Dashboard({
     [chartSeries]
   );
 
-  const quickActions = [
+  const quickActions = isTeacherPortal ? [
+    {
+      label: "Open Mark Entry",
+      icon: <UserPlusIcon />,
+      color: "#0f8b8d",
+      bg: "linear-gradient(145deg, rgba(20,184,166,0.14), rgba(204,251,241,0.5))",
+      onClick: () => {
+        const firstClass = filteredClasses[0] || allComputed[0];
+        if (firstClass) onOpenClass?.(firstClass.id);
+      },
+      disabled: !(filteredClasses[0] || allComputed[0]),
+    },
+    {
+      label: "Class Results",
+      icon: <ClipboardIcon />,
+      color: "#2563eb",
+      bg: "linear-gradient(145deg, rgba(59,130,246,0.14), rgba(219,234,254,0.55))",
+      onClick: onOpenReports,
+      disabled: !filteredClasses.length,
+    },
+    {
+      label: "My Timetable",
+      icon: <TeacherIcon />,
+      color: "#d97706",
+      bg: "linear-gradient(145deg, rgba(251,146,60,0.14), rgba(255,237,213,0.6))",
+      onClick: onOpenTimetable,
+      disabled: !filteredClasses.length,
+    },
+    {
+      label: "My Account",
+      icon: <SettingsIcon />,
+      color: "#7c3aed",
+      bg: "linear-gradient(145deg, rgba(167,139,250,0.14), rgba(237,233,254,0.55))",
+      onClick: onOpenAccount,
+    },
+  ] : [
     {
       label: "Add Student",
       icon: <UserPlusIcon />,
@@ -794,7 +876,9 @@ export function Dashboard({
             </div>
 
             <div style={{ minWidth: 0 }}>
-              <div style={{ ...pillStyle({ tone: "teal" }), display: "inline-flex" }}>Operations Console</div>
+              <div style={{ ...pillStyle({ tone: "teal" }), display: "inline-flex" }}>
+                {isTeacherPortal ? "Teaching Workspace" : "Operations Console"}
+              </div>
               <div style={{ fontSize: dense ? 14 : compact ? 16 : 18, color: "#0f172a", fontWeight: 700, marginTop: dense ? 10 : 12 }}>Welcome back,</div>
               <div style={{ fontSize: dense ? 28 : compact ? 34 : 44, lineHeight: 1.02, marginTop: 8, fontWeight: 950, color: "#0f172a", letterSpacing: "-0.03em" }}>
                 {welcomeName}
@@ -812,12 +896,19 @@ export function Dashboard({
                     gap: 8,
                   }}
                 >
-                  {[
-                    ["Students", totalStudents.toLocaleString()],
-                    ["Pass Rate", `${passRate}%`],
-                    ["Results", totalResults.toLocaleString()],
-                    ["Teachers", teacherCount.toLocaleString()],
-                  ].map(([label, value]) => (
+                  {(isTeacherPortal
+                    ? [
+                        ["Classes", teacherAssignedClasses.toLocaleString()],
+                        ["Periods", teacherAssignedPeriods.toLocaleString()],
+                        ["Subjects", teacherSubjectCount.toLocaleString()],
+                        ["Results", totalResults.toLocaleString()],
+                      ]
+                    : [
+                        ["Students", totalStudents.toLocaleString()],
+                        ["Pass Rate", `${passRate}%`],
+                        ["Results", totalResults.toLocaleString()],
+                        ["Teachers", teacherCount.toLocaleString()],
+                      ]).map(([label, value]) => (
                     <div key={label} style={{ ...softCardStyle({ padding: 10, radius: 16 }), display: "grid", gap: 2 }}>
                       <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
                       <div style={{ fontSize: 18, color: "#0f172a", fontWeight: 900 }}>{value}</div>
@@ -827,9 +918,54 @@ export function Dashboard({
               )}
               {!dense && (
                 <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                  <span style={pillStyle({ tone: "teal" })}>{totalStudents.toLocaleString()} students</span>
-                  <span style={pillStyle({ tone: "amber" })}>{teacherCount.toLocaleString()} staff</span>
-                  <span style={pillStyle({ tone: "blue" })}>{passRate}% pass rate</span>
+                  {(isTeacherPortal
+                    ? [
+                        `${teacherAssignedClasses.toLocaleString()} assigned classes`,
+                        `${teacherAssignedPeriods.toLocaleString()} teaching periods`,
+                        `${teacherSubjectCount.toLocaleString()} subjects`,
+                      ]
+                    : [
+                        `${totalStudents.toLocaleString()} students`,
+                        `${teacherCount.toLocaleString()} staff`,
+                        `${passRate}% pass rate`,
+                      ]).map((label, index) => (
+                    <span
+                      key={label}
+                      style={pillStyle({ tone: index === 0 ? "teal" : index === 1 ? "amber" : "blue" })}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {isTeacherPortal && teacherScope?.classAssignments?.length > 0 && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    display: "grid",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 900, color: "#334155", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Current timetable load
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: compact ? "1fr" : "repeat(2, minmax(0, 1fr))",
+                      gap: 8,
+                    }}
+                  >
+                    {teacherScope.classAssignments.slice(0, 4).map((entry) => (
+                      <div key={entry.label} style={{ ...softCardStyle({ padding: 12, radius: 16 }), display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>{entry.label}</div>
+                          <div style={{ fontSize: 12, color: "#64748b" }}>Assigned class workspace</div>
+                        </div>
+                        <span style={pillStyle({ tone: "blue" })}>{entry.periods} periods</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

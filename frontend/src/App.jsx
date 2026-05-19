@@ -144,6 +144,60 @@ function buildTeacherDirectory(users, classes) {
     .sort((a, b) => a.name.localeCompare(b.name, "en"));
 }
 
+function normalizeTeacherKey(...values) {
+  return (
+    values
+      .map((value) => String(value || "").trim().toLowerCase())
+      .find(Boolean) || ""
+  );
+}
+
+function getTeacherScopedClassIds(classes, user) {
+  const teacherKeys = new Set(
+    [normalizeTeacherKey(user?.username), normalizeTeacherKey(user?.displayName)].filter(Boolean)
+  );
+  if (!teacherKeys.size) return new Set();
+
+  return new Set(
+    (classes || [])
+      .filter((cls) =>
+        Object.values(cls.timetable?.entries || {}).some((entry) =>
+          teacherKeys.has(normalizeTeacherKey(entry.teacherUsername, entry.teacherName))
+        )
+      )
+      .map((cls) => cls.id)
+  );
+}
+
+function buildTeacherPortalSummary(classes, user) {
+  const teacherKeys = new Set(
+    [normalizeTeacherKey(user?.username), normalizeTeacherKey(user?.displayName)].filter(Boolean)
+  );
+  const classMap = new Map();
+  const subjects = new Set();
+  let assignedPeriods = 0;
+
+  (classes || []).forEach((cls) => {
+    const classLabel = getClassDisplayLabel(cls);
+    Object.values(cls.timetable?.entries || {}).forEach((entry) => {
+      if (teacherKeys.has(normalizeTeacherKey(entry.teacherUsername, entry.teacherName))) {
+        assignedPeriods += 1;
+        classMap.set(classLabel, (classMap.get(classLabel) || 0) + 1);
+        if (entry.subject) subjects.add(entry.subject);
+      }
+    });
+  });
+
+  return {
+    assignedClasses: classMap.size,
+    assignedPeriods,
+    subjectCount: subjects.size,
+    classAssignments: Array.from(classMap.entries())
+      .map(([label, periods]) => ({ label, periods }))
+      .sort((a, b) => a.label.localeCompare(b.label, "en")),
+  };
+}
+
 export default function App() {
   const { t } = useI18n();
   const [page, setPage] = useState("dashboard");
@@ -241,8 +295,6 @@ export default function App() {
     auditLogs,
     allComputed,
     activeComputed,
-    classesByYear,
-    unorganizedClasses,
     toggleYear,
     addClass,
     deleteClass,
@@ -298,6 +350,41 @@ export default function App() {
   const displayAllComputed = useMemo(
     () => allComputed.map((cls) => mergeDisplayClass(cls)),
     [allComputed, mergeDisplayClass]
+  );
+  const teacherScopedClassIds = useMemo(
+    () => (role === "teacher" ? getTeacherScopedClassIds(classes, currentUser) : null),
+    [classes, currentUser, role]
+  );
+  const visibleClasses = useMemo(
+    () =>
+      role === "teacher"
+        ? classes.filter((cls) => teacherScopedClassIds?.has(cls.id))
+        : classes,
+    [classes, role, teacherScopedClassIds]
+  );
+  const visibleClassesByYear = useMemo(() => {
+    const map = {};
+    visibleClasses.forEach((cls) => {
+      if (!cls.year) return;
+      if (!map[cls.year]) map[cls.year] = [];
+      map[cls.year].push(cls);
+    });
+    return Object.entries(map).sort(([a], [b]) => Number(b) - Number(a));
+  }, [visibleClasses]);
+  const visibleUnorganizedClasses = useMemo(
+    () => visibleClasses.filter((cls) => !cls.year),
+    [visibleClasses]
+  );
+  const visibleAllComputed = useMemo(
+    () =>
+      role === "teacher"
+        ? displayAllComputed.filter((cls) => teacherScopedClassIds?.has(cls.id))
+        : displayAllComputed,
+    [displayAllComputed, role, teacherScopedClassIds]
+  );
+  const teacherPortalSummary = useMemo(
+    () => (role === "teacher" ? buildTeacherPortalSummary(visibleClasses, currentUser) : null),
+    [currentUser, role, visibleClasses]
   );
   const teacherDirectory = useMemo(
     () => buildTeacherDirectory(managedUsers, classes),
@@ -360,6 +447,20 @@ export default function App() {
       setPage(getDefaultPageForUser(currentUser));
     }
   }, [canAccessClassData, currentUser, loggedIn, page]);
+
+  useEffect(() => {
+    if (role !== "teacher") return;
+    if (!visibleClasses.length) {
+      setActiveId(null);
+      if (["students", "results", "timetable", "reports", "settings"].includes(page)) {
+        setPage("dashboard");
+      }
+      return;
+    }
+    if (!activeClass || !teacherScopedClassIds?.has(activeClass.id)) {
+      setActiveId(visibleClasses[0].id);
+    }
+  }, [activeClass, page, role, setActiveId, teacherScopedClassIds, visibleClasses]);
 
   useEffect(() => {
     if (page === "settings" && !canViewSettings) {
@@ -503,13 +604,15 @@ export default function App() {
           activeId={activeId}
           activeClass={activeClass}
           isClassPage={isClassPage}
-          classesByYear={classesByYear}
+          classesByYear={visibleClassesByYear}
           expandedYears={expandedYears}
           forms={CLASS_FORMS}
           streams={CLASS_STREAMS}
-          unorganizedClasses={unorganizedClasses}
+          unorganizedClasses={visibleUnorganizedClasses}
           accountLabel={accountLabel}
           navItems={navItems}
+          canCreateClasses={role === "admin"}
+          classesHeading={role === "teacher" ? "MY CLASSES" : undefined}
           styles={S}
           onClose={closeSide}
           onToggleYear={toggleYear}
@@ -554,7 +657,8 @@ export default function App() {
                 currentUser={currentUser}
                 managedUsers={managedUsers}
                 authLogs={authLogs}
-                allComputed={displayAllComputed}
+                allComputed={visibleAllComputed}
+                teacherScope={teacherPortalSummary}
                 onLoadUsers={loadUsers}
                 onLoadAuthLogs={loadAuthLogs}
                 onOpenClass={(id) => {
@@ -568,9 +672,17 @@ export default function App() {
                 onOpenReports={() => {
                   if (activeClass) {
                     setPage("reports");
-                  } else if (classes[0]) {
-                    setActiveId(classes[0].id);
+                  } else if (visibleClasses[0]) {
+                    setActiveId(visibleClasses[0].id);
                     setPage("reports");
+                  }
+                }}
+                onOpenTimetable={() => {
+                  if (activeClass) {
+                    setPage("timetable");
+                  } else if (visibleClasses[0]) {
+                    setActiveId(visibleClasses[0].id);
+                    setPage("timetable");
                   }
                 }}
                 onOpenSettings={() => {
@@ -580,8 +692,8 @@ export default function App() {
                   }
                   if (activeClass) {
                     setPage("settings");
-                  } else if (classes[0]) {
-                    setActiveId(classes[0].id);
+                  } else if (visibleClasses[0]) {
+                    setActiveId(visibleClasses[0].id);
                     setPage("settings");
                   }
                 }}

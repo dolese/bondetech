@@ -156,6 +156,8 @@ export function AppSidebar({
   unorganizedClasses,
   accountLabel,
   navItems,
+  canCreateClasses = false,
+  classesHeading,
   onClose,
   onToggleYear,
   onAddClass,
@@ -475,7 +477,7 @@ export function AppSidebar({
             </div>
 
             <div style={{ ...sectionLabelStyle, marginBottom: 10 }}>
-              {t("classesSection").toUpperCase()}
+              {(classesHeading || t("classesSection")).toUpperCase()}
             </div>
 
             <div id="nav-classes-group" style={{ display: "grid", gap: 8 }}>
@@ -505,41 +507,43 @@ export function AppSidebar({
                       <ChevronIcon open={expandedYears.has(year)} />
                       {year}
                     </span>
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        const nextForm =
-                          forms.find(
-                            (form) =>
-                              !yearClasses.some(
-                                (cls) =>
-                                  cls.form === form &&
-                                  String(cls.stream || "").trim().toUpperCase() === streamSequence[0],
-                              ),
-                          ) || forms[0];
-                        const usedStreams = yearClasses
-                          .filter((cls) => cls.form === nextForm)
-                          .map((cls) => String(cls.stream || "").trim().toUpperCase());
-                        const nextStream =
-                          streamSequence.find((candidate) => !usedStreams.includes(candidate)) ||
-                          streamSequence[streamSequence.length - 1];
-                        onAddClass({ year, form: nextForm, stream: nextStream });
-                      }}
-                      style={{
-                        border: "none",
-                        borderRadius: 999,
-                        width: 26,
-                        height: 26,
-                        background: "rgba(17,201,194,0.16)",
-                        color: "#96f8ef",
-                        cursor: "pointer",
-                        display: "grid",
-                        placeItems: "center",
-                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
-                      }}
-                    >
-                      <PlusIcon />
-                    </button>
+                    {canCreateClasses && (
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          const nextForm =
+                            forms.find(
+                              (form) =>
+                                !yearClasses.some(
+                                  (cls) =>
+                                    cls.form === form &&
+                                    String(cls.stream || "").trim().toUpperCase() === streamSequence[0],
+                                ),
+                            ) || forms[0];
+                          const usedStreams = yearClasses
+                            .filter((cls) => cls.form === nextForm)
+                            .map((cls) => String(cls.stream || "").trim().toUpperCase());
+                          const nextStream =
+                            streamSequence.find((candidate) => !usedStreams.includes(candidate)) ||
+                            streamSequence[streamSequence.length - 1];
+                          onAddClass({ year, form: nextForm, stream: nextStream });
+                        }}
+                        style={{
+                          border: "none",
+                          borderRadius: 999,
+                          width: 26,
+                          height: 26,
+                          background: "rgba(17,201,194,0.16)",
+                          color: "#96f8ef",
+                          cursor: "pointer",
+                          display: "grid",
+                          placeItems: "center",
+                          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+                        }}
+                      >
+                        <PlusIcon />
+                      </button>
+                    )}
                   </div>
 
                   {expandedYears.has(year) && (
@@ -610,7 +614,7 @@ export function AppSidebar({
                                   {totalStudents}
                                 </span>
                               </button>
-                            ) : (
+                            ) : canCreateClasses ? (
                               <button
                                 onClick={() => onAddClass({ year, form, stream: streamSequence[0] })}
                                 style={{
@@ -627,6 +631,19 @@ export function AppSidebar({
                               >
                                 Create {form}
                               </button>
+                            ) : (
+                              <div
+                                style={{
+                                  border: "1px dashed rgba(111,246,234,0.14)",
+                                  borderRadius: 12,
+                                  padding: "8px 10px",
+                                  color: "rgba(255,255,255,0.42)",
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                No assigned stream
+                              </div>
                             )}
                           </div>
                         );

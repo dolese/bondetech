@@ -19,6 +19,12 @@ import JSZip from "jszip";
 import { useI18n } from "../i18n";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import {
+  glassPanelStyle,
+  pillStyle,
+  primaryButtonStyle,
+  secondaryButtonStyle,
+} from "../utils/designSystem";
 
 const TEMPLATE_OPTIONS = [
   { label: "Official", value: "official" },
@@ -111,6 +117,12 @@ export function ReportsPage({
   const [exportingZip, setExportingZip] = useState(false);
   const [exportError, setExportError] = useState("");
   const [template, setTemplate] = useState("official");
+  const actionPanel = glassPanelStyle({
+    compact: isMobile || isTablet,
+    dense: isMobile,
+    padding: isMobile ? 14 : 18,
+    radius: 22,
+  });
   const schoolInfo = classData.school_info ?? DEFAULT_SCHOOL;
   const present = (computed ?? [])
     .filter((student) => student.total !== null)
@@ -567,7 +579,7 @@ export function ReportsPage({
 
   return (
     <div style={styles.panel}>
-      <div style={{ ...styles.section, display: "grid", gap: 16 }}>
+      <div style={{ ...actionPanel, display: "grid", gap: 16 }}>
         <div
           style={{
             display: "flex",
@@ -578,10 +590,13 @@ export function ReportsPage({
           }}
         >
           <div>
+            <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex", marginBottom: 8 }}>
+              Class Reports
+            </div>
             <h3
               style={{
                 margin: "0 0 6px",
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: 900,
                 color: "#102a43",
               }}
@@ -608,14 +623,8 @@ export function ReportsPage({
           >
             <button
               style={{
-                padding: "10px 16px",
-                background: "#475569",
-                color: "#fff",
-                border: "none",
-                borderRadius: 10,
+                ...secondaryButtonStyle({ compact: isMobile }),
                 cursor: !present.length ? "not-allowed" : "pointer",
-                fontWeight: 800,
-                fontSize: 12,
                 flex: isMobile ? "1 1 100%" : "0 0 auto",
               }}
               onClick={previewPdf}
@@ -625,14 +634,9 @@ export function ReportsPage({
             </button>
             <button
               style={{
-                padding: "10px 16px",
-                background: exportingZip ? "#9ca3af" : "#003366",
-                color: "#fff",
-                border: "none",
-                borderRadius: 10,
+                ...primaryButtonStyle({ compact: isMobile }),
+                background: exportingZip ? "#9ca3af" : primaryButtonStyle({ compact: isMobile }).background,
                 cursor: exportingZip || !present.length ? "not-allowed" : "pointer",
-                fontWeight: 800,
-                fontSize: 12,
                 flex: isMobile ? "1 1 100%" : "0 0 auto",
               }}
               onClick={exportAllPdf}
@@ -644,14 +648,10 @@ export function ReportsPage({
             </button>
             <button
               style={{
-                padding: "10px 16px",
+                ...secondaryButtonStyle({ compact: isMobile }),
                 background: exportingZip ? "#9ca3af" : "#0b6b3a",
                 color: "#fff",
-                border: "none",
-                borderRadius: 10,
                 cursor: exportingZip || !present.length ? "not-allowed" : "pointer",
-                fontWeight: 800,
-                fontSize: 12,
                 flex: isMobile ? "1 1 100%" : "0 0 auto",
               }}
               onClick={exportAllZip}
@@ -659,7 +659,7 @@ export function ReportsPage({
             >
               {exportingZip
                 ? t("reportsPreparingPdf", "Preparing PDF...")
-                : t("reportsExportAllZip", "Export all ZIP")}
+                : t("reportsExportAllZip", "Download ZIP")}
             </button>
           </div>
         </div>

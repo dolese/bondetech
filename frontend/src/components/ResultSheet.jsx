@@ -10,6 +10,12 @@ import { ReportCardPrint } from "./ReportCardPrint";
 import { ResultSheetPreview } from "./ResultSheetPreview";
 import { ResultSheetPrintDocument } from "./ResultSheetPrintDocument";
 import { getCompositeEntry } from "../utils/constants";
+import {
+  glassPanelStyle,
+  pillStyle,
+  primaryButtonStyle,
+  secondaryButtonStyle,
+} from "../utils/designSystem";
 
 const REPORT_CARD_PAPER_SIZE = "a4";
 const REPORT_CARD_ORIENTATION = "portrait";
@@ -68,6 +74,12 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
   const model = useMemo(() => buildResultSheetModel(classData, computed), [classData, computed]);
   const [exportingZip, setExportingZip] = useState(false);
   const [pageRanges, setPageRanges] = useState([{ start: 0, end: model.students.length }]);
+  const actionPanel = glassPanelStyle({
+    compact: isMobile,
+    dense: isMobile,
+    padding: isMobile ? 12 : 16,
+    radius: 22,
+  });
 
   const compositeEntry = useMemo(
     () => getCompositeEntry(classData.school_info?.exam, classData.composite_config ?? {}),
@@ -143,21 +155,10 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       minHeight: 0,
       minWidth: 0,
     },
-    tabs: {
+    actions: {
       display: "flex",
-      gap: 6,
-      marginBottom: 10,
+      gap: 8,
       flexWrap: "wrap",
-    },
-    tabBtn: {
-      padding: "6px 12px",
-      borderRadius: 6,
-      border: "1px solid #d0dcf8",
-      background: "#fff",
-      cursor: "pointer",
-      fontWeight: 700,
-      fontSize: isMobile ? 11 : 12,
-      height: 30,
       width: isMobile ? "100%" : "auto",
     },
     compositeNote: {
@@ -178,45 +179,69 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
           .result-sheet-ui { display: none !important; }
         }
       `}</style>
-      <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 900, color: "#003366" }}>
-        Result Sheet
-      </h2>
-      <div style={{ fontSize: 11, color: "#667", marginTop: -6, marginBottom: 8 }}>
-        Download or print a centered official class summary for sharing and hard copy.
+
+      <div style={{ ...actionPanel, display: "grid", gap: 12 }} className="result-sheet-ui">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>
+              Official Result Sheet
+            </div>
+            <h2 style={{ margin: "10px 0 0", fontSize: 18, fontWeight: 900, color: "#003366" }}>
+              {classData.form} {classData.year}
+            </h2>
+            <div style={{ fontSize: 12, color: "#667", marginTop: 6 }}>
+              Download or print a centered official class summary for sharing and hard copy.
+            </div>
+          </div>
+
+          <div style={styles.actions}>
+            <button
+              onClick={() => printResultSheetDocument(model, pageRanges)}
+              style={{
+                ...secondaryButtonStyle({ compact: isMobile }),
+                minWidth: isMobile ? "100%" : 110,
+              }}
+            >
+              Print Sheet
+            </button>
+            <button
+              onClick={exportPdf}
+              style={{
+                ...primaryButtonStyle({ compact: isMobile }),
+                minWidth: isMobile ? "100%" : 120,
+              }}
+            >
+              Download PDF
+            </button>
+            <button
+              onClick={exportZip}
+              disabled={exportingZip}
+              style={{
+                ...secondaryButtonStyle({ compact: isMobile }),
+                minWidth: isMobile ? "100%" : 126,
+                background: exportingZip ? "rgba(148,163,184,0.28)" : "rgba(255,255,255,0.82)",
+                cursor: exportingZip ? "not-allowed" : "pointer",
+              }}
+            >
+              {exportingZip ? "Preparing..." : "Download ZIP"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {compositeEntry && (
         <div style={styles.compositeNote}>
-          Combined Result: ({compositeEntry.partnerExam} + {classData.school_info?.exam ?? classData.school_info?.term ?? "Current Exam"}) ÷ 2
+          Combined Result: ({compositeEntry.partnerExam} + {classData.school_info?.exam ?? classData.school_info?.term ?? "Current Exam"}) / 2
         </div>
       )}
-
-      <div style={styles.tabs} className="result-sheet-ui">
-        <button
-          onClick={() => printResultSheetDocument(model, pageRanges)}
-          style={{ ...styles.tabBtn, background: "#003366", color: "#fff" }}
-        >
-          Print Sheet
-        </button>
-        <button
-          onClick={exportPdf}
-          style={{ ...styles.tabBtn, background: "#8b2500", color: "#fff" }}
-        >
-          Download PDF
-        </button>
-        <button
-          onClick={exportZip}
-          disabled={exportingZip}
-          style={{
-            ...styles.tabBtn,
-            background: exportingZip ? "#999" : "#0b6b3a",
-            color: "#fff",
-            cursor: exportingZip ? "not-allowed" : "pointer",
-          }}
-        >
-          {exportingZip ? "Preparing..." : "Export ZIP"}
-        </button>
-      </div>
 
       <div style={{ overflowX: "auto", paddingBottom: 4, display: "flex", justifyContent: "center" }}>
         {!model.students.length ? (
