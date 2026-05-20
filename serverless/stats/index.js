@@ -8,6 +8,7 @@ const {
 const { getSchoolSettings, saveSchoolSettings } = require("../../lib/schoolSettings");
 const { resolveSessionUser, canManageClasses, canReadClassData } = require("../../lib/auth");
 const { getBeemSmsConfig, normalizeRecipients, sendBeemSms, sendBeemSmsJobs } = require("../../lib/beemSms");
+const { listSmsHistory, saveSmsHistory } = require("../../lib/smsHistory");
 
 module.exports = async (req, res) => {
   const requestUrl = new URL(req.url || "/api/stats", "https://bonde-results.local");
@@ -226,11 +227,17 @@ module.exports = async (req, res) => {
 
     if (req.method === "GET") {
       const config = getBeemSmsConfig();
+      const history = await listSmsHistory(getDb(), {
+        limit: requestUrl.searchParams.get("limit") || 20,
+        indexNo: requestUrl.searchParams.get("indexNo") || "",
+        phone: requestUrl.searchParams.get("phone") || "",
+      });
       return sendJson(res, 200, {
         configured: config.configured,
         senderId: config.senderId,
         endpoint: config.endpoint,
         batchSize: config.batchSize,
+        history,
       });
     }
 
@@ -263,6 +270,7 @@ module.exports = async (req, res) => {
               senderId: body.senderId,
               scheduleTime: body.scheduleTime,
             });
+        await saveSmsHistory(getDb(), { body, result, currentUser });
         return sendJson(res, 200, {
           ...result,
           requestedBy: currentUser.username,

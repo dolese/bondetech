@@ -199,6 +199,33 @@ function buildTeacherPortalSummary(classes, user) {
   };
 }
 
+function findStudentCommunicationContext(classes, indexNo) {
+  const normalizedIndexNo = String(indexNo || "").trim().toLowerCase();
+  if (!normalizedIndexNo) return null;
+
+  const matches = [];
+  (classes || []).forEach((cls) => {
+    (cls.students || []).forEach((student) => {
+      const studentIndexNo = String(student.index_no || student.indexNo || "").trim();
+      if (studentIndexNo.toLowerCase() !== normalizedIndexNo) return;
+      matches.push({
+        indexNo: studentIndexNo,
+        phone: String(student.parentPhone || student.parent_phone || "").trim(),
+        parentName: String(student.parentName || student.parent_name || "").trim(),
+        studentName: String(student.name || "").trim(),
+        classId: cls.id,
+        classLabel: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim(),
+        year: cls.year || "",
+        form: cls.form || "",
+        stream: cls.stream || "",
+      });
+    });
+  });
+
+  matches.sort((left, right) => Number(right.year || 0) - Number(left.year || 0));
+  return matches[0] || null;
+}
+
 export default function App() {
   const { t } = useI18n();
   const [page, setPage] = useState("dashboard");
@@ -214,6 +241,7 @@ export default function App() {
   const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [showUserGuide, setShowUserGuide] = useState(false);
+  const [smsDraft, setSmsDraft] = useState(null);
   const { isMobile } = useViewport();
   const topBarHeight = isMobile ? 64 : 78;
 
@@ -390,6 +418,10 @@ export default function App() {
   const teacherPortalSummary = useMemo(
     () => (role === "teacher" ? buildTeacherPortalSummary(visibleClasses, currentUser) : null),
     [currentUser, role, visibleClasses]
+  );
+  const activeProfileCommunicationContext = useMemo(
+    () => findStudentCommunicationContext(classes, searchProfileIndexNo),
+    [classes, searchProfileIndexNo]
   );
   const teacherDirectory = useMemo(
     () => buildTeacherDirectory(managedUsers, classes),
@@ -802,7 +834,12 @@ export default function App() {
           )}
 
           {page === "sms" && canUseSms && (
-            <SmsPage classes={visibleClasses} showToast={showToast} />
+            <SmsPage
+              classes={visibleClasses}
+              showToast={showToast}
+              initialDraft={smsDraft}
+              onDraftApplied={() => setSmsDraft(null)}
+            />
           )}
 
           {page === "results" && (
@@ -876,6 +913,22 @@ export default function App() {
             <StudentProfilePage
               indexNo={searchProfileIndexNo}
               onBack={() => setPage("dashboard")}
+              communicationContext={activeProfileCommunicationContext}
+              loadSmsHistory={canUseSms ? (indexNo) => API.getSmsHistory({ indexNo, limit: 8 }) : null}
+              onOpenSms={
+                canUseSms
+                  ? (context) => {
+                      setSmsDraft({
+                        mode: "custom",
+                        phone: context?.phone || "",
+                        parentName: context?.parentName || "",
+                        studentName: context?.studentName || "",
+                        message: `Bonde Secondary School: Dear ${context?.parentName || "parent/guardian"}, please contact the school regarding ${context?.studentName || "the student"}.`,
+                      });
+                      setPage("sms");
+                    }
+                  : null
+              }
             />
           )}
         </div>

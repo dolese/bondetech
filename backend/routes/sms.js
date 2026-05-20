@@ -2,6 +2,7 @@ const express = require("express");
 const { getDb } = require("../db");
 const { resolveSessionUser, canReadClassData } = require("../../lib/auth");
 const { getBeemSmsConfig, normalizeRecipients, sendBeemSms, sendBeemSmsJobs } = require("../../lib/beemSms");
+const { listSmsHistory, saveSmsHistory } = require("../../lib/smsHistory");
 
 const router = express.Router();
 
@@ -21,13 +22,19 @@ router.use(async (req, res, next) => {
   }
 });
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   const config = getBeemSmsConfig();
+  const history = await listSmsHistory(getDb(), {
+    limit: req.query?.limit || 20,
+    indexNo: req.query?.indexNo || "",
+    phone: req.query?.phone || "",
+  });
   return res.json({
     configured: config.configured,
     senderId: config.senderId,
     endpoint: config.endpoint,
     batchSize: config.batchSize,
+    history,
   });
 });
 
@@ -53,6 +60,7 @@ router.post("/", async (req, res) => {
           senderId: req.body?.senderId,
           scheduleTime: req.body?.scheduleTime,
         });
+    await saveSmsHistory(getDb(), { body: req.body, result, currentUser: req.currentUser });
     return res.json({
       ...result,
       requestedBy: req.currentUser.username,

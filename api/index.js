@@ -53,7 +53,12 @@ module.exports = async (req, res) => {
       case "proxy-csv":
         return proxyCsv(req, res);
       case "sms":
-        req.url = toStatsUrl({ sms: 1 });
+        req.url = toStatsUrl({
+          sms: 1,
+          limit: req.query?.limit,
+          indexNo: req.query?.indexNo,
+          phone: req.query?.phone,
+        });
         return statsIndex(req, res);
       case "auth-login":
         withQuery(req, { action: "login" });

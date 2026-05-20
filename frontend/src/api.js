@@ -133,7 +133,22 @@ export const API = {
   // Utilities
   fetchCsvFromUrl: (url)        => post("/proxy-csv", { url }),
   fetchFileFromUrl: (url)       => requestBinary("POST", "/proxy-csv", { url }),
-  getSmsGatewayStatus: ()       => get("/sms"),
+  getSmsGatewayStatus: (opts = {}) => {
+    const params = new URLSearchParams();
+    if (opts.limit) params.set("limit", opts.limit);
+    if (opts.indexNo) params.set("indexNo", opts.indexNo);
+    if (opts.phone) params.set("phone", opts.phone);
+    const qs = params.toString();
+    return get(`/sms${qs ? `?${qs}` : ""}`);
+  },
+  getSmsHistory: (opts = {}) => {
+    const params = new URLSearchParams();
+    if (opts.limit) params.set("limit", opts.limit);
+    if (opts.indexNo) params.set("indexNo", opts.indexNo);
+    if (opts.phone) params.set("phone", opts.phone);
+    const qs = params.toString();
+    return get(`/sms${qs ? `?${qs}` : ""}`);
+  },
   sendSms:         (data)       => post("/sms", data),
 
   // Health

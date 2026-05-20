@@ -89,6 +89,7 @@ function buildRecipientDirectory(classes = []) {
           parentName: String(student.parentName || student.parent_name || "").trim() || "Guardian",
           studentName: String(student.name || "").trim() || "Student",
           studentId: student.id,
+          indexNo: String(student.index_no || student.indexNo || "").trim(),
           classId: cls.id,
           classLabel: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim(),
           form: cls.form || "",
@@ -127,6 +128,18 @@ function exportRecipientsCsv(recipients, includeMessage = false) {
 function copyText(value) {
   if (!value) return Promise.resolve(false);
   return navigator.clipboard?.writeText(value).then(() => true).catch(() => false);
+}
+
+function formatHistoryTime(value) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return parsed.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function buildExamOptionsForClass(cls = {}) {
@@ -214,7 +227,7 @@ function buildResultsMessage(student, cls, language = "en") {
     .join("\n");
 }
 
-export function SmsPage({ classes = [], showToast }) {
+export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftApplied }) {
   const [mode, setMode] = useState("custom");
   const [scope, setScope] = useState("all");
   const [year, setYear] = useState("all");
@@ -229,13 +242,15 @@ export function SmsPage({ classes = [], showToast }) {
   const [gatewayStatus, setGatewayStatus] = useState({ configured: false, loading: true });
   const [isSending, setIsSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
-    API.getSmsGatewayStatus()
+    API.getSmsGatewayStatus({ limit: 12 })
       .then((status) => {
         if (cancelled) return;
         setGatewayStatus({ ...status, loading: false });
+        setHistory(Array.isArray(status?.history) ? status.history : []);
         if (status?.senderId) {
           setSenderId((current) => current || status.senderId);
         }
@@ -248,6 +263,18 @@ export function SmsPage({ classes = [], showToast }) {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!initialDraft) return;
+    setMode(initialDraft.mode || "custom");
+    setScope("manual");
+    setManualNumbers(initialDraft.phone || "");
+    setMessage(
+      initialDraft.message ||
+        `Bonde Secondary School: Dear ${initialDraft.parentName || "parent/guardian"}, please contact the school regarding ${initialDraft.studentName || "the student"}.`
+    );
+    onDraftApplied?.();
+  }, [initialDraft, onDraftApplied]);
 
   const allRecipients = useMemo(() => buildRecipientDirectory(classes), [classes]);
   const years = useMemo(
@@ -416,26 +443,70 @@ export function SmsPage({ classes = [], showToast }) {
           ? {
               senderId,
               scheduleTime,
+              meta: {
+                mode: "results",
+                scope: "class",
+                year: selectedResultsClass?.year || "",
+                form: selectedResultsClass?.form || "",
+                classId: selectedResultsClass?.id || "",
+                classLabel:
+                  [selectedResultsClass?.form, selectedResultsClass?.stream, selectedResultsClass?.year]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim() || "",
+                exam: resultsExam,
+                language: resultsLanguage,
+                messagePreview: resultsRecipients[0]?.message || "",
+              },
               jobs: resultsRecipients.map((entry, index) => ({
                 key: entry.id || `result-${index + 1}`,
                 recipientName: entry.studentName,
                 recipientPhone: entry.phone,
+                recipientIndexNo: entry.student?.index_no || entry.student?.indexNo || "",
+                recipientParentName: entry.parentName,
+                classLabel: entry.classLabel,
                 message: entry.message,
-                recipients: [{ id: entry.id || `recipient-${index + 1}`, phone: entry.phone }],
+                recipients: [{
+                  id: entry.id || `recipient-${index + 1}`,
+                  phone: entry.phone,
+                  indexNo: entry.student?.index_no || entry.student?.indexNo || "",
+                  studentName: entry.studentName,
+                  parentName: entry.parentName,
+                  classLabel: entry.classLabel,
+                }],
               })),
             }
           : {
               message,
               senderId,
               scheduleTime,
+              meta: {
+                mode: "custom",
+                scope,
+                year: year !== "all" ? year : "",
+                form: form !== "all" ? form : "",
+                classId: classId !== "all" ? classId : "",
+                classLabel: classOptions.find((entry) => entry.id === classId)?.label || "",
+                messagePreview: message,
+              },
               recipients: recipients.map((entry, index) => ({
                 id: entry.id || `recipient-${index + 1}`,
                 phone: entry.phone,
+                indexNo: entry.indexNo || "",
+                studentName: entry.studentName || "",
+                parentName: entry.parentName || "",
+                classLabel: entry.classLabel || "",
               })),
             };
 
       const result = await API.sendSms(payload);
       setSendResult(result);
+      try {
+        const refreshed = await API.getSmsHistory({ limit: 12 });
+        setHistory(Array.isArray(refreshed?.history) ? refreshed.history : []);
+      } catch {
+        // keep latest summary even if history refresh fails
+      }
       showToast?.(
         mode === "results"
           ? `Results SMS submitted for ${result.jobCount ?? recipients.length} student${(result.jobCount ?? recipients.length) === 1 ? "" : "s"}`
@@ -753,6 +824,89 @@ export function SmsPage({ classes = [], showToast }) {
             </div>
           ) : null}
         </div>
+      </div>
+
+      <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>Send History</div>
+            <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
+              Recent outbound SMS activity recorded from this portal.
+            </div>
+          </div>
+          <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>
+            {history.length} recent log{history.length === 1 ? "" : "s"}
+          </div>
+        </div>
+
+        {history.length === 0 ? (
+          <div
+            style={{
+              ...softCardStyle({ padding: 18, radius: 18 }),
+              textAlign: "center",
+              fontSize: 13,
+              color: "#64748b",
+            }}
+          >
+            No SMS history has been recorded yet.
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
+              <thead>
+                <tr>
+                  {["Time", "Mode", "Target", "Requested By", "Valid", "Status"].map((label) => (
+                    <th
+                      key={label}
+                      style={{
+                        textAlign: "left",
+                        padding: "11px 12px",
+                        fontSize: 12,
+                        color: "#475569",
+                        borderBottom: "1px solid rgba(226,232,240,0.92)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((entry) => (
+                  <tr key={entry.id}>
+                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155" }}>
+                      {formatHistoryTime(entry.created_at)}
+                    </td>
+                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155", fontWeight: 700 }}>
+                      {entry.mode === "results" ? "Results SMS" : "Custom SMS"}
+                    </td>
+                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155" }}>
+                      <div style={{ fontWeight: 700, color: "#0f172a" }}>
+                        {entry.class_label || entry.scope || "General"}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                        {(entry.exam ? `${entry.exam} · ` : "") + `${entry.total_requested || 0} recipient${Number(entry.total_requested || 0) === 1 ? "" : "s"}`}
+                      </div>
+                    </td>
+                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155" }}>
+                      {entry.requested_by?.displayName || entry.requested_by?.username || "-"}
+                    </td>
+                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155", fontWeight: 700 }}>
+                      {entry.valid ?? 0}
+                    </td>
+                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)" }}>
+                      <span style={pillStyle({ tone: entry.successful ? "teal" : "amber" })}>
+                        {entry.successful ? "Submitted" : "Warnings"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
