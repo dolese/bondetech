@@ -295,6 +295,7 @@ export function UserGuideModal({
             borderBottom: isMobile ? "1px solid #e2e8f0" : "none",
             display: "flex",
             flexDirection: "column",
+            minHeight: 0,
           }}
         >
           <div
@@ -331,7 +332,16 @@ export function UserGuideModal({
             />
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? "0 10px 12px" : "0 12px 20px" }}>
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
+              overscrollBehavior: "contain",
+              padding: isMobile ? "0 10px 12px" : "0 12px 20px",
+            }}
+          >
             <div
               style={{
                 display: "flex",
@@ -407,7 +417,16 @@ export function UserGuideModal({
           </div>
         </div>
 
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            minWidth: 0,
+            minHeight: 0,
+            overflow: "hidden",
+          }}
+        >
           <div
             style={{
               padding: isMobile
@@ -491,10 +510,13 @@ export function UserGuideModal({
           <div
             style={{
               flex: 1,
+              minHeight: 0,
               padding: isMobile
                 ? "18px 16px max(24px, env(safe-area-inset-bottom))"
                 : "28px 32px 32px",
               overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
+              overscrollBehavior: "contain",
               fontSize: isMobile ? 14 : 15,
               color: "#334155",
               lineHeight: 1.6,
