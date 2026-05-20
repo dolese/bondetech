@@ -79,8 +79,8 @@ function EyeIcon({ size = 22, color = "#555", visible = false }) {
   );
 }
 
-export function LoginPage({ onBack, onLogin }) {
-  const { t } = useI18n();
+export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
+  const { language, t } = useI18n();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -676,6 +676,26 @@ export function LoginPage({ onBack, onLogin }) {
         <p style={{ fontSize: isMobile ? 11 : 13, color: "rgba(244,247,252,0.92)", lineHeight: isMobile ? 1.45 : 1.7, margin: 0, maxWidth: isMobile ? 300 : "none" }}>
           {t("contactAdminReset")}
         </p>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+            marginTop: 10,
+            fontSize: isMobile ? 10 : 11,
+            color: "rgba(244,247,252,0.78)",
+          }}
+        >
+          <span style={{ cursor: "pointer" }} onClick={onOpenTerms}>
+            {language === "sw" ? "Masharti ya Matumizi" : "Terms of Use"}
+          </span>
+          <span style={{ opacity: 0.42 }}>•</span>
+          <span style={{ cursor: "pointer" }} onClick={onOpenPrivacy}>
+            {language === "sw" ? "Sera ya Faragha" : "Privacy Policy"}
+          </span>
+        </div>
       </div>
     </div>
   );

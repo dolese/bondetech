@@ -222,7 +222,7 @@ function SchoolCrest({ size = 40 }) {
   );
 }
 
-export function HomePage({ onOpenLogin }) {
+export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
   const { language, t } = useI18n();
   const fallbackOverview = useMemo(() => createFallbackOverview(t), [t]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1007,6 +1007,8 @@ export function HomePage({ onOpenLogin }) {
               { label: t("notices"), action: scrollToAnnouncements },
               { label: t("aboutUs"), action: scrollToFooter },
               { label: t("contactUs"), action: scrollToFooter },
+              { label: language === "sw" ? "Masharti" : "Terms", action: onOpenTerms },
+              { label: language === "sw" ? "Faragha" : "Privacy", action: onOpenPrivacy },
             ].map(({ label, action }) => (
               <div key={label} onClick={action} style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, cursor: "pointer" }}>
                 {label}
@@ -1029,6 +1031,15 @@ export function HomePage({ onOpenLogin }) {
         </div>
 
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.10)", padding: "16px 0", textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, flexWrap: "wrap", marginBottom: 8 }}>
+            <span onClick={onOpenTerms} style={{ fontSize: 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}>
+              {language === "sw" ? "Masharti ya Matumizi" : "Terms of Use"}
+            </span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.30)" }}>•</span>
+            <span onClick={onOpenPrivacy} style={{ fontSize: 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}>
+              {language === "sw" ? "Sera ya Faragha" : "Privacy Policy"}
+            </span>
+          </div>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.50)" }}>
             Copyright {currentYear} Bonde Secondary School. All Rights Reserved.
           </span>
