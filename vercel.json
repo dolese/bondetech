@@ -15,6 +15,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/classes",
+      "destination": "/api/index.js?dispatch=classes"
+    },
+    {
       "source": "/api/classes/:id/students/bulk",
       "destination": "/api/index.js?dispatch=class-students-bulk&id=:id"
     },
@@ -69,6 +73,10 @@
     {
       "source": "/api/auth/users",
       "destination": "/api/index.js?dispatch=auth-users"
+    },
+    {
+      "source": "/api/auth/logs",
+      "destination": "/api/index.js?dispatch=auth-logs"
     },
     {
       "source": "/api/auth/users/:username",

@@ -67,6 +67,9 @@ module.exports = async (req, res) => {
       case "auth-users":
         withQuery(req, { action: "users" });
         return authIndex(req, res);
+      case "auth-logs":
+        withQuery(req, { action: "logs" });
+        return authIndex(req, res);
       case "auth-user":
         withQuery(req, { action: "user" });
         return authIndex(req, res);
