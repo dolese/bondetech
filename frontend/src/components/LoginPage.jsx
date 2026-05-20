@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
 import { LanguageToggle } from "./LanguageToggle";
@@ -26,6 +26,7 @@ function PersonIcon({ size = 22, color = "#555" }) {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
+      style={{ flexShrink: 0, minWidth: size, display: "block" }}
     >
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
@@ -44,6 +45,7 @@ function LockIcon({ size = 22, color = "#555" }) {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
+      style={{ flexShrink: 0, minWidth: size, display: "block" }}
     >
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -62,7 +64,7 @@ function EyeIcon({ size = 22, color = "#555", visible = false }) {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={{ cursor: "pointer" }}
+      style={{ cursor: "pointer", flexShrink: 0, minWidth: size, display: "block" }}
     >
       {visible ? (
         <>
@@ -91,6 +93,13 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
   const [fieldErrors, setFieldErrors] = useState({ username: "", password: "" });
   const { isMobile, width } = useViewport();
   const isWide = width >= 980;
+  const infoTimerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (infoTimerRef.current) {
+      window.clearTimeout(infoTimerRef.current);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -129,12 +138,14 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
 
   const handleForgotPassword = () => {
     setInfoMsg(t("contactAdminReset"));
-    setTimeout(() => setInfoMsg(""), 4000);
+    if (infoTimerRef.current) window.clearTimeout(infoTimerRef.current);
+    infoTimerRef.current = window.setTimeout(() => setInfoMsg(""), 4000);
   };
 
   const handleRegister = () => {
     setInfoMsg(t("registrationManaged"));
-    setTimeout(() => setInfoMsg(""), 4000);
+    if (infoTimerRef.current) window.clearTimeout(infoTimerRef.current);
+    infoTimerRef.current = window.setTimeout(() => setInfoMsg(""), 4000);
   };
 
   return (
@@ -147,7 +158,7 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
         alignItems: "center",
         justifyContent: "center",
         padding: isMobile ? "74px 12px 18px" : "112px 20px 40px",
-        fontFamily: "'Poppins', 'Segoe UI', sans-serif",
+        fontFamily: "var(--font-sans)",
         position: "relative",
         backgroundImage: "url('/asset/loginback.png')",
         backgroundSize: "cover",
@@ -158,7 +169,6 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
         .login-overlay {
           position: absolute;
           inset: 0;
@@ -216,6 +226,7 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
           height: 24px;
           background: rgba(83,120,154,0.18);
           margin: 0 14px;
+          flex-shrink: 0;
         }
         .login-input {
           flex: 1;
@@ -532,6 +543,7 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
                 className="login-input"
                 placeholder={t("enterUsername")}
                 value={username}
+                autoComplete="username"
                 onChange={(e) => {
                   setUsername(e.target.value);
                   if (fieldErrors.username) {
@@ -559,6 +571,7 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
                 type={showPassword ? "text" : "password"}
                 placeholder={t("enterPassword")}
                 value={password}
+                autoComplete="current-password"
                 onChange={(e) => {
                   setPassword(e.target.value);
                   if (fieldErrors.password) {
@@ -567,19 +580,27 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
                 }}
                 disabled={submitting}
               />
-              <div
+              <button
+                type="button"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   marginLeft: 8,
                   cursor: "pointer",
-                  padding: 2
+                  padding: 2,
+                  background: "none",
+                  border: "none",
                 }}
+                aria-label={
+                  showPassword
+                    ? (language === "sw" ? "Ficha nenosiri" : "Hide password")
+                    : (language === "sw" ? "Onyesha nenosiri" : "Show password")
+                }
                 onClick={() => setShowPassword(!showPassword)}
                 onMouseDown={(e) => e.preventDefault()}
               >
                 <EyeIcon size={20} color={fieldErrors.password ? "#b42318" : "#4d6a85"} visible={showPassword} />
-              </div>
+              </button>
             </div>
             {fieldErrors.password && (
               <div style={{ fontSize: 11, color: "#b42318", fontWeight: 600, marginTop: 4, textAlign: "left" }}>
@@ -613,8 +634,12 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
           {!error && !infoMsg && (
             <div className="login-support-strip">
               {t("needAccessFirstTime")}{" "}
-              <span
+              <button
+                type="button"
                 style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
                   fontWeight: 800,
                   color: "#0f5579",
                   cursor: "pointer",
@@ -623,7 +648,7 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
                 onClick={handleRegister}
               >
                 {t("contactAdministrator")}
-              </span>
+              </button>
             </div>
           )}
 
@@ -661,12 +686,13 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
               />
               {t("keepSignedIn")}
             </label>
-            <span
-              style={{ fontSize: 13, color: "#0f5579", cursor: "pointer", fontWeight: 700 }}
+            <button
+              type="button"
+              style={{ background: "none", border: "none", padding: 0, fontSize: 13, color: "#0f5579", cursor: "pointer", fontWeight: 700 }}
               onClick={handleForgotPassword}
             >
               {t("forgotPassword")}
-            </span>
+            </button>
           </div>
         </form>
       </div>
@@ -688,13 +714,21 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
             color: "rgba(244,247,252,0.78)",
           }}
         >
-          <span style={{ cursor: "pointer" }} onClick={onOpenTerms}>
+          <button
+            type="button"
+            style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "inherit", font: "inherit" }}
+            onClick={onOpenTerms}
+          >
             {language === "sw" ? "Masharti ya Matumizi" : "Terms of Use"}
-          </span>
-          <span style={{ opacity: 0.42 }}>•</span>
-          <span style={{ cursor: "pointer" }} onClick={onOpenPrivacy}>
+          </button>
+          <span style={{ opacity: 0.42 }}>|</span>
+          <button
+            type="button"
+            style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "inherit", font: "inherit" }}
+            onClick={onOpenPrivacy}
+          >
             {language === "sw" ? "Sera ya Faragha" : "Privacy Policy"}
-          </span>
+          </button>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API } from "../../api";
-import { EXAM_TYPES, DEFAULT_SCHOOL } from "../../utils/constants";
+import { DEFAULT_SCHOOL } from "../../utils/constants";
 import { normalizeSchoolSettings } from "../../utils/schoolSettings";
 import { useViewport } from "../../utils/useViewport";
 import { StudentProfilePage } from "../StudentProfilePage";
@@ -227,7 +227,6 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
   const fallbackOverview = useMemo(() => createFallbackOverview(t), [t]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchAdmission, setSearchAdmission] = useState("");
-  const [searchExam, setSearchExam] = useState("");
   const [searchForm, setSearchForm] = useState("");
   const [searchYear, setSearchYear] = useState("");
   const [searching, setSearching] = useState(false);
@@ -412,18 +411,6 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
       setSearching(false);
     }
   }, [language, searchAdmission, searchForm, searchYear, t]);
-
-  // Debounced auto-search
-  useEffect(() => {
-    const term = searchAdmission.trim();
-    if (term.length < 2) {
-      return undefined;
-    }
-    const timer = setTimeout(() => {
-      handleSearch();
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [handleSearch, searchAdmission, searchExam, searchForm, searchYear]);
 
   const handleCategoryClick = (label) => {
     const normalized = label.replace(/\n/g, " ");
@@ -725,7 +712,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                 style={{
                   display: "grid",
                   gridTemplateColumns: isDesktop
-                    ? "repeat(4, 1fr)"
+                    ? "repeat(3, 1fr)"
                     : isXs
                     ? "1fr"
                     : isMobile || isTablet
@@ -735,15 +722,13 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                   marginBottom: 14,
                 }}
               >
-                <input className="landing-search-input" placeholder={t("admissionPlaceholder")} value={searchAdmission} onChange={(e) => setSearchAdmission(e.target.value)} />
-                <select className="landing-search-input landing-search-select" value={searchExam} onChange={(e) => setSearchExam(e.target.value)}>
-                  <option value="">{t("examTypeAll")}</option>
-                  {EXAM_TYPES.map((examType) => (
-                    <option key={examType.value} value={examType.value}>
-                      {examType.label}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  type="search"
+                  className="landing-search-input"
+                  placeholder={t("admissionPlaceholder")}
+                  value={searchAdmission}
+                  onChange={(e) => setSearchAdmission(e.target.value)}
+                />
                 <select className="landing-search-input landing-search-select" value={searchForm} onChange={(e) => setSearchForm(e.target.value)}>
                   <option value="">{t("classFormAll")}</option>
                   {["Form I", "Form II", "Form III", "Form IV"].map((form) => (
@@ -775,17 +760,10 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                     : `${searchResults.length} student${searchResults.length !== 1 ? "s" : ""} found - select to view results:`}
                 </div>
                 {searchResults.map((result) => (
-                  <div
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     key={`${result.classId}-${result.id}`}
                     onClick={() => setProfileIndexNo(result.indexNo)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setProfileIndexNo(result.indexNo);
-                      }
-                    }}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -797,6 +775,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                       cursor: "pointer",
                       background: "#f8faff",
                       transition: "background 0.15s",
+                      textAlign: "left",
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = "#eef2ff";
@@ -812,7 +791,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                       </div>
                     </div>
                     <span style={{ fontSize: 14, color: "#2563eb", fontWeight: 700 }}>{t("view")}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -827,7 +806,14 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
               <div className="home-section-kicker">{t("fastRoutes")}</div>
               <div className="home-section-title">{t("quickAccess")}</div>
             </div>
-            <span onClick={scrollToSearch} className="home-link-inline">{t("viewAll")}</span>
+            <button
+              type="button"
+              onClick={scrollToSearch}
+              className="home-link-inline"
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+            >
+              {t("viewAll")}
+            </button>
           </div>
           <div
             style={{
@@ -908,7 +894,14 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
               <div className="home-section-kicker">{t("updates")}</div>
               <div className="home-section-title">{t("recentAnnouncements")}</div>
             </div>
-            <span onClick={scrollToAnnouncements} className="home-link-inline">{t("viewAll")}</span>
+            <button
+              type="button"
+              onClick={scrollToAnnouncements}
+              className="home-link-inline"
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+            >
+              {t("viewAll")}
+            </button>
           </div>
           <div className="glass-panel" style={{ borderRadius: 22, overflow: "hidden" }}>
             {announcements.map((announcement) => (
@@ -1010,9 +1003,24 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
               { label: language === "sw" ? "Masharti" : "Terms", action: onOpenTerms },
               { label: language === "sw" ? "Faragha" : "Privacy", action: onOpenPrivacy },
             ].map(({ label, action }) => (
-              <div key={label} onClick={action} style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, cursor: "pointer" }}>
+              <button
+                type="button"
+                key={label}
+                onClick={action}
+                style={{
+                  display: "block",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  fontSize: 12,
+                  color: "rgba(255,255,255,0.65)",
+                  marginBottom: 8,
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+              >
                 {label}
-              </div>
+              </button>
             ))}
           </div>
 
@@ -1032,13 +1040,21 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
 
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.10)", padding: "16px 0", textAlign: "center" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, flexWrap: "wrap", marginBottom: 8 }}>
-            <span onClick={onOpenTerms} style={{ fontSize: 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}>
+            <button
+              type="button"
+              onClick={onOpenTerms}
+              style={{ background: "none", border: "none", padding: 0, fontSize: 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}
+            >
               {language === "sw" ? "Masharti ya Matumizi" : "Terms of Use"}
-            </span>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.30)" }}>•</span>
-            <span onClick={onOpenPrivacy} style={{ fontSize: 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}>
+            </button>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.30)" }}>|</span>
+            <button
+              type="button"
+              onClick={onOpenPrivacy}
+              style={{ background: "none", border: "none", padding: 0, fontSize: 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}
+            >
               {language === "sw" ? "Sera ya Faragha" : "Privacy Policy"}
-            </span>
+            </button>
           </div>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.50)" }}>
             Copyright {currentYear} Bonde Secondary School. All Rights Reserved.
