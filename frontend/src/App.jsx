@@ -13,6 +13,7 @@ import { CSVImportModal } from "./components/CSVImportModal";
 import { JSONImportModal } from "./components/JSONImportModal";
 import { XLSXImportModal } from "./components/XLSXImportModal";
 import { StudentManagementPage } from "./components/StudentManagementPage";
+import { SmsPage } from "./components/SmsPage";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 import { ExamPickerScreen } from "./components/ExamPickerScreen";
@@ -269,10 +270,14 @@ export default function App() {
   const canManageUsers = role === "admin";
   const canViewSettings = role === "admin";
   const canManageStudentsGlobally = role === "admin" || role === "academic";
+  const canUseSms = CLASS_ACCESS_ROLES.has(role);
   const navItems = [
     ...classNavItems.filter((item) => canViewSettings || item.key !== "settings"),
     ...(canManageStudentsGlobally
       ? [{ key: "student-management", label: t("studentManagement"), requiresClass: false }]
+      : []),
+    ...(canUseSms
+      ? [{ key: "sms", label: t("sms", "SMS"), requiresClass: false }]
       : []),
     ...(canManageUsers
       ? [
@@ -443,7 +448,7 @@ export default function App() {
     if (!loggedIn || !currentUser) return;
     if (canAccessClassData) return;
     setSearchProfileIndexNo(currentUser.linkedIndexNo || null);
-    if (["dashboard", "students", "results", "timetable", "reports", "settings"].includes(page)) {
+    if (["dashboard", "students", "results", "timetable", "reports", "settings", "sms"].includes(page)) {
       setPage(getDefaultPageForUser(currentUser));
     }
   }, [canAccessClassData, currentUser, loggedIn, page]);
@@ -473,6 +478,12 @@ export default function App() {
       setPage(canAccessClassData ? "students" : "account");
     }
   }, [canAccessClassData, canManageStudentsGlobally, page]);
+
+  useEffect(() => {
+    if (page === "sms" && !canUseSms) {
+      setPage(canAccessClassData ? "students" : "account");
+    }
+  }, [canAccessClassData, canUseSms, page]);
 
   useEffect(() => {
     if (!loggedIn || role !== "admin") return;
@@ -545,6 +556,7 @@ export default function App() {
     if (page === "account") return t("account");
     if (page === "teachers") return t("teachers");
     if (page === "parents") return t("parents");
+    if (page === "sms") return t("sms", "SMS");
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
@@ -787,6 +799,10 @@ export default function App() {
               tone="amber"
               onOpenStudentProfile={handleOpenStudentProfile}
             />
+          )}
+
+          {page === "sms" && canUseSms && (
+            <SmsPage classes={visibleClasses} showToast={showToast} />
           )}
 
           {page === "results" && (

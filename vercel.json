@@ -51,6 +51,10 @@
       "destination": "/api/proxy-csv/index.js"
     },
     {
+      "source": "/api/sms",
+      "destination": "/api/sms/index.js"
+    },
+    {
       "source": "/api/auth/login",
       "destination": "/api/auth/index.js?action=login"
     },

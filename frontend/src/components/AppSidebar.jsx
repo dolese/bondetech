@@ -108,6 +108,14 @@ function navIcon(key) {
           <path d="M11.8 18c1-2.6 7.4-2.6 8.4 0" />
         </SvgIcon>
       );
+    case "sms":
+      return (
+        <SvgIcon>
+          <path d="M5 6.2h14a2.2 2.2 0 0 1 2.2 2.2v7.2A2.2 2.2 0 0 1 19 17.8H10l-4.8 3.4V17.8H5A2.2 2.2 0 0 1 2.8 15.6V8.4A2.2 2.2 0 0 1 5 6.2Z" />
+          <path d="M7.5 10h9" />
+          <path d="M7.5 13h6.2" />
+        </SvgIcon>
+      );
     case "reports":
       return (
         <SvgIcon>
@@ -159,7 +167,7 @@ function buildNavSections(navItems, accountLabel, accountSubtitle, t) {
     },
     {
       title: t("communicationSection"),
-      items: ["parents"],
+      items: ["parents", "sms"],
     },
     {
       title: t("reportsSection"),

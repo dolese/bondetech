@@ -58,6 +58,10 @@ Edit `.env` and set:
 - `BOOTSTRAP_ADMIN_USERNAME`
 - `BOOTSTRAP_ADMIN_PASSWORD`
 - optional: `BOOTSTRAP_ADMIN_DISPLAY_NAME`
+- optional for SMS: `BEEM_API_KEY`
+- optional for SMS: `BEEM_SECRET_KEY`
+- optional for SMS: `BEEM_SENDER_ID`
+- optional for SMS: `BEEM_SMS_BATCH_SIZE`
 
 ### Step 2 — Install Backend
 
@@ -134,6 +138,10 @@ Populate `backend/.env` (or your deployment environment) with:
 - `BOOTSTRAP_ADMIN_USERNAME` — the only username allowed to create the first admin on an empty database
 - `BOOTSTRAP_ADMIN_PASSWORD` — the password required for that first-admin bootstrap
 - `BOOTSTRAP_ADMIN_DISPLAY_NAME` — optional display name for the bootstrapped admin account
+- `BEEM_API_KEY` — Beem Africa API key for outbound SMS
+- `BEEM_SECRET_KEY` — Beem Africa secret key for outbound SMS
+- `BEEM_SENDER_ID` — optional sender ID/source address
+- `BEEM_SMS_BATCH_SIZE` — optional per-request recipient batch size (defaults to 200)
 
 ---
 
@@ -168,6 +176,10 @@ Set these variables in Vercel → Project → Settings → Environment Variables
 - `BOOTSTRAP_ADMIN_USERNAME`
 - `BOOTSTRAP_ADMIN_PASSWORD`
 - optional: `BOOTSTRAP_ADMIN_DISPLAY_NAME`
+- optional for SMS: `BEEM_API_KEY`
+- optional for SMS: `BEEM_SECRET_KEY`
+- optional for SMS: `BEEM_SENDER_ID`
+- optional for SMS: `BEEM_SMS_BATCH_SIZE`
 
 ### 2) Deploy
 - Push the repository to GitHub

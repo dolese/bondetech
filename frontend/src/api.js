@@ -133,6 +133,8 @@ export const API = {
   // Utilities
   fetchCsvFromUrl: (url)        => post("/proxy-csv", { url }),
   fetchFileFromUrl: (url)       => requestBinary("POST", "/proxy-csv", { url }),
+  getSmsGatewayStatus: ()       => get("/sms"),
+  sendSms:         (data)       => post("/sms", data),
 
   // Health
   health:          ()           => get("/health"),
