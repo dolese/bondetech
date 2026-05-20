@@ -7,7 +7,7 @@ const {
 } = require("../../lib/homepageOverview");
 const { getSchoolSettings, saveSchoolSettings } = require("../../lib/schoolSettings");
 const { resolveSessionUser, canManageClasses, canReadClassData } = require("../../lib/auth");
-const { getBeemSmsConfig, normalizeRecipients, sendBeemSms } = require("../../lib/beemSms");
+const { getBeemSmsConfig, normalizeRecipients, sendBeemSms, sendBeemSmsJobs } = require("../../lib/beemSms");
 
 module.exports = async (req, res) => {
   const requestUrl = new URL(req.url || "/api/stats", "https://bonde-results.local");
@@ -243,13 +243,26 @@ module.exports = async (req, res) => {
       }
 
       try {
-        const normalizedRecipients = normalizeRecipients(body.recipients);
-        const result = await sendBeemSms({
-          message: body.message,
-          recipients: normalizedRecipients,
-          senderId: body.senderId,
-          scheduleTime: body.scheduleTime,
-        });
+        const result = Array.isArray(body.jobs) && body.jobs.length
+          ? await sendBeemSmsJobs({
+              jobs: body.jobs.map((job, index) => ({
+                key: job.key || `job-${index + 1}`,
+                recipientName: job.recipientName || "",
+                recipientPhone: job.recipientPhone || "",
+                message: job.message,
+                recipients: normalizeRecipients(job.recipients),
+                senderId: job.senderId,
+                scheduleTime: job.scheduleTime,
+              })),
+              senderId: body.senderId,
+              scheduleTime: body.scheduleTime,
+            })
+          : await sendBeemSms({
+              message: body.message,
+              recipients: normalizeRecipients(body.recipients),
+              senderId: body.senderId,
+              scheduleTime: body.scheduleTime,
+            });
         return sendJson(res, 200, {
           ...result,
           requestedBy: currentUser.username,

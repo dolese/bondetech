@@ -1,7 +1,7 @@
 const express = require("express");
 const { getDb } = require("../db");
 const { resolveSessionUser, canReadClassData } = require("../../lib/auth");
-const { getBeemSmsConfig, normalizeRecipients, sendBeemSms } = require("../../lib/beemSms");
+const { getBeemSmsConfig, normalizeRecipients, sendBeemSms, sendBeemSmsJobs } = require("../../lib/beemSms");
 
 const router = express.Router();
 
@@ -33,13 +33,26 @@ router.get("/", (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const normalizedRecipients = normalizeRecipients(req.body?.recipients);
-    const result = await sendBeemSms({
-      message: req.body?.message,
-      recipients: normalizedRecipients,
-      senderId: req.body?.senderId,
-      scheduleTime: req.body?.scheduleTime,
-    });
+    const result = Array.isArray(req.body?.jobs) && req.body.jobs.length
+      ? await sendBeemSmsJobs({
+          jobs: req.body.jobs.map((job, index) => ({
+            key: job.key || `job-${index + 1}`,
+            recipientName: job.recipientName || "",
+            recipientPhone: job.recipientPhone || "",
+            message: job.message,
+            recipients: normalizeRecipients(job.recipients),
+            senderId: job.senderId,
+            scheduleTime: job.scheduleTime,
+          })),
+          senderId: req.body?.senderId,
+          scheduleTime: req.body?.scheduleTime,
+        })
+      : await sendBeemSms({
+          message: req.body?.message,
+          recipients: normalizeRecipients(req.body?.recipients),
+          senderId: req.body?.senderId,
+          scheduleTime: req.body?.scheduleTime,
+        });
     return res.json({
       ...result,
       requestedBy: req.currentUser.username,
