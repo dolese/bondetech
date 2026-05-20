@@ -537,6 +537,7 @@ export default function App() {
   const sidebarWidth = 248;
   const isClassPage = canAccessClassData && ["students", "results", "timetable", "reports", "settings"].includes(page);
   const accountLabel = currentUser?.displayName || currentUser?.username || t("account");
+  const accountSubtitle = currentUser?.email || currentUser?.username || "";
 
   const topBarLabel = (() => {
     if (page === "dashboard") return t("dashboard");
@@ -610,6 +611,7 @@ export default function App() {
           streams={CLASS_STREAMS}
           unorganizedClasses={visibleUnorganizedClasses}
           accountLabel={accountLabel}
+          accountSubtitle={accountSubtitle}
           navItems={navItems}
           canCreateClasses={role === "admin"}
           classesHeading={role === "teacher" ? "MY CLASSES" : undefined}

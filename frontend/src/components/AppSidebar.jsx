@@ -24,9 +24,9 @@ function SvgIcon({ children, width = 18, height = 18, strokeWidth = 2 }) {
   );
 }
 
-function ChevronIcon({ open = false }) {
+function ChevronIcon({ open = false, width = 14, height = 14 }) {
   return (
-    <SvgIcon width={14} height={14} strokeWidth={2.4}>
+    <SvgIcon width={width} height={height} strokeWidth={2.3}>
       {open ? <path d="m6 9 6 6 6-6" /> : <path d="m9 6 6 6-6 6" />}
     </SvgIcon>
   );
@@ -35,8 +35,8 @@ function ChevronIcon({ open = false }) {
 function PlusIcon() {
   return (
     <SvgIcon width={14} height={14} strokeWidth={2.3}>
-      <path d="M7 3.5v7" />
-      <path d="M3.5 7h7" />
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
     </SvgIcon>
   );
 }
@@ -46,64 +46,81 @@ function navIcon(key) {
     case "dashboard":
       return (
         <SvgIcon>
-          <path d="M4 12 12 5l8 7" />
-          <path d="M6 10v9h12v-9" />
+          <path d="M4 11.8 12 5l8 6.8" />
+          <path d="M7 10.7v8.3h10v-8.3" />
         </SvgIcon>
       );
     case "students":
       return (
         <SvgIcon>
           <circle cx="9" cy="8" r="3" />
-          <path d="M3.5 18c1.2-3.1 9.8-3.1 11 0" />
-          <path d="M18 7v6" />
-          <path d="M15 10h6" />
+          <path d="M3.7 18c1.3-3.2 9.3-3.2 10.6 0" />
+          <path d="M18 8v6" />
+          <path d="M15 11h6" />
         </SvgIcon>
       );
     case "student-management":
       return (
         <SvgIcon>
-          <rect x="4.5" y="4.5" width="15" height="15" rx="2.4" />
-          <circle cx="9" cy="10" r="2.2" />
-          <path d="M6.5 16c.8-2 4.2-2 5 0" />
-          <path d="M15.5 8.5h3" />
-          <path d="M15.5 12h3" />
-          <path d="M15.5 15.5h2.2" />
+          <rect x="4.5" y="4.5" width="15" height="15" rx="2.8" />
+          <path d="M9 9h2.2" />
+          <path d="M9 13h2.2" />
+          <path d="M14 9h2.5" />
+          <path d="M14 13h2.5" />
+          <path d="M9 17h7.5" />
+        </SvgIcon>
+      );
+    case "teachers":
+      return (
+        <SvgIcon>
+          <path d="M3.5 8 12 4l8.5 4-8.5 4-8.5-4Z" />
+          <path d="M7 10.3v4.4c0 1.6 2.2 2.9 5 2.9s5-1.3 5-2.9v-4.4" />
+          <path d="M20 9.6v5" />
         </SvgIcon>
       );
     case "results":
       return (
         <SvgIcon>
-          <rect x="5" y="4" width="14" height="16" rx="2" />
-          <path d="M8 8h8" />
-          <path d="M8 12h8" />
-          <path d="M8 16h5" />
+          <rect x="5.5" y="4.5" width="13" height="15" rx="2.3" />
+          <path d="M8.5 8.5h7" />
+          <path d="M8.5 12h7" />
+          <path d="M8.5 15.5h4.5" />
         </SvgIcon>
       );
     case "timetable":
       return (
         <SvgIcon>
-          <rect x="4.5" y="5" width="15" height="14" rx="2.4" />
+          <rect x="4.5" y="5" width="15" height="14" rx="2.5" />
           <path d="M8 3.8v3" />
           <path d="M16 3.8v3" />
           <path d="M4.5 9.2h15" />
-          <path d="M8 12.4h3" />
+          <path d="M8 12.4h2.5" />
           <path d="M13.2 12.4h2.8" />
-          <path d="M8 15.8h2.8" />
+          <path d="M8 15.8h4.2" />
+        </SvgIcon>
+      );
+    case "parents":
+      return (
+        <SvgIcon>
+          <circle cx="8" cy="9" r="2.5" />
+          <circle cx="16" cy="9" r="2.5" />
+          <path d="M3.8 18c1-2.6 7.4-2.6 8.4 0" />
+          <path d="M11.8 18c1-2.6 7.4-2.6 8.4 0" />
         </SvgIcon>
       );
     case "reports":
       return (
         <SvgIcon>
-          <path d="M5 19V8" />
-          <path d="M10 19V5" />
-          <path d="M15 19v-7" />
-          <path d="M20 19v-4" />
+          <path d="M6 18V9" />
+          <path d="M11 18V5" />
+          <path d="M16 18v-7" />
+          <path d="M21 18v-4" />
         </SvgIcon>
       );
     case "settings":
       return (
         <SvgIcon>
-          <circle cx="12" cy="12" r="3.4" />
+          <circle cx="12" cy="12" r="3.2" />
           <path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4.8a7 7 0 0 0-1.7-1L14.5 3h-5L9 5.8a7 7 0 0 0-1.7 1L4.9 6l-2 3.5L5 11a7 7 0 0 0 0 2l-2.1 1.5 2 3.5 2.4-.8a7 7 0 0 0 1.7 1l.5 2.8h5l.5-2.8a7 7 0 0 0 1.7-1l2.4.8 2-3.5L18.9 13c.1-.3.1-.7.1-1Z" />
         </SvgIcon>
       );
@@ -111,24 +128,7 @@ function navIcon(key) {
       return (
         <SvgIcon>
           <circle cx="12" cy="8" r="3.2" />
-          <path d="M5 19c1.5-4 12.5-4 14 0" />
-        </SvgIcon>
-      );
-    case "teachers":
-      return (
-        <SvgIcon>
-          <path d="M3.5 8 12 4l8.5 4-8.5 4-8.5-4Z" />
-          <path d="M7 10.2v4.3c0 1.6 2.2 3 5 3s5-1.4 5-3v-4.3" />
-          <path d="M20 9.5v5" />
-        </SvgIcon>
-      );
-    case "parents":
-      return (
-        <SvgIcon>
-          <circle cx="8" cy="8" r="2.5" />
-          <circle cx="16" cy="8" r="2.5" />
-          <path d="M3.8 18c1-2.7 7.4-2.7 8.4 0" />
-          <path d="M11.8 18c1-2.7 7.4-2.7 8.4 0" />
+          <path d="M5.2 18c1.4-3.8 12.2-3.8 13.6 0" />
         </SvgIcon>
       );
     default:
@@ -138,6 +138,51 @@ function navIcon(key) {
         </SvgIcon>
       );
   }
+}
+
+function sectionLabelStyle() {
+  return {
+    color: "#64748b",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+  };
+}
+
+function buildNavSections(navItems, accountLabel, accountSubtitle, t) {
+  const visible = new Map(navItems.map((item) => [item.key, item]));
+  const sectionOrder = [
+    {
+      title: t("academicsSection"),
+      items: ["students", "student-management", "teachers", "results", "timetable"],
+    },
+    {
+      title: t("communicationSection"),
+      items: ["parents"],
+    },
+    {
+      title: t("reportsSection"),
+      items: ["reports"],
+    },
+    {
+      title: t("systemSection"),
+      items: ["settings", "account"],
+    },
+  ];
+
+  return sectionOrder
+    .map((section) => ({
+      ...section,
+      items: section.items
+        .map((key) =>
+          key === "account"
+            ? { key: "account", label: accountLabel, requiresClass: false, subtitle: accountSubtitle }
+            : visible.get(key)
+        )
+        .filter(Boolean),
+    }))
+    .filter((section) => section.items.length > 0);
 }
 
 export function AppSidebar({
@@ -155,6 +200,7 @@ export function AppSidebar({
   streams = [],
   unorganizedClasses,
   accountLabel,
+  accountSubtitle,
   navItems,
   canCreateClasses = false,
   classesHeading,
@@ -167,50 +213,32 @@ export function AppSidebar({
   const { t } = useI18n();
   const academicYear = useMemo(() => currentAcademicYear(classesByYear), [classesByYear]);
   const streamSequence = streams.length ? streams : ["A", "B", "C", "D", "E", "F"];
-  const shellShadow = "0 24px 60px rgba(2, 12, 27, 0.34)";
-  const panelSurface = "linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.045))";
-  const panelBorder = "1px solid rgba(255,255,255,0.1)";
-  const panelInset = "inset 0 1px 0 rgba(255,255,255,0.08)";
-  const sectionLabelStyle = {
-    color: "rgba(226,247,244,0.58)",
-    fontSize: 10,
-    fontWeight: 900,
-    letterSpacing: 1.9,
-    padding: "0 4px",
-  };
-  const navSections = useMemo(() => {
-    const visible = new Map(navItems.map((item) => [item.key, item]));
-    const sectionOrder = [
-      {
-        title: t("academicsSection").toUpperCase(),
-        items: ["students", "student-management", "teachers", "results", "timetable"],
-      },
-      {
-        title: t("communicationSection").toUpperCase(),
-        items: ["parents"],
-      },
-      {
-        title: t("reportsSection").toUpperCase(),
-        items: ["reports"],
-      },
-      {
-        title: t("systemSection").toUpperCase(),
-        items: ["settings", "account"],
-      },
-    ];
-    return sectionOrder
-      .map((section) => ({
-        ...section,
-        items: section.items
-          .map((key) => (key === "account" ? { key: "account", label: accountLabel, requiresClass: false } : visible.get(key)))
-          .filter(Boolean),
-      }))
-      .filter((section) => section.items.length > 0);
-  }, [accountLabel, navItems, t]);
+  const navSections = useMemo(
+    () => buildNavSections(navItems, accountLabel, accountSubtitle, t),
+    [accountLabel, accountSubtitle, navItems, t]
+  );
+
+  const navButtonStyle = (active, disabled, hasSubtitle = false) => ({
+    border: "none",
+    borderRadius: active ? 20 : 18,
+    padding: hasSubtitle ? "12px 14px" : "10px 12px",
+    textAlign: "left",
+    cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.46 : 1,
+    background: active ? "linear-gradient(135deg, #edf4ff, #f5f9ff)" : "transparent",
+    color: active ? "#2563eb" : "#0f172a",
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    width: "100%",
+    boxShadow: active ? "0 14px 30px rgba(37,99,235,0.10), inset 0 1px 0 rgba(255,255,255,0.92)" : "none",
+    transition: "background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
+  });
 
   const renderNavButton = (item) => {
     const active = page === item.key;
     const disabled = item.requiresClass !== false && !activeClass;
+    const subtitle = item.subtitle || "";
     return (
       <button
         key={item.key}
@@ -222,58 +250,52 @@ export function AppSidebar({
           }
         }}
         disabled={disabled}
-        style={{
-          border: "none",
-          borderRadius: 16,
-          padding: "10px 12px",
-          textAlign: "left",
-          cursor: disabled ? "not-allowed" : "pointer",
-          opacity: disabled ? 0.42 : 1,
-          background: active
-            ? "linear-gradient(135deg, rgba(30, 196, 184, 0.28), rgba(29, 126, 168, 0.22))"
-            : "rgba(255,255,255,0.035)",
-          color: active ? "#fff" : "rgba(255,255,255,0.88)",
-          fontSize: 14,
-          fontWeight: 800,
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          width: "100%",
-          boxShadow: active
-            ? "inset 0 0 0 1px rgba(130,248,236,0.18), 0 12px 26px rgba(6, 37, 52, 0.18)"
-            : "inset 0 1px 0 rgba(255,255,255,0.03)",
-          transition: "background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
-        }}
+        style={navButtonStyle(active, disabled, Boolean(subtitle))}
       >
         <span
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: 12,
+            width: 42,
+            height: 42,
+            borderRadius: 14,
             display: "grid",
             placeItems: "center",
-            color: active ? "#dffef8" : "rgba(214, 251, 246, 0.86)",
-            background: active ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)",
-            boxShadow: active ? "inset 0 1px 0 rgba(255,255,255,0.08)" : "none",
+            color: "#2563eb",
+            background: active ? "rgba(37,99,235,0.10)" : "linear-gradient(180deg, #f8fbff, #f1f5ff)",
+            border: "1px solid rgba(226,232,240,0.72)",
+            boxShadow: "0 10px 24px rgba(15,23,42,0.04)",
             flexShrink: 0,
           }}
         >
           {navIcon(item.key)}
         </span>
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>
-        {active && (
+        <span style={{ minWidth: 0, display: "grid", gap: subtitle ? 4 : 0 }}>
           <span
             style={{
-              marginLeft: "auto",
-              width: 7,
-              height: 7,
-              borderRadius: 999,
-              background: "#7ef2e8",
-              boxShadow: "0 0 0 4px rgba(126,242,232,0.16)",
-              flexShrink: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              fontSize: 15,
+              fontWeight: active ? 900 : 800,
+              color: active ? "#2563eb" : "#0f172a",
             }}
-          />
-        )}
+          >
+            {item.key === "dashboard" ? t("dashboard") : item.label}
+          </span>
+          {subtitle ? (
+            <span
+              style={{
+                fontSize: 12,
+                color: "#94a3b8",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                fontWeight: 600,
+              }}
+            >
+              {subtitle}
+            </span>
+          ) : null}
+        </span>
       </button>
     );
   };
@@ -282,7 +304,7 @@ export function AppSidebar({
     <>
       {isMobile && sideOpen && (
         <div
-          style={{ position: "fixed", inset: 0, background: "rgba(2,6,23,0.48)", zIndex: 19 }}
+          style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.28)", zIndex: 19 }}
           onClick={onClose}
         />
       )}
@@ -298,442 +320,332 @@ export function AppSidebar({
           height: isMobile ? `calc(100vh - ${topBarHeight}px)` : "auto",
           zIndex: isMobile ? 20 : "auto",
           transform: isMobile && !sideOpen ? `translateX(-${sidebarWidth}px)` : "translateX(0)",
-          background:
-            "radial-gradient(circle at 12% 0%, rgba(34,211,196,0.24), transparent 24%), radial-gradient(circle at 86% 14%, rgba(59,130,246,0.16), transparent 18%), linear-gradient(180deg, #082f45 0%, #07293c 34%, #061e31 100%)",
+          background: "linear-gradient(180deg, #ffffff 0%, #fbfdff 100%)",
           flexShrink: 0,
-          boxShadow: shellShadow,
+          boxShadow: "0 24px 54px rgba(15,23,42,0.12)",
+          borderRight: "1px solid rgba(226,232,240,0.9)",
         }}
       >
         <div
           style={{
-            width: 248,
+            width: 282,
             height: "100%",
             display: "flex",
             flexDirection: "column",
             minHeight: 0,
             overflow: "hidden",
-            padding: "16px 14px 16px",
+            padding: isMobile ? "22px 18px 18px" : "26px 22px 20px",
             boxSizing: "border-box",
           }}
         >
           <div
             style={{
-              display: "grid",
-              justifyItems: "center",
-              gap: 11,
-              padding: "14px 12px 18px",
-              borderRadius: 26,
-              background: "linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.04))",
-              border: "1px solid rgba(255,255,255,0.08)",
-              boxShadow: `${panelInset}, 0 18px 34px rgba(0,0,0,0.16)`,
-              marginBottom: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              padding: "4px 4px 18px",
             }}
           >
             <div
               style={{
-                width: 94,
-                height: 94,
+                width: 66,
+                height: 66,
                 borderRadius: "50%",
-                background: "linear-gradient(145deg, rgba(255,255,255,0.96), rgba(231,244,255,0.94))",
-                border: "4px solid rgba(255,255,255,0.18)",
-                boxShadow: "0 18px 32px rgba(0,0,0,0.2)",
-                display: "grid",
-                placeItems: "center",
                 overflow: "hidden",
+                background: "#fff",
+                border: "1px solid rgba(226,232,240,0.9)",
+                boxShadow: "0 12px 28px rgba(15,23,42,0.08)",
+                flexShrink: 0,
               }}
             >
               <img
                 src="/asset/bonde.png"
                 alt="Bonde Secondary School logo"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  borderRadius: "50%",
-                }}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "5px 10px",
-                  borderRadius: 999,
-                  background: "rgba(127, 243, 232, 0.12)",
-                  color: "#bffbf2",
-                  fontSize: 10,
-                  fontWeight: 900,
-                  letterSpacing: 1.2,
-                  marginBottom: 10,
-                }}
-              >
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.02em" }}>
                 BONDE OS
               </div>
-              <div style={{ color: "#fff", fontWeight: 900, fontSize: 18, letterSpacing: -0.3 }}>{t("resultSystem")}</div>
-              <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 12.5, marginTop: 4 }}>{t("administrativeWorkspace")}</div>
+              <div style={{ fontSize: 13, color: "#64748b", fontWeight: 600, marginTop: 4 }}>
+                {t("resultSystem")}
+              </div>
             </div>
           </div>
 
           <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: 2 }}>
-            <button
-              id="nav-dashboard"
-              onClick={() => {
-                onSetPage("dashboard");
-                onClose();
-              }}
-              style={{
-                border: "none",
-                borderRadius: 18,
-                padding: "14px 16px",
-                textAlign: "left",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                background:
-                  page === "dashboard"
-                    ? "linear-gradient(135deg, rgba(29,196,184,0.94), rgba(26,127,170,0.94))"
-                    : panelSurface,
-                border: page === "dashboard" ? "1px solid rgba(140,251,241,0.16)" : panelBorder,
-                color: "#fff",
-                fontSize: 15,
-                fontWeight: 800,
-                boxShadow:
-                  page === "dashboard"
-                    ? "0 16px 30px rgba(16, 121, 152, 0.28), inset 0 1px 0 rgba(255,255,255,0.08)"
-                    : `${panelInset}, 0 14px 30px rgba(0,0,0,0.12)`,
-                marginBottom: 18,
-                width: "100%",
-              }}
-            >
-              <span
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 14,
-                  display: "grid",
-                  placeItems: "center",
-                  background: page === "dashboard" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)",
-                  flexShrink: 0,
-                }}
-              >
-                {navIcon("dashboard")}
-              </span>
-              <span>{t("dashboard")}</span>
-              <span
-                style={{
-                  marginLeft: "auto",
-                  color: "rgba(255,255,255,0.86)",
-                  fontSize: 11,
-                  fontWeight: 900,
-                  letterSpacing: 1.1,
-                }}
-              >
-                  {t("homeBadge").toUpperCase()}
-                </span>
-              </button>
+            <div style={{ display: "grid", gap: 4 }}>
+              {renderNavButton({ key: "dashboard", label: t("dashboard"), requiresClass: false })}
+            </div>
 
-            <div style={{ display: "grid", gap: 12, marginBottom: 14 }}>
+            <div style={{ display: "grid", gap: 18, marginTop: 20 }}>
               {navSections.map((section) => (
-                <div
-                  key={section.title}
-                  style={{
-                    borderRadius: 20,
-                    background: panelSurface,
-                    border: panelBorder,
-                    boxShadow: `${panelInset}, 0 14px 30px rgba(0,0,0,0.12)`,
-                    padding: "11px 10px 9px",
-                    display: "grid",
-                    gap: 8,
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "0 4px" }}>
-                    <div style={sectionLabelStyle}>{section.title}</div>
-                    <span
-                      style={{
-                        minWidth: 24,
-                        height: 24,
-                        padding: "0 8px",
-                        borderRadius: 999,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "rgba(255,255,255,0.05)",
-                        color: "rgba(223,254,248,0.82)",
-                        fontSize: 11,
-                        fontWeight: 800,
-                      }}
-                    >
-                      {section.items.length}
-                    </span>
-                  </div>
+                <div key={section.title} style={{ display: "grid", gap: 12 }}>
+                  <div style={{ ...sectionLabelStyle(), padding: "0 6px" }}>{section.title}</div>
                   <div style={{ display: "grid", gap: 6 }}>
                     {section.items.map(renderNavButton)}
                   </div>
+                  <div style={{ height: 1, background: "linear-gradient(90deg, rgba(226,232,240,0), rgba(226,232,240,1), rgba(226,232,240,0))" }} />
                 </div>
               ))}
             </div>
 
-            <div style={{ ...sectionLabelStyle, marginBottom: 10 }}>
-              {(classesHeading || t("classesSection")).toUpperCase()}
-            </div>
+            <div style={{ marginTop: 18 }}>
+              <div style={{ ...sectionLabelStyle(), padding: "0 6px", marginBottom: 12 }}>
+                {(classesHeading || t("classesSection")).toUpperCase()}
+              </div>
 
-            <div id="nav-classes-group" style={{ display: "grid", gap: 8 }}>
-              {classesByYear.map(([year, yearClasses]) => (
-                <div
-                  key={year}
-                  style={{
-                    borderRadius: 20,
-                    background: panelSurface,
-                    border: panelBorder,
-                    boxShadow: `${panelInset}, 0 14px 30px rgba(0,0,0,0.12)`,
-                    padding: "11px 10px 9px",
-                  }}
-                >
+              <div
+                id="nav-classes-group"
+                style={{
+                  borderRadius: 24,
+                  border: "1px solid rgba(226,232,240,0.92)",
+                  background: "linear-gradient(180deg, #fcfdff, #f7faff)",
+                  boxShadow: "0 14px 34px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.92)",
+                  padding: "12px",
+                  display: "grid",
+                  gap: 10,
+                }}
+              >
+                {classesByYear.map(([year, yearClasses]) => (
+                  <div
+                    key={year}
+                    style={{
+                      borderRadius: 18,
+                      border: "1px solid rgba(226,232,240,0.92)",
+                      background: "#ffffff",
+                      boxShadow: "0 8px 24px rgba(15,23,42,0.04)",
+                      padding: "10px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 10,
+                        cursor: "pointer",
+                        marginBottom: expandedYears.has(year) ? 8 : 0,
+                      }}
+                      onClick={() => onToggleYear(year)}
+                    >
+                      <span style={{ color: "#0f172a", fontSize: 13, fontWeight: 900, display: "flex", alignItems: "center", gap: 8 }}>
+                        <ChevronIcon open={expandedYears.has(year)} width={13} height={13} />
+                        {year}
+                      </span>
+                      {canCreateClasses ? (
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            const nextForm =
+                              forms.find(
+                                (form) =>
+                                  !yearClasses.some(
+                                    (cls) =>
+                                      cls.form === form &&
+                                      String(cls.stream || "").trim().toUpperCase() === streamSequence[0]
+                                  )
+                              ) || forms[0];
+                            const usedStreams = yearClasses
+                              .filter((cls) => cls.form === nextForm)
+                              .map((cls) => String(cls.stream || "").trim().toUpperCase());
+                            const nextStream =
+                              streamSequence.find((candidate) => !usedStreams.includes(candidate)) ||
+                              streamSequence[streamSequence.length - 1];
+                            onAddClass({ year, form: nextForm, stream: nextStream });
+                          }}
+                          style={{
+                            border: "none",
+                            borderRadius: 12,
+                            width: 30,
+                            height: 30,
+                            background: "#eff6ff",
+                            color: "#2563eb",
+                            cursor: "pointer",
+                            display: "grid",
+                            placeItems: "center",
+                          }}
+                        >
+                          <PlusIcon />
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {expandedYears.has(year) ? (
+                      <div style={{ display: "grid", gap: 6 }}>
+                        {forms.map((form) => {
+                          const formClasses = yearClasses
+                            .filter((item) => item.form === form)
+                            .sort((left, right) =>
+                              String(left.stream || "").localeCompare(String(right.stream || ""), "en")
+                            );
+                          const formHasAny = formClasses.length > 0;
+                          const representativeClass = formClasses[0] || null;
+                          const totalStudents = formClasses.reduce(
+                            (sum, cls) => sum + Number(cls.studentCount ?? cls.students?.length ?? 0),
+                            0
+                          );
+                          const active = formClasses.some((cls) => cls.id === activeId) && isClassPage;
+
+                          return formHasAny ? (
+                            <button
+                              key={form}
+                              onClick={() => representativeClass && onPickClass(representativeClass)}
+                              style={{
+                                border: "none",
+                                borderRadius: 14,
+                                padding: "10px 12px",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 10,
+                                background: active ? "linear-gradient(135deg, #edf4ff, #f5f9ff)" : "#f8fbff",
+                                color: active ? "#2563eb" : "#0f172a",
+                                boxShadow: active ? "0 10px 24px rgba(37,99,235,0.10)" : "none",
+                              }}
+                              title={`${form} ${year}`}
+                            >
+                              <span style={{ fontSize: 13, fontWeight: active ? 900 : 800 }}>{form}</span>
+                              <span
+                                style={{
+                                  minWidth: 30,
+                                  height: 24,
+                                  padding: "0 8px",
+                                  borderRadius: 999,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  background: active ? "rgba(37,99,235,0.12)" : "#ffffff",
+                                  color: active ? "#2563eb" : "#64748b",
+                                  fontSize: 11,
+                                  fontWeight: 900,
+                                  border: "1px solid rgba(226,232,240,0.84)",
+                                }}
+                              >
+                                {totalStudents}
+                              </span>
+                            </button>
+                          ) : canCreateClasses ? (
+                            <button
+                              key={form}
+                              onClick={() => onAddClass({ year, form, stream: streamSequence[0] })}
+                              style={{
+                                border: "1px dashed rgba(148,163,184,0.55)",
+                                borderRadius: 12,
+                                padding: "9px 10px",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                background: "#ffffff",
+                                color: "#64748b",
+                                fontSize: 12,
+                                fontWeight: 800,
+                              }}
+                            >
+                              Create {form}
+                            </button>
+                          ) : (
+                            <div
+                              key={form}
+                              style={{
+                                border: "1px dashed rgba(203,213,225,0.85)",
+                                borderRadius: 12,
+                                padding: "9px 10px",
+                                color: "#94a3b8",
+                                fontSize: 12,
+                                fontWeight: 700,
+                                background: "#ffffff",
+                              }}
+                            >
+                              No assigned stream
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+
+                {unorganizedClasses.length > 0 ? (
                   <div
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 10,
-                      cursor: "pointer",
-                      marginBottom: expandedYears.has(year) ? 8 : 0,
+                      borderRadius: 18,
+                      border: "1px solid rgba(226,232,240,0.92)",
+                      background: "#ffffff",
+                      boxShadow: "0 8px 24px rgba(15,23,42,0.04)",
+                      padding: "10px",
                     }}
-                    onClick={() => onToggleYear(year)}
                   >
-                    <span style={{ color: "#fff", fontSize: 13, fontWeight: 900, display: "flex", alignItems: "center", gap: 6 }}>
-                      <ChevronIcon open={expandedYears.has(year)} />
-                      {year}
-                    </span>
-                    {canCreateClasses && (
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          const nextForm =
-                            forms.find(
-                              (form) =>
-                                !yearClasses.some(
-                                  (cls) =>
-                                    cls.form === form &&
-                                    String(cls.stream || "").trim().toUpperCase() === streamSequence[0],
-                                ),
-                            ) || forms[0];
-                          const usedStreams = yearClasses
-                            .filter((cls) => cls.form === nextForm)
-                            .map((cls) => String(cls.stream || "").trim().toUpperCase());
-                          const nextStream =
-                            streamSequence.find((candidate) => !usedStreams.includes(candidate)) ||
-                            streamSequence[streamSequence.length - 1];
-                          onAddClass({ year, form: nextForm, stream: nextStream });
-                        }}
-                        style={{
-                          border: "none",
-                          borderRadius: 999,
-                          width: 26,
-                          height: 26,
-                          background: "rgba(17,201,194,0.16)",
-                          color: "#96f8ef",
-                          cursor: "pointer",
-                          display: "grid",
-                          placeItems: "center",
-                          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
-                        }}
-                      >
-                        <PlusIcon />
-                      </button>
-                    )}
-                  </div>
-
-                  {expandedYears.has(year) && (
-                    <div style={{ display: "grid", gap: 4 }}>
-                      {forms.map((form) => {
-                        const formClasses = yearClasses
-                          .filter((item) => item.form === form)
-                          .sort((left, right) =>
-                            String(left.stream || "").localeCompare(String(right.stream || ""), "en"),
-                          );
-                        const formHasAny = formClasses.length > 0;
-                        const representativeClass = formClasses[0] || null;
-                        const totalStudents = formClasses.reduce(
-                          (sum, cls) => sum + Number(cls.studentCount ?? cls.students?.length ?? 0),
-                          0,
-                        );
-                        const active = formClasses.some((cls) => cls.id === activeId) && isClassPage;
-                        return (
-                          <div
-                            key={form}
-                            style={{
-                              borderRadius: 14,
-                              padding: "8px",
-                              display: "grid",
-                              gap: 7,
-                              background: "rgba(255,255,255,0.035)",
-                              color: "#fff",
-                            }}
-                          >
-                            {formHasAny ? (
-                              <button
-                                onClick={() => representativeClass && onPickClass(representativeClass)}
-                                style={{
-                                  border: "none",
-                                  borderRadius: 14,
-                                  padding: "10px 12px",
-                                  textAlign: "left",
-                                  cursor: "pointer",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                  gap: 10,
-                                  background: active
-                                    ? "linear-gradient(135deg, rgba(29,196,184,0.22), rgba(29,126,168,0.18))"
-                                    : "rgba(255,255,255,0.055)",
-                                  color: "#fff",
-                                  outline: active ? "1px solid rgba(111,246,234,0.26)" : "none",
-                                  boxShadow: active ? "0 10px 22px rgba(8, 36, 50, 0.16)" : "none",
-                                }}
-                                title={`${form} ${year}`}
-                              >
-                                <span style={{ fontSize: 13, fontWeight: 800 }}>{form}</span>
-                                <span
-                                  style={{
-                                    minWidth: 28,
-                                    height: 24,
-                                    padding: "0 8px",
-                                    borderRadius: 999,
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    background: "rgba(255,255,255,0.08)",
-                                    color: "#7ef2e8",
-                                    fontSize: 11,
-                                    fontWeight: 900,
-                                  }}
-                                >
-                                  {totalStudents}
-                                </span>
-                              </button>
-                            ) : canCreateClasses ? (
-                              <button
-                                onClick={() => onAddClass({ year, form, stream: streamSequence[0] })}
-                                style={{
-                                  border: "1px dashed rgba(111,246,234,0.28)",
-                                  borderRadius: 12,
-                                  padding: "8px 10px",
-                                  textAlign: "left",
-                                  cursor: "pointer",
-                                  background: "rgba(255,255,255,0.02)",
-                                  color: "rgba(255,255,255,0.62)",
-                                  fontSize: 12,
-                                  fontWeight: 800,
-                                }}
-                              >
-                                Create {form}
-                              </button>
-                            ) : (
-                              <div
-                                style={{
-                                  border: "1px dashed rgba(111,246,234,0.14)",
-                                  borderRadius: 12,
-                                  padding: "8px 10px",
-                                  color: "rgba(255,255,255,0.42)",
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                }}
-                              >
-                                No assigned stream
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                    <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900, marginBottom: 8 }}>
+                      {t("unorganized")}
                     </div>
-                  )}
-                </div>
-              ))}
-
-              {unorganizedClasses.length > 0 && (
-                <div
-                  style={{
-                    borderRadius: 20,
-                    background: panelSurface,
-                    border: panelBorder,
-                    boxShadow: `${panelInset}, 0 14px 30px rgba(0,0,0,0.12)`,
-                    padding: "10px",
-                  }}
-                >
-                  <div style={{ color: "rgba(255,255,255,0.58)", fontSize: 12, fontWeight: 900, marginBottom: 8 }}>
-                    {t("unorganized")}
+                    <div style={{ display: "grid", gap: 6 }}>
+                      {unorganizedClasses.map((cls) => (
+                        <button
+                          key={cls.id}
+                          onClick={() => onPickClass(cls)}
+                          style={{
+                            border: "none",
+                            borderRadius: 14,
+                            padding: "9px 10px",
+                            textAlign: "left",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 8,
+                            background: cls.id === activeId && isClassPage ? "linear-gradient(135deg, #edf4ff, #f5f9ff)" : "#f8fbff",
+                            color: cls.id === activeId && isClassPage ? "#2563eb" : "#0f172a",
+                          }}
+                        >
+                          <span style={{ fontSize: 13, fontWeight: 800 }}>{cls.name}</span>
+                          <span style={{ color: "#64748b", fontSize: 11, fontWeight: 900 }}>
+                            {cls.studentCount ?? cls.students?.length ?? 0}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div style={{ display: "grid", gap: 4 }}>
-                    {unorganizedClasses.map((cls) => (
-                      <button
-                        key={cls.id}
-                        onClick={() => onPickClass(cls)}
-                        style={{
-                          border: "none",
-                          borderRadius: 14,
-                          padding: "9px 10px",
-                          textAlign: "left",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          gap: 8,
-                          background:
-                            cls.id === activeId && isClassPage
-                              ? "linear-gradient(135deg, rgba(29,196,184,0.22), rgba(29,126,168,0.18))"
-                              : "rgba(255,255,255,0.05)",
-                          color: "#fff",
-                        }}
-                      >
-                        <span style={{ fontSize: 13, fontWeight: 700 }}>{cls.name}</span>
-                        <span style={{ color: "#7ef2e8", fontSize: 11, fontWeight: 800 }}>
-                          {cls.studentCount ?? cls.students?.length ?? 0}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+                ) : null}
+              </div>
             </div>
           </div>
 
           <div
             style={{
-              marginTop: 16,
-              borderRadius: 22,
-              border: panelBorder,
-              background: "linear-gradient(135deg, rgba(14, 160, 150, 0.22), rgba(14, 92, 126, 0.24))",
-              padding: "15px 16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              marginTop: 18,
+              borderRadius: 24,
+              border: "1px solid rgba(226,232,240,0.92)",
+              background: "linear-gradient(180deg, #fcfdff, #f7faff)",
+              boxShadow: "0 16px 36px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.92)",
+              padding: "16px",
+              display: "grid",
               gap: 12,
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 34px rgba(0,0,0,0.18)",
             }}
           >
-            <div>
-              <div style={{ color: "rgba(231,255,251,0.72)", fontSize: 11, fontWeight: 800, letterSpacing: 1.1, marginBottom: 4 }}>
-                Academic Year
-              </div>
-              <div style={{ color: "#fff", fontSize: 22, fontWeight: 900 }}>
-                {academicYear}
-              </div>
-            </div>
+            <div style={sectionLabelStyle()}>Academic Year</div>
             <div
               style={{
-                width: 42,
-                height: 42,
+                height: 48,
                 borderRadius: 16,
-                background: "rgba(255,255,255,0.1)",
-                color: "#d6fbf6",
-                display: "grid",
-                placeItems: "center",
+                border: "1px solid rgba(226,232,240,0.92)",
+                background: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 14px",
+                color: "#0f172a",
+                fontSize: 15,
+                fontWeight: 900,
+                boxShadow: "0 10px 26px rgba(15,23,42,0.04)",
               }}
             >
-              <ChevronIcon open />
+              <span>{academicYear}</span>
+              <span style={{ color: "#64748b" }}>
+                <ChevronIcon open width={15} height={15} />
+              </span>
             </div>
           </div>
         </div>
