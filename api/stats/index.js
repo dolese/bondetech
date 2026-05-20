@@ -6,7 +6,8 @@ const {
   saveHomepageContent,
 } = require("../../lib/homepageOverview");
 const { getSchoolSettings, saveSchoolSettings } = require("../../lib/schoolSettings");
-const { resolveSessionUser, canManageClasses } = require("../../lib/auth");
+const { resolveSessionUser, canManageClasses, canReadClassData } = require("../../lib/auth");
+const { getBeemSmsConfig, normalizeRecipients, sendBeemSms } = require("../../lib/beemSms");
 
 module.exports = async (req, res) => {
   const requestUrl = new URL(req.url || "/api/stats", "https://bonde-results.local");
@@ -203,6 +204,60 @@ module.exports = async (req, res) => {
         return sendJson(res, 200, schoolSettings);
       } catch (err) {
         return sendJson(res, 500, { error: err.message });
+      }
+    }
+
+    return sendJson(res, 405, { error: "Method not allowed" });
+  }
+
+  if (requestUrl.searchParams.get("sms") === "1") {
+    let currentUser;
+    try {
+      currentUser = await resolveSessionUser(getDb(), req);
+    } catch (err) {
+      return sendJson(res, 401, { error: err.message });
+    }
+    if (!currentUser) {
+      return sendJson(res, 401, { error: "Authentication required" });
+    }
+    if (!canReadClassData(currentUser.role)) {
+      return sendJson(res, 403, { error: "You do not have permission to use SMS" });
+    }
+
+    if (req.method === "GET") {
+      const config = getBeemSmsConfig();
+      return sendJson(res, 200, {
+        configured: config.configured,
+        senderId: config.senderId,
+        endpoint: config.endpoint,
+        batchSize: config.batchSize,
+      });
+    }
+
+    if (req.method === "POST") {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        return sendJson(res, 400, { error: "Invalid JSON body" });
+      }
+
+      try {
+        const normalizedRecipients = normalizeRecipients(body.recipients);
+        const result = await sendBeemSms({
+          message: body.message,
+          recipients: normalizedRecipients,
+          senderId: body.senderId,
+          scheduleTime: body.scheduleTime,
+        });
+        return sendJson(res, 200, {
+          ...result,
+          requestedBy: currentUser.username,
+          sentAt: new Date().toISOString(),
+        });
+      } catch (err) {
+        const status = /required|valid|configured/i.test(err.message) ? 400 : 502;
+        return sendJson(res, status, { error: err.message });
       }
     }
 

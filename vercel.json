@@ -52,7 +52,7 @@
     },
     {
       "source": "/api/sms",
-      "destination": "/api/sms/index.js"
+      "destination": "/api/stats/index.js?sms=1"
     },
     {
       "source": "/api/auth/login",
