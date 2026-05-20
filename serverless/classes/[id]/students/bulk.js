@@ -1,7 +1,8 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../../lib/http");
-const { resolveSessionUser, canManageStudents } = require("../../../../lib/auth");
+const { resolveSessionUser, canManageStudents, canAccessClassRecord } = require("../../../../lib/auth");
 const { bulkImportStudents } = require("../../../../lib/classStudents");
+const { getClassSnapshot, parseClass } = require("../../../../lib/classes");
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -24,6 +25,12 @@ module.exports = async (req, res) => {
   }
 
   try {
+    if (currentUser.role === "teacher") {
+      const { classSnap } = await getClassSnapshot(db, classId);
+      if (!canAccessClassRecord(currentUser, parseClass(classSnap))) {
+        return sendJson(res, 403, { error: "You do not have permission to manage this class" });
+      }
+    }
     const body = await readJsonBody(req);
     const result = await bulkImportStudents(db, classId, body.students, body.examType);
     return sendJson(res, 200, result);

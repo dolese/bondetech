@@ -912,14 +912,17 @@ export function EntryPanel({
             </div>
             <button
               onClick={handleSaveReportInstruction}
-              disabled={savingInstruction}
+              disabled={savingInstruction || !onUpdateSchool}
               style={{
                 ...styles.instructionSaveBtn,
-                background: savingInstruction ? "#9ca3af" : styles.instructionSaveBtn.background,
-                cursor: savingInstruction ? "not-allowed" : "pointer",
+                background:
+                  savingInstruction || !onUpdateSchool
+                    ? "#9ca3af"
+                    : styles.instructionSaveBtn.background,
+                cursor: savingInstruction || !onUpdateSchool ? "not-allowed" : "pointer",
               }}
             >
-              {savingInstruction ? "Saving..." : "Save Maagizo"}
+              {savingInstruction ? "Saving..." : !onUpdateSchool ? "Read Only" : "Save Maagizo"}
             </button>
           </div>
           <textarea
@@ -935,6 +938,11 @@ export function EntryPanel({
           {instructionNotice && (
             <div style={{ fontSize: 11, color: instructionNoticeType === "error" ? "#9f1239" : "#0b6b3a", fontWeight: 700 }}>
               {instructionNotice}
+            </div>
+          )}
+          {!onUpdateSchool && (
+            <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700 }}>
+              Only administrators can update Maagizo for this class.
             </div>
           )}
         </div>

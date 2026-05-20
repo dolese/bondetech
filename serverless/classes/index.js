@@ -1,6 +1,6 @@
 const { getDb } = require("../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../lib/http");
-const { resolveSessionUser, canReadClassData, canManageClasses } = require("../../lib/auth");
+const { resolveSessionUser, canReadClassData, canManageClasses, canAccessClassRecord } = require("../../lib/auth");
 const { listClasses, createClassRecord } = require("../../lib/classes");
 
 module.exports = async (req, res) => {
@@ -23,7 +23,11 @@ module.exports = async (req, res) => {
     try {
       const includeArchived = req.query.includeArchived === "true";
       const classes = await listClasses(db, { includeArchived });
-      return sendJson(res, 200, classes);
+      const visibleClasses =
+        currentUser.role === "teacher"
+          ? classes.filter((cls) => canAccessClassRecord(currentUser, cls))
+          : classes;
+      return sendJson(res, 200, visibleClasses);
     } catch (err) {
       return sendJson(res, 500, { error: err.message });
     }

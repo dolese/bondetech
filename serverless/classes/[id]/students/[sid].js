@@ -1,10 +1,11 @@
 const { getDb } = require("../../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../../lib/http");
-const { resolveSessionUser, canManageStudents, canDeleteStudents } = require("../../../../lib/auth");
+const { resolveSessionUser, canManageStudents, canDeleteStudents, canAccessClassRecord } = require("../../../../lib/auth");
 const {
   updateStudentRecord,
   deleteStudentRecord,
 } = require("../../../../lib/classStudents");
+const { getClassSnapshot, parseClass } = require("../../../../lib/classes");
 
 module.exports = async (req, res) => {
   const db = getDb();
@@ -26,6 +27,12 @@ module.exports = async (req, res) => {
       return sendJson(res, 403, { error: "You do not have permission to update students" });
     }
     try {
+      if (currentUser.role === "teacher") {
+        const { classSnap } = await getClassSnapshot(db, classId);
+        if (!canAccessClassRecord(currentUser, parseClass(classSnap))) {
+          return sendJson(res, 403, { error: "You do not have permission to manage this class" });
+        }
+      }
       const body = await readJsonBody(req);
       const updated = await updateStudentRecord(db, classId, studentId, body);
       return sendJson(res, 200, updated);

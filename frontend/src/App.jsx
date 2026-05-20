@@ -154,14 +154,23 @@ function normalizeTeacherKey(...values) {
 }
 
 function getTeacherScopedClassIds(classes, user) {
+  const assignedClassIds = new Set(
+    [
+      user?.teacherAssignments?.classTeacherClassId || "",
+      ...((user?.teacherAssignments?.subjectAssignments || []).map((entry) => entry?.classId || "")),
+    ]
+      .map((value) => String(value || "").trim())
+      .filter(Boolean)
+  );
   const teacherKeys = new Set(
     [normalizeTeacherKey(user?.username), normalizeTeacherKey(user?.displayName)].filter(Boolean)
   );
-  if (!teacherKeys.size) return new Set();
+  if (!teacherKeys.size && !assignedClassIds.size) return new Set();
 
   return new Set(
     (classes || [])
       .filter((cls) =>
+        assignedClassIds.has(cls.id) ||
         Object.values(cls.timetable?.entries || {}).some((entry) =>
           teacherKeys.has(normalizeTeacherKey(entry.teacherUsername, entry.teacherName))
         )
@@ -171,6 +180,19 @@ function getTeacherScopedClassIds(classes, user) {
 }
 
 function buildTeacherPortalSummary(classes, user) {
+  const assignedClassIds = new Set(
+    [
+      user?.teacherAssignments?.classTeacherClassId || "",
+      ...((user?.teacherAssignments?.subjectAssignments || []).map((entry) => entry?.classId || "")),
+    ]
+      .map((value) => String(value || "").trim())
+      .filter(Boolean)
+  );
+  const assignedSubjects = new Set(
+    (user?.teacherAssignments?.subjectAssignments || [])
+      .map((entry) => String(entry?.subject || "").trim())
+      .filter(Boolean)
+  );
   const teacherKeys = new Set(
     [normalizeTeacherKey(user?.username), normalizeTeacherKey(user?.displayName)].filter(Boolean)
   );
@@ -180,6 +202,9 @@ function buildTeacherPortalSummary(classes, user) {
 
   (classes || []).forEach((cls) => {
     const classLabel = getClassDisplayLabel(cls);
+    if (assignedClassIds.has(cls.id)) {
+      classMap.set(classLabel, classMap.get(classLabel) || 0);
+    }
     Object.values(cls.timetable?.entries || {}).forEach((entry) => {
       if (teacherKeys.has(normalizeTeacherKey(entry.teacherUsername, entry.teacherName))) {
         assignedPeriods += 1;
@@ -188,6 +213,8 @@ function buildTeacherPortalSummary(classes, user) {
       }
     });
   });
+
+  assignedSubjects.forEach((subject) => subjects.add(subject));
 
   return {
     assignedClasses: classMap.size,
@@ -704,6 +731,7 @@ export default function App() {
                 managedUsers={managedUsers}
                 authLogs={authLogs}
                 allComputed={visibleAllComputed}
+                allowedClassIds={role === "teacher" ? new Set(visibleClasses.map((cls) => cls.id)) : null}
                 teacherScope={teacherPortalSummary}
                 onLoadUsers={loadUsers}
                 onLoadAuthLogs={loadAuthLogs}
@@ -749,6 +777,7 @@ export default function App() {
               <AccountPage
                 user={currentUser}
                 users={managedUsers}
+                classes={classes}
                 authLogs={authLogs}
                 canManageUsers={canManageUsers}
                 onLoadUsers={loadUsers}
@@ -768,6 +797,7 @@ export default function App() {
             <AccountPage
               user={currentUser}
               users={managedUsers}
+              classes={classes}
               authLogs={authLogs}
               canManageUsers={canManageUsers}
               onLoadUsers={loadUsers}
@@ -793,7 +823,7 @@ export default function App() {
                 onAddStudent={onAddStudent}
                 onReorderStudentCnos={role === "admin" ? onReorderStudentCnos : null}
                 canDeleteStudents={role === "admin" || role === "academic"}
-                onUpdateSchool={onUpdateSchool}
+                onUpdateSchool={role === "admin" ? onUpdateSchool : null}
                 activeExam={activeExam}
                 onChangeExam={onChangeExam}
               />
@@ -858,12 +888,12 @@ export default function App() {
             activeClass ? (
               <TimetablePage
                 classData={activeClass}
-                allClasses={classes}
+                allClasses={role === "teacher" ? visibleClasses : classes}
                 schoolSettings={normalizedSchoolSettings}
                 teacherEntries={teacherDirectory}
                 role={role}
                 onSaveSchoolSettings={handleSaveSchoolSettings}
-                onUpdateTimetable={onUpdateTimetable}
+                onUpdateTimetable={role === "admin" ? onUpdateTimetable : null}
               />
             ) : (
               noClassBlock
@@ -875,7 +905,7 @@ export default function App() {
               <ReportsPage
                 classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
                 computed={activeComputed}
-                allClasses={displayAllComputed}
+                allClasses={role === "teacher" ? visibleAllComputed : displayAllComputed}
                 onOpenReportCard={onOpenReportCard}
               />
             ) : (
@@ -990,8 +1020,9 @@ export default function App() {
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
-        classes={displayAllComputed}
+        classes={visibleAllComputed}
         users={managedUsers}
+        allowedClassIds={role === "teacher" ? new Set(visibleClasses.map((cls) => cls.id)) : null}
         onSetPage={setPage}
         onOpenStudentProfile={handleOpenStudentProfile}
         onPickClass={(cls) => {

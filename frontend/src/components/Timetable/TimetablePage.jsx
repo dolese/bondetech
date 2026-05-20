@@ -217,9 +217,8 @@ export function TimetablePage({
   onUpdateTimetable,
 }) {
   const { t } = useI18n();
-  const canEditGlobal = role === "admin";
-  const canEditClass =
-    role === "admin" || role === "academic" || role === "teacher";
+  const canEditGlobal = role === "admin" && typeof onSaveSchoolSettings === "function";
+  const canEditClass = role === "admin" && typeof onUpdateTimetable === "function";
 
   const [globalTimetable, setGlobalTimetable] = useState(() =>
     normalizeTimetableSettings(schoolSettings?.timetable),

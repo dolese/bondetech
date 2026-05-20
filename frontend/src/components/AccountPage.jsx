@@ -143,6 +143,42 @@ function ToggleSwitch({ checked, onChange, accentColor = "#2563eb" }) {
   );
 }
 
+function blankSubjectTeacherAssignment() {
+  return {
+    classId: "",
+    subject: "",
+  };
+}
+
+function normalizeTeacherAssignmentsState(value) {
+  const source = value && typeof value === "object" ? value : {};
+  const classTeacherClassId = String(source.classTeacherClassId || "").trim();
+  const subjectAssignments = Array.isArray(source.subjectAssignments)
+    ? source.subjectAssignments
+        .map((entry) => ({
+          classId: String(entry?.classId || "").trim(),
+          subject: String(entry?.subject || "").trim().toUpperCase(),
+        }))
+        .filter((entry, index, collection) =>
+          collection.findIndex(
+            (candidate) =>
+              candidate.classId === entry.classId && candidate.subject === entry.subject
+          ) === index
+        )
+    : [];
+
+  return {
+    classTeacherClassId,
+    subjectAssignments: subjectAssignments.length
+      ? subjectAssignments
+      : [blankSubjectTeacherAssignment()],
+  };
+}
+
+function formatClassOptionLabel(cls = {}) {
+  return [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim() || cls.name || "Unnamed Class";
+}
+
 function blankManagedUser() {
   return {
     username: "",
@@ -156,8 +192,9 @@ function blankManagedUser() {
     mustChangePassword: true,
     teacherRoles: {
       classTeacher: false,
-      subjectTeacher: true,
+      subjectTeacher: false,
     },
+    teacherAssignments: normalizeTeacherAssignmentsState({}),
   };
 }
 
@@ -200,6 +237,7 @@ function blankHomepageSlide(index = 0) {
 export function AccountPage({
   user,
   users = [],
+  classes = [],
   authLogs = [],
   canManageUsers = false,
   onLoadUsers,
@@ -340,8 +378,9 @@ export function AccountPage({
         mustChangePassword: managedUser.mustChangePassword === true,
         teacherRoles: {
           classTeacher: managedUser.teacherRoles?.classTeacher === true,
-          subjectTeacher: managedUser.teacherRoles?.subjectTeacher !== false,
+          subjectTeacher: managedUser.teacherRoles?.subjectTeacher === true,
         },
+        teacherAssignments: normalizeTeacherAssignmentsState(managedUser.teacherAssignments),
       };
     });
     setEditingUsers(next);
@@ -372,6 +411,40 @@ export function AccountPage({
       });
   }, [manageableUsers, roleFilter, userSearch]);
 
+  const classPickerOptions = useMemo(
+    () =>
+      (classes || [])
+        .slice()
+        .sort((left, right) => formatClassOptionLabel(left).localeCompare(formatClassOptionLabel(right), "en"))
+        .map((cls) => ({
+          label: formatClassOptionLabel(cls),
+          value: cls.id,
+        })),
+    [classes]
+  );
+
+  const classNameById = useMemo(
+    () =>
+      new Map(
+        (classes || []).map((cls) => [cls.id, formatClassOptionLabel(cls)])
+      ),
+    [classes]
+  );
+
+  const subjectOptionsByClassId = useMemo(
+    () =>
+      new Map(
+        (classes || []).map((cls) => [
+          cls.id,
+          (cls.subjects || []).map((subject) => ({
+            label: subject,
+            value: subject,
+          })),
+        ])
+      ),
+    [classes]
+  );
+
   const sectionStyle = {
     background: "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.62))",
     borderRadius: 20,
@@ -397,6 +470,57 @@ export function AccountPage({
 
   const updateField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const normalizeTeacherAccessPayload = (payload) => {
+    const role = payload?.role || "teacher";
+    if (role !== "teacher") {
+      return {
+        teacherRoles: { classTeacher: false, subjectTeacher: false },
+        teacherAssignments: { classTeacherClassId: "", subjectAssignments: [] },
+      };
+    }
+
+    const teacherRoles = {
+      classTeacher: payload?.teacherRoles?.classTeacher === true,
+      subjectTeacher: payload?.teacherRoles?.subjectTeacher === true,
+    };
+    const rawAssignments = normalizeTeacherAssignmentsState(payload?.teacherAssignments);
+
+    return {
+      teacherRoles,
+      teacherAssignments: {
+        classTeacherClassId: teacherRoles.classTeacher
+          ? String(rawAssignments.classTeacherClassId || "").trim()
+          : "",
+        subjectAssignments: teacherRoles.subjectTeacher
+          ? rawAssignments.subjectAssignments
+              .map((entry) => ({
+                classId: String(entry.classId || "").trim(),
+                subject: String(entry.subject || "").trim().toUpperCase(),
+              }))
+              .filter((entry) => entry.classId && entry.subject)
+          : [],
+      },
+    };
+  };
+
+  const validateTeacherAccessPayload = (payload) => {
+    const normalized = normalizeTeacherAccessPayload(payload);
+    if (payload?.role !== "teacher") return normalized;
+    if (
+      normalized.teacherRoles.classTeacher &&
+      !normalized.teacherAssignments.classTeacherClassId
+    ) {
+      throw new Error("Select the class for the Class Teacher role.");
+    }
+    if (
+      normalized.teacherRoles.subjectTeacher &&
+      normalized.teacherAssignments.subjectAssignments.length === 0
+    ) {
+      throw new Error("Add at least one class and subject for the Subject Teacher role.");
+    }
+    return normalized;
   };
 
   const handleSave = async () => {
@@ -461,6 +585,7 @@ export function AccountPage({
     setAdminError("");
     setAdminMessage("");
     try {
+      const teacherAccess = validateTeacherAccessPayload(adminForm);
       await onCreateUser?.({
         ...adminForm,
         username,
@@ -468,7 +593,8 @@ export function AccountPage({
         email: adminForm.email.trim(),
         phone: adminForm.phone.trim(),
         linkedIndexNo: adminForm.linkedIndexNo.trim(),
-        teacherRoles: adminForm.role === "teacher" ? adminForm.teacherRoles : { classTeacher: false, subjectTeacher: false },
+        teacherRoles: teacherAccess.teacherRoles,
+        teacherAssignments: teacherAccess.teacherAssignments,
         password,
         mustChangePassword: true,
       });
@@ -495,23 +621,15 @@ export function AccountPage({
   const handleSaveManagedUser = async (username) => {
     const payload = editingUsers[username];
     if (!payload) return;
-    const normalizedPayload = {
-      ...payload,
-      teacherRoles:
-        payload.role === "teacher"
-          ? {
-              classTeacher: payload.teacherRoles?.classTeacher === true,
-              subjectTeacher: payload.teacherRoles?.subjectTeacher !== false,
-            }
-          : {
-              classTeacher: false,
-              subjectTeacher: false,
-            },
-    };
     try {
       setAdminError("");
       setAdminMessage("");
-      await onUpdateUser?.(username, normalizedPayload);
+      const teacherAccess = validateTeacherAccessPayload(payload);
+      await onUpdateUser?.(username, {
+        ...payload,
+        teacherRoles: teacherAccess.teacherRoles,
+        teacherAssignments: teacherAccess.teacherAssignments,
+      });
       updateManagedField(username, "password", "");
       setEditingUsername("");
       setActionMenuUser("");
@@ -524,20 +642,13 @@ export function AccountPage({
   const handleResetManagedPassword = async (username) => {
     const payload = editingUsers[username];
     if (!payload) return;
+    const teacherAccess = normalizeTeacherAccessPayload(payload);
     const normalizedPayload = {
       ...payload,
       password: DEFAULT_RESET_PASSWORD,
       mustChangePassword: true,
-      teacherRoles:
-        payload.role === "teacher"
-          ? {
-              classTeacher: payload.teacherRoles?.classTeacher === true,
-              subjectTeacher: payload.teacherRoles?.subjectTeacher !== false,
-            }
-          : {
-              classTeacher: false,
-              subjectTeacher: false,
-            },
+      teacherRoles: teacherAccess.teacherRoles,
+      teacherAssignments: teacherAccess.teacherAssignments,
     };
     setAdminError("");
     setAdminMessage("");
@@ -565,8 +676,11 @@ export function AccountPage({
     try {
       setAdminError("");
       setAdminMessage("");
+      const teacherAccess = normalizeTeacherAccessPayload(payload);
       await onUpdateUser?.(managedUser.username, {
         ...payload,
+        teacherRoles: teacherAccess.teacherRoles,
+        teacherAssignments: teacherAccess.teacherAssignments,
         active: !payload.active,
         password: "",
       });
@@ -585,11 +699,150 @@ export function AccountPage({
         ...prev[username],
         teacherRoles: {
           classTeacher: prev[username]?.teacherRoles?.classTeacher === true,
-          subjectTeacher: prev[username]?.teacherRoles?.subjectTeacher !== false,
+          subjectTeacher: prev[username]?.teacherRoles?.subjectTeacher === true,
+          [key]: value,
+        },
+        teacherAssignments:
+          key === "classTeacher" && !value
+            ? {
+                ...normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments),
+                classTeacherClassId: "",
+              }
+            : key === "subjectTeacher" && !value
+            ? {
+                ...normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments),
+                subjectAssignments: [blankSubjectTeacherAssignment()],
+              }
+            : normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments),
+      },
+    }));
+  };
+
+  const updateAdminTeacherAssignment = (key, value) => {
+    setAdminForm((prev) => ({
+      ...prev,
+      teacherAssignments: {
+        ...normalizeTeacherAssignmentsState(prev.teacherAssignments),
+        [key]: value,
+      },
+    }));
+  };
+
+  const updateAdminSubjectAssignment = (index, key, value) => {
+    setAdminForm((prev) => {
+      const nextAssignments = [...normalizeTeacherAssignmentsState(prev.teacherAssignments).subjectAssignments];
+      nextAssignments[index] = {
+        ...nextAssignments[index],
+        [key]: key === "subject" ? String(value || "").toUpperCase() : value,
+      };
+      if (key === "classId") {
+        nextAssignments[index].subject = "";
+      }
+      return {
+        ...prev,
+        teacherAssignments: {
+          ...normalizeTeacherAssignmentsState(prev.teacherAssignments),
+          subjectAssignments: nextAssignments,
+        },
+      };
+    });
+  };
+
+  const addAdminSubjectAssignment = () => {
+    setAdminForm((prev) => ({
+      ...prev,
+      teacherAssignments: {
+        ...normalizeTeacherAssignmentsState(prev.teacherAssignments),
+        subjectAssignments: [
+          ...normalizeTeacherAssignmentsState(prev.teacherAssignments).subjectAssignments,
+          blankSubjectTeacherAssignment(),
+        ],
+      },
+    }));
+  };
+
+  const removeAdminSubjectAssignment = (index) => {
+    setAdminForm((prev) => {
+      const currentAssignments = normalizeTeacherAssignmentsState(prev.teacherAssignments).subjectAssignments;
+      const nextAssignments = currentAssignments.filter((_, itemIndex) => itemIndex !== index);
+      return {
+        ...prev,
+        teacherAssignments: {
+          ...normalizeTeacherAssignmentsState(prev.teacherAssignments),
+          subjectAssignments: nextAssignments.length ? nextAssignments : [blankSubjectTeacherAssignment()],
+        },
+      };
+    });
+  };
+
+  const updateManagedTeacherAssignment = (username, key, value) => {
+    setEditingUsers((prev) => ({
+      ...prev,
+      [username]: {
+        ...prev[username],
+        teacherAssignments: {
+          ...normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments),
           [key]: value,
         },
       },
     }));
+  };
+
+  const updateManagedSubjectAssignment = (username, index, key, value) => {
+    setEditingUsers((prev) => {
+      const currentAssignments = normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments).subjectAssignments;
+      const nextAssignments = [...currentAssignments];
+      nextAssignments[index] = {
+        ...nextAssignments[index],
+        [key]: key === "subject" ? String(value || "").toUpperCase() : value,
+      };
+      if (key === "classId") {
+        nextAssignments[index].subject = "";
+      }
+      return {
+        ...prev,
+        [username]: {
+          ...prev[username],
+          teacherAssignments: {
+            ...normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments),
+            subjectAssignments: nextAssignments,
+          },
+        },
+      };
+    });
+  };
+
+  const addManagedSubjectAssignment = (username) => {
+    setEditingUsers((prev) => ({
+      ...prev,
+      [username]: {
+        ...prev[username],
+        teacherAssignments: {
+          ...normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments),
+          subjectAssignments: [
+            ...normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments).subjectAssignments,
+            blankSubjectTeacherAssignment(),
+          ],
+        },
+      },
+    }));
+  };
+
+  const removeManagedSubjectAssignment = (username, index) => {
+    setEditingUsers((prev) => {
+      const currentAssignments = normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments).subjectAssignments;
+      const nextAssignments = currentAssignments.filter((_, itemIndex) => itemIndex !== index);
+      return {
+        ...prev,
+        [username]: {
+          ...prev[username],
+          teacherAssignments: {
+            ...normalizeTeacherAssignmentsState(prev[username]?.teacherAssignments),
+            subjectAssignments: nextAssignments.length ? nextAssignments : [blankSubjectTeacherAssignment()],
+          },
+        },
+      };
+    });
   };
 
   const updateHomepageCollectionItem = (collection, index, key, value) => {
@@ -1067,23 +1320,101 @@ export function AccountPage({
                 </div>
 
                 {adminForm.role === "teacher" && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
-                      <ToggleSwitch
-                        checked={adminForm.teacherRoles.classTeacher}
-                        onChange={(val) => setAdminForm((prev) => ({ ...prev, teacherRoles: { ...prev.teacherRoles, classTeacher: val } }))}
-                        accentColor="#2563eb"
+                  <div style={{ display: "grid", gap: 12 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                        <ToggleSwitch
+                          checked={adminForm.teacherRoles.classTeacher}
+                          onChange={(val) =>
+                            setAdminForm((prev) => ({
+                              ...prev,
+                              teacherRoles: { ...prev.teacherRoles, classTeacher: val },
+                              teacherAssignments: {
+                                ...normalizeTeacherAssignmentsState(prev.teacherAssignments),
+                                classTeacherClassId: val
+                                  ? normalizeTeacherAssignmentsState(prev.teacherAssignments).classTeacherClassId
+                                  : "",
+                              },
+                            }))
+                          }
+                          accentColor="#2563eb"
+                        />
+                        Class Teacher
+                      </label>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                        <ToggleSwitch
+                          checked={adminForm.teacherRoles.subjectTeacher}
+                          onChange={(val) =>
+                            setAdminForm((prev) => ({
+                              ...prev,
+                              teacherRoles: { ...prev.teacherRoles, subjectTeacher: val },
+                              teacherAssignments: {
+                                ...normalizeTeacherAssignmentsState(prev.teacherAssignments),
+                                subjectAssignments: val
+                                  ? normalizeTeacherAssignmentsState(prev.teacherAssignments).subjectAssignments
+                                  : [blankSubjectTeacherAssignment()],
+                              },
+                            }))
+                          }
+                          accentColor="#0f766e"
+                        />
+                        Subject Teacher
+                      </label>
+                    </div>
+
+                    {adminForm.teacherRoles.classTeacher && (
+                      <SelectInput
+                        label="Class Teacher Class"
+                        value={normalizeTeacherAssignmentsState(adminForm.teacherAssignments).classTeacherClassId}
+                        onChange={(value) => updateAdminTeacherAssignment("classTeacherClassId", value)}
+                        options={[{ label: "Select class", value: "" }, ...classPickerOptions]}
                       />
-                      Class Teacher
-                    </label>
-                    <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
-                      <ToggleSwitch
-                        checked={adminForm.teacherRoles.subjectTeacher}
-                        onChange={(val) => setAdminForm((prev) => ({ ...prev, teacherRoles: { ...prev.teacherRoles, subjectTeacher: val } }))}
-                        accentColor="#0f766e"
-                      />
-                      Subject Teacher
-                    </label>
+                    )}
+
+                    {adminForm.teacherRoles.subjectTeacher && (
+                      <div style={{ display: "grid", gap: 10 }}>
+                        {normalizeTeacherAssignmentsState(adminForm.teacherAssignments).subjectAssignments.map((assignment, index) => {
+                          const subjectOptions = subjectOptionsByClassId.get(assignment.classId) || [];
+                          return (
+                            <div key={`admin-subject-assignment-${index}`} style={{ ...softGlassStyle, borderRadius: 14, padding: 12, display: "grid", gap: 10 }}>
+                              <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 12 }}>
+                                <SelectInput
+                                  label={`Subject Teacher Class ${index + 1}`}
+                                  value={assignment.classId}
+                                  onChange={(value) => updateAdminSubjectAssignment(index, "classId", value)}
+                                  options={[{ label: "Select class", value: "" }, ...classPickerOptions]}
+                                />
+                                <SelectInput
+                                  label={`Subject ${index + 1}`}
+                                  value={assignment.subject}
+                                  onChange={(value) => updateAdminSubjectAssignment(index, "subject", value)}
+                                  options={[{ label: "Select subject", value: "" }, ...subjectOptions]}
+                                />
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                                <div style={{ fontSize: 11, color: "#64748b" }}>
+                                  Choose the class and subject this teacher should handle.
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeAdminSubjectAssignment(index)}
+                                  style={{ background: "none", border: "none", color: "#b42318", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={addAdminSubjectAssignment}
+                          style={{ background: "none", border: "1px dashed #93c5fd", borderRadius: 10, padding: "10px 12px", color: "#2563eb", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                        >
+                          Add Subject Assignment
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1170,23 +1501,79 @@ export function AccountPage({
                   </div>
 
                   {edit.role === "teacher" && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
-                        <ToggleSwitch
-                          checked={edit.teacherRoles?.classTeacher === true}
-                          onChange={(val) => toggleTeacherDuty(editingUsername, "classTeacher", val)}
-                          accentColor="#2563eb"
+                    <div style={{ display: "grid", gap: 12 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                          <ToggleSwitch
+                            checked={edit.teacherRoles?.classTeacher === true}
+                            onChange={(val) => toggleTeacherDuty(editingUsername, "classTeacher", val)}
+                            accentColor="#2563eb"
+                          />
+                          Class Teacher
+                        </label>
+                        <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                          <ToggleSwitch
+                            checked={edit.teacherRoles?.subjectTeacher === true}
+                            onChange={(val) => toggleTeacherDuty(editingUsername, "subjectTeacher", val)}
+                            accentColor="#0f766e"
+                          />
+                          Subject Teacher
+                        </label>
+                      </div>
+
+                      {edit.teacherRoles?.classTeacher === true && (
+                        <SelectInput
+                          label="Class Teacher Class"
+                          value={normalizeTeacherAssignmentsState(edit.teacherAssignments).classTeacherClassId}
+                          onChange={(value) => updateManagedTeacherAssignment(editingUsername, "classTeacherClassId", value)}
+                          options={[{ label: "Select class", value: "" }, ...classPickerOptions]}
                         />
-                        Class Teacher
-                      </label>
-                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
-                        <ToggleSwitch
-                          checked={edit.teacherRoles?.subjectTeacher !== false}
-                          onChange={(val) => toggleTeacherDuty(editingUsername, "subjectTeacher", val)}
-                          accentColor="#0f766e"
-                        />
-                        Subject Teacher
-                      </label>
+                      )}
+
+                      {edit.teacherRoles?.subjectTeacher === true && (
+                        <div style={{ display: "grid", gap: 10 }}>
+                          {normalizeTeacherAssignmentsState(edit.teacherAssignments).subjectAssignments.map((assignment, index) => {
+                            const subjectOptions = subjectOptionsByClassId.get(assignment.classId) || [];
+                            return (
+                              <div key={`${editingUsername}-subject-assignment-${index}`} style={{ ...softGlassStyle, borderRadius: 14, padding: 12, display: "grid", gap: 10 }}>
+                                <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 12 }}>
+                                  <SelectInput
+                                    label={`Subject Teacher Class ${index + 1}`}
+                                    value={assignment.classId}
+                                    onChange={(value) => updateManagedSubjectAssignment(editingUsername, index, "classId", value)}
+                                    options={[{ label: "Select class", value: "" }, ...classPickerOptions]}
+                                  />
+                                  <SelectInput
+                                    label={`Subject ${index + 1}`}
+                                    value={assignment.subject}
+                                    onChange={(value) => updateManagedSubjectAssignment(editingUsername, index, "subject", value)}
+                                    options={[{ label: "Select subject", value: "" }, ...subjectOptions]}
+                                  />
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                                  <div style={{ fontSize: 11, color: "#64748b" }}>
+                                    Choose the class and subject this teacher should handle.
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeManagedSubjectAssignment(editingUsername, index)}
+                                    style={{ background: "none", border: "none", color: "#b42318", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <button
+                            type="button"
+                            onClick={() => addManagedSubjectAssignment(editingUsername)}
+                            style={{ background: "none", border: "1px dashed #93c5fd", borderRadius: 10, padding: "10px 12px", color: "#2563eb", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                          >
+                            Add Subject Assignment
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1315,7 +1702,7 @@ export function AccountPage({
                           {isTeacher ? (
                             <>
                               <TeacherDutyBadge active={managedUser.teacherRoles?.classTeacher === true} label="Class Teacher" />
-                              <TeacherDutyBadge active={managedUser.teacherRoles?.subjectTeacher !== false} label="Subject Teacher" />
+                              <TeacherDutyBadge active={managedUser.teacherRoles?.subjectTeacher === true} label="Subject Teacher" />
                             </>
                           ) : (
                             <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700 }}>Not applicable</span>
@@ -1361,7 +1748,7 @@ export function AccountPage({
                         {isTeacher ? (
                           <>
                             <TeacherDutyBadge active={managedUser.teacherRoles?.classTeacher === true} label="Class Teacher" />
-                            <TeacherDutyBadge active={managedUser.teacherRoles?.subjectTeacher !== false} label="Subject Teacher" />
+                            <TeacherDutyBadge active={managedUser.teacherRoles?.subjectTeacher === true} label="Subject Teacher" />
                           </>
                         ) : null}
                       </div>
@@ -1390,10 +1777,29 @@ export function AccountPage({
                           {managedUser.role === "teacher" ? (
                             <>
                               <TeacherDutyBadge active={edit.teacherRoles?.classTeacher === true} label="Class Teacher" />
-                              <TeacherDutyBadge active={edit.teacherRoles?.subjectTeacher !== false} label="Subject Teacher" />
+                              <TeacherDutyBadge active={edit.teacherRoles?.subjectTeacher === true} label="Subject Teacher" />
                             </>
                           ) : null}
                         </div>
+                        {managedUser.role === "teacher" ? (
+                          <div style={{ display: "grid", gap: 6, fontSize: 12, color: "#475569" }}>
+                            {normalizeTeacherAssignmentsState(edit.teacherAssignments).classTeacherClassId ? (
+                              <div>
+                                <strong>Class Teacher:</strong>{" "}
+                                {classNameById.get(normalizeTeacherAssignmentsState(edit.teacherAssignments).classTeacherClassId) ||
+                                  "Assigned class"}
+                              </div>
+                            ) : null}
+                            {normalizeTeacherAssignmentsState(edit.teacherAssignments).subjectAssignments
+                              .filter((entry) => entry.classId && entry.subject)
+                              .map((entry, index) => (
+                                <div key={`${managedUser.username}-assignment-menu-${index}`}>
+                                  <strong>Subject:</strong> {entry.subject} ·{" "}
+                                  {classNameById.get(entry.classId) || "Assigned class"}
+                                </div>
+                              ))}
+                          </div>
+                        ) : null}
                         <div style={{ height: 1, background: "#e2e8f0" }} />
                         <button
                           type="button"

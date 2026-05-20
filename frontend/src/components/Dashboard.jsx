@@ -452,6 +452,7 @@ export function Dashboard({
   managedUsers = [],
   authLogs = [],
   allComputed = [],
+  allowedClassIds = null,
   teacherScope = null,
   onLoadUsers,
   onLoadAuthLogs,
@@ -793,7 +794,11 @@ export function Dashboard({
     setSearchError("");
     try {
       const results = await API.searchStudents(query, { limit: compact ? 8 : 10 });
-      setSearchResults(results);
+      const filteredResults =
+        allowedClassIds instanceof Set
+          ? (results || []).filter((student) => allowedClassIds.has(student.classId))
+          : results;
+      setSearchResults(filteredResults);
     } catch (err) {
       setSearchError(err.message || "Unable to search students");
       setSearchResults([]);

@@ -12,6 +12,7 @@ const {
   canManageStudents,
   canDeleteStudents,
   canViewAudit,
+  canAccessClassRecord,
 } = require("../../lib/auth");
 const {
   listClasses,
@@ -22,6 +23,8 @@ const {
   getClassWithStudents,
   setClassPublishedState,
   getClassAuditLogs,
+  getClassSnapshot,
+  parseClass,
 } = require("../../lib/classes");
 const {
   listStudents,
@@ -59,7 +62,11 @@ router.get("/", requireRole(canReadClassData, "You do not have permission to vie
     const classes = await listClasses(getDb(), {
       includeArchived: req.query.includeArchived === "true",
     });
-    res.json(classes);
+    const visibleClasses =
+      req.authUser.role === "teacher"
+        ? classes.filter((cls) => canAccessClassRecord(req.authUser, cls))
+        : classes;
+    res.json(visibleClasses);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -68,6 +75,9 @@ router.get("/", requireRole(canReadClassData, "You do not have permission to vie
 router.get("/:id", requireRole(canReadClassData, "You do not have permission to view classes"), async (req, res) => {
   try {
     const cls = await getClassWithStudents(getDb(), req.params.id);
+    if (!canAccessClassRecord(req.authUser, cls)) {
+      return res.status(403).json({ error: "You do not have permission to view this class" });
+    }
     res.json(cls);
   } catch (err) {
     res.status(/class not found/i.test(err.message) ? 404 : 500).json({ error: err.message });
@@ -133,6 +143,12 @@ router.get(
   requireRole(canReadClassData, "You do not have permission to view students"),
   async (req, res) => {
   try {
+    if (req.authUser.role === "teacher") {
+      const { classSnap } = await getClassSnapshot(getDb(), req.params.id);
+      if (!canAccessClassRecord(req.authUser, parseClass(classSnap))) {
+        return res.status(403).json({ error: "You do not have permission to view this class" });
+      }
+    }
     const result = await listStudents(getDb(), req.params.id, req.query || {});
     res.json(result);
   } catch (err) {
@@ -146,6 +162,12 @@ router.post(
   validateStudentMiddleware,
   async (req, res) => {
   try {
+    if (req.authUser.role === "teacher") {
+      const { classSnap } = await getClassSnapshot(getDb(), req.params.id);
+      if (!canAccessClassRecord(req.authUser, parseClass(classSnap))) {
+        return res.status(403).json({ error: "You do not have permission to manage this class" });
+      }
+    }
     const created = await createStudentRecord(getDb(), req.params.id, req.body || {});
     res.status(201).json(created);
   } catch (err) {
@@ -160,6 +182,12 @@ router.post(
 
 router.post("/:id/students/bulk", requireRole(canManageStudents, "You do not have permission to import students"), async (req, res) => {
   try {
+    if (req.authUser.role === "teacher") {
+      const { classSnap } = await getClassSnapshot(getDb(), req.params.id);
+      if (!canAccessClassRecord(req.authUser, parseClass(classSnap))) {
+        return res.status(403).json({ error: "You do not have permission to manage this class" });
+      }
+    }
     const result = await bulkImportStudents(
       getDb(),
       req.params.id,
@@ -199,6 +227,12 @@ router.put(
   validateStudentMiddleware,
   async (req, res) => {
   try {
+    if (req.authUser.role === "teacher") {
+      const { classSnap } = await getClassSnapshot(getDb(), req.params.id);
+      if (!canAccessClassRecord(req.authUser, parseClass(classSnap))) {
+        return res.status(403).json({ error: "You do not have permission to manage this class" });
+      }
+    }
     const updated = await updateStudentRecord(getDb(), req.params.id, req.params.sid, req.body || {});
     res.json(updated);
   } catch (err) {

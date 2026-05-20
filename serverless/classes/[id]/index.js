@@ -1,11 +1,13 @@
 const { getDb } = require("../../../lib/firebaseAdmin");
 const { readJsonBody, sendJson } = require("../../../lib/http");
-const { resolveSessionUser, canReadClassData, canManageClasses } = require("../../../lib/auth");
+const { resolveSessionUser, canReadClassData, canManageClasses, canAccessClassRecord } = require("../../../lib/auth");
 const {
   getClassWithStudents,
   updateClassRecord,
   deleteClassRecord,
   restoreClassRecord,
+  getClassSnapshot,
+  parseClass,
 } = require("../../../lib/classes");
 
 module.exports = async (req, res) => {
@@ -28,6 +30,9 @@ module.exports = async (req, res) => {
     }
     try {
       const cls = await getClassWithStudents(db, classId);
+      if (!canAccessClassRecord(currentUser, cls)) {
+        return sendJson(res, 403, { error: "You do not have permission to view this class" });
+      }
       return sendJson(res, 200, cls);
     } catch (err) {
       const status = /class not found/i.test(err.message) ? 404 : 500;

@@ -5,12 +5,17 @@ const {
   canManageStudents,
   canReadClassData,
   canManageClasses,
+  canAccessClassRecord,
 } = require("../../../../lib/auth");
 const {
   listStudents,
   createStudentRecord,
   reorderStudentsBySexAndRegenerateCnos,
 } = require("../../../../lib/classStudents");
+const {
+  getClassSnapshot,
+  parseClass,
+} = require("../../../../lib/classes");
 
 module.exports = async (req, res) => {
   const db = getDb();
@@ -31,6 +36,12 @@ module.exports = async (req, res) => {
       return sendJson(res, 403, { error: "You do not have permission to view students" });
     }
     try {
+      if (currentUser.role === "teacher") {
+        const { classSnap } = await getClassSnapshot(db, classId);
+        if (!canAccessClassRecord(currentUser, parseClass(classSnap))) {
+          return sendJson(res, 403, { error: "You do not have permission to view this class" });
+        }
+      }
       const result = await listStudents(db, classId, req.query || {});
       return sendJson(res, 200, result);
     } catch (err) {
@@ -44,6 +55,12 @@ module.exports = async (req, res) => {
       return sendJson(res, 403, { error: "You do not have permission to add students" });
     }
     try {
+      if (currentUser.role === "teacher") {
+        const { classSnap } = await getClassSnapshot(db, classId);
+        if (!canAccessClassRecord(currentUser, parseClass(classSnap))) {
+          return sendJson(res, 403, { error: "You do not have permission to manage this class" });
+        }
+      }
       const body = await readJsonBody(req);
       const created = await createStudentRecord(db, classId, body);
       return sendJson(res, 201, created);

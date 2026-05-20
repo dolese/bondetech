@@ -34,6 +34,7 @@ export function CommandPalette({
   onClose,
   classes = [],
   users = [],
+  allowedClassIds = null,
   onSetPage,
   onPickClass,
   onOpenStudentProfile,
@@ -70,7 +71,15 @@ export function CommandPalette({
       try {
         const results = await API.searchStudents(normalizedQuery, { limit: 8 });
         if (!cancelled) {
-          setStudentResults(Array.isArray(results) ? results : []);
+          const filteredResults =
+            allowedClassIds instanceof Set
+              ? (Array.isArray(results) ? results : []).filter((student) =>
+                  allowedClassIds.has(student.classId)
+                )
+              : Array.isArray(results)
+              ? results
+              : [];
+          setStudentResults(filteredResults);
         }
       } catch {
         if (!cancelled) setStudentResults([]);
@@ -83,7 +92,7 @@ export function CommandPalette({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [isOpen, query]);
+  }, [allowedClassIds, isOpen, query]);
 
   const items = useMemo(() => {
     const normalizedQuery = query.toLowerCase().trim();
