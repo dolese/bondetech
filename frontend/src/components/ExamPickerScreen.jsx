@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { EXAM_TYPES, getMonthlyExamKey } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
+import { glassPanelStyle, pillStyle, primaryButtonStyle } from "../utils/designSystem";
 
 const EXAM_META = {
   "March Exam": { icon: "SE", color: "#0b6b3a", bg: "#e6f9ee", border: "#7dd3a8" },
@@ -15,7 +16,7 @@ const EXAM_META = {
 const MONTHLY_META = { icon: "ME", color: "#1a5276", bg: "#eaf4fb", border: "#7fb3d3" };
 
 export function ExamPickerScreen({ classData, onPick, onCancel }) {
-  const { isMobile } = useViewport();
+  const { isMobile, isTablet, isXs } = useViewport();
   const [hoveredExam, setHoveredExam] = useState(null);
 
   const monthlyExams = Array.isArray(classData?.monthly_exams) ? classData.monthly_exams : [];
@@ -24,58 +25,69 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
     overlay: {
       position: "fixed",
       inset: 0,
-      background: "rgba(0,20,60,0.6)",
+      background: "rgba(15,23,42,0.58)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       zIndex: 500,
-      backdropFilter: "blur(3px)",
+      backdropFilter: "blur(8px)",
+      padding: isMobile ? 12 : 18,
     },
     box: {
-      background: "#fff",
-      borderRadius: 16,
-      boxShadow: "0 12px 48px rgba(0,0,0,0.35)",
-      padding: isMobile ? 16 : 28,
-      width: isMobile ? "92vw" : 560,
-      maxWidth: "96vw",
+      ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 24 : 30 }),
+      width: isMobile ? "100%" : 760,
+      maxWidth: "100%",
       maxHeight: "90vh",
       overflowY: "auto",
     },
+    topRow: {
+      display: "flex",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: 14,
+      flexWrap: "wrap",
+      marginBottom: 18,
+    },
     heading: {
-      fontSize: isMobile ? 16 : 19,
+      fontSize: isMobile ? 24 : 30,
       fontWeight: 900,
-      color: "#003366",
-      marginBottom: 4,
+      color: "#0f172a",
+      lineHeight: 1.05,
     },
     sub: {
-      fontSize: 11,
-      color: "#667",
-      marginBottom: 18,
+      fontSize: 13,
+      color: "#64748b",
+      marginTop: 6,
+      lineHeight: 1.7,
+      maxWidth: 520,
     },
     grid: {
       display: "grid",
-      gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)",
-      gap: 10,
-      marginBottom: 16,
+      gridTemplateColumns: isXs
+        ? "1fr"
+        : isMobile
+        ? "repeat(2, minmax(0, 1fr))"
+        : isTablet
+        ? "repeat(3, minmax(0, 1fr))"
+        : "repeat(4, minmax(0, 1fr))",
+      gap: 12,
+      marginBottom: 18,
     },
     sectionLabel: {
-      fontSize: 10,
-      fontWeight: 800,
-      color: "#667",
+      fontSize: 11,
+      fontWeight: 900,
+      color: "#64748b",
       textTransform: "uppercase",
-      letterSpacing: 0.8,
-      marginBottom: 8,
+      letterSpacing: "0.12em",
+      marginBottom: 10,
     },
     cancelBtn: {
-      width: "100%",
-      padding: "9px",
-      borderRadius: 8,
-      border: "1px solid #d0dcf8",
-      background: "#f4f7ff",
-      color: "#555",
-      fontSize: 12,
-      fontWeight: 700,
-      cursor: "pointer",
+      ...primaryButtonStyle({ compact: true }),
+      width: isMobile ? "100%" : "auto",
+      background: "#eef3fb",
+      color: "#475569",
+      border: "1px solid rgba(214,226,245,0.95)",
+      boxShadow: "none",
     },
   };
 
@@ -92,60 +104,62 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
         onMouseEnter={() => setHoveredExam(examValue)}
         onMouseLeave={() => setHoveredExam(null)}
         style={{
-          background: meta.bg,
-          border: `2px solid ${isActive ? meta.color : meta.border}`,
-          borderRadius: 10,
-          padding: "14px 10px",
+          background: isActive
+            ? `linear-gradient(180deg, ${meta.bg}, #ffffff)`
+            : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96))",
+          border: `1.5px solid ${isActive ? meta.color : "rgba(214,226,245,0.95)"}`,
+          borderRadius: 20,
+          padding: isMobile ? "12px 12px" : "14px 14px",
           cursor: "pointer",
-          display: "flex",
-          flexDirection: "column",
+          display: "grid",
+          gridTemplateColumns: "auto 1fr",
           alignItems: "center",
-          gap: 6,
-          transition: "transform 0.12s, box-shadow 0.12s",
-          transform: hoveredExam === examValue ? "translateY(-2px)" : "",
+          gap: 12,
+          transition: "transform 0.14s, box-shadow 0.14s, border-color 0.14s",
+          transform: hoveredExam === examValue ? "translateY(-1px)" : "none",
           boxShadow:
             hoveredExam === examValue
-              ? `0 4px 14px ${meta.color}44`
+              ? `0 14px 26px ${meta.color}22`
               : isActive
-              ? `0 0 0 3px ${meta.color}44`
-              : "0 1px 4px rgba(0,0,0,0.07)",
+              ? `0 10px 24px ${meta.color}1f`
+              : "0 6px 16px rgba(15,23,42,0.06)",
           outline: "none",
+          width: "100%",
+          textAlign: "left",
         }}
       >
         <span
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: 999,
+            width: isMobile ? 38 : 42,
+            height: isMobile ? 38 : 42,
+            borderRadius: 14,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#fff",
+            background: "rgba(255,255,255,0.92)",
             color: meta.color,
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 900,
             letterSpacing: 0.6,
+            border: `1px solid ${meta.border}`,
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
           }}
         >
           {meta.icon}
         </span>
-        <span style={{ fontSize: 11, fontWeight: 800, color: meta.color, textAlign: "center", lineHeight: 1.3 }}>
-          {label}
-        </span>
-        {isActive && (
-          <span
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: meta.color,
-              background: `${meta.color}1a`,
-              borderRadius: 99,
-              padding: "2px 8px",
-            }}
-          >
-            Last used
+        <span style={{ display: "grid", gap: 5, minWidth: 0 }}>
+          <span style={{ fontSize: isMobile ? 12 : 13, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>
+            {label}
           </span>
-        )}
+          <span style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={pillStyle({ tone: isActive ? "blue" : "slate" })}>
+              {isActive ? "Current exam" : "Available"}
+            </span>
+            <span style={{ fontSize: 11, color: meta.color, fontWeight: 700 }}>
+              {examValue}
+            </span>
+          </span>
+        </span>
       </button>
     );
   };
@@ -153,9 +167,19 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
   return (
     <div style={styles.overlay} onClick={onCancel}>
       <div style={styles.box} onClick={(e) => e.stopPropagation()} tabIndex={0}>
-        <div style={styles.heading}>Select Exam</div>
-        <div style={styles.sub}>
-          {className ? `Choose the exam you want to work with for ${className}.` : "Choose the exam you want to work with."}
+        <div style={styles.topRow}>
+          <div>
+            <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>Exam Workspace</div>
+            <div style={styles.heading}>Select Exam</div>
+            <div style={styles.sub}>
+              {className
+                ? `Choose the exam you want to work with for ${className}.`
+                : "Choose the exam you want to work with."}
+            </div>
+          </div>
+          {className ? (
+            <div style={{ ...pillStyle({ tone: "teal" }), alignSelf: "flex-start" }}>{className}</div>
+          ) : null}
         </div>
 
         <div style={styles.sectionLabel}>Standard Exams</div>
