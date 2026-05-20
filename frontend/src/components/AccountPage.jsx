@@ -4,6 +4,9 @@ import { formatUserRole, USER_ROLE_OPTIONS } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
 
+const DEFAULT_RESET_PASSWORD = "Bonde@2026";
+const MANAGEABLE_USER_ROLE_OPTIONS = USER_ROLE_OPTIONS.filter((option) => option.value !== "student");
+
 function initialsFrom(user) {
   const source = String(user?.displayName || user?.username || "?")
     .split(/[\s@._-]+/)
@@ -73,6 +76,36 @@ function StatusBadge({ active }) {
   );
 }
 
+function MoreIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <circle cx="5" cy="12" r="1.8" />
+      <circle cx="12" cy="12" r="1.8" />
+      <circle cx="19" cy="12" r="1.8" />
+    </svg>
+  );
+}
+
+function TeacherDutyBadge({ active, label }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "3px 9px",
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 800,
+        background: active ? "#e0f2fe" : "#f8fafc",
+        color: active ? "#0369a1" : "#94a3b8",
+        border: `1px solid ${active ? "#bae6fd" : "#e2e8f0"}`,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
 function ToggleSwitch({ checked, onChange, accentColor = "#2563eb" }) {
   return (
     <button
@@ -121,6 +154,10 @@ function blankManagedUser() {
     password: "",
     active: true,
     mustChangePassword: true,
+    teacherRoles: {
+      classTeacher: false,
+      subjectTeacher: true,
+    },
   };
 }
 
@@ -199,11 +236,6 @@ export function AccountPage({
   const { isXs, isMobile, isTablet } = useViewport();
   const singleColumn = isMobile;
   const stackedColumns = isMobile || isTablet;
-  const managedCardsColumns = useMemo(() => {
-    if (singleColumn) return "1fr";
-    if (isTablet) return "repeat(2, minmax(0, 1fr))";
-    return "repeat(auto-fill, minmax(320px, 1fr))";
-  }, [singleColumn, isTablet]);
   const [activeTab, setActiveTab] = useState("profile");
   const [form, setForm] = useState({
     username: "",
@@ -224,8 +256,12 @@ export function AccountPage({
   const [passwordMsg, setPasswordMsg] = useState("");
   const [adminForm, setAdminForm] = useState(blankManagedUser());
   const [adminError, setAdminError] = useState("");
+  const [adminMessage, setAdminMessage] = useState("");
   const [adminSaving, setAdminSaving] = useState(false);
   const [editingUsers, setEditingUsers] = useState({});
+  const [userFormOpen, setUserFormOpen] = useState(false);
+  const [actionMenuUser, setActionMenuUser] = useState("");
+  const [editingUsername, setEditingUsername] = useState("");
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [homepageForm, setHomepageForm] = useState({
@@ -302,14 +338,23 @@ export function AccountPage({
         active: managedUser.active !== false,
         password: "",
         mustChangePassword: managedUser.mustChangePassword === true,
+        teacherRoles: {
+          classTeacher: managedUser.teacherRoles?.classTeacher === true,
+          subjectTeacher: managedUser.teacherRoles?.subjectTeacher !== false,
+        },
       };
     });
     setEditingUsers(next);
   }, [users]);
 
+  const manageableUsers = useMemo(
+    () => users.filter((managedUser) => managedUser.role !== "student"),
+    [users]
+  );
+
   const managedUserCards = useMemo(() => {
     const query = userSearch.trim().toLowerCase();
-    return users
+    return manageableUsers
       .slice()
       .sort((a, b) => a.username.localeCompare(b.username))
       .filter((managedUser) => {
@@ -325,7 +370,7 @@ export function AccountPage({
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(query));
       });
-  }, [roleFilter, userSearch, users]);
+  }, [manageableUsers, roleFilter, userSearch]);
 
   const sectionStyle = {
     background: "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.62))",
@@ -406,18 +451,15 @@ export function AccountPage({
 
   const handleCreateUser = async () => {
     const username = adminForm.username.trim();
-    const password = adminForm.password;
+    const password = adminForm.password || DEFAULT_RESET_PASSWORD;
     if (!username) {
       setAdminError(t("usernameRequired"));
-      return;
-    }
-    if (!password) {
-      setAdminError(t("temporaryPasswordRequired"));
       return;
     }
 
     setAdminSaving(true);
     setAdminError("");
+    setAdminMessage("");
     try {
       await onCreateUser?.({
         ...adminForm,
@@ -426,9 +468,13 @@ export function AccountPage({
         email: adminForm.email.trim(),
         phone: adminForm.phone.trim(),
         linkedIndexNo: adminForm.linkedIndexNo.trim(),
+        teacherRoles: adminForm.role === "teacher" ? adminForm.teacherRoles : { classTeacher: false, subjectTeacher: false },
+        password,
         mustChangePassword: true,
       });
       setAdminForm(blankManagedUser());
+      setUserFormOpen(false);
+      setAdminMessage(`User created. Default password: ${DEFAULT_RESET_PASSWORD}`);
     } catch (err) {
       setAdminError(err.message || t("unableToCreateUser"));
     } finally {
@@ -449,10 +495,27 @@ export function AccountPage({
   const handleSaveManagedUser = async (username) => {
     const payload = editingUsers[username];
     if (!payload) return;
+    const normalizedPayload = {
+      ...payload,
+      teacherRoles:
+        payload.role === "teacher"
+          ? {
+              classTeacher: payload.teacherRoles?.classTeacher === true,
+              subjectTeacher: payload.teacherRoles?.subjectTeacher !== false,
+            }
+          : {
+              classTeacher: false,
+              subjectTeacher: false,
+            },
+    };
     try {
       setAdminError("");
-      await onUpdateUser?.(username, payload);
+      setAdminMessage("");
+      await onUpdateUser?.(username, normalizedPayload);
       updateManagedField(username, "password", "");
+      setEditingUsername("");
+      setActionMenuUser("");
+      setAdminMessage(`Updated ${username}`);
     } catch (err) {
       setAdminError(err.message || `Unable to update ${username}`);
     }
@@ -460,12 +523,40 @@ export function AccountPage({
 
   const handleResetManagedPassword = async (username) => {
     const payload = editingUsers[username];
-    if (!payload?.password) {
-      setAdminError(t("enterNewPasswordForUser", "", { username }));
-      return;
+    if (!payload) return;
+    const normalizedPayload = {
+      ...payload,
+      password: DEFAULT_RESET_PASSWORD,
+      mustChangePassword: true,
+      teacherRoles:
+        payload.role === "teacher"
+          ? {
+              classTeacher: payload.teacherRoles?.classTeacher === true,
+              subjectTeacher: payload.teacherRoles?.subjectTeacher !== false,
+            }
+          : {
+              classTeacher: false,
+              subjectTeacher: false,
+            },
+    };
+    setAdminError("");
+    setAdminMessage("");
+    try {
+      await onUpdateUser?.(username, normalizedPayload);
+      setEditingUsers((prev) => ({
+        ...prev,
+        [username]: {
+          ...prev[username],
+          password: "",
+          mustChangePassword: true,
+        },
+      }));
+      setEditingUsername("");
+      setActionMenuUser("");
+      setAdminMessage(`Password reset for ${username}. Default password: ${DEFAULT_RESET_PASSWORD}`);
+    } catch (err) {
+      setAdminError(err.message || `Unable to reset password for ${username}`);
     }
-    updateManagedField(username, "mustChangePassword", true);
-    await handleSaveManagedUser(username);
   };
 
   const handleToggleManagedStatus = async (managedUser) => {
@@ -473,15 +564,32 @@ export function AccountPage({
     if (!payload) return;
     try {
       setAdminError("");
+      setAdminMessage("");
       await onUpdateUser?.(managedUser.username, {
         ...payload,
         active: !payload.active,
         password: "",
       });
       updateManagedField(managedUser.username, "active", !payload.active);
+      setActionMenuUser("");
+      setAdminMessage(`${managedUser.username} ${payload.active ? "deactivated" : "activated"}.`);
     } catch (err) {
       setAdminError(err.message || t("unableToUpdateUser", "", { username: managedUser.username }));
     }
+  };
+
+  const toggleTeacherDuty = (username, key, value) => {
+    setEditingUsers((prev) => ({
+      ...prev,
+      [username]: {
+        ...prev[username],
+        teacherRoles: {
+          classTeacher: prev[username]?.teacherRoles?.classTeacher === true,
+          subjectTeacher: prev[username]?.teacherRoles?.subjectTeacher !== false,
+          [key]: value,
+        },
+      },
+    }));
   };
 
   const updateHomepageCollectionItem = (collection, index, key, value) => {
@@ -907,226 +1015,416 @@ export function AccountPage({
         ══════════════════════════════════════════════ */}
         {activeTab === "users" && canManageUsers && (
           <div style={{ ...sectionStyle, display: "grid", gap: 18 }}>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
-                Create New User
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+                  Manage Users
+                </div>
+                <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, maxWidth: 680 }}>
+                  Create and manage administrators, academic staff, teachers, and parents. Students are created from Student Management, not from this user list.
+                </div>
               </div>
-              <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
-                Add teachers, parents, students, and additional administrators with server-backed roles.
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 14 }}>
-              <TextInput label="Username" value={adminForm.username} onChange={(value) => setAdminForm((prev) => ({ ...prev, username: value }))} required />
-              <TextInput label="Display Name" value={adminForm.displayName} onChange={(value) => setAdminForm((prev) => ({ ...prev, displayName: value }))} />
-              <SelectInput label="Role" value={adminForm.role} onChange={(value) => setAdminForm((prev) => ({ ...prev, role: value }))} options={USER_ROLE_OPTIONS} />
-              <TextInput label="Email" value={adminForm.email} onChange={(value) => setAdminForm((prev) => ({ ...prev, email: value }))} />
-              <TextInput label="Phone" value={adminForm.phone} onChange={(value) => setAdminForm((prev) => ({ ...prev, phone: value }))} />
-              <TextInput label="Linked Student Index No" value={adminForm.linkedIndexNo} onChange={(value) => setAdminForm((prev) => ({ ...prev, linkedIndexNo: value }))} />
-              <TextInput label="Temporary Password" type="password" value={adminForm.password} onChange={(value) => setAdminForm((prev) => ({ ...prev, password: value }))} required />
-            </div>
-
-            {adminError && (
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#b42318" }}>
-                {adminError}
-              </div>
-            )}
-
-            <div>
               <button
-                onClick={handleCreateUser}
-                disabled={adminSaving}
+                type="button"
+                onClick={() => {
+                  setUserFormOpen((prev) => !prev);
+                  setAdminError("");
+                  setAdminMessage("");
+                  if (!userFormOpen) {
+                    setAdminForm({
+                      ...blankManagedUser(),
+                      password: DEFAULT_RESET_PASSWORD,
+                    });
+                  }
+                }}
                 style={{
-                  background: adminSaving ? "#7aa3db" : "#2563eb",
+                  background: "#2563eb",
                   color: "#fff",
                   border: "none",
-                  borderRadius: 10,
-                  padding: "10px 18px",
+                  borderRadius: 12,
+                  padding: "11px 18px",
                   fontSize: 13,
                   fontWeight: 800,
-                  cursor: adminSaving ? "not-allowed" : "pointer",
-                  boxShadow: "0 8px 18px rgba(37,99,235,0.2)",
-                  width: isMobile ? "100%" : "auto",
+                  cursor: "pointer",
+                  boxShadow: "0 12px 24px rgba(37,99,235,0.2)",
+                  minWidth: isMobile ? "100%" : undefined,
                 }}
               >
-                {adminSaving ? "Creating..." : "Create User"}
+                {userFormOpen ? "Close Form" : "Add User"}
               </button>
             </div>
 
-            <div
-              style={{
-                height: 1,
-                background: "#e3ebf7",
-                margin: "4px 0",
-              }}
-            />
+            {userFormOpen && (
+              <div style={{ ...softGlassStyle, borderRadius: 16, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 14 }}>
+                  <TextInput label="Username" value={adminForm.username} onChange={(value) => setAdminForm((prev) => ({ ...prev, username: value }))} required />
+                  <TextInput label="Display Name" value={adminForm.displayName} onChange={(value) => setAdminForm((prev) => ({ ...prev, displayName: value }))} />
+                  <SelectInput label="Role" value={adminForm.role} onChange={(value) => setAdminForm((prev) => ({ ...prev, role: value }))} options={MANAGEABLE_USER_ROLE_OPTIONS} />
+                  <TextInput label="Email" value={adminForm.email} onChange={(value) => setAdminForm((prev) => ({ ...prev, email: value }))} />
+                  <TextInput label="Phone" value={adminForm.phone} onChange={(value) => setAdminForm((prev) => ({ ...prev, phone: value }))} />
+                  <TextInput label="Linked Student Index No" value={adminForm.linkedIndexNo} onChange={(value) => setAdminForm((prev) => ({ ...prev, linkedIndexNo: value }))} />
+                  <TextInput label="Default Password" value={adminForm.password || DEFAULT_RESET_PASSWORD} onChange={(value) => setAdminForm((prev) => ({ ...prev, password: value }))} />
+                </div>
 
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43", marginBottom: 12 }}>
-                Manage Users
+                {adminForm.role === "teacher" && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                      <ToggleSwitch
+                        checked={adminForm.teacherRoles.classTeacher}
+                        onChange={(val) => setAdminForm((prev) => ({ ...prev, teacherRoles: { ...prev.teacherRoles, classTeacher: val } }))}
+                        accentColor="#2563eb"
+                      />
+                      Class Teacher
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                      <ToggleSwitch
+                        checked={adminForm.teacherRoles.subjectTeacher}
+                        onChange={(val) => setAdminForm((prev) => ({ ...prev, teacherRoles: { ...prev.teacherRoles, subjectTeacher: val } }))}
+                        accentColor="#0f766e"
+                      />
+                      Subject Teacher
+                    </label>
+                  </div>
+                )}
+
+                <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
+                  New and reset accounts use the default password <strong>{DEFAULT_RESET_PASSWORD}</strong> and must change it on next sign-in.
+                </div>
+
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <button
+                    onClick={handleCreateUser}
+                    disabled={adminSaving}
+                    style={{
+                      background: adminSaving ? "#7aa3db" : "#2563eb",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 10,
+                      padding: "10px 18px",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      cursor: adminSaving ? "not-allowed" : "pointer",
+                      boxShadow: "0 8px 18px rgba(37,99,235,0.2)",
+                      width: isMobile ? "100%" : "auto",
+                    }}
+                  >
+                    {adminSaving ? "Creating..." : "Create User"}
+                  </button>
+                </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: adaptiveWideFieldGrid, gap: 12 }}>
-                <TextInput
-                  label="Search Users"
-                  value={userSearch}
-                  onChange={setUserSearch}
-                  placeholder="Search username, name, email, phone, or index no"
-                />
-                <SelectInput
-                  label="Filter by Role"
-                  value={roleFilter}
-                  onChange={setRoleFilter}
-                  options={[{ label: "All roles", value: "all" }, ...USER_ROLE_OPTIONS]}
-                />
+            )}
+
+            {(adminError || adminMessage) && (
+              <div style={{ fontSize: 12, fontWeight: 700, color: adminError ? "#b42318" : "#1a6b2f" }}>
+                {adminError || adminMessage}
               </div>
+            )}
+
+            <div style={{ display: "grid", gridTemplateColumns: adaptiveWideFieldGrid, gap: 12 }}>
+              <TextInput
+                label="Search Users"
+                value={userSearch}
+                onChange={setUserSearch}
+                placeholder="Search username, name, email, phone, or index no"
+              />
+              <SelectInput
+                label="Filter by Role"
+                value={roleFilter}
+                onChange={setRoleFilter}
+                options={[{ label: "All roles", value: "all" }, ...MANAGEABLE_USER_ROLE_OPTIONS]}
+              />
             </div>
 
             <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
-              Showing {managedUserCards.length} of {users.length} users
+              Showing {managedUserCards.length} of {manageableUsers.length} users
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: managedCardsColumns, gap: 14, alignItems: "start" }}>
+            {editingUsername ? (() => {
+              const edit = editingUsers[editingUsername] || blankManagedUser();
+              return (
+                <div style={{ ...softGlassStyle, borderRadius: 16, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
+                        Edit @{editingUsername}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#64748b" }}>
+                        Update identity, access role, and teaching responsibilities.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingUsername("")}
+                      style={{ background: "none", border: "1px solid #cbd5e1", borderRadius: 10, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", color: "#475569" }}
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 12 }}>
+                    <TextInput label="Display Name" value={edit.displayName} onChange={(value) => updateManagedField(editingUsername, "displayName", value)} />
+                    <SelectInput label="Role" value={edit.role} onChange={(value) => updateManagedField(editingUsername, "role", value)} options={MANAGEABLE_USER_ROLE_OPTIONS} />
+                    <TextInput label="Email" value={edit.email} onChange={(value) => updateManagedField(editingUsername, "email", value)} />
+                    <TextInput label="Phone" value={edit.phone} onChange={(value) => updateManagedField(editingUsername, "phone", value)} />
+                    <TextInput label="Linked Student Index No" value={edit.linkedIndexNo} onChange={(value) => updateManagedField(editingUsername, "linkedIndexNo", value)} />
+                  </div>
+
+                  {edit.role === "teacher" && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                        <ToggleSwitch
+                          checked={edit.teacherRoles?.classTeacher === true}
+                          onChange={(val) => toggleTeacherDuty(editingUsername, "classTeacher", val)}
+                          accentColor="#2563eb"
+                        />
+                        Class Teacher
+                      </label>
+                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                        <ToggleSwitch
+                          checked={edit.teacherRoles?.subjectTeacher !== false}
+                          onChange={(val) => toggleTeacherDuty(editingUsername, "subjectTeacher", val)}
+                          accentColor="#0f766e"
+                        />
+                        Subject Teacher
+                      </label>
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                      <ToggleSwitch
+                        checked={edit.active}
+                        onChange={(val) => updateManagedField(editingUsername, "active", val)}
+                        accentColor="#2563eb"
+                      />
+                      User can sign in
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#425466", fontWeight: 600 }}>
+                      <ToggleSwitch
+                        checked={edit.mustChangePassword}
+                        onChange={(val) => updateManagedField(editingUsername, "mustChangePassword", val)}
+                        accentColor="#d97706"
+                      />
+                      Require password change on next sign-in
+                    </label>
+                  </div>
+
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveManagedUser(editingUsername)}
+                      style={{
+                        background: "#102a43",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 10,
+                        padding: "10px 18px",
+                        fontSize: 13,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        width: isMobile ? "100%" : "auto",
+                      }}
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              );
+            })() : null}
+
+            <div style={{ display: "grid", gap: 10 }}>
+              {!isMobile && (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(220px, 1.5fr) minmax(120px, 0.9fr) minmax(180px, 1fr) minmax(130px, 0.8fr) 60px",
+                    gap: 12,
+                    padding: "0 16px",
+                    color: "#64748b",
+                    fontSize: 11,
+                    fontWeight: 800,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  <span>User</span>
+                  <span>Role</span>
+                  <span>Teacher Duties</span>
+                  <span>Status</span>
+                  <span style={{ textAlign: "right" }}>More</span>
+                </div>
+              )}
+
               {managedUserCards.map((managedUser) => {
                 const edit = editingUsers[managedUser.username] || blankManagedUser();
+                const isTeacher = managedUser.role === "teacher";
                 return (
                   <div
                     key={managedUser.username}
                     style={{
                       ...softGlassStyle,
-                      borderRadius: 14,
-                      padding: isMobile ? 14 : 18,
-                      display: "grid",
-                      gap: 14,
-                      width: "100%",
+                      borderRadius: 16,
+                      padding: isMobile ? 14 : 16,
+                      position: "relative",
                     }}
                   >
-                    {/* Card header with avatar + badges */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: "50%",
-                          background: "linear-gradient(145deg, #1f3c88, #16a3a3)",
-                          color: "#fff",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: 900,
-                          fontSize: 14,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {initialsFrom(managedUser)}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: "#102a43" }}>
-                          {managedUser.displayName || managedUser.username}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: isMobile ? "1fr auto" : "minmax(220px, 1.5fr) minmax(120px, 0.9fr) minmax(180px, 1fr) minmax(130px, 0.8fr) 60px",
+                        gap: 12,
+                        alignItems: "center",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                        <div
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            background: "linear-gradient(145deg, #1f3c88, #16a3a3)",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: 900,
+                            fontSize: 14,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {initialsFrom(managedUser)}
                         </div>
-                        <div style={{ fontSize: 12, color: "#64748b" }}>@{managedUser.username}</div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {managedUser.displayName || managedUser.username}
+                          </div>
+                          <div style={{ fontSize: 12, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            @{managedUser.username}{managedUser.email ? ` • ${managedUser.email}` : ""}
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+
+                      {!isMobile ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <RoleBadge role={managedUser.role} />
+                        </div>
+                      ) : null}
+
+                      {!isMobile ? (
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          {isTeacher ? (
+                            <>
+                              <TeacherDutyBadge active={managedUser.teacherRoles?.classTeacher === true} label="Class Teacher" />
+                              <TeacherDutyBadge active={managedUser.teacherRoles?.subjectTeacher !== false} label="Subject Teacher" />
+                            </>
+                          ) : (
+                            <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700 }}>Not applicable</span>
+                          )}
+                        </div>
+                      ) : null}
+
+                      {!isMobile ? (
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                          <StatusBadge active={managedUser.active !== false} />
+                          {managedUser.mustChangePassword && (
+                            <span style={{ fontSize: 11, color: "#9a6700", fontWeight: 800 }}>Reset required</span>
+                          )}
+                        </div>
+                      ) : null}
+
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <button
+                          type="button"
+                          onClick={() => setActionMenuUser((prev) => (prev === managedUser.username ? "" : managedUser.username))}
+                          style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 10,
+                            border: "1px solid #dbe4f2",
+                            background: "#fff",
+                            color: "#475569",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <MoreIcon />
+                        </button>
+                      </div>
+                    </div>
+
+                    {isMobile && (
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
                         <RoleBadge role={managedUser.role} />
                         <StatusBadge active={managedUser.active !== false} />
-                        {managedUser.mustChangePassword && (
-                          <span
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              padding: "3px 10px",
-                              borderRadius: 999,
-                              fontSize: 11,
-                              fontWeight: 800,
-                              background: "#fff7d6",
-                              color: "#9a6700",
-                              border: "1px solid #f5d973",
-                            }}
-                          >
-                            {t("passwordResetRequired")}
-                          </span>
-                        )}
+                        {isTeacher ? (
+                          <>
+                            <TeacherDutyBadge active={managedUser.teacherRoles?.classTeacher === true} label="Class Teacher" />
+                            <TeacherDutyBadge active={managedUser.teacherRoles?.subjectTeacher !== false} label="Subject Teacher" />
+                          </>
+                        ) : null}
                       </div>
-                    </div>
+                    )}
 
-                    <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 12 }}>
-                      <TextInput label="Display Name" value={edit.displayName} onChange={(value) => updateManagedField(managedUser.username, "displayName", value)} />
-                      <SelectInput label="Role" value={edit.role} onChange={(value) => updateManagedField(managedUser.username, "role", value)} options={USER_ROLE_OPTIONS} />
-                      <TextInput label="Email" value={edit.email} onChange={(value) => updateManagedField(managedUser.username, "email", value)} />
-                      <TextInput label="Phone" value={edit.phone} onChange={(value) => updateManagedField(managedUser.username, "phone", value)} />
-                      <TextInput label="Linked Student Index No" value={edit.linkedIndexNo} onChange={(value) => updateManagedField(managedUser.username, "linkedIndexNo", value)} />
-                      <TextInput label="Reset Password" type="password" value={edit.password} onChange={(value) => updateManagedField(managedUser.username, "password", value)} placeholder="Leave blank to keep current" />
-                    </div>
-
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? 8 : 18 }}>
-                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: isXs ? 12 : 13, color: "#425466", fontWeight: 600, cursor: "pointer", flex: isXs ? "1 1 100%" : isMobile ? "1 1 auto" : "none" }}>
-                        <ToggleSwitch
-                          checked={edit.active}
-                          onChange={(val) => updateManagedField(managedUser.username, "active", val)}
-                          accentColor="#2563eb"
-                        />
-                        User can sign in
-                      </label>
-                      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: isXs ? 12 : 13, color: "#425466", fontWeight: 600, cursor: "pointer", flex: isXs ? "1 1 100%" : isMobile ? "1 1 auto" : "none" }}>
-                        <ToggleSwitch
-                          checked={edit.mustChangePassword}
-                          onChange={(val) => updateManagedField(managedUser.username, "mustChangePassword", val)}
-                          accentColor="#d97706"
-                        />
-                        {t("requirePasswordChangeNextSignIn")}
-                      </label>
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: isXs ? "1fr" : isMobile ? "1fr 1fr" : "auto auto auto", gap: 8, justifyContent: isMobile ? "stretch" : "start" }}>
-                      <button
-                        onClick={() => handleSaveManagedUser(managedUser.username)}
+                    {actionMenuUser === managedUser.username && (
+                      <div
                         style={{
-                          background: "#102a43",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 10,
-                          padding: "10px 18px",
-                          fontSize: 13,
-                          fontWeight: 800,
-                          cursor: "pointer",
+                          position: "absolute",
+                          top: isMobile ? 54 : 56,
+                          right: 14,
+                          width: isMobile ? "calc(100% - 28px)" : 290,
+                          borderRadius: 14,
+                          background: "#fff",
+                          border: "1px solid #dbe4f2",
+                          boxShadow: "0 20px 42px rgba(15,23,42,0.14)",
+                          padding: 12,
+                          display: "grid",
+                          gap: 10,
+                          zIndex: 5,
                         }}
                       >
-                        Save User
-                      </button>
-                      <button
-                        onClick={() => handleResetManagedPassword(managedUser.username)}
-                        style={{
-                          background: "#2563eb",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 10,
-                          padding: "10px 18px",
-                          fontSize: 13,
-                          fontWeight: 800,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Reset Password
-                      </button>
-                      <button
-                        onClick={() => handleToggleManagedStatus(managedUser)}
-                        style={{
-                          background: edit.active ? "#fff1f2" : "#ecfdf3",
-                          color: edit.active ? "#b42318" : "#1a6b2f",
-                          border: `1px solid ${edit.active ? "#fecdd3" : "#bbf7d0"}`,
-                          borderRadius: 10,
-                          padding: "10px 18px",
-                          fontSize: 13,
-                          fontWeight: 800,
-                          cursor: "pointer",
-                          gridColumn: isXs ? "auto" : isMobile ? "1 / -1" : "auto",
-                        }}
-                      >
-                        {edit.active ? "Deactivate" : "Reactivate"}
-                      </button>
-                    </div>
+                        <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>Role</div>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <RoleBadge role={managedUser.role} />
+                          {managedUser.role === "teacher" ? (
+                            <>
+                              <TeacherDutyBadge active={edit.teacherRoles?.classTeacher === true} label="Class Teacher" />
+                              <TeacherDutyBadge active={edit.teacherRoles?.subjectTeacher !== false} label="Subject Teacher" />
+                            </>
+                          ) : null}
+                        </div>
+                        <div style={{ height: 1, background: "#e2e8f0" }} />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingUsername(managedUser.username);
+                            setActionMenuUser("");
+                          }}
+                          style={{ background: "none", border: "none", padding: "6px 0", textAlign: "left", fontSize: 13, fontWeight: 700, color: "#102a43", cursor: "pointer" }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleResetManagedPassword(managedUser.username)}
+                          style={{ background: "none", border: "none", padding: "6px 0", textAlign: "left", fontSize: 13, fontWeight: 700, color: "#2563eb", cursor: "pointer" }}
+                        >
+                          Reset Password
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleManagedStatus(managedUser)}
+                          style={{ background: "none", border: "none", padding: "6px 0", textAlign: "left", fontSize: 13, fontWeight: 700, color: managedUser.active !== false ? "#b42318" : "#1a6b2f", cursor: "pointer" }}
+                        >
+                          {managedUser.active !== false ? "Deactivate" : "Activate"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
+
               {!managedUserCards.length && (
                 <div
                   style={{
