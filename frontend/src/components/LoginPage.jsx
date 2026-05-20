@@ -228,6 +228,21 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
           margin: 0 14px;
           flex-shrink: 0;
         }
+        .login-inline-icon-button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          min-height: 0;
+          padding: 0;
+          margin-left: 8px;
+          flex-shrink: 0;
+          align-self: center;
+          cursor: pointer;
+          background: none;
+          border: none;
+        }
         .login-input {
           flex: 1;
           border: none;
@@ -582,15 +597,7 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
               />
               <button
                 type="button"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginLeft: 8,
-                  cursor: "pointer",
-                  padding: 2,
-                  background: "none",
-                  border: "none",
-                }}
+                className="login-inline-icon-button"
                 aria-label={
                   showPassword
                     ? (language === "sw" ? "Ficha nenosiri" : "Hide password")
