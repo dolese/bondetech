@@ -2,6 +2,7 @@ import React from "react";
 import { GRADE_COLORS, getCompositeEntry } from "../utils/constants";
 import { getGradePoints } from "../utils/grading";
 import { getExportBranding } from "../utils/exportBranding";
+import { CONDUCT_FIELDS, mergeConductWithSuggestion } from "../utils/conductAssessment";
 
 function formatScoreDisplay(rawValue, fallback = "-") {
   if (rawValue === "ABS") return "ABS";
@@ -59,15 +60,6 @@ function getAverageGradeLabel(student) {
   if (!student?.agrd) return "-";
   return `${student.agrd} - ${getGradeDescriptionSw(student.agrd)}`;
 }
-
-const CONDUCT_ROWS = [
-  ["utendajiKazi", "UTENDAJI KAZI"],
-  ["nidhamNaUtii", "NIDHAM NA UTII"],
-  ["utunzajiMali", "UTUNZAJI MALI"],
-  ["uongozi", "UONGOZI"],
-  ["michezo", "MICHEZO"],
-  ["ushirikiano", "USHIRIKIANO"],
-];
 
 function renderDottedLines(count) {
   return Array.from({ length: count }, (_, index) => (
@@ -204,6 +196,7 @@ export function ReportCardPrint({
   const showCustomCompositeTable = Boolean(
     compositeEntry && (examName === "Terminal Exam" || examName === "Annual Exam")
   );
+  const resolvedConduct = mergeConductWithSuggestion(student, subjects, classData);
   const reportDate = formatReportDate();
   const headerTitles = getSwahiliHeaderTitles(branding, schoolInfo);
 
@@ -684,8 +677,8 @@ export function ReportCardPrint({
             <div style={styles.sideHead}>D. Tabia na Mwenendo</div>
             <table style={styles.conductTable}>
               <tbody>
-                {CONDUCT_ROWS.map(([key, label]) => {
-                  const value = student?.conduct?.[key] ?? "";
+                {CONDUCT_FIELDS.map(([key, label]) => {
+                  const value = resolvedConduct[key] ?? "";
                   return (
                     <tr key={key}>
                       <td style={styles.conductLabelCell}>{label}</td>

@@ -2,6 +2,13 @@ import React, { useMemo, useState } from "react";
 import { useViewport } from "../utils/useViewport";
 import { CLASS_STREAMS, DEFAULT_CONDUCT } from "../hooks/useClasses";
 import {
+  buildSuggestedConductProfile,
+  CONDUCT_FIELDS,
+  CONDUCT_GRADE_OPTIONS,
+  getSuggestedConductGrade,
+  normalizeConductGrade,
+} from "../utils/conductAssessment";
+import {
   fieldStyle,
   glassPanelStyle,
   pageBackground,
@@ -49,6 +56,10 @@ function flattenStudents(classes = []) {
       stream: cls.stream || "",
     })),
   );
+}
+
+function findClassById(classes = [], classId = "") {
+  return classes.find((cls) => cls.id === classId) || null;
 }
 
 export function StudentManagementPage({
@@ -104,6 +115,28 @@ export function StudentManagementPage({
   }, [classes]);
 
   const students = useMemo(() => flattenStudents(classes), [classes]);
+  const selectedClass = useMemo(() => findClassById(classes, form.classId), [classes, form.classId]);
+  const selectedStudentRecord = useMemo(
+    () =>
+      form.id && selectedClass
+        ? (selectedClass.students || []).find((student) => student.id === form.id) || null
+        : null,
+    [form.id, selectedClass]
+  );
+  const suggestedConductProfile = useMemo(
+    () =>
+      selectedStudentRecord && selectedClass
+        ? buildSuggestedConductProfile(selectedStudentRecord, selectedClass.subjects || [], selectedClass)
+        : null,
+    [selectedClass, selectedStudentRecord]
+  );
+  const suggestedConductGrade = useMemo(
+    () =>
+      selectedStudentRecord && selectedClass
+        ? getSuggestedConductGrade(selectedStudentRecord, selectedClass.subjects || [], selectedClass)
+        : "",
+    [selectedClass, selectedStudentRecord]
+  );
 
   const filteredStudents = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -214,7 +247,18 @@ export function StudentManagementPage({
       ...prev,
       conduct: {
         ...prev.conduct,
-        [key]: value,
+        [key]: normalizeConductGrade(value),
+      },
+    }));
+  };
+
+  const applySuggestedConduct = () => {
+    if (!suggestedConductProfile) return;
+    setForm((prev) => ({
+      ...prev,
+      conduct: {
+        ...prev.conduct,
+        ...suggestedConductProfile,
       },
     }));
   };
@@ -669,23 +713,48 @@ export function StudentManagementPage({
                 gap: 12,
               }}
             >
-              <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>Tabia na Mwenendo</div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>Tabia na Mwenendo</div>
+                  <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
+                    Use A, B, or C only. Blank fields will fall back to the system suggestion on the report card.
+                  </div>
+                </div>
+                {suggestedConductGrade ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <div style={pillStyle({ tone: suggestedConductGrade === "A" ? "teal" : suggestedConductGrade === "B" ? "amber" : "red" })}>
+                      Suggested {suggestedConductGrade}
+                    </div>
+                    <button type="button" onClick={applySuggestedConduct} style={secondaryButtonStyle({ compact: true })}>
+                      Apply Suggestion
+                    </button>
+                  </div>
+                ) : null}
+              </div>
               <div style={{ display: "grid", gridTemplateColumns: fieldGridColumns, gap: 12 }}>
-                {[
-                  ["utendajiKazi", "Utendaji Kazi"],
-                  ["nidhamNaUtii", "Nidhamu na Utii"],
-                  ["utunzajiMali", "Utunzaji Mali"],
-                  ["uongozi", "Uongozi"],
-                  ["michezo", "Michezo"],
-                  ["ushirikiano", "Ushirikiano"],
-                ].map(([key, label]) => (
+                {CONDUCT_FIELDS.map(([key, label]) => (
                   <label key={key} style={{ display: "grid", gap: 6 }}>
                     <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>{label}</span>
-                    <input
+                    <select
                       value={form.conduct[key] || ""}
                       onChange={(event) => updateConductField(key, event.target.value)}
                       style={fieldStyle()}
-                    />
+                    >
+                      <option value="">Use suggestion</option>
+                      {CONDUCT_GRADE_OPTIONS.map((grade) => (
+                        <option key={grade} value={grade}>
+                          {grade}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                 ))}
               </div>
