@@ -1,15 +1,15 @@
-const classesIndex = require("./classes/index.js");
-const classById = require("./classes/[id]/index.js");
-const classAudit = require("./classes/[id]/audit/index.js");
-const classPublish = require("./classes/[id]/publish/index.js");
-const classStudentsBulk = require("./classes/[id]/students/bulk.js");
-const classStudentsIndex = require("./classes/[id]/students/index.js");
-const classStudentById = require("./classes/[id]/students/[sid].js");
-const proxyCsv = require("./proxy-csv/index.js");
-const statsIndex = require("./stats/index.js");
-const studentSearch = require("./students/search.js");
-const studentProfile = require("./students/[indexNo].js");
-const authIndex = require("./auth/index.js");
+const classesIndex = require("../serverless/classes/index.js");
+const classById = require("../serverless/classes/[id]/index.js");
+const classAudit = require("../serverless/classes/[id]/audit/index.js");
+const classPublish = require("../serverless/classes/[id]/publish/index.js");
+const classStudentsBulk = require("../serverless/classes/[id]/students/bulk.js");
+const classStudentsIndex = require("../serverless/classes/[id]/students/index.js");
+const classStudentById = require("../serverless/classes/[id]/students/[sid].js");
+const proxyCsv = require("../serverless/proxy-csv/index.js");
+const statsIndex = require("../serverless/stats/index.js");
+const studentSearch = require("../serverless/students/search.js");
+const studentProfile = require("../serverless/students/[indexNo].js");
+const authIndex = require("../serverless/auth/index.js");
 const { sendJson } = require("../lib/http");
 
 function withQuery(req, extraQuery = {}) {
