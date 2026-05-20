@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "../i18n";
+
+const SIDEBAR_SECTION_STORAGE_KEY = "bonde-sidebar-sections";
 
 function currentAcademicYear(classesByYear) {
   const years = classesByYear.map(([year]) => String(year || "")).filter(Boolean).sort();
@@ -182,6 +184,7 @@ function buildNavSections(navItems, accountLabel, accountSubtitle, t) {
   return sectionOrder
     .map((section) => ({
       ...section,
+      id: String(section.title || "").toLowerCase().replace(/\s+/g, "-"),
       items: section.items
         .map((key) =>
           key === "account"
@@ -225,6 +228,52 @@ export function AppSidebar({
     () => buildNavSections(navItems, accountLabel, accountSubtitle, t),
     [accountLabel, accountSubtitle, navItems, t]
   );
+  const activeSectionId = useMemo(
+    () => navSections.find((section) => section.items.some((item) => item.key === page))?.id || "",
+    [navSections, page]
+  );
+  const [collapsedSections, setCollapsedSections] = useState(() => ({}));
+
+  useEffect(() => {
+    const defaults = Object.fromEntries(navSections.map((section) => [section.id, false]));
+    if (typeof window === "undefined") {
+      setCollapsedSections(defaults);
+      return;
+    }
+
+    if (isMobile) {
+      const mobileState = Object.fromEntries(
+        navSections.map((section) => [section.id, section.id !== activeSectionId])
+      );
+      setCollapsedSections(mobileState);
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(SIDEBAR_SECTION_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      setCollapsedSections({ ...defaults, ...parsed });
+    } catch {
+      setCollapsedSections(defaults);
+    }
+  }, [activeSectionId, isMobile, navSections]);
+
+  useEffect(() => {
+    if (!activeSectionId) return;
+    setCollapsedSections((current) => {
+      if (current[activeSectionId] === false) return current;
+      return { ...current, [activeSectionId]: false };
+    });
+  }, [activeSectionId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || isMobile) return;
+    try {
+      window.localStorage.setItem(SIDEBAR_SECTION_STORAGE_KEY, JSON.stringify(collapsedSections));
+    } catch {
+      // ignore local storage failures
+    }
+  }, [collapsedSections, isMobile]);
 
   const navButtonStyle = (active, disabled, hasSubtitle = false) => ({
     border: "none",
@@ -306,6 +355,13 @@ export function AppSidebar({
         </span>
       </button>
     );
+  };
+
+  const toggleSection = (sectionId) => {
+    setCollapsedSections((current) => ({
+      ...current,
+      [sectionId]: !current[sectionId],
+    }));
   };
 
   return (
@@ -390,10 +446,33 @@ export function AppSidebar({
             <div style={{ display: "grid", gap: 18, marginTop: 20 }}>
               {navSections.map((section) => (
                 <div key={section.title} style={{ display: "grid", gap: 12 }}>
-                  <div style={{ ...sectionLabelStyle(), padding: "0 6px" }}>{section.title}</div>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    {section.items.map(renderNavButton)}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section.id)}
+                    style={{
+                      ...sectionLabelStyle(),
+                      padding: "0 6px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                    aria-expanded={!collapsedSections[section.id]}
+                  >
+                    <span>{section.title}</span>
+                    <span style={{ color: "#94a3b8", display: "inline-flex" }}>
+                      <ChevronIcon open={!collapsedSections[section.id]} width={13} height={13} />
+                    </span>
+                  </button>
+                  {!collapsedSections[section.id] ? (
+                    <div style={{ display: "grid", gap: 6 }}>
+                      {section.items.map(renderNavButton)}
+                    </div>
+                  ) : null}
                   <div style={{ height: 1, background: "linear-gradient(90deg, rgba(226,232,240,0), rgba(226,232,240,1), rgba(226,232,240,0))" }} />
                 </div>
               ))}

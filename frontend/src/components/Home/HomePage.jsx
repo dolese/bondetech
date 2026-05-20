@@ -516,6 +516,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                 className="home-mobile-toggle"
                 style={{ cursor: "pointer", fontSize: 18, padding: 0 }}
                 aria-label={t("menu")}
+                aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? "x" : "="}
               </button>
@@ -524,41 +525,61 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
         </div>
 
         {!isDesktop && mobileMenuOpen && (
-          <div style={{ background: "#fff", borderTop: "1px solid #f1f5f9", padding: "2px 0 10px" }}>
-            {[
-              { label: t("home"), meta: t("start"), action: scrollToTop },
-              { label: t("results"), meta: t("portal"), action: scrollToSearch },
-              { label: t("notices"), meta: t("updates"), action: scrollToAnnouncements },
-              { label: t("aboutUs"), meta: t("school"), action: scrollToFooter },
-              { label: t("contactUs"), meta: t("support"), action: scrollToFooter },
-            ].map(({ label, meta, action }) => (
-              <button
-                key={label}
-                className="landing-mobile-link"
-                onClick={() => {
-                  action();
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <span className="landing-mobile-link-label">
-                  <span className="landing-mobile-link-title">{label}</span>
-                  <span className="landing-mobile-link-meta">{meta}</span>
-                </span>
-                <span className="landing-mobile-link-arrow">{">"}</span>
-              </button>
-            ))}
-            <div className="landing-mobile-menu">
-              <button
-                className="landing-mobile-login"
-                onClick={() => {
-                  onOpenLogin?.();
-                  setMobileMenuOpen(false);
-                }}
-              >
-                {t("loginButton")}
-              </button>
+          <>
+            <div
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                position: "fixed",
+                inset: `${isMobile ? 60 : 68}px 0 0`,
+                background: "rgba(7, 18, 40, 0.18)",
+                backdropFilter: "blur(2px)",
+                zIndex: 101,
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: "calc(100% + 8px)",
+                right: isMobile ? 16 : 24,
+                width: "min(320px, calc(100vw - 32px))",
+                zIndex: 102,
+              }}
+            >
+              <div className="landing-mobile-menu">
+                {[
+                  { label: t("home"), meta: t("start"), action: scrollToTop },
+                  { label: t("results"), meta: t("portal"), action: scrollToSearch },
+                  { label: t("notices"), meta: t("updates"), action: scrollToAnnouncements },
+                  { label: t("aboutUs"), meta: t("school"), action: scrollToFooter },
+                  { label: t("contactUs"), meta: t("support"), action: scrollToFooter },
+                ].map(({ label, meta, action }) => (
+                  <button
+                    key={label}
+                    className="landing-mobile-link"
+                    onClick={() => {
+                      action();
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <span className="landing-mobile-link-label">
+                      <span className="landing-mobile-link-title">{label}</span>
+                      <span className="landing-mobile-link-meta">{meta}</span>
+                    </span>
+                    <span className="landing-mobile-link-arrow">{">"}</span>
+                  </button>
+                ))}
+                <button
+                  className="landing-mobile-login"
+                  onClick={() => {
+                    onOpenLogin?.();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  {t("loginButton")}
+                </button>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </nav>
 
