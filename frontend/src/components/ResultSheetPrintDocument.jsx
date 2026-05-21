@@ -82,6 +82,7 @@ function OverviewMeter({ label, value, detail, color, ringValue }) {
 
 export function ResultSheetPrintDocument({ model, pageRanges }) {
   const branding = useMemo(() => getResultSheetBranding(model.schoolInfo), [model.schoolInfo]);
+  const subjectColumnWidth = `${Math.max(4.2, (52 / Math.max(model.subjects.length, 1))).toFixed(2)}%`;
   const pages = pageRanges.map((range, index) => ({
     index,
     students: model.students.slice(range.start, range.end),
@@ -102,7 +103,7 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
       minHeight: `${PAGE_HEIGHT_MM}mm`,
       background: "#fff",
       border: `1.6px solid ${ACCENT}`,
-      padding: 20,
+      padding: 16,
       boxSizing: "border-box",
       display: "flex",
       flexDirection: "column",
@@ -196,8 +197,8 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     },
     summaryGrid: {
       display: "grid",
-      gridTemplateColumns: "1.12fr 1fr 1fr 1fr",
-      gap: 12,
+      gridTemplateColumns: "1.02fr 1.08fr 1.08fr 1.32fr",
+      gap: 10,
       alignItems: "start",
     },
     performanceShell: {
@@ -223,7 +224,7 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     },
     subjectBandGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+      gridTemplateColumns: `repeat(${Math.max(model.subjectSummaries.length, 1)}, minmax(0, 1fr))`,
     },
     subjectCard: {
       borderRight: `1px solid ${BORDER}`,
@@ -322,20 +323,21 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     resultTable: {
       width: "100%",
       borderCollapse: "collapse",
-      fontSize: 10.5,
+      tableLayout: "fixed",
+      fontSize: 9.8,
     },
     th: {
       background: ACCENT,
       color: "#fff",
       border: `1px solid ${BORDER}`,
-      padding: "7px 6px",
+      padding: "6px 4px",
       textAlign: "center",
       fontWeight: 800,
       whiteSpace: "nowrap",
     },
     td: {
       border: `1px solid ${BORDER}`,
-      padding: "7px 6px",
+      padding: "5px 4px",
       textAlign: "center",
       color: "#161616",
     },
@@ -425,6 +427,16 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
 
   const renderStudentTable = (students) => (
     <table style={styles.resultTable}>
+      <colgroup>
+        <col style={{ width: "8%" }} />
+        <col style={{ width: "18%" }} />
+        <col style={{ width: "5%" }} />
+        {model.subjects.map((subject, index) => (
+          <col key={`${subject}-${index}`} style={{ width: subjectColumnWidth }} />
+        ))}
+        <col style={{ width: "8%" }} />
+        <col style={{ width: "9%" }} />
+      </colgroup>
       <thead>
         <tr>
           {[
