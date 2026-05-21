@@ -347,38 +347,119 @@ export function SettingsPage({
       cursor: "pointer",
       fontSize: 12,
     },
-    subjectChip: {
+    subjectList: {
       display: "grid",
-      gridTemplateColumns: isMobile ? "1fr" : "minmax(120px, 1fr) auto auto auto",
-      alignItems: "center",
-      gap: 8,
-      background: "#f4f7ff",
+      gap: 10,
+    },
+    subjectCard: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "minmax(150px, 1fr) auto auto",
+      alignItems: isMobile ? "stretch" : "center",
+      gap: 12,
+      background: "#f8fbff",
       border: "1px solid #d0dcf8",
-      borderRadius: 10,
-      padding: isMobile ? "8px 10px" : "6px 10px",
+      borderRadius: 14,
+      padding: isMobile ? "12px" : "12px 14px",
+      boxShadow: "0 10px 24px rgba(15, 23, 42, 0.04)",
+    },
+    subjectIdentity: {
+      display: "grid",
+      gap: 4,
+      minWidth: 0,
+    },
+    subjectName: {
+      fontSize: 13,
+      fontWeight: 800,
+      color: "#0f172a",
+      letterSpacing: "0.01em",
+    },
+    subjectHint: {
+      fontSize: 11,
+      color: "#64748b",
+    },
+    subjectTypeWrap: {
+      display: "grid",
+      gap: 5,
+      minWidth: isMobile ? 0 : 140,
+    },
+    subjectTypeLabel: {
       fontSize: 10,
       fontWeight: 700,
-      color: "#003366",
-      width: isMobile ? "100%" : "auto",
+      color: "#64748b",
+      textTransform: "uppercase",
+      letterSpacing: "0.08em",
+    },
+    subjectActions: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: isMobile ? "space-between" : "flex-end",
+      gap: 8,
+      flexWrap: "wrap",
+    },
+    subjectMoveGroup: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: 4,
+      borderRadius: 999,
+      background: "#eef4ff",
+      border: "1px solid #d7e4ff",
     },
     subjectRemove: {
-      background: "#8b2500",
-      color: "#fff",
-      border: "none",
+      background: "#fff5f5",
+      color: "#b42318",
+      border: "1px solid #f3c7c2",
       borderRadius: 999,
-      padding: "2px 6px",
-      fontSize: 9,
+      padding: "6px 10px",
+      fontSize: 11,
+      fontWeight: 800,
       cursor: "pointer",
+      whiteSpace: "nowrap",
     },
     subjectArrow: {
-      background: "transparent",
-      color: "#003366",
-      border: "1px solid #d0dcf8",
-      borderRadius: 4,
-      padding: "1px 4px",
-      fontSize: 9,
+      background: "#ffffff",
+      color: "#1d4ed8",
+      border: "1px solid #c9d8ff",
+      borderRadius: 999,
+      width: 28,
+      height: 28,
+      padding: 0,
+      fontSize: 11,
+      fontWeight: 800,
       cursor: "pointer",
       lineHeight: 1,
+    },
+    subjectAddRow: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "minmax(180px, 1fr) auto auto",
+      gap: 10,
+      alignItems: "end",
+      padding: isMobile ? "12px" : "12px 14px",
+      borderRadius: 14,
+      border: "1px dashed #c5d5f5",
+      background: "#f8fbff",
+    },
+    subjectAddField: {
+      display: "grid",
+      gap: 5,
+    },
+    subjectAddLabel: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: "#64748b",
+      textTransform: "uppercase",
+      letterSpacing: "0.08em",
+    },
+    subjectAddBtn: {
+      padding: "0 14px",
+      height: 34,
+      borderRadius: 10,
+      border: "none",
+      background: "#003366",
+      color: "#fff",
+      fontWeight: 800,
+      cursor: "pointer",
+      fontSize: 12,
     },
     subjectInput: {
       padding: "6px 8px",
@@ -387,17 +468,6 @@ export function SettingsPage({
       height: 30,
       minWidth: isMobile ? 0 : 160,
       width: isMobile ? "100%" : "auto",
-      fontSize: 12,
-    },
-    subjectAddBtn: {
-      padding: "6px 10px",
-      height: 30,
-      borderRadius: 6,
-      border: "none",
-      background: "#003366",
-      color: "#fff",
-      fontWeight: 700,
-      cursor: "pointer",
       fontSize: 12,
     },
     deleteBtn: {
@@ -743,86 +813,112 @@ export function SettingsPage({
             })}
           </div>
         </div>
-        <div style={{ display: "grid", gap: 8 }}>
+        <div style={styles.subjectList}>
           {subjects.length === 0 && (
             <div style={{ fontSize: 10, color: "#999" }}>
               {t("settingsNoSubjectsYet", "No subjects yet.")}
             </div>
           )}
           {subjects.map((subj, idx) => (
-            <span key={subj} style={styles.subjectChip}>
-              <span>{subj}</span>
-              <select
-                value={getSubjectType(subj)}
-                onChange={(e) => handleUpdateSubjectType(subj, e.target.value)}
-                style={styles.select}
-                disabled={updatingSubjects}
-                title={t("settingsSubjectType", "Subject Type")}
-              >
-                {subjectTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <button
-                style={styles.subjectArrow}
-                onClick={() => handleMoveSubject(idx, -1)}
-                disabled={updatingSubjects || idx === 0}
-                title={t("settingsMoveUp", "Move up")}
-              >
-                ▲
-              </button>
-              <button
-                style={styles.subjectArrow}
-                onClick={() => handleMoveSubject(idx, 1)}
-                disabled={updatingSubjects || idx === subjects.length - 1}
-                title={t("settingsMoveDown", "Move down")}
-              >
-                ▼
-              </button>
-              <button
-                style={styles.subjectRemove}
-                onClick={() => handleRemoveSubject(subj)}
-                disabled={updatingSubjects}
-                title={`Remove ${subj}`}
-              >
-                ✕
-              </button>
-            </span>
+            <div key={subj} style={styles.subjectCard}>
+              <div style={styles.subjectIdentity}>
+                <div style={styles.subjectName}>{subj}</div>
+                <div style={styles.subjectHint}>
+                  {getSubjectType(subj) === "optional"
+                    ? t("settingsOptionalSubjectHint", "Shown only when a student takes it.")
+                    : t("settingsCompulsorySubjectHint", "Always included in marks and results output.")}
+                </div>
+              </div>
+              <div style={styles.subjectTypeWrap}>
+                <div style={styles.subjectTypeLabel}>
+                  {t("settingsSubjectType", "Subject Type")}
+                </div>
+                <select
+                  value={getSubjectType(subj)}
+                  onChange={(e) => handleUpdateSubjectType(subj, e.target.value)}
+                  style={styles.select}
+                  disabled={updatingSubjects}
+                  title={t("settingsSubjectType", "Subject Type")}
+                >
+                  {subjectTypeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={styles.subjectActions}>
+                <div style={styles.subjectMoveGroup}>
+                  <button
+                    style={styles.subjectArrow}
+                    onClick={() => handleMoveSubject(idx, -1)}
+                    disabled={updatingSubjects || idx === 0}
+                    title={t("settingsMoveUp", "Move up")}
+                  >
+                    Up
+                  </button>
+                  <button
+                    style={styles.subjectArrow}
+                    onClick={() => handleMoveSubject(idx, 1)}
+                    disabled={updatingSubjects || idx === subjects.length - 1}
+                    title={t("settingsMoveDown", "Move down")}
+                  >
+                    Dn
+                  </button>
+                </div>
+                <button
+                  style={styles.subjectRemove}
+                  onClick={() => handleRemoveSubject(subj)}
+                  disabled={updatingSubjects}
+                  title={`Remove ${subj}`}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
           ))}
         </div>
-        <div style={styles.row}>
-          <input
-            type="text"
-            placeholder={t("settingsAddSubject", "Add subject")}
-            value={subjectInput}
-            onChange={(e) => setSubjectInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleAddSubject();
-            }}
-            style={styles.subjectInput}
-          />
-          <select
-            value={subjectTypeInput}
-            onChange={(e) => setSubjectTypeInput(e.target.value)}
-            style={styles.select}
-          >
-            {subjectTypeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+        <div style={styles.subjectAddRow}>
+          <div style={styles.subjectAddField}>
+            <div style={styles.subjectAddLabel}>
+              {t("settingsAddSubject", "Add Subject")}
+            </div>
+            <input
+              type="text"
+              placeholder={t("settingsAddSubject", "Add subject")}
+              value={subjectInput}
+              onChange={(e) => setSubjectInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAddSubject();
+              }}
+              style={styles.subjectInput}
+            />
+          </div>
+          <div style={styles.subjectAddField}>
+            <div style={styles.subjectAddLabel}>
+              {t("settingsSubjectType", "Subject Type")}
+            </div>
+            <select
+              value={subjectTypeInput}
+              onChange={(e) => setSubjectTypeInput(e.target.value)}
+              style={styles.select}
+            >
+              {subjectTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <button
             style={styles.subjectAddBtn}
             onClick={handleAddSubject}
             disabled={updatingSubjects || !subjectInput.trim()}
           >
-            ➕ {t("add", "Add")}
+            {t("add", "Add")}
           </button>
-          {subjectError && <div style={styles.errMsg}>{subjectError}</div>}
         </div>
+        {subjectError && <div style={styles.errMsg}>{subjectError}</div>}
       </div>
 
       {/* Monthly Exams */}

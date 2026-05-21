@@ -130,6 +130,21 @@ function formatSmsSubjectValue(grade, subjectMeta) {
   return `${abbreviateSubject(grade?.subj)} ${formatNumber(grade?.score)}${grade?.grade || ""}`;
 }
 
+function formatResultsSmsStudentName(name = "", fallback = "Student") {
+  const tokens = String(name || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (!tokens.length) return fallback;
+  if (tokens.length < 3) return tokens.join(" ");
+
+  const firstName = tokens[0];
+  const middleInitial = `${String(tokens[1] || "").charAt(0).toUpperCase()}.`;
+  const lastName = tokens[tokens.length - 1];
+  return [firstName, middleInitial, lastName].filter(Boolean).join(" ");
+}
+
 function buildRecipientDirectory(classes = []) {
   return (classes || []).flatMap((cls) =>
     (cls.students || [])
@@ -233,6 +248,10 @@ function buildComputedStudentsForExam(cls = {}, examType) {
 function buildResultsMessage(student, cls, language = "en") {
   const schoolName = "BONDE SEC";
   const classShort = formatResultsSmsClass(cls.form);
+  const studentLabel =
+    language === "sw"
+      ? formatResultsSmsStudentName(student.name, "Mwanafunzi")
+      : formatResultsSmsStudentName(student.name, "Student");
   const grades = Array.isArray(student.grades) ? student.grades : [];
   const subjectMetaList = normalizeSubjectMetadata(cls);
   const filteredGrades = grades
@@ -259,7 +278,7 @@ function buildResultsMessage(student, cls, language = "en") {
   if (language === "sw") {
     return [
       schoolName,
-      `${student.name || "Mwanafunzi"}-${classShort}`,
+      `${studentLabel}-${classShort}`,
       ...subjectChunks,
       `Wastani${formatNumber(student.avg)}|Div ${divisionValue}|Pts ${student.points ?? "-"}|Nafasi ${student.posn ?? "-"}\/${totalStudents}`,
     ]
@@ -269,7 +288,7 @@ function buildResultsMessage(student, cls, language = "en") {
 
   return [
     schoolName,
-    `${student.name || "Student"}-${classShort}`,
+    `${studentLabel}-${classShort}`,
     ...subjectChunks,
     `Avg${formatNumber(student.avg)}|Div ${divisionValue}|Pts ${student.points ?? "-"}|Pos ${student.posn ?? "-"}\/${totalStudents}`,
   ]
