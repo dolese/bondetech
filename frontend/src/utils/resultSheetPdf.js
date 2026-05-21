@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "../vendor/jspdf.plugin.autotable.mjs";
-import { getExportBranding } from "./exportBranding";
+import { getResultSheetBranding } from "./exportBranding";
 import { getResultSheetBody, getResultSheetHead } from "./resultSheetShared";
 
 const ACCENT = [22, 63, 151];
@@ -58,7 +58,7 @@ function drawPageFrame(doc) {
 
 function drawSchoolHeader(doc, model, assets) {
   const pageWidth = doc.internal.pageSize.getWidth();
-  const branding = getExportBranding(model.schoolInfo);
+  const branding = getResultSheetBranding(model.schoolInfo);
 
   drawPageFrame(doc);
 
@@ -74,11 +74,12 @@ function drawSchoolHeader(doc, model, assets) {
   doc.setTextColor(...ACCENT);
   doc.text((branding.headerName || "School Name").toUpperCase(), pageWidth / 2, PAGE_MARGIN + 18, { align: "center" });
 
-  doc.setFont("times", "normal");
-  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11.5);
   doc.setTextColor(...TEXT);
   doc.text(branding.headerSubtitle || "", pageWidth / 2, PAGE_MARGIN + 27, { align: "center" });
-  doc.text(branding.headerAddress || "", pageWidth / 2, PAGE_MARGIN + 35, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.text(branding.headerAddress || "", pageWidth / 2, PAGE_MARGIN + 34.5, { align: "center" });
 
   doc.setDrawColor(...ACCENT);
   doc.setLineWidth(0.55);
@@ -97,9 +98,9 @@ function drawTitleBlock(doc, model) {
   ];
 
   doc.setFont("times", "bold");
-  doc.setFontSize(17);
+  doc.setFontSize(15.5);
   doc.setTextColor(...ACCENT);
-  doc.text("GENERAL STUDENTS RESULTS", pageWidth / 2, top + 6, { align: "center" });
+  doc.text("OFFICIAL RESULT SHEET", pageWidth / 2, top + 6, { align: "center" });
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
@@ -230,7 +231,8 @@ function drawSummaryBlocks(doc, model) {
   });
 }
 
-function drawClosingFooter(doc) {
+function drawClosingFooter(doc, model) {
+  const branding = getResultSheetBranding(model.schoolInfo);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const baseY = pageHeight - 34;
@@ -267,6 +269,14 @@ function drawClosingFooter(doc) {
   const dateY = pageHeight - 8;
   doc.text("Date:", pageWidth / 2 - 26, dateY);
   doc.line(pageWidth / 2 - 8, dateY - 1, pageWidth / 2 + 42, dateY - 1);
+
+  doc.setDrawColor(...BORDER);
+  doc.line(PAGE_MARGIN + 2, pageHeight - 25.5, pageWidth - PAGE_MARGIN - 2, pageHeight - 25.5);
+  doc.line(PAGE_MARGIN + 2, pageHeight - 14.5, pageWidth - PAGE_MARGIN - 2, pageHeight - 14.5);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10.5);
+  doc.setTextColor(...ACCENT);
+  doc.text(branding.footerMotto || "Better Future Starts Here", pageWidth / 2, pageHeight - 19.2, { align: "center" });
 }
 
 function drawPageFooter(doc, page, totalPages) {
@@ -300,7 +310,7 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
     format: "a3",
   });
 
-  const branding = getExportBranding(model.schoolInfo);
+  const branding = getResultSheetBranding(model.schoolInfo);
   const [leftLogo, rightLogo] = await Promise.all([
     loadImageAsDataUrl(branding.leftLogoSrc),
     loadImageAsDataUrl(branding.rightLogoSrc),
@@ -371,7 +381,7 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(12);
         doc.setTextColor(...ACCENT);
-        doc.text("GENERAL STUDENTS RESULTS", pageWidth / 2, PAGE_MARGIN + 48, { align: "center" });
+        doc.text("OFFICIAL RESULT SHEET", pageWidth / 2, PAGE_MARGIN + 48, { align: "center" });
       }
     },
     didParseCell: (data) => {
@@ -398,10 +408,10 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.setTextColor(...ACCENT);
-    doc.text("GENERAL STUDENTS RESULTS", pageWidth / 2, PAGE_MARGIN + 48, { align: "center" });
+    doc.text("OFFICIAL RESULT SHEET", pageWidth / 2, PAGE_MARGIN + 48, { align: "center" });
   }
 
-  drawClosingFooter(doc);
+  drawClosingFooter(doc, model);
 
   applyPageNumbers(doc);
 

@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DIVISION_COLORS } from "../utils/constants";
-import { getExportBranding } from "../utils/exportBranding";
+import { getResultSheetBranding } from "../utils/exportBranding";
 import { getDivisionDisplay, RESULT_SHEET_LAYOUT, RESULT_SHEET_PAGE_MM } from "../utils/resultSheetShared";
 
 const ACCENT = "#163f97";
@@ -67,7 +67,7 @@ function SummaryCard({ title, children, style }) {
 }
 
 export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
-  const branding = useMemo(() => getExportBranding(model.schoolInfo), [model.schoolInfo]);
+  const branding = useMemo(() => getResultSheetBranding(model.schoolInfo), [model.schoolInfo]);
   const pageMeasureRef = useRef(null);
   const headerMeasureRef = useRef(null);
   const summaryMeasureRef = useRef(null);
@@ -137,8 +137,8 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
       paddingBottom: 12,
     },
     logo: {
-      width: 84,
-      height: 84,
+      width: 78,
+      height: 78,
       objectFit: "contain",
       justifySelf: "center",
     },
@@ -149,7 +149,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
     },
     schoolName: {
       margin: 0,
-      fontSize: 26,
+      fontSize: 25,
       lineHeight: 1.1,
       fontWeight: 900,
       color: ACCENT,
@@ -159,19 +159,19 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
     },
     headerLine: {
       margin: 0,
-      fontSize: 17,
-      fontWeight: 500,
+      fontSize: 15,
+      fontWeight: 700,
       color: "#161616",
     },
     sectionTitle: {
       margin: 0,
       textAlign: "center",
-      fontSize: 22,
+      fontSize: 18,
       fontWeight: 900,
       color: ACCENT,
-      letterSpacing: 0.2,
+      letterSpacing: 0.5,
       textTransform: "uppercase",
-      fontFamily: "'Georgia', 'Times New Roman', serif",
+      fontFamily: "'IBM Plex Sans', 'Arial', sans-serif",
     },
     metaRow: {
       display: "flex",
@@ -244,15 +244,45 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
     footerWrap: {
       marginTop: "auto",
       display: "grid",
-      gap: 12,
+      gap: 10,
+    },
+    footerMotto: {
+      borderTop: `1px solid ${BORDER}`,
+      borderBottom: `1px solid ${BORDER}`,
+      padding: "9px 12px",
+      textAlign: "center",
+      fontSize: 12,
+      fontWeight: 900,
+      color: ACCENT,
+      letterSpacing: 0.35,
+      textTransform: "uppercase",
+      background: "linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%)",
     },
     pageFooter: {
       borderTop: `1px solid ${ACCENT}`,
-      paddingTop: 6,
-      textAlign: "center",
+      paddingTop: 8,
+      display: "grid",
+      gridTemplateColumns: "1fr auto 1fr",
+      alignItems: "center",
+      gap: 12,
       fontSize: 10,
       color: "#3b3b3b",
       fontWeight: 700,
+    },
+    footerBrand: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifySelf: "end",
+      gap: 8,
+      color: ACCENT,
+      fontWeight: 900,
+      letterSpacing: 0.25,
+      textTransform: "uppercase",
+    },
+    footerBrandLogo: {
+      width: 22,
+      height: 22,
+      objectFit: "contain",
     },
     keyRow: {
       display: "flex",
@@ -385,12 +415,19 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
         <span>Date:</span>
         <div style={styles.dateLine} />
       </div>
+
+      <div style={styles.footerMotto}>{branding.footerMotto}</div>
     </div>
   );
 
   const renderPageFooter = (pageIndex, isLastPage = false) => (
     <div style={{ ...styles.pageFooter, marginTop: isLastPage ? 10 : "auto" }}>
-      {`Page ${pageIndex + 1} of ${pages.length}`}
+      <span />
+      <span>{`Page ${pageIndex + 1} of ${pages.length}`}</span>
+      <span style={styles.footerBrand}>
+        <img src={branding.rightLogoSrc} alt="Bonde logo" style={styles.footerBrandLogo} />
+        Bonde Secondary School
+      </span>
     </div>
   );
 
@@ -411,7 +448,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
 
             {page.isFirstPage && (
               <>
-                <h2 style={styles.sectionTitle}>General Students Results</h2>
+                <h2 style={styles.sectionTitle}>Official Result Sheet</h2>
                 <div style={styles.metaRow}>
                   <span><strong>Year:</strong> {model.meta.year}</span>
                   <span>|</span>
@@ -506,7 +543,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
             <img src={branding.rightLogoSrc} alt="" style={styles.logo} />
           </div>
 
-          <h2 style={styles.sectionTitle}>General Students Results</h2>
+          <h2 style={styles.sectionTitle}>Official Result Sheet</h2>
           <div style={styles.metaRow}>
             <span><strong>Year:</strong> {model.meta.year}</span>
             <span>|</span>

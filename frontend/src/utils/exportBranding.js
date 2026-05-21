@@ -29,6 +29,21 @@ export function getExportBranding(schoolInfo = {}) {
   };
 }
 
+export function getResultSheetBranding(schoolInfo = {}) {
+  const branding = getExportBranding(schoolInfo);
+  const schoolLogo = normalizeLogoSrc(
+    branding.rightLogoSrc || branding.leftLogoSrc,
+    ACTIVE_BONDE_LOGO
+  );
+
+  return {
+    ...branding,
+    leftLogoSrc: schoolLogo,
+    rightLogoSrc: schoolLogo,
+    footerMotto: "Better Future Starts Here",
+  };
+}
+
 export function updateExportBranding(schoolInfo = {}, partial = {}) {
   return {
     ...schoolInfo,
