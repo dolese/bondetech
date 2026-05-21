@@ -80,6 +80,38 @@ function OverviewMeter({ label, value, detail, color, ringValue }) {
   );
 }
 
+function IconBadge({ label, tone = "#163f97" }) {
+  return (
+    <div
+      style={{
+        width: 26,
+        height: 26,
+        borderRadius: "50%",
+        background: `${tone}18`,
+        border: `1px solid ${tone}55`,
+        color: tone,
+        display: "grid",
+        placeItems: "center",
+        fontSize: 9,
+        fontWeight: 900,
+        lineHeight: 1,
+        flex: "0 0 auto",
+      }}
+    >
+      {label}
+    </div>
+  );
+}
+
+function MetaChip({ icon, label, value, tone = "#163f97" }) {
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <IconBadge label={icon} tone={tone} />
+      <span><strong>{label}:</strong> {value}</span>
+    </div>
+  );
+}
+
 export function ResultSheetPrintDocument({ model, pageRanges }) {
   const branding = useMemo(() => getResultSheetBranding(model.schoolInfo), [model.schoolInfo]);
   const subjectColumnWidth = `${Math.max(4.2, (52 / Math.max(model.subjects.length, 1))).toFixed(2)}%`;
@@ -103,7 +135,7 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
       minHeight: `${PAGE_HEIGHT_MM}mm`,
       background: "#fff",
       border: `1.6px solid ${ACCENT}`,
-      padding: 16,
+      padding: 12,
       boxSizing: "border-box",
       display: "flex",
       flexDirection: "column",
@@ -113,15 +145,15 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     },
     header: {
       display: "grid",
-      gridTemplateColumns: "92px 1fr 92px",
+      gridTemplateColumns: "76px 1fr 76px",
       alignItems: "center",
-      gap: 12,
+      gap: 10,
       borderBottom: `4px double ${ACCENT}`,
       paddingBottom: 12,
     },
     logo: {
-      width: 78,
-      height: 78,
+      width: 64,
+      height: 64,
       objectFit: "contain",
       justifySelf: "center",
     },
@@ -132,7 +164,7 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     },
     schoolName: {
       margin: 0,
-      fontSize: 25,
+      fontSize: 23,
       lineHeight: 1.1,
       fontWeight: 900,
       color: ACCENT,
@@ -142,14 +174,14 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     },
     headerLine: {
       margin: 0,
-      fontSize: 15,
+      fontSize: 13,
       fontWeight: 700,
       color: "#161616",
     },
     sectionTitle: {
       margin: 0,
       textAlign: "center",
-      fontSize: 18,
+      fontSize: 17,
       fontWeight: 900,
       color: ACCENT,
       letterSpacing: 0.5,
@@ -167,21 +199,21 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     metaTags: {
       display: "flex",
       justifyContent: "center",
-      gap: 14,
+      gap: 10,
       flexWrap: "wrap",
       fontSize: 13,
       color: "#111",
       alignItems: "center",
     },
     generatedCard: {
-      minWidth: 118,
-      borderRadius: 10,
+      minWidth: 112,
+      borderRadius: 8,
       background: ACCENT,
       color: "#fff",
       display: "grid",
       alignContent: "center",
       justifyItems: "center",
-      padding: "10px 12px",
+      padding: "8px 10px",
       textAlign: "center",
     },
     generatedLabel: {
@@ -197,8 +229,8 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     },
     summaryGrid: {
       display: "grid",
-      gridTemplateColumns: "1.02fr 1.08fr 1.08fr 1.32fr",
-      gap: 10,
+      gridTemplateColumns: "0.96fr 1.04fr 1.04fr 1.2fr",
+      gap: 8,
       alignItems: "start",
     },
     performanceShell: {
@@ -225,14 +257,16 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
     subjectBandGrid: {
       display: "grid",
       gridTemplateColumns: `repeat(${Math.max(model.subjectSummaries.length, 1)}, minmax(0, 1fr))`,
+      width: "100%",
     },
     subjectCard: {
       borderRight: `1px solid ${BORDER}`,
       borderBottom: `1px solid ${BORDER}`,
-      padding: "10px 8px",
+      padding: "8px 6px",
       display: "grid",
-      gap: 8,
+      gap: 6,
       background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
+      minWidth: 0,
     },
     subjectTop: {
       display: "grid",
@@ -241,13 +275,13 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
       textAlign: "center",
     },
     subjectName: {
-      fontSize: 12,
+      fontSize: 11,
       fontWeight: 900,
       color: ACCENT,
       textTransform: "uppercase",
     },
     subjectSub: {
-      fontSize: 9,
+      fontSize: 8,
       color: "#64748b",
       textTransform: "uppercase",
       letterSpacing: 0.2,
@@ -324,20 +358,20 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
       width: "100%",
       borderCollapse: "collapse",
       tableLayout: "fixed",
-      fontSize: 9.8,
+      fontSize: 9.2,
     },
     th: {
       background: ACCENT,
       color: "#fff",
       border: `1px solid ${BORDER}`,
-      padding: "6px 4px",
+      padding: "5px 3px",
       textAlign: "center",
       fontWeight: 800,
       whiteSpace: "nowrap",
     },
     td: {
       border: `1px solid ${BORDER}`,
-      padding: "5px 4px",
+      padding: "4px 3px",
       textAlign: "center",
       color: "#161616",
     },
@@ -492,13 +526,10 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
       <h2 style={styles.sectionTitle}>Official Result Sheet</h2>
       <div style={styles.metaRow}>
         <div style={styles.metaTags}>
-          <span><strong>Year:</strong> {model.meta.year}</span>
-          <span>|</span>
-          <span><strong>Term:</strong> {model.meta.term}</span>
-          <span>|</span>
-          <span><strong>Exam:</strong> {model.meta.exam}</span>
-          <span>|</span>
-          <span><strong>Class:</strong> {model.meta.classLabel}</span>
+          <MetaChip icon="YR" label="Year" value={model.meta.year} />
+          <MetaChip icon="TM" label="Term" value={model.meta.term} />
+          <MetaChip icon="EX" label="Exam" value={model.meta.exam} />
+          <MetaChip icon="CL" label="Class" value={model.meta.classLabel} />
         </div>
         <div style={styles.generatedCard}>
           <div style={styles.generatedLabel}>Report Generated</div>
@@ -512,7 +543,29 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
             <tbody>
               {model.summaryRows.map(([label, value]) => (
                 <tr key={label}>
-                  <td style={styles.summaryCell}>{label}:</td>
+                  <td style={styles.summaryCell}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <IconBadge
+                        label={
+                          label.includes("Total") ? "TS"
+                            : label.includes("Complete") ? "CP"
+                            : label.includes("Incomplete") ? "IC"
+                            : label.includes("Absent") ? "AB"
+                            : label.includes("Average") ? "AV"
+                            : label.includes("Pass") ? "PS"
+                            : "FL"
+                        }
+                        tone={
+                          label.includes("Pass") ? "#2f8f43"
+                            : label.includes("Fail") ? "#b42318"
+                            : label.includes("Absent") ? "#b42318"
+                            : label.includes("Incomplete") ? "#d97706"
+                            : ACCENT
+                        }
+                      />
+                      <span>{label}:</span>
+                    </div>
+                  </td>
                   <td style={styles.summaryValue}>{value}</td>
                 </tr>
               ))}
@@ -611,7 +664,10 @@ export function ResultSheetPrintDocument({ model, pageRanges }) {
               }}
             >
               <div style={styles.subjectTop}>
-                <div style={styles.subjectName}>{subject.subject}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <IconBadge label={subject.subject.slice(0, Math.min(2, subject.subject.length)).toUpperCase()} tone={ACCENT} />
+                  <div style={styles.subjectName}>{subject.subject}</div>
+                </div>
                 <div style={styles.subjectSub}>Entries {subject.entries}</div>
               </div>
               <div style={styles.subjectStats}>
