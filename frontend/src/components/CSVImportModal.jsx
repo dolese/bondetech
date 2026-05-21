@@ -47,7 +47,7 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
     const hasHeader = headerGuess.some(h => h.includes("index") || h.includes("admission") || h.includes("candidate") || h === "cno" || h.includes("name") || h.includes("sex"));
 
     let scoreCols = Array(subjects.length).fill(null);
-    let colMap = { indexNo: 0, name: 1, sex: 2 };
+      let colMap = { indexNo: 0, name: 1, sex: 2 };
     let startLine = 0;
 
     if (hasHeader) {
@@ -378,7 +378,7 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
                   setErrors([]);
                 }
               }}
-              placeholder={`cno,name,sex,${subjects.slice(0, 3).join(",")}`}
+            placeholder={`cno,name,sex,${subjects.slice(0, 3).join(",")}`}
               style={styles.textarea}
             />
             <div style={styles.helpText}>

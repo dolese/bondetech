@@ -351,11 +351,10 @@ export function EntryPanel({
   };
 
   const exportCsv = () => {
-    const header = ["admission_no", "index_no", "name", "sex", ...subjects].map(csvEscape).join(",");
+    const header = ["index_no", "name", "sex", ...subjects].map(csvEscape).join(",");
     const rows = (computed ?? []).map((s) => {
       const scores = subjects.map((_, si) => s.grades?.[si]?.score ?? "");
       return [
-        s.admission_no ?? s.admissionNo ?? "",
         s.index_no ?? "",
         s.name ?? "",
         s.sex ?? "",
@@ -389,9 +388,8 @@ export function EntryPanel({
 
   const handleExportXlsx = () => {
     const headers = [
-      "CNO", "Name", "Sex", "Status",
+      "CNO", "Name", "Sex",
       ...subjects,
-      "Total", "Average", "Grade", "Division", "Points", "Position",
     ];
     const rows = (computed ?? []).map((s) => {
       const scores = subjects.map((_, si) => {
@@ -402,14 +400,7 @@ export function EntryPanel({
         s.index_no ?? "",
         s.name ?? "",
         s.sex ?? "",
-        s.status ?? "",
         ...scores,
-        s.total !== null && s.total !== undefined ? Number(s.total) : "",
-        s.avg !== null && s.avg !== undefined ? Number(s.avg) : "",
-        s.agrd ?? "",
-        s.div ?? "",
-        s.pts !== null && s.pts !== undefined ? Number(s.pts) : "",
-        s.posn !== null && s.posn !== undefined ? Number(s.posn) : "",
       ];
     });
     exportXlsx(`${classData.name || "class"}-students`, headers, rows).catch((err) => {

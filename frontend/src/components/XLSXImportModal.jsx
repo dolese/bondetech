@@ -176,8 +176,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     const hNorm = headers.map(norm);
 
     // Recognised exact and prefix/suffix patterns for each identity column.
-    const STUDENT_ID_HEADERS = new Set(["cno", "admission_no", "admissionno", "index_no", "indexno", "candidate_no", "candidateno"]);
-    const cnoIdx = hNorm.findIndex(h => STUDENT_ID_HEADERS.has(h));
+    const admissionIdx = hNorm.findIndex((h) => h === "admission_no" || h === "admissionno");
+    const cnoIdx = hNorm.findIndex((h) => ["cno", "index_no", "indexno", "candidate_no", "candidateno"].includes(h));
     const nameIdx = hNorm.findIndex(h => h === "name" || h === "student_name" || h === "studentname");
     const sexIdx = hNorm.findIndex(h => h === "sex" || h === "gender");
     const statusIdx = hNorm.findIndex(h => h === "status");
@@ -217,6 +217,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
       });
 
       const mapped = {
+        admissionNo: admissionIdx >= 0 ? String(row[headers[admissionIdx]] ?? "").trim() : "",
         indexNo: cnoIdx >= 0 ? String(row[headers[cnoIdx]] ?? "").trim() : "",
         name: nameIdx >= 0 ? String(row[headers[nameIdx]] ?? "").trim() : "",
         sex: sexVal,
@@ -290,8 +291,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
 
       const norm = (s) => String(s ?? "").trim().toLowerCase();
       const hNorm = headers.map(norm);
-      const STUDENT_ID_HEADERS = new Set(["cno", "admission_no", "admissionno", "index_no", "indexno", "candidate_no", "candidateno"]);
-      const cnoIdx = hNorm.findIndex((h) => STUDENT_ID_HEADERS.has(h));
+      const admissionIdx = hNorm.findIndex((h) => h === "admission_no" || h === "admissionno");
+      const cnoIdx = hNorm.findIndex((h) => ["cno", "index_no", "indexno", "candidate_no", "candidateno"].includes(h));
       const nameIdx = hNorm.findIndex((h) => h === "name" || h === "student_name" || h === "studentname");
       const sexIdx = hNorm.findIndex((h) => h === "sex" || h === "gender");
       const statusIdx = hNorm.findIndex((h) => h === "status");
@@ -323,6 +324,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
         });
 
         const mapped = {
+          admissionNo: admissionIdx >= 0 ? String(row[headers[admissionIdx]] ?? "").trim() : "",
           indexNo: cnoIdx >= 0 ? String(row[headers[cnoIdx]] ?? "").trim() : "",
           name: nameIdx >= 0 ? String(row[headers[nameIdx]] ?? "").trim() : "",
           sex: sexVal,
@@ -577,8 +579,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
             </div>
             <div style={{ fontSize: 10, color: "#666", background: "#f4f7ff", padding: 8, borderRadius: 6, borderLeft: "3px solid #1a7336" }}>
               Tip: Use <strong>Export XLSX</strong> to generate a template, edit it in Excel or Google
-              Sheets, then re-import here. Columns for Total, Average, Grade, Division, Points, and
-              Position are ignored during import.
+              Sheets, then re-import here. Extra summary columns are ignored during import.
             </div>
           </div>
 
@@ -616,7 +617,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
                 <table style={styles.table}>
                   <thead>
                     <tr>
-                      {["CNO", "Name", "Sex", "Status", ...subjects.slice(0, 5)].map((h) => (
+                      {["CNO", "Name", "Sex", ...subjects.slice(0, 5)].map((h) => (
                         <th key={h} style={styles.th}>{h}</th>
                       ))}
                       {subjects.length > 5 && <th style={styles.th}>+{subjects.length - 5} more</th>}
@@ -628,7 +629,6 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
                         <td style={styles.td}>{s.indexNo || "—"}</td>
                         <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
                         <td style={styles.td}>{s.sex}</td>
-                        <td style={styles.td}>{s.status}</td>
                         {s.scores.slice(0, 5).map((sc, si) => (
                           <td key={si} style={styles.td}>
                             {sc === "" || sc === null || sc === undefined ? "—" : sc}
