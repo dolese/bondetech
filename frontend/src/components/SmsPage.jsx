@@ -38,6 +38,35 @@ const MESSAGE_TEMPLATES = [
   },
 ];
 
+const SMS_TEMPLATE_STORAGE_KEY = "bonde.smsTemplates.v1";
+
+function loadStoredSmsTemplates() {
+  try {
+    const raw = window.localStorage.getItem(SMS_TEMPLATE_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((entry, index) => ({
+        key: String(entry?.key || `saved-${index + 1}`),
+        label: String(entry?.label || "").trim(),
+        message: String(entry?.message || "").trim(),
+        saved: true,
+      }))
+      .filter((entry) => entry.label && entry.message);
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredSmsTemplates(templates = []) {
+  try {
+    window.localStorage.setItem(SMS_TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
+  } catch {
+    // no-op
+  }
+}
+
 const SUBJECT_LABELS = {
   CIV: "Civ",
   HTZ: "Htz",
@@ -210,6 +239,22 @@ function formatHistoryTime(value) {
   });
 }
 
+function isFutureSchedule(value) {
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime()) && parsed.getTime() > Date.now();
+}
+
+function formatScheduleLabel(value) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Scheduled";
+  return parsed.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function buildExamOptionsForClass(cls = {}) {
   const values = new Set();
   values.add(String(cls?.school_info?.exam || "").trim() || DEFAULT_EXAM_TYPE);
@@ -312,6 +357,13 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
   const [isSending, setIsSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
   const [history, setHistory] = useState([]);
+  const [savedTemplates, setSavedTemplates] = useState([]);
+  const [templateLabel, setTemplateLabel] = useState("");
+  const [historyModeFilter, setHistoryModeFilter] = useState("all");
+
+  useEffect(() => {
+    setSavedTemplates(loadStoredSmsTemplates());
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -467,6 +519,14 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
   const previewMessage = mode === "results" ? resultsRecipients[0]?.message || "" : message;
   const charCount = previewMessage.length;
   const smsSegments = charCount === 0 ? 0 : Math.ceil(charCount / 160);
+  const templateButtons = useMemo(
+    () => [...MESSAGE_TEMPLATES, ...savedTemplates],
+    [savedTemplates],
+  );
+  const visibleHistory = useMemo(
+    () => history.filter((entry) => historyModeFilter === "all" || entry.mode === historyModeFilter),
+    [history, historyModeFilter],
+  );
 
   const stats = [
     { label: "Recipients", value: recipients.length },
@@ -478,6 +538,34 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
   const handleTemplateSelect = (template) => {
     setMode("custom");
     setMessage(template.message);
+    setTemplateLabel(template.label || "");
+  };
+
+  const handleSaveTemplate = () => {
+    const nextLabel = String(templateLabel || "").trim();
+    const nextMessage = String(message || "").trim();
+    if (!nextLabel) {
+      showToast?.("Enter a template name first", "error");
+      return;
+    }
+    if (!nextMessage) {
+      showToast?.("Type the SMS message before saving a template", "error");
+      return;
+    }
+    const nextTemplates = [
+      ...savedTemplates.filter((entry) => entry.label.toLowerCase() !== nextLabel.toLowerCase()),
+      { key: `saved-${Date.now()}`, label: nextLabel, message: nextMessage, saved: true },
+    ];
+    setSavedTemplates(nextTemplates);
+    saveStoredSmsTemplates(nextTemplates);
+    showToast?.("SMS template saved", "success");
+  };
+
+  const handleDeleteTemplate = (templateKey) => {
+    const nextTemplates = savedTemplates.filter((entry) => entry.key !== templateKey);
+    setSavedTemplates(nextTemplates);
+    saveStoredSmsTemplates(nextTemplates);
+    showToast?.("Saved SMS template removed", "success");
   };
 
   const handleCopyMessage = async () => {
@@ -790,14 +878,29 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
             </div>
             {mode === "custom" ? (
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {MESSAGE_TEMPLATES.map((template) => (
-                  <button
-                    key={template.key}
-                    onClick={() => handleTemplateSelect(template)}
-                    style={secondaryButtonStyle({ compact: true })}
-                  >
-                    {template.label}
-                  </button>
+                {templateButtons.map((template) => (
+                  <div key={template.key} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <button
+                      onClick={() => handleTemplateSelect(template)}
+                      style={secondaryButtonStyle({ compact: true })}
+                    >
+                      {template.label}
+                    </button>
+                    {template.saved ? (
+                      <button
+                        onClick={() => handleDeleteTemplate(template.key)}
+                        title={`Delete ${template.label}`}
+                        style={{
+                          ...secondaryButtonStyle({ compact: true }),
+                          padding: "8px 10px",
+                          color: "#b42318",
+                          borderColor: "rgba(244, 114, 114, 0.35)",
+                        }}
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
                 ))}
               </div>
             ) : (
@@ -815,10 +918,21 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
               <input
                 value={scheduleTime}
                 onChange={(e) => setScheduleTime(e.target.value)}
-                placeholder="Optional gateway schedule"
+                placeholder="YYYY-MM-DD HH:mm"
                 style={fieldStyle()}
               />
             </label>
+            {mode === "custom" ? (
+              <label style={{ display: "grid", gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Template Name</span>
+                <input
+                  value={templateLabel}
+                  onChange={(e) => setTemplateLabel(e.target.value)}
+                  placeholder="Exam release notice"
+                  style={fieldStyle()}
+                />
+              </label>
+            ) : null}
           </div>
 
           {mode === "results" ? (
@@ -853,6 +967,11 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
             >
               {isSending ? "Sending..." : mode === "results" ? "Send Results SMS" : "Send with Beem"}
             </button>
+            {mode === "custom" ? (
+              <button onClick={handleSaveTemplate} style={secondaryButtonStyle({ compact: false })}>
+                Save Template
+              </button>
+            ) : null}
             <button onClick={handleCopyMessage} style={secondaryButtonStyle({ compact: false })}>
               Copy {mode === "results" ? "Preview" : "Message"}
             </button>
@@ -890,6 +1009,30 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
                   </div>
                 ))}
               </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {sendResult.senderId ? (
+                  <div style={pillStyle({ tone: "blue" })}>Sender {sendResult.senderId}</div>
+                ) : null}
+                {scheduleTime ? (
+                  <div style={pillStyle({ tone: "amber" })}>
+                    {isFutureSchedule(scheduleTime)
+                      ? `Scheduled ${formatScheduleLabel(scheduleTime)}`
+                      : `Schedule ${scheduleTime}`}
+                  </div>
+                ) : null}
+                {(sendResult.results || [])
+                  .flatMap((entry) =>
+                    Array.isArray(entry?.results)
+                      ? entry.results.map((item) => item?.requestId).filter(Boolean)
+                      : [entry?.requestId].filter(Boolean),
+                  )
+                  .slice(0, 3)
+                  .map((requestId) => (
+                    <div key={requestId} style={pillStyle({ tone: "slate" })}>
+                      Request {requestId}
+                    </div>
+                  ))}
+              </div>
             </div>
           ) : null}
         </div>
@@ -903,12 +1046,19 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
               Recent outbound SMS activity recorded from this portal.
             </div>
           </div>
-          <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>
-            {history.length} recent log{history.length === 1 ? "" : "s"}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <select value={historyModeFilter} onChange={(e) => setHistoryModeFilter(e.target.value)} style={fieldStyle({ minWidth: 150, height: 36 })}>
+              <option value="all">All history</option>
+              <option value="custom">Custom SMS</option>
+              <option value="results">Results SMS</option>
+            </select>
+            <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>
+              {visibleHistory.length} recent log{visibleHistory.length === 1 ? "" : "s"}
+            </div>
           </div>
         </div>
 
-        {history.length === 0 ? (
+        {visibleHistory.length === 0 ? (
           <div
             style={{
               ...softCardStyle({ padding: 18, radius: 18 }),
@@ -920,60 +1070,63 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
             No SMS history has been recorded yet.
           </div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
-              <thead>
-                <tr>
-                  {["Time", "Mode", "Target", "Requested By", "Valid", "Status"].map((label) => (
-                    <th
-                      key={label}
-                      style={{
-                        textAlign: "left",
-                        padding: "11px 12px",
-                        fontSize: 12,
-                        color: "#475569",
-                        borderBottom: "1px solid rgba(226,232,240,0.92)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      {label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((entry) => (
-                  <tr key={entry.id}>
-                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155" }}>
-                      {formatHistoryTime(entry.created_at)}
-                    </td>
-                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155", fontWeight: 700 }}>
-                      {entry.mode === "results" ? "Results SMS" : "Custom SMS"}
-                    </td>
-                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155" }}>
-                      <div style={{ fontWeight: 700, color: "#0f172a" }}>
-                        {entry.class_label || entry.scope || "General"}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-                        {(entry.exam ? `${entry.exam} · ` : "") + `${entry.total_requested || 0} recipient${Number(entry.total_requested || 0) === 1 ? "" : "s"}`}
-                      </div>
-                    </td>
-                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155" }}>
-                      {entry.requested_by?.displayName || entry.requested_by?.username || "-"}
-                    </td>
-                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155", fontWeight: 700 }}>
-                      {entry.valid ?? 0}
-                    </td>
-                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)" }}>
-                      <span style={pillStyle({ tone: entry.successful ? "teal" : "amber" })}>
-                        {entry.successful ? "Submitted" : "Warnings"}
+          <div style={{ display: "grid", gap: 10 }}>
+            {visibleHistory.map((entry) => (
+              <div key={entry.id} style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>
+                      {entry.class_label || entry.scope || "General"}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}>
+                      {formatHistoryTime(entry.created_at)} · {entry.mode === "results" ? "Results SMS" : "Custom SMS"} · {entry.requested_by?.displayName || entry.requested_by?.username || "-"}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <span style={pillStyle({ tone: entry.successful ? "teal" : "amber" })}>
+                      {entry.successful ? "Submitted" : "Warnings"}
+                    </span>
+                    {entry.schedule_time ? (
+                      <span style={pillStyle({ tone: isFutureSchedule(entry.schedule_time) ? "amber" : "blue" })}>
+                        {isFutureSchedule(entry.schedule_time)
+                          ? `Scheduled ${formatScheduleLabel(entry.schedule_time)}`
+                          : `Schedule ${entry.schedule_time}`}
                       </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
+                  {[
+                    { label: "Requested", value: entry.total_requested || 0 },
+                    { label: "Valid", value: entry.valid || 0 },
+                    { label: "Invalid", value: entry.invalid || 0 },
+                    { label: "Batches", value: entry.batch_count || 0 },
+                  ].map((item) => (
+                    <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 14 }) }}>
+                      <div style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.06em" }}>
+                        {item.label}
+                      </div>
+                      <div style={{ marginTop: 4, fontSize: 20, fontWeight: 900, color: "#0f172a" }}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {entry.sender_id ? <span style={pillStyle({ tone: "blue" })}>Sender {entry.sender_id}</span> : null}
+                  {entry.exam ? <span style={pillStyle({ tone: "teal" })}>{entry.exam}</span> : null}
+                  {(entry.request_ids || []).slice(0, 3).map((requestId) => (
+                    <span key={requestId} style={pillStyle({ tone: "slate" })}>Request {requestId}</span>
+                  ))}
+                </div>
+
+                {entry.message_preview ? (
+                  <div style={{ ...softCardStyle({ padding: 12, radius: 14 }), fontSize: 12, color: "#334155", whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+                    {entry.message_preview}
+                  </div>
+                ) : null}
+              </div>
+            ))}
           </div>
         )}
       </div>
