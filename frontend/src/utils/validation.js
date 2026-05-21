@@ -6,6 +6,7 @@ export const validate = {
   // Student validation
   student: (data) => {
     const errors = {};
+    const admissionPattern = /^[A-Z0-9]+-\d{4}-\d{4,}$/;
     
     if (!data.name?.trim()) {
       errors.name = "Student name is required";
@@ -17,6 +18,15 @@ export const validate = {
     if (indexVal !== undefined && indexVal !== null) {
       if (typeof indexVal !== "string") {
         errors.indexNo = "Candidate number must be text";
+      }
+    }
+
+    const admissionVal = data.admissionNo ?? data.admission_no;
+    if (admissionVal !== undefined && admissionVal !== null) {
+      if (typeof admissionVal !== "string") {
+        errors.admissionNo = "Admission number must be text";
+      } else if (admissionVal.trim() && !admissionPattern.test(admissionVal.trim().toUpperCase())) {
+        errors.admissionNo = "Admission number must use the format SCHOOLCODE-YEAR-SEQUENCE";
       }
     }
 

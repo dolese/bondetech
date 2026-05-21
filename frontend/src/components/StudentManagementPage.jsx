@@ -31,6 +31,7 @@ function makeEmptyForm() {
     classGroupKey: "",
     stream: "",
     id: "",
+    admission_no: "",
     index_no: "",
     name: "",
     sex: "M",
@@ -78,6 +79,7 @@ export function StudentManagementPage({
   const [modalMode, setModalMode] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(makeEmptyForm());
+  const [formError, setFormError] = useState("");
 
   const classOptions = useMemo(
     () =>
@@ -155,6 +157,7 @@ export function StudentManagementPage({
       .filter((student) => {
         if (!needle) return true;
         const haystack = [
+          student.admissionNo || student.admission_no,
           student.index_no || student.indexNo,
           student.name,
           student.sex,
@@ -191,6 +194,7 @@ export function StudentManagementPage({
       classGroupKey: defaultGroupKey,
       stream: defaultStream,
     });
+    setFormError("");
     setModalMode("add");
   };
 
@@ -201,6 +205,7 @@ export function StudentManagementPage({
       classGroupKey: [targetClass?.form || student.form, targetClass?.year || student.year].filter(Boolean).join("|"),
       stream: String(targetClass?.stream || student.stream || "").trim().toUpperCase(),
       id: student.id,
+      admission_no: student.admissionNo || student.admission_no || "",
       index_no: student.index_no || "",
       name: student.name || "",
       sex: student.sex || "M",
@@ -214,6 +219,7 @@ export function StudentManagementPage({
       optionalSubjects: Array.isArray(student.optionalSubjects) ? student.optionalSubjects : [],
       conduct: { ...DEFAULT_CONDUCT, ...(student.conduct || {}) },
     });
+    setFormError("");
     setModalMode("edit");
   };
 
@@ -221,6 +227,7 @@ export function StudentManagementPage({
     if (saving) return;
     setModalMode("");
     setForm(makeEmptyForm());
+    setFormError("");
   };
 
   const updateField = (key, value) => {
@@ -305,10 +312,15 @@ export function StudentManagementPage({
 
   const handleSave = async () => {
     if (!form.classId || !form.stream) return;
-    if (!String(form.name || "").trim()) return;
+    if (!String(form.name || "").trim()) {
+      setFormError("Student name is required.");
+      return;
+    }
+    setFormError("");
     setSaving(true);
     const payload = {
       ...form,
+      admission_no: String(form.admission_no || "").trim().toUpperCase(),
       name: String(form.name || "").trim(),
       index_no: String(form.index_no || "").trim(),
       parentName: String(form.parentName || "").trim(),
@@ -450,7 +462,7 @@ export function StudentManagementPage({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by student name, CNO, parent, or class"
+            placeholder="Search by admission no, student name, CNO, parent, or class"
             style={fieldStyle()}
           />
           <select
@@ -476,10 +488,10 @@ export function StudentManagementPage({
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
           }}
         >
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 960 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1080 }}>
             <thead>
               <tr>
-                {["CNO", "Student", "Sex", "Status", "Class", "Guardian", "Phone", "Actions"].map((label) => (
+                {["Admission No", "CNO", "Student", "Sex", "Status", "Class", "Guardian", "Phone", "Actions"].map((label) => (
                   <th
                     key={label}
                     style={{
@@ -503,6 +515,9 @@ export function StudentManagementPage({
             <tbody>
               {filteredStudents.map((student) => (
                 <tr key={`${student.classId}-${student.id}`} style={{ background: "rgba(255,255,255,0.52)" }}>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
+                    {student.admissionNo || student.admission_no || "-"}
+                  </td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
                     {student.index_no || student.indexNo || "-"}
                   </td>
@@ -565,7 +580,7 @@ export function StudentManagementPage({
               {!filteredStudents.length ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     style={{
                       padding: "24px 14px",
                       textAlign: "center",
@@ -652,6 +667,19 @@ export function StudentManagementPage({
                     </option>
                   ))}
                 </select>
+              </label>
+
+              <label style={{ display: "grid", gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Admission Number</span>
+                <input
+                  value={form.admission_no}
+                  onChange={(event) => updateField("admission_no", event.target.value)}
+                  placeholder="BSS-2026-0001"
+                  style={fieldStyle()}
+                />
+                <span style={{ fontSize: 11, color: "#64748b" }}>
+                  Optional for now. If used, keep the permanent format `SCHOOLCODE-YEAR-SEQUENCE`.
+                </span>
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
@@ -853,6 +881,22 @@ export function StudentManagementPage({
                 ))}
               </div>
             </div>
+
+            {formError ? (
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#8b2500",
+                  background: "rgba(254,226,226,0.9)",
+                  border: "1px solid rgba(248,113,113,0.35)",
+                  borderRadius: 14,
+                  padding: "10px 12px",
+                }}
+              >
+                {formError}
+              </div>
+            ) : null}
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
               <button

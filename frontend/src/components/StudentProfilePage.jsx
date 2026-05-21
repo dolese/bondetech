@@ -188,6 +188,8 @@ export function StudentProfilePage({
               {profile.name || "Unknown Student"}
             </div>
             <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>
+              <strong>Admission No:</strong> {profile.admissionNo || "-"}{" "}
+              <span style={{ margin: "0 6px" }}>•</span>
               <strong>CNO:</strong> {profile.indexNo}{" "}
               <span style={{ margin: "0 6px" }}>•</span>
               <strong>Sex:</strong> {profile.sex === "F" ? "Female" : "Male"}

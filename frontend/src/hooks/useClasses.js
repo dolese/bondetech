@@ -49,6 +49,7 @@ const normalizeStudent = (student) => {
   return {
     ...student,
     index_no: student.index_no ?? student.indexNo ?? "",
+    admissionNo: student.admissionNo ?? student.admission_no ?? "",
     dateOfBirth: student.dateOfBirth ?? student.date_of_birth ?? "",
     parentName: student.parentName ?? student.parent_name ?? "",
     parentPhone: student.parentPhone ?? student.parent_phone ?? "",
@@ -118,6 +119,11 @@ const toApiStudent = (student) => {
       : {}),
     examType: student.examType,
   };
+
+  const admissionNo = String(student.admissionNo ?? student.admission_no ?? "").trim();
+  if (admissionNo) {
+    result.admissionNo = admissionNo;
+  }
 
   if (Array.isArray(student.scores)) {
     result.scores = student.scores;

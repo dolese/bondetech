@@ -147,6 +147,7 @@ export function EntryPanel({
   const [metaError, setMetaError] = useState("");
   const [updatingMeta, setUpdatingMeta] = useState(false);
   const [newStudent, setNewStudent] = useState({
+    admission_no: "",
     index_no: "",
     firstName: "",
     lastName: "",
@@ -209,7 +210,8 @@ export function EntryPanel({
     .filter(s =>
       search === "" ||
       s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.index_no.toString().includes(search)
+      s.index_no.toString().includes(search) ||
+      String(s.admissionNo || s.admission_no || "").toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
       let aVal = sortBy === "index" ? a.index_no : a[sortBy];
@@ -280,12 +282,14 @@ export function EntryPanel({
     const scores = (classData.subjects ?? []).map(() => null);
     await onAddStudent({
       ...newStudent,
+      admission_no: String(newStudent.admission_no || "").trim().toUpperCase(),
       name: registrationName,
       optionalSubjects: Array.isArray(newStudent.optionalSubjects) ? newStudent.optionalSubjects : [],
       scores,
       examType: effectiveExam,
     });
     setNewStudent({
+      admission_no: "",
       index_no: "",
       firstName: "",
       lastName: "",
@@ -340,10 +344,11 @@ export function EntryPanel({
   };
 
   const exportCsv = () => {
-    const header = ["admission_no", "name", "sex", ...subjects].map(csvEscape).join(",");
+    const header = ["admission_no", "index_no", "name", "sex", ...subjects].map(csvEscape).join(",");
     const rows = (computed ?? []).map((s) => {
       const scores = subjects.map((_, si) => s.grades?.[si]?.score ?? "");
       return [
+        s.admission_no ?? s.admissionNo ?? "",
         s.index_no ?? "",
         s.name ?? "",
         s.sex ?? "",
@@ -1315,6 +1320,13 @@ export function EntryPanel({
                   gap: 10,
                 }}
               >
+                <TextInput
+                  label="Admission Number"
+                  value={newStudent.admission_no ?? ""}
+                  onChange={v => setNewStudent({ ...newStudent, admission_no: v })}
+                  error={errors.admission_no || errors.admissionNo}
+                  placeholder="BSS-2026-0001"
+                />
                 <TextInput
                   label="CNO (Auto)"
                   value={newStudent.index_no}

@@ -548,6 +548,7 @@ export function ReportCardPrint({
       <div style={styles.infoGrid}>
         {[
           ["Jina:", student.name || "-"],
+          ["Namba ya Kujiunga:", student.admission_no || student.admissionNo || "-"],
           ["Namba ya Mtihani:", student.index_no || student.indexNo || "-"],
           ["Kidato cha:", classLabel || "-"],
           ["Jinsia:", getGenderLabel(student.sex)],
