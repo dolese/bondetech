@@ -40,6 +40,8 @@ function makeEmptyForm() {
     address: "",
     previousSchool: "",
     remarks: "",
+    optionalSubjectsConfigured: true,
+    optionalSubjects: [],
     conduct: { ...DEFAULT_CONDUCT },
   };
 }
@@ -116,6 +118,14 @@ export function StudentManagementPage({
 
   const students = useMemo(() => flattenStudents(classes), [classes]);
   const selectedClass = useMemo(() => findClassById(classes, form.classId), [classes, form.classId]);
+  const optionalSubjectOptions = useMemo(
+    () =>
+      (selectedClass?.subject_metadata || [])
+        .filter((entry) => entry?.type === "optional")
+        .map((entry) => String(entry.name || entry.subject || "").trim())
+        .filter(Boolean),
+    [selectedClass],
+  );
   const selectedStudentRecord = useMemo(
     () =>
       form.id && selectedClass
@@ -200,6 +210,8 @@ export function StudentManagementPage({
       address: student.address || "",
       previousSchool: student.previousSchool || "",
       remarks: student.remarks || "",
+      optionalSubjectsConfigured: true,
+      optionalSubjects: Array.isArray(student.optionalSubjects) ? student.optionalSubjects : [],
       conduct: { ...DEFAULT_CONDUCT, ...(student.conduct || {}) },
     });
     setModalMode("edit");
@@ -219,6 +231,20 @@ export function StudentManagementPage({
     const group = classGroupOptions.find((entry) => entry.key === form.classGroupKey);
     return group?.streams || [];
   }, [classGroupOptions, form.classGroupKey]);
+
+  React.useEffect(() => {
+    if (!optionalSubjectOptions.length) {
+      if ((form.optionalSubjects || []).length) {
+        setForm((prev) => ({ ...prev, optionalSubjects: [] }));
+      }
+      return;
+    }
+    const allowed = new Set(optionalSubjectOptions);
+    const nextSubjects = (form.optionalSubjects || []).filter((entry) => allowed.has(entry));
+    if (nextSubjects.length !== (form.optionalSubjects || []).length) {
+      setForm((prev) => ({ ...prev, optionalSubjects: nextSubjects }));
+    }
+  }, [form.optionalSubjects, optionalSubjectOptions]);
 
   const updateClassGroup = (groupKey) => {
     const group = classGroupOptions.find((entry) => entry.key === groupKey);
@@ -252,6 +278,20 @@ export function StudentManagementPage({
     }));
   };
 
+  const toggleOptionalSubject = (subject) => {
+    const normalized = String(subject || "").trim();
+    if (!normalized) return;
+    setForm((prev) => {
+      const exists = (prev.optionalSubjects || []).includes(normalized);
+      return {
+        ...prev,
+        optionalSubjects: exists
+          ? (prev.optionalSubjects || []).filter((entry) => entry !== normalized)
+          : [...(prev.optionalSubjects || []), normalized],
+      };
+    });
+  };
+
   const applySuggestedConduct = () => {
     if (!suggestedConductProfile) return;
     setForm((prev) => ({
@@ -276,6 +316,10 @@ export function StudentManagementPage({
       address: String(form.address || "").trim(),
       previousSchool: String(form.previousSchool || "").trim(),
       remarks: String(form.remarks || "").trim(),
+      optionalSubjectsConfigured: true,
+      optionalSubjects: (form.optionalSubjects || [])
+        .map((entry) => String(entry || "").trim())
+        .filter(Boolean),
     };
     try {
       const result =
@@ -705,6 +749,56 @@ export function StudentManagementPage({
                 style={{ ...fieldStyle(), resize: "vertical" }}
               />
             </label>
+
+            {optionalSubjectOptions.length ? (
+              <div
+                style={{
+                  ...softCardStyle({ padding: 14, radius: 20 }),
+                  display: "grid",
+                  gap: 12,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>Optional Subjects</div>
+                  <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
+                    Select only the optional subjects this student actually takes. Compulsory subjects stay available automatically.
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))",
+                    gap: 10,
+                  }}
+                >
+                  {optionalSubjectOptions.map((subject) => {
+                    const checked = (form.optionalSubjects || []).includes(subject);
+                    return (
+                      <label
+                        key={subject}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "10px 12px",
+                          borderRadius: 14,
+                          border: checked ? "1px solid #93c5fd" : "1px solid #dbe6fb",
+                          background: checked ? "rgba(219,234,254,0.72)" : "rgba(255,255,255,0.88)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleOptionalSubject(subject)}
+                        />
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{subject}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
 
             <div
               style={{

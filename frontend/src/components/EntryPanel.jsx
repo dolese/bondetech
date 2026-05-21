@@ -42,6 +42,35 @@ function normalizeMarkInput(value) {
   return Math.min(100, Math.max(0, Math.trunc(num)));
 }
 
+function normalizeSubjectMetadataList(classData = {}) {
+  const subjects = Array.isArray(classData?.subjects) ? classData.subjects : [];
+  const metadata = Array.isArray(classData?.subject_metadata)
+    ? classData.subject_metadata
+    : Array.isArray(classData?.subjectMetadata)
+    ? classData.subjectMetadata
+    : [];
+  const byName = new Map(
+    metadata.flatMap((entry) => {
+      const name = String(entry?.name || entry?.subject || "").trim();
+      if (!name) return [];
+      const type = String(entry?.type || "compulsory").trim().toLowerCase();
+      return [[name.toLowerCase(), type === "optional" ? "optional" : "compulsory"]];
+    }),
+  );
+  return subjects.map((subject) => ({
+    name: String(subject || "").trim(),
+    type: byName.get(String(subject || "").trim().toLowerCase()) || "compulsory",
+  }));
+}
+
+function getStudentOptionalSubjects(student = {}) {
+  return new Set(
+    (Array.isArray(student.optionalSubjects) ? student.optionalSubjects : [])
+      .map((entry) => String(entry || "").trim())
+      .filter(Boolean),
+  );
+}
+
 export function EntryPanel({
   classId,
   classData,
@@ -61,6 +90,18 @@ export function EntryPanel({
   resultsLocked = false,
 }) {
   const subjects = classData.subjects ?? [];
+  const subjectMetadata = normalizeSubjectMetadataList(classData);
+  const optionalSubjectOptions = subjectMetadata
+    .filter((entry) => entry.type === "optional")
+    .map((entry) => entry.name);
+  const isSubjectVisibleForStudent = (student, subjectIndex) => {
+    const meta = subjectMetadata[subjectIndex];
+    if (!meta || meta.type !== "optional") return true;
+    if (!student?.optionalSubjectsConfigured && !Array.isArray(student?.optionalSubjects)) {
+      return true;
+    }
+    return getStudentOptionalSubjects(student).has(meta.name);
+  };
   // Determine the effective active exam: prefer the prop, fall back to schoolInfo
   const effectiveExam = activeExam || classData.school_info?.exam || DEFAULT_EXAM_TYPE;
   // Composite exam: combines current + partner exam scores as (current + partner) / 2
@@ -116,6 +157,8 @@ export function EntryPanel({
     parentPhone: "",
     address: "",
     previousSchool: "",
+    optionalSubjectsConfigured: true,
+    optionalSubjects: [],
     conduct: { ...DEFAULT_CONDUCT },
   });
   const { isMobile, isTablet } = useViewport();
@@ -178,7 +221,12 @@ export function EntryPanel({
 
   const handleEdit = s => {
     setEditId(s.id);
-    setEditData({ ...s, conduct: { ...DEFAULT_CONDUCT, ...(s.conduct ?? {}) } });
+    setEditData({
+      ...s,
+      optionalSubjectsConfigured: Boolean(s.optionalSubjectsConfigured),
+      optionalSubjects: Array.isArray(s.optionalSubjects) ? s.optionalSubjects : [],
+      conduct: { ...DEFAULT_CONDUCT, ...(s.conduct ?? {}) },
+    });
     setErrors({});
   };
 
@@ -198,6 +246,7 @@ export function EntryPanel({
     });
     await onUpdateStudent({
       ...editData,
+      optionalSubjects: Array.isArray(editData.optionalSubjects) ? editData.optionalSubjects : [],
       scores,
       examType: effectiveExam,
     });
@@ -232,6 +281,7 @@ export function EntryPanel({
     await onAddStudent({
       ...newStudent,
       name: registrationName,
+      optionalSubjects: Array.isArray(newStudent.optionalSubjects) ? newStudent.optionalSubjects : [],
       scores,
       examType: effectiveExam,
     });
@@ -246,10 +296,39 @@ export function EntryPanel({
       parentPhone: "",
       address: "",
       previousSchool: "",
+      optionalSubjectsConfigured: true,
+      optionalSubjects: [],
       conduct: { ...DEFAULT_CONDUCT },
     });
     setAddingNew(false);
     setErrors({});
+  };
+
+  const toggleNewStudentOptionalSubject = (subject) => {
+    const normalized = String(subject || "").trim();
+    if (!normalized) return;
+    setNewStudent((prev) => {
+      const exists = (prev.optionalSubjects || []).includes(normalized);
+      return {
+        ...prev,
+        optionalSubjects: exists
+          ? (prev.optionalSubjects || []).filter((entry) => entry !== normalized)
+          : [...(prev.optionalSubjects || []), normalized],
+      };
+    });
+  };
+
+  const toggleEditOptionalSubject = (subject) => {
+    const normalized = String(subject || "").trim();
+    if (!normalized || !editData) return;
+    const current = Array.isArray(editData.optionalSubjects) ? editData.optionalSubjects : [];
+    const exists = current.includes(normalized);
+    setEditData({
+      ...editData,
+      optionalSubjects: exists
+        ? current.filter((entry) => entry !== normalized)
+        : [...current, normalized],
+    });
   };
 
   const csvEscape = (value) => {
@@ -1291,6 +1370,43 @@ export function EntryPanel({
               </div>
             </div>
 
+            {optionalSubjectOptions.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
+                  Optional Subjects
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+                  {optionalSubjectOptions.map((subject) => {
+                    const checked = (newStudent.optionalSubjects || []).includes(subject);
+                    return (
+                      <label
+                        key={subject}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "8px 10px",
+                          borderRadius: 10,
+                          border: checked ? "1px solid #93c5fd" : "1px solid #d0dcf8",
+                          background: checked ? "#eff6ff" : "#ffffff",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: "#0f172a",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleNewStudentOptionalSubject(subject)}
+                        />
+                        <span>{subject}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div>
               <div style={{ fontSize: 11, fontWeight: 800, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
                 Guardian Information
@@ -1413,7 +1529,7 @@ export function EntryPanel({
                   {[
                     "CNO",
                     "Name",
-                    ...subjects.map((s) => s.slice(0, 3)),
+                    ...subjects.map((s, index) => `${s.slice(0, 3)}${subjectMetadata[index]?.type === "optional" ? "*" : ""}`),
                   ].map((h, i) => (
                     <th
                       key={`${h}-${i}`}
@@ -1437,27 +1553,34 @@ export function EntryPanel({
                       {s.index_no}
                     </td>
                     <td style={{ padding: "4px 6px", textAlign: "left", border: "1px solid #d2def5" }}>{s.name}</td>
-                    {subjects.map((_, si) => (
-                      <td key={si} style={{ padding: "4px 4px", textAlign: "center", border: "1px solid #d2def5" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={bulkScores[s.id]?.[si] ?? ""}
-                            onChange={(e) => handleBulkScoreChange(s.id, si, e.target.value)}
-                            style={styles.bulkInput}
-                          />
-                          {(() => {
-                            const v = bulkScores[s.id]?.[si];
-                            const g = (v !== "" && v != null) ? getGrade(Number(v)) : null;
-                            return g ? (
-                              <span style={gradeBadgeStyle(g)}>{g}</span>
-                            ) : null;
-                          })()}
-                        </div>
-                      </td>
-                    ))}
+                    {subjects.map((_, si) => {
+                      const visible = isSubjectVisibleForStudent(s, si);
+                      return (
+                        <td key={si} style={{ padding: "4px 4px", textAlign: "center", border: "1px solid #d2def5", background: visible ? "transparent" : "#f8fafc", color: visible ? "#334155" : "#94a3b8" }}>
+                          {visible ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={bulkScores[s.id]?.[si] ?? ""}
+                                onChange={(e) => handleBulkScoreChange(s.id, si, e.target.value)}
+                                style={styles.bulkInput}
+                              />
+                              {(() => {
+                                const v = bulkScores[s.id]?.[si];
+                                const g = (v !== "" && v != null) ? getGrade(Number(v)) : null;
+                                return g ? (
+                                  <span style={gradeBadgeStyle(g)}>{g}</span>
+                                ) : null;
+                              })()}
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: 10, fontWeight: 700 }}>—</span>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
                 {!filtered.length && (
@@ -1511,6 +1634,9 @@ export function EntryPanel({
                       <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>Scores</div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 10 }}>
                         {subjects.map((subj, si) => {
+                          if (!isSubjectVisibleForStudent(editData, si)) {
+                            return null;
+                          }
                           const score = editData.grades?.[si]?.score ?? "";
                           const editGrade = editData.grades?.[si]?.grade ?? null;
                           return (
@@ -1607,6 +1733,7 @@ export function EntryPanel({
                 {subjects.length > 0 && (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 6px", marginBottom: 6 }}>
                     {subjects.map((subj, si) => {
+                      if (!isSubjectVisibleForStudent(s, si)) return null;
                       const score = s.grades?.[si]?.score;
                       const grade = s.grades?.[si]?.grade;
                       if (score == null) return null;
@@ -1706,7 +1833,7 @@ export function EntryPanel({
                   }}
                   title={subj}
                 >
-                  {subj.slice(0, 3)}
+                  {subj.slice(0, 3)}{subjectMetadata[i]?.type === "optional" ? "*" : ""}
                 </th>
               ))}
               <th
@@ -1826,6 +1953,7 @@ export function EntryPanel({
 
                   {/* Score inputs */}
                   {(classData.subjects ?? []).map((subj, si) => {
+                    const visible = isSubjectVisibleForStudent(isEditing ? editData : s, si);
                     // In composite mode use grade.raw (current exam's entry) so teachers
                     // see and edit what they typed, not the combined average.
                     const rawVal = isEditing ? editData.grades?.[si]?.raw : s.grades?.[si]?.raw;
@@ -1843,9 +1971,13 @@ export function EntryPanel({
                           textAlign: "center",
                           border: "1px solid #d2def5",
                           minWidth: 55,
+                          background: visible ? "transparent" : "#f8fafc",
+                          color: visible ? "#334155" : "#94a3b8",
                         }}
                       >
-                        {isEditing ? (
+                        {!visible ? (
+                          <span style={{ fontSize: 10, fontWeight: 700 }}>—</span>
+                        ) : isEditing ? (
                           <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
                             <input
                               type="number"

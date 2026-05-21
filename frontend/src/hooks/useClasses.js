@@ -39,6 +39,13 @@ const normalizeStudent = (student) => {
       ? { [DEFAULT_EXAM_TYPE]: legacyScores }
       : rawExamScores;
   const scores = Array.isArray(examScores[DEFAULT_EXAM_TYPE]) ? examScores[DEFAULT_EXAM_TYPE] : legacyScores;
+  const optionalSubjectsConfigured =
+    Array.isArray(student.optionalSubjects) || Array.isArray(student.optional_subjects);
+  const optionalSubjects = Array.isArray(student.optionalSubjects)
+    ? student.optionalSubjects
+    : Array.isArray(student.optional_subjects)
+    ? student.optional_subjects
+    : [];
   return {
     ...student,
     index_no: student.index_no ?? student.indexNo ?? "",
@@ -48,6 +55,10 @@ const normalizeStudent = (student) => {
     address: student.address ?? "",
     previousSchool: student.previousSchool ?? student.previous_school ?? "",
     remarks: student.remarks ?? "",
+    optionalSubjectsConfigured,
+    optionalSubjects: optionalSubjects
+      .map((entry) => String(entry || "").trim())
+      .filter(Boolean),
     conduct:
       student.conduct && typeof student.conduct === "object"
         ? { ...DEFAULT_CONDUCT, ...student.conduct }
@@ -95,6 +106,16 @@ const toApiStudent = (student) => {
       student.conduct && typeof student.conduct === "object"
         ? { ...DEFAULT_CONDUCT, ...student.conduct }
         : { ...DEFAULT_CONDUCT },
+    ...(student.optionalSubjectsConfigured || (Array.isArray(student.optionalSubjects) && student.optionalSubjects.length)
+      ? {
+          optionalSubjects: Array.isArray(student.optionalSubjects)
+            ? student.optionalSubjects
+            : Array.isArray(student.optional_subjects)
+            ? student.optional_subjects
+            : [],
+          optionalSubjectsConfigured: true,
+        }
+      : {}),
     examType: student.examType,
   };
 

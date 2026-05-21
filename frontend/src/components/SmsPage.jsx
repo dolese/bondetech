@@ -131,9 +131,22 @@ function normalizeSubjectMetadata(cls = {}) {
   });
 }
 
-function shouldIncludeSmsSubject(grade, subjectMeta) {
+function shouldIncludeSmsSubject(grade, subjectMeta, student = {}) {
   const type = subjectMeta?.type === "optional" ? "optional" : "compulsory";
   if (type === "compulsory") return true;
+  if (student?.optionalSubjectsConfigured) {
+    const chosen = new Set(
+      (Array.isArray(student?.optionalSubjects)
+        ? student.optionalSubjects
+        : Array.isArray(student?.optional_subjects)
+        ? student.optional_subjects
+        : []
+      )
+        .map((entry) => String(entry || "").trim())
+        .filter(Boolean),
+    );
+    return chosen.has(subjectMeta?.name || grade?.subj || "");
+  }
 
   const hasCurrent =
     grade?.raw === "ABS" ||
@@ -301,7 +314,7 @@ function buildResultsMessage(student, cls, language = "en") {
   const subjectMetaList = normalizeSubjectMetadata(cls);
   const filteredGrades = grades
     .map((grade, index) => ({ grade, subjectMeta: subjectMetaList[index] }))
-    .filter(({ grade, subjectMeta }) => shouldIncludeSmsSubject(grade, subjectMeta));
+    .filter(({ grade, subjectMeta }) => shouldIncludeSmsSubject(grade, subjectMeta, student));
   const subjectChunks = [];
 
   for (let index = 0; index < filteredGrades.length; index += 3) {
