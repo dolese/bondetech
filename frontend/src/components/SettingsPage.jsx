@@ -33,7 +33,16 @@ export function SettingsPage({
   const { isMobile } = useViewport();
   const { t } = useI18n();
   const subjects = classData.subjects ?? [];
+  const subjectMetadata = Array.isArray(classData.subject_metadata)
+    ? classData.subject_metadata
+    : Array.isArray(classData.subjectMetadata)
+    ? classData.subjectMetadata
+    : [];
   const resultsLocked = Boolean(classData.published);
+  const subjectTypeOptions = [
+    { label: t("compulsory", "Compulsory"), value: "compulsory" },
+    { label: t("optional", "Optional"), value: "optional" },
+  ];
 
   // Class name & year/form state
   const [className, setClassName] = useState(classData.name ?? "");
@@ -59,6 +68,7 @@ export function SettingsPage({
 
   // Subjects state
   const [subjectInput, setSubjectInput] = useState("");
+  const [subjectTypeInput, setSubjectTypeInput] = useState("compulsory");
   const [subjectError, setSubjectError] = useState("");
   const [updatingSubjects, setUpdatingSubjects] = useState(false);
 
@@ -155,6 +165,27 @@ export function SettingsPage({
   };
 
   const cleanSubject = (value) => String(value ?? "").trim();
+  const buildSubjectMetadata = (nextSubjects, overrides = {}) => {
+    const byName = new Map(
+      subjectMetadata.flatMap((entry) => {
+        const name = cleanSubject(entry?.name || entry?.subject || "");
+        if (!name) return [];
+        return [[name.toLowerCase(), { name, type: entry?.type === "optional" ? "optional" : "compulsory" }]];
+      }),
+    );
+    return nextSubjects.map((subject) => {
+      const normalized = cleanSubject(subject);
+      const override = overrides[normalized.toLowerCase()];
+      if (override) {
+        return { name: normalized, type: override };
+      }
+      return byName.get(normalized.toLowerCase()) || { name: normalized, type: "compulsory" };
+    });
+  };
+  const getSubjectType = (subject) =>
+    buildSubjectMetadata(subjects).find(
+      (entry) => entry.name.toLowerCase() === cleanSubject(subject).toLowerCase(),
+    )?.type || "compulsory";
 
   const handleAddSubject = async () => {
     if (resultsLocked) return;
@@ -172,10 +203,15 @@ export function SettingsPage({
       return;
     }
     setSubjectError("");
+    const nextSubjects = [...subjects, next];
+    const nextMetadata = buildSubjectMetadata(nextSubjects, {
+      [next.toLowerCase()]: subjectTypeInput,
+    });
     setUpdatingSubjects(true);
-    await onUpdateSubjects?.([...subjects, next]);
+    await onUpdateSubjects?.(nextSubjects, nextMetadata);
     setUpdatingSubjects(false);
     setSubjectInput("");
+    setSubjectTypeInput("compulsory");
   };
 
   const handleRemoveSubject = async (subject) => {
@@ -191,8 +227,9 @@ export function SettingsPage({
     )
       return;
     const next = subjects.filter((s) => s !== subject);
+    const nextMetadata = buildSubjectMetadata(next);
     setUpdatingSubjects(true);
-    await onUpdateSubjects?.(next);
+    await onUpdateSubjects?.(next, nextMetadata);
     setUpdatingSubjects(false);
   };
 
@@ -202,8 +239,19 @@ export function SettingsPage({
     if (swapIdx < 0 || swapIdx >= subjects.length) return;
     const next = [...subjects];
     [next[index], next[swapIdx]] = [next[swapIdx], next[index]];
+    const nextMetadata = buildSubjectMetadata(next);
     setUpdatingSubjects(true);
-    await onUpdateSubjects?.(next);
+    await onUpdateSubjects?.(next, nextMetadata);
+    setUpdatingSubjects(false);
+  };
+
+  const handleUpdateSubjectType = async (subject, type) => {
+    if (resultsLocked) return;
+    const nextMetadata = buildSubjectMetadata(subjects, {
+      [cleanSubject(subject).toLowerCase()]: type === "optional" ? "optional" : "compulsory",
+    });
+    setUpdatingSubjects(true);
+    await onUpdateSubjects?.(subjects, nextMetadata);
     setUpdatingSubjects(false);
   };
 
@@ -300,16 +348,18 @@ export function SettingsPage({
       fontSize: 12,
     },
     subjectChip: {
-      display: "inline-flex",
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "minmax(120px, 1fr) auto auto auto",
       alignItems: "center",
-      gap: 6,
+      gap: 8,
       background: "#f4f7ff",
       border: "1px solid #d0dcf8",
-      borderRadius: 999,
-      padding: "4px 10px",
+      borderRadius: 10,
+      padding: isMobile ? "8px 10px" : "6px 10px",
       fontSize: 10,
       fontWeight: 700,
       color: "#003366",
+      width: isMobile ? "100%" : "auto",
     },
     subjectRemove: {
       background: "#8b2500",
@@ -335,7 +385,8 @@ export function SettingsPage({
       borderRadius: 6,
       border: "1px solid #d0dcf8",
       height: 30,
-      minWidth: 160,
+      minWidth: isMobile ? 0 : 160,
+      width: isMobile ? "100%" : "auto",
       fontSize: 12,
     },
     subjectAddBtn: {
@@ -692,7 +743,7 @@ export function SettingsPage({
             })}
           </div>
         </div>
-        <div style={styles.row}>
+        <div style={{ display: "grid", gap: 8 }}>
           {subjects.length === 0 && (
             <div style={{ fontSize: 10, color: "#999" }}>
               {t("settingsNoSubjectsYet", "No subjects yet.")}
@@ -700,6 +751,20 @@ export function SettingsPage({
           )}
           {subjects.map((subj, idx) => (
             <span key={subj} style={styles.subjectChip}>
+              <span>{subj}</span>
+              <select
+                value={getSubjectType(subj)}
+                onChange={(e) => handleUpdateSubjectType(subj, e.target.value)}
+                style={styles.select}
+                disabled={updatingSubjects}
+                title={t("settingsSubjectType", "Subject Type")}
+              >
+                {subjectTypeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
               <button
                 style={styles.subjectArrow}
                 onClick={() => handleMoveSubject(idx, -1)}
@@ -708,7 +773,6 @@ export function SettingsPage({
               >
                 ▲
               </button>
-              {subj}
               <button
                 style={styles.subjectArrow}
                 onClick={() => handleMoveSubject(idx, 1)}
@@ -739,6 +803,17 @@ export function SettingsPage({
             }}
             style={styles.subjectInput}
           />
+          <select
+            value={subjectTypeInput}
+            onChange={(e) => setSubjectTypeInput(e.target.value)}
+            style={styles.select}
+          >
+            {subjectTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           <button
             style={styles.subjectAddBtn}
             onClick={handleAddSubject}

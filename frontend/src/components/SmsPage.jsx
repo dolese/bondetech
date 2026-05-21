@@ -73,8 +73,61 @@ function formatFormShort(form = "", stream = "") {
   return stream ? `${base} ${stream}` : base;
 }
 
+function formatResultsSmsClass(form = "") {
+  return formatFormShort(form, "").replace(/\s+/g, "");
+}
+
 function abbreviateSubject(subject = "") {
   return SUBJECT_LABELS[String(subject || "").trim().toUpperCase()] || String(subject || "").trim();
+}
+
+function normalizeSubjectMetadata(cls = {}) {
+  const subjects = Array.isArray(cls?.subjects) ? cls.subjects : [];
+  const metadata = Array.isArray(cls?.subject_metadata)
+    ? cls.subject_metadata
+    : Array.isArray(cls?.subjectMetadata)
+    ? cls.subjectMetadata
+    : [];
+  const byName = new Map(
+    metadata.flatMap((entry) => {
+      const name = String(entry?.name || entry?.subject || "").trim();
+      if (!name) return [];
+      const type = String(entry?.type || "compulsory").trim().toLowerCase();
+      return [[name.toLowerCase(), { name, type: type === "optional" ? "optional" : "compulsory" }]];
+    }),
+  );
+  return subjects.map((subject) => {
+    const name = String(subject || "").trim();
+    return byName.get(name.toLowerCase()) || { name, type: "compulsory" };
+  });
+}
+
+function shouldIncludeSmsSubject(grade, subjectMeta) {
+  const type = subjectMeta?.type === "optional" ? "optional" : "compulsory";
+  if (type === "compulsory") return true;
+
+  const hasCurrent =
+    grade?.raw === "ABS" ||
+    (grade?.raw !== null && grade?.raw !== undefined && grade?.raw !== "");
+  const hasPartner =
+    grade?.partnerRaw === "ABS" ||
+    (grade?.partnerRaw !== null &&
+      grade?.partnerRaw !== undefined &&
+      grade?.partnerRaw !== "");
+  const hasComputed = grade?.score !== null && grade?.score !== undefined;
+
+  return Boolean(hasCurrent || hasPartner || hasComputed);
+}
+
+function formatSmsSubjectValue(grade, subjectMeta) {
+  if (grade?.raw === "ABS") {
+    return `${abbreviateSubject(grade?.subj)} ABS`;
+  }
+  if (grade?.score === null || grade?.score === undefined) {
+    const fallbackGrade = subjectMeta?.type === "optional" ? "" : "F";
+    return `${abbreviateSubject(grade?.subj)} 0${fallbackGrade}`;
+  }
+  return `${abbreviateSubject(grade?.subj)} ${formatNumber(grade?.score)}${grade?.grade || ""}`;
 }
 
 function buildRecipientDirectory(classes = []) {
@@ -178,21 +231,20 @@ function buildComputedStudentsForExam(cls = {}, examType) {
 }
 
 function buildResultsMessage(student, cls, language = "en") {
-  const schoolName = "BONDE SEC SCHOOL";
-  const classShort = formatFormShort(cls.form, cls.stream);
+  const schoolName = "BONDE SEC";
+  const classShort = formatResultsSmsClass(cls.form);
   const grades = Array.isArray(student.grades) ? student.grades : [];
+  const subjectMetaList = normalizeSubjectMetadata(cls);
+  const filteredGrades = grades
+    .map((grade, index) => ({ grade, subjectMeta: subjectMetaList[index] }))
+    .filter(({ grade, subjectMeta }) => shouldIncludeSmsSubject(grade, subjectMeta));
   const subjectChunks = [];
 
-  for (let index = 0; index < grades.length; index += 3) {
-    const segment = grades
+  for (let index = 0; index < filteredGrades.length; index += 3) {
+    const segment = filteredGrades
       .slice(index, index + 3)
-      .map((grade) => {
-        const subjectLabel = abbreviateSubject(grade?.subj);
-        const scoreLabel = grade?.raw === "ABS" ? "ABS" : formatNumber(grade?.score);
-        const gradeLabel = grade?.grade || "";
-        return `${subjectLabel} ${scoreLabel}${gradeLabel ? ` ${gradeLabel}` : ""}`;
-      })
-      .join(", ");
+      .map(({ grade, subjectMeta }) => formatSmsSubjectValue(grade, subjectMeta))
+      .join(",");
     if (segment) subjectChunks.push(segment);
   }
 
@@ -201,17 +253,15 @@ function buildResultsMessage(student, cls, language = "en") {
       ? "ABS"
       : student.resultStatus === "INCOMPLETE"
       ? "INC"
-      : student.div
-      ? `Div ${student.div}`
-      : "INC";
+      : student.div || "INC";
 
   const totalStudents = Math.max((cls.students || []).length, 1);
   if (language === "sw") {
     return [
       schoolName,
-      `${student.name || "Mwanafunzi"} - ${classShort}`,
+      `${student.name || "Mwanafunzi"}-${classShort}`,
       ...subjectChunks,
-      `Wastani ${formatNumber(student.avg)} | ${divisionValue} | Pointi ${student.points ?? "-"} | Nafasi ${student.posn ?? "-"} / ${totalStudents}`,
+      `Wastani${formatNumber(student.avg)}|Div ${divisionValue}|Pts ${student.points ?? "-"}|Nafasi ${student.posn ?? "-"}\/${totalStudents}`,
     ]
       .filter(Boolean)
       .join("\n");
@@ -219,9 +269,9 @@ function buildResultsMessage(student, cls, language = "en") {
 
   return [
     schoolName,
-    `${student.name || "Student"} - ${classShort}`,
+    `${student.name || "Student"}-${classShort}`,
     ...subjectChunks,
-    `Avg ${formatNumber(student.avg)} | ${divisionValue} | Points ${student.points ?? "-"} | Position ${student.posn ?? "-"} / ${totalStudents}`,
+    `Avg${formatNumber(student.avg)}|Div ${divisionValue}|Pts ${student.points ?? "-"}|Pos ${student.posn ?? "-"}\/${totalStudents}`,
   ]
     .filter(Boolean)
     .join("\n");

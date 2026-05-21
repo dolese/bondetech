@@ -16,6 +16,21 @@ export const DEFAULT_CONDUCT = {
   ushirikiano: "",
 };
 
+const normalizeSubjectMetadata = (metadata = [], subjects = []) => {
+  const byName = new Map(
+    (Array.isArray(metadata) ? metadata : []).flatMap((entry) => {
+      const name = String(entry?.name || entry?.subject || "").trim();
+      if (!name) return [];
+      const type = String(entry?.type || "compulsory").trim().toLowerCase();
+      return [[name.toLowerCase(), { name, type: type === "optional" ? "optional" : "compulsory" }]];
+    }),
+  );
+  return (Array.isArray(subjects) ? subjects : []).map((subject) => {
+    const name = String(subject || "").trim();
+    return byName.get(name.toLowerCase()) || { name, type: "compulsory" };
+  });
+};
+
 const normalizeStudent = (student) => {
   const legacyScores = Array.isArray(student.scores) ? student.scores : [];
   const rawExamScores = (student.examScores && typeof student.examScores === "object") ? student.examScores : {};
@@ -46,6 +61,10 @@ const normalizeClass = (cls) => ({
   ...cls,
   school_info: cls.school_info ?? cls.schoolInfo ?? {},
   subjects: cls.subjects ?? DEFAULT_SUBJECTS,
+  subject_metadata: normalizeSubjectMetadata(
+    cls.subject_metadata ?? cls.subjectMetadata ?? [],
+    cls.subjects ?? DEFAULT_SUBJECTS,
+  ),
   stream: String(cls.stream ?? "").trim().toUpperCase(),
   timetable: normalizeClassTimetable(cls.timetable),
   students: (cls.students ?? []).map(normalizeStudent),
@@ -433,10 +452,14 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, refreshClass, showToast]);
 
-  const onUpdateSubjects = useCallback(async (subjects) => {
+  const onUpdateSubjects = useCallback(async (subjects, subjectMetadata) => {
     if (!activeClass) return;
     try {
-      await API.updateClass(activeClass.id, { subjects });
+      const payload = { subjects };
+      if (Array.isArray(subjectMetadata)) {
+        payload.subjectMetadata = subjectMetadata;
+      }
+      await API.updateClass(activeClass.id, payload);
       await refreshClass(activeClass.id);
       showToast?.("Subjects updated");
     } catch (err) {
