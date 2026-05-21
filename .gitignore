@@ -2,9 +2,12 @@
 node_modules/
 backend/node_modules/
 frontend/node_modules/
+mobile/node_modules/
 
 # Builds
 frontend/build/
+mobile/dist/
+mobile/web-build/
 
 # Environment files
 .env.local
@@ -13,4 +16,7 @@ backend/.env.local
 backend/.env.*.local
 frontend/.env.local
 frontend/.env.*.local
+mobile/.env.local
+mobile/.env.*.local
 .vercel
+mobile/.expo/
