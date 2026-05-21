@@ -71,6 +71,15 @@ function getStudentOptionalSubjects(student = {}) {
   );
 }
 
+function normalizeAdmissionDraft(value) {
+  const raw = String(value || "").toUpperCase().replace(/\s+/g, "");
+  if (!raw) return "";
+  if (/^\d{4}-\d*$/.test(raw)) return `BSS-${raw}`;
+  if (/^BSS(?=\d{4}-\d*$)/.test(raw)) return `BSS-${raw.slice(3)}`;
+  if (raw.startsWith("BSS--")) return `BSS-${raw.slice(5)}`;
+  return raw;
+}
+
 export function EntryPanel({
   classId,
   classData,
@@ -157,7 +166,6 @@ export function EntryPanel({
     parentName: "",
     parentPhone: "",
     address: "",
-    previousSchool: "",
     optionalSubjectsConfigured: true,
     optionalSubjects: [],
     conduct: { ...DEFAULT_CONDUCT },
@@ -282,7 +290,7 @@ export function EntryPanel({
     const scores = (classData.subjects ?? []).map(() => null);
     await onAddStudent({
       ...newStudent,
-      admission_no: String(newStudent.admission_no || "").trim().toUpperCase(),
+      admission_no: normalizeAdmissionDraft(newStudent.admission_no),
       name: registrationName,
       optionalSubjects: Array.isArray(newStudent.optionalSubjects) ? newStudent.optionalSubjects : [],
       scores,
@@ -299,7 +307,6 @@ export function EntryPanel({
       parentName: "",
       parentPhone: "",
       address: "",
-      previousSchool: "",
       optionalSubjectsConfigured: true,
       optionalSubjects: [],
       conduct: { ...DEFAULT_CONDUCT },
@@ -1323,7 +1330,7 @@ export function EntryPanel({
                 <TextInput
                   label="Admission Number"
                   value={newStudent.admission_no ?? ""}
-                  onChange={v => setNewStudent({ ...newStudent, admission_no: v })}
+                  onChange={v => setNewStudent({ ...newStudent, admission_no: normalizeAdmissionDraft(v) })}
                   error={errors.admission_no || errors.admissionNo}
                   placeholder="BSS-2026-0001"
                 />
@@ -1372,12 +1379,6 @@ export function EntryPanel({
                     { label: "Incomplete", value: "incomplete" },
                   ]}
                   required
-                />
-                <TextInput
-                  label="Previous School"
-                  value={newStudent.previousSchool ?? ""}
-                  onChange={v => setNewStudent({ ...newStudent, previousSchool: v })}
-                  placeholder="Optional"
                 />
               </div>
             </div>

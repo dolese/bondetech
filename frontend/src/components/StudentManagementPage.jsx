@@ -25,6 +25,15 @@ function getClassLabel(cls = {}) {
   return base || cls.name || "Class";
 }
 
+function normalizeAdmissionDraft(value) {
+  const raw = String(value || "").toUpperCase().replace(/\s+/g, "");
+  if (!raw) return "";
+  if (/^\d{4}-\d*$/.test(raw)) return `BSS-${raw}`;
+  if (/^BSS(?=\d{4}-\d*$)/.test(raw)) return `BSS-${raw.slice(3)}`;
+  if (raw.startsWith("BSS--")) return `BSS-${raw.slice(5)}`;
+  return raw;
+}
+
 function makeEmptyForm() {
   return {
     classId: "",
@@ -39,7 +48,6 @@ function makeEmptyForm() {
     parentName: "",
     parentPhone: "",
     address: "",
-    previousSchool: "",
     remarks: "",
     optionalSubjectsConfigured: true,
     optionalSubjects: [],
@@ -213,7 +221,6 @@ export function StudentManagementPage({
       parentName: student.parentName || "",
       parentPhone: student.parentPhone || "",
       address: student.address || "",
-      previousSchool: student.previousSchool || "",
       remarks: student.remarks || "",
       optionalSubjectsConfigured: true,
       optionalSubjects: Array.isArray(student.optionalSubjects) ? student.optionalSubjects : [],
@@ -231,7 +238,10 @@ export function StudentManagementPage({
   };
 
   const updateField = (key, value) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [key]: key === "admission_no" ? normalizeAdmissionDraft(value) : value,
+    }));
   };
 
   const availableStreams = useMemo(() => {
@@ -320,13 +330,12 @@ export function StudentManagementPage({
     setSaving(true);
     const payload = {
       ...form,
-      admission_no: String(form.admission_no || "").trim().toUpperCase(),
+      admission_no: normalizeAdmissionDraft(form.admission_no),
       name: String(form.name || "").trim(),
       index_no: String(form.index_no || "").trim(),
       parentName: String(form.parentName || "").trim(),
       parentPhone: String(form.parentPhone || "").trim(),
       address: String(form.address || "").trim(),
-      previousSchool: String(form.previousSchool || "").trim(),
       remarks: String(form.remarks || "").trim(),
       optionalSubjectsConfigured: true,
       optionalSubjects: (form.optionalSubjects || [])
@@ -524,7 +533,7 @@ export function StudentManagementPage({
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
                     <div style={{ fontWeight: 800, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
                     <div style={{ fontSize: 12, color: "#64748b" }}>
-                      {student.previousSchool || "No previous school saved"}
+                      {student.parentName ? `Guardian: ${student.parentName}` : "Student record"}
                     </div>
                   </td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.sex || "-"}</td>
@@ -753,16 +762,6 @@ export function StudentManagementPage({
                   value={form.address}
                   onChange={(event) => updateField("address", event.target.value)}
                   placeholder="Home address"
-                  style={fieldStyle()}
-                />
-              </label>
-
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Previous School</span>
-                <input
-                  value={form.previousSchool}
-                  onChange={(event) => updateField("previousSchool", event.target.value)}
-                  placeholder="Previous school"
                   style={fieldStyle()}
                 />
               </label>
