@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "../vendor/jspdf.plugin.autotable.mjs";
 import { getResultSheetBranding } from "./exportBranding";
-import { getResultSheetBody, getResultSheetHead } from "./resultSheetShared";
+import { getResultSheetBody, getResultSheetHead, getResultSheetPageSpec } from "./resultSheetShared";
 
 const ACCENT = [22, 63, 151];
 const BORDER = [174, 190, 223];
@@ -11,10 +11,6 @@ const STATUS_COLORS = {
   INCOMPLETE: [164, 91, 0],
   ABSENT: [180, 35, 24],
 };
-const PAGE_MARGIN = 12;
-const PAGE_HEADER_HEIGHT = 56;
-const SUMMARY_START_Y = 76;
-const TABLE_START_Y = 176;
 const RESULT_TABLE_WIDTHS = {
   cno: 18,
   name: 52,
@@ -22,6 +18,33 @@ const RESULT_TABLE_WIDTHS = {
   points: 15,
   division: 17,
 };
+
+function getPdfSheetConfig(pageSize = "a3") {
+  const spec = getResultSheetPageSpec(pageSize);
+  if (spec.format === "a4") {
+    return {
+      format: spec.format,
+      orientation: spec.orientation,
+      PAGE_MARGIN: 8,
+      PAGE_HEADER_HEIGHT: 42,
+      SUMMARY_START_Y: 66,
+      TABLE_START_Y: 139,
+      SUBJECT_BAND_Y: 112,
+      FOOTER_RESERVE: 30,
+    };
+  }
+
+  return {
+    format: spec.format,
+    orientation: spec.orientation,
+    PAGE_MARGIN: 12,
+    PAGE_HEADER_HEIGHT: 56,
+    SUMMARY_START_Y: 76,
+    TABLE_START_Y: 176,
+    SUBJECT_BAND_Y: 141,
+    FOOTER_RESERVE: 38,
+  };
+}
 
 function loadImageAsDataUrl(src) {
   return new Promise((resolve) => {
@@ -48,19 +71,21 @@ function loadImageAsDataUrl(src) {
   });
 }
 
-function drawPageFrame(doc) {
+function drawPageFrame(doc, config) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const { PAGE_MARGIN } = config;
   doc.setDrawColor(...ACCENT);
   doc.setLineWidth(0.45);
   doc.rect(PAGE_MARGIN - 4, PAGE_MARGIN - 4, pageWidth - (PAGE_MARGIN - 4) * 2, pageHeight - (PAGE_MARGIN - 4) * 2);
 }
 
-function drawSchoolHeader(doc, model, assets) {
+function drawSchoolHeader(doc, model, assets, config) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const branding = getResultSheetBranding(model.schoolInfo);
+  const { PAGE_MARGIN } = config;
 
-  drawPageFrame(doc);
+  drawPageFrame(doc, config);
 
   if (assets.leftLogo) {
     doc.addImage(assets.leftLogo, "PNG", PAGE_MARGIN + 2, PAGE_MARGIN + 4, 26, 26);
@@ -87,8 +112,9 @@ function drawSchoolHeader(doc, model, assets) {
   doc.line(PAGE_MARGIN + 2, PAGE_MARGIN + 41.2, pageWidth - PAGE_MARGIN - 2, PAGE_MARGIN + 41.2);
 }
 
-function drawTitleBlock(doc, model) {
+function drawTitleBlock(doc, model, config) {
   const pageWidth = doc.internal.pageSize.getWidth();
+  const { PAGE_MARGIN } = config;
   const top = PAGE_MARGIN + 46;
   const segments = [
     ["Year", model.meta.year],
@@ -147,8 +173,9 @@ function drawSummaryTitle(doc, x, y, width, title) {
   doc.text(title, x + width / 2, y + 5.8, { align: "center" });
 }
 
-function drawSummaryBlocks(doc, model) {
+function drawSummaryBlocks(doc, model, config) {
   const pageWidth = doc.internal.pageSize.getWidth();
+  const { PAGE_MARGIN, SUMMARY_START_Y } = config;
   const totalWidth = pageWidth - PAGE_MARGIN * 2;
   const gap = 5;
   const leftWidth = 78;
@@ -271,10 +298,11 @@ function drawSummaryBlocks(doc, model) {
   });
 }
 
-function drawSubjectSummaryBand(doc, model) {
+function drawSubjectSummaryBand(doc, model, config) {
   const pageWidth = doc.internal.pageSize.getWidth();
+  const { PAGE_MARGIN, SUBJECT_BAND_Y } = config;
   const totalWidth = pageWidth - PAGE_MARGIN * 2;
-  const bandY = 141;
+  const bandY = SUBJECT_BAND_Y;
   const headerHeight = 8.5;
   const bodyHeight = 19;
   const columns = Math.max(model.subjectSummaries.length, 1);
@@ -313,10 +341,11 @@ function drawSubjectSummaryBand(doc, model) {
   });
 }
 
-function drawClosingFooter(doc, model) {
+function drawClosingFooter(doc, model, config) {
   const branding = getResultSheetBranding(model.schoolInfo);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const { PAGE_MARGIN } = config;
   const baseY = pageHeight - 34;
 
   doc.setFont("helvetica", "bold");
@@ -361,9 +390,10 @@ function drawClosingFooter(doc, model) {
   doc.text(branding.footerMotto || "Better Future Starts Here", pageWidth / 2, pageHeight - 19.2, { align: "center" });
 }
 
-function drawPageFooter(doc, page, totalPages) {
+function drawPageFooter(doc, page, totalPages, config) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const { PAGE_MARGIN } = config;
   const lineY = pageHeight - 14;
 
   doc.setDrawColor(...ACCENT);
@@ -376,20 +406,21 @@ function drawPageFooter(doc, page, totalPages) {
   doc.text(`Page ${page} of ${totalPages}`, pageWidth / 2, pageHeight - 7, { align: "center" });
 }
 
-function applyPageNumbers(doc) {
+function applyPageNumbers(doc, config) {
   const totalPages = doc.getNumberOfPages();
 
   for (let page = 1; page <= totalPages; page += 1) {
     doc.setPage(page);
-    drawPageFooter(doc, page, totalPages);
+    drawPageFooter(doc, page, totalPages, config);
   }
 }
 
-export async function buildResultSheetPdf(model, { fileName } = {}) {
+export async function buildResultSheetPdf(model, { fileName, pageSize = "a3" } = {}) {
+  const config = getPdfSheetConfig(pageSize);
   const doc = new jsPDF({
-    orientation: "landscape",
+    orientation: config.orientation,
     unit: "mm",
-    format: "a3",
+    format: config.format,
   });
 
   const branding = getResultSheetBranding(model.schoolInfo);
@@ -399,12 +430,13 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
   ]);
   const assets = { leftLogo, rightLogo };
 
-  drawSchoolHeader(doc, model, assets);
-  drawTitleBlock(doc, model);
-  drawSummaryBlocks(doc, model);
-  drawSubjectSummaryBand(doc, model);
+  drawSchoolHeader(doc, model, assets, config);
+  drawTitleBlock(doc, model, config);
+  drawSummaryBlocks(doc, model, config);
+  drawSubjectSummaryBand(doc, model, config);
 
   const pageWidth = doc.internal.pageSize.getWidth();
+  const { PAGE_MARGIN, PAGE_HEADER_HEIGHT, TABLE_START_Y, FOOTER_RESERVE } = config;
   const subjectStartIndex = 3;
   const columnStyles = {
     0: { cellWidth: RESULT_TABLE_WIDTHS.cno, halign: "center" },
@@ -433,7 +465,7 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
     startY: TABLE_START_Y,
     head: getResultSheetHead(model),
     body: getResultSheetBody(model),
-    margin: { left: PAGE_MARGIN, right: PAGE_MARGIN, top: PAGE_HEADER_HEIGHT, bottom: 38 },
+    margin: { left: PAGE_MARGIN, right: PAGE_MARGIN, top: PAGE_HEADER_HEIGHT, bottom: FOOTER_RESERVE },
     theme: "grid",
     tableWidth: pageWidth - PAGE_MARGIN * 2,
     rowPageBreak: "avoid",
@@ -456,11 +488,11 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
     },
     columnStyles,
     didDrawPage: (data) => {
-      drawSchoolHeader(doc, model, assets);
+      drawSchoolHeader(doc, model, assets, config);
       if (data.pageNumber === 1) {
-        drawTitleBlock(doc, model);
-        drawSummaryBlocks(doc, model);
-        drawSubjectSummaryBand(doc, model);
+        drawTitleBlock(doc, model, config);
+        drawSummaryBlocks(doc, model, config);
+        drawSubjectSummaryBand(doc, model, config);
       } else {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(12);
@@ -487,17 +519,17 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
   const finalY = doc.lastAutoTable?.finalY || TABLE_START_Y;
 
   if (finalY > pageHeight - 52) {
-    doc.addPage("a3", "landscape");
-    drawSchoolHeader(doc, model, assets);
+    doc.addPage(config.format, config.orientation);
+    drawSchoolHeader(doc, model, assets, config);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.setTextColor(...ACCENT);
     doc.text("OFFICIAL RESULT SHEET", pageWidth / 2, PAGE_MARGIN + 48, { align: "center" });
   }
 
-  drawClosingFooter(doc, model);
+  drawClosingFooter(doc, model, config);
 
-  applyPageNumbers(doc);
+  applyPageNumbers(doc, config);
 
   if (fileName) {
     doc.save(fileName);

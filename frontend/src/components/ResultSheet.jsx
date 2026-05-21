@@ -20,7 +20,7 @@ import {
 const REPORT_CARD_PAPER_SIZE = "a4";
 const REPORT_CARD_ORIENTATION = "portrait";
 
-function printResultSheetDocument(model, pageRanges) {
+function printResultSheetDocument(model, pageRanges, pageSize) {
   if (!pageRanges.length) return;
 
   const printWindow = window.open("", "_blank", "noopener,noreferrer,width=1280,height=900");
@@ -55,7 +55,7 @@ function printResultSheetDocument(model, pageRanges) {
   }
 
   const root = createRoot(rootElement);
-  root.render(<ResultSheetPrintDocument model={model} pageRanges={pageRanges} />);
+  root.render(<ResultSheetPrintDocument model={model} pageRanges={pageRanges} pageSize={pageSize} />);
 
   const triggerPrint = () => {
     printWindow.focus();
@@ -74,6 +74,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
   const model = useMemo(() => buildResultSheetModel(classData, computed), [classData, computed]);
   const [exportingZip, setExportingZip] = useState(false);
   const [pageRanges, setPageRanges] = useState([{ start: 0, end: model.students.length }]);
+  const [pageSize, setPageSize] = useState(() => ((classData.subjects ?? []).length <= 10 ? "a4" : "a3"));
   const actionPanel = glassPanelStyle({
     compact: isMobile,
     dense: isMobile,
@@ -88,8 +89,8 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
 
   const exportPdf = async () => {
     const date = new Date().toISOString().slice(0, 10);
-    const name = `${classData.name || "class"}-results-${date}.pdf`;
-    await buildResultSheetPdf(model, { fileName: name });
+    const name = `${classData.name || "class"}-results-${pageSize}-${date}.pdf`;
+    await buildResultSheetPdf(model, { fileName: name, pageSize });
   };
 
   const exportZip = async () => {
@@ -99,7 +100,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       const zip = new JSZip();
       const safeClass = (classData.name || "class").replace(/[^a-z0-9-_ ]/gi, "").trim() || "class";
 
-      const summaryBlob = await buildResultSheetPdf(model);
+      const summaryBlob = await buildResultSheetPdf(model, { pageSize });
       if (summaryBlob) {
         zip.file(`${safeClass}-summary.pdf`, summaryBlob);
       }
@@ -161,6 +162,17 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       flexWrap: "wrap",
       width: isMobile ? "100%" : "auto",
     },
+    sizeSelect: {
+      minWidth: isMobile ? "100%" : 110,
+      minHeight: 38,
+      borderRadius: 12,
+      border: "1px solid rgba(191,219,254,0.54)",
+      background: "rgba(255,255,255,0.92)",
+      padding: "0 12px",
+      fontSize: 12,
+      fontWeight: 800,
+      color: "#163f97",
+    },
     compositeNote: {
       background: "#eef6ff",
       border: "1px solid #bfd6ff",
@@ -203,8 +215,12 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
           </div>
 
           <div style={styles.actions}>
+            <select value={pageSize} onChange={(e) => setPageSize(e.target.value)} style={styles.sizeSelect}>
+              <option value="a4">A4 Sheet</option>
+              <option value="a3">A3 Sheet</option>
+            </select>
             <button
-              onClick={() => printResultSheetDocument(model, pageRanges)}
+              onClick={() => printResultSheetDocument(model, pageRanges, pageSize)}
               style={{
                 ...secondaryButtonStyle({ compact: isMobile }),
                 minWidth: isMobile ? "100%" : 110,
@@ -259,7 +275,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
             No results yet. Enter student scores to generate the result sheet.
           </div>
         ) : (
-          <ResultSheetPreview model={model} isMobile={isMobile} onPagesChange={setPageRanges} />
+          <ResultSheetPreview model={model} isMobile={isMobile} onPagesChange={setPageRanges} pageSize={pageSize} />
         )}
       </div>
 

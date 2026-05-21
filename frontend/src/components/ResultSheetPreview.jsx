@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DIVISION_COLORS } from "../utils/constants";
 import { getResultSheetBranding } from "../utils/exportBranding";
-import { getDivisionDisplay, RESULT_SHEET_LAYOUT, RESULT_SHEET_PAGE_MM } from "../utils/resultSheetShared";
+import { getDivisionDisplay, getResultSheetLayout, getResultSheetPageSpec } from "../utils/resultSheetShared";
 
 const ACCENT = "#163f97";
 const BORDER = "#aebedf";
@@ -10,9 +10,6 @@ const STATUS_COLORS = {
   INCOMPLETE: "#a45b00",
   ABSENT: "#b42318",
 };
-const SAFE_MARGIN_MM = RESULT_SHEET_LAYOUT.safeMarginMm;
-const PAGE_WIDTH_MM = RESULT_SHEET_PAGE_MM.width - SAFE_MARGIN_MM * 2;
-const PAGE_HEIGHT_MM = RESULT_SHEET_PAGE_MM.height - SAFE_MARGIN_MM * 2;
 
 function paginateRowsByHeights(rowHeights, firstCapacity, otherCapacity) {
   const pages = [];
@@ -137,9 +134,15 @@ function MetaChip({ icon, label, value, tone = "#163f97" }) {
   );
 }
 
-export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
+export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = "a3" }) {
   const branding = useMemo(() => getResultSheetBranding(model.schoolInfo), [model.schoolInfo]);
-  const subjectColumnWidth = `${Math.max(4.2, (52 / Math.max(model.subjects.length, 1))).toFixed(2)}%`;
+  const pageSpec = useMemo(() => getResultSheetPageSpec(pageSize), [pageSize]);
+  const layout = useMemo(() => getResultSheetLayout(pageSize), [pageSize]);
+  const SAFE_MARGIN_MM = layout.safeMarginMm;
+  const PAGE_WIDTH_MM = pageSpec.width - SAFE_MARGIN_MM * 2;
+  const PAGE_HEIGHT_MM = pageSpec.height - SAFE_MARGIN_MM * 2;
+  const isA4 = String(pageSize).toLowerCase() === "a4";
+  const subjectColumnWidth = `${Math.max(isA4 ? 4.8 : 4.2, ((isA4 ? 54 : 52) / Math.max(model.subjects.length, 1))).toFixed(2)}%`;
   const pageMeasureRef = useRef(null);
   const headerMeasureRef = useRef(null);
   const summaryMeasureRef = useRef(null);
@@ -184,7 +187,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      gap: RESULT_SHEET_LAYOUT.pageGapPx,
+      gap: layout.pageGapPx,
       minWidth: "max-content",
       padding: "0 12px",
     },
@@ -194,7 +197,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
       background: "#fff",
       border: `1.6px solid ${ACCENT}`,
       boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-      padding: isMobile ? 10 : 12,
+      padding: isMobile ? 10 : (isA4 ? 10 : 12),
       boxSizing: "border-box",
       display: "flex",
       flexDirection: "column",
@@ -286,13 +289,13 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
     },
     summaryGrid: {
       display: "grid",
-      gridTemplateColumns: "0.96fr 1.04fr 1.04fr 1.2fr",
+      gridTemplateColumns: isA4 ? "1fr 1fr" : "0.96fr 1.04fr 1.04fr 1.2fr",
       gap: 8,
       alignItems: "start",
     },
     performanceShell: {
       display: "grid",
-      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+      gridTemplateColumns: isA4 ? "1fr" : "repeat(3, minmax(0, 1fr))",
       gap: 8,
       padding: "8px 8px 10px",
     },
@@ -313,7 +316,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
     },
     subjectBandGrid: {
       display: "grid",
-      gridTemplateColumns: `repeat(${Math.max(model.subjectSummaries.length, 1)}, minmax(0, 1fr))`,
+      gridTemplateColumns: isA4 ? "repeat(5, minmax(0, 1fr))" : `repeat(${Math.max(model.subjectSummaries.length, 1)}, minmax(0, 1fr))`,
       width: "100%",
     },
     subjectCard: {

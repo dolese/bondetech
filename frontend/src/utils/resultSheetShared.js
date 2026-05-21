@@ -1,15 +1,25 @@
 import { DEFAULT_SCHOOL } from "./constants";
 
-export const RESULT_SHEET_PAGE_MM = {
-  width: 420,
-  height: 297,
+export const RESULT_SHEET_PAGE_SPECS = {
+  a3: { width: 420, height: 297, format: "a3", orientation: "landscape" },
+  a4: { width: 297, height: 210, format: "a4", orientation: "landscape" },
 };
 
-export const RESULT_SHEET_LAYOUT = {
-  pagePaddingPx: 20,
-  pageGapPx: 14,
-  safeMarginMm: 8,
+export const RESULT_SHEET_LAYOUT_SPECS = {
+  a3: { pagePaddingPx: 20, pageGapPx: 14, safeMarginMm: 8 },
+  a4: { pagePaddingPx: 14, pageGapPx: 12, safeMarginMm: 6 },
 };
+
+export const RESULT_SHEET_PAGE_MM = RESULT_SHEET_PAGE_SPECS.a3;
+export const RESULT_SHEET_LAYOUT = RESULT_SHEET_LAYOUT_SPECS.a3;
+
+export function getResultSheetPageSpec(pageSize = "a3") {
+  return RESULT_SHEET_PAGE_SPECS[String(pageSize).toLowerCase()] || RESULT_SHEET_PAGE_SPECS.a3;
+}
+
+export function getResultSheetLayout(pageSize = "a3") {
+  return RESULT_SHEET_LAYOUT_SPECS[String(pageSize).toLowerCase()] || RESULT_SHEET_LAYOUT_SPECS.a3;
+}
 
 const DIVISION_ORDER = ["I", "II", "III", "IV", "0"];
 
