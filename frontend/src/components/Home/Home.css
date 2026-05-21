@@ -401,6 +401,12 @@
   border-right: 1px solid rgba(226, 232, 240, 0.76);
 }
 
+.quick-card-compact {
+  padding: 14px 13px;
+  gap: 10px;
+  border-radius: 16px;
+}
+
 .home-highlight-cell:last-child {
   border-right: none;
 }
@@ -420,16 +426,40 @@
 @media (max-width: 720px) {
   .home-hero-metrics {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .home-hero-metric {
+    padding: 11px 12px;
+    border-radius: 14px;
   }
   .home-section-title {
     font-size: 18px;
+  }
+  .home-section-copy {
+    font-size: 11px;
+    line-height: 1.55;
   }
   .home-highlight-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .home-highlight-cell {
-    padding: 18px 12px;
+    padding: 14px 10px;
     border-bottom: 1px solid rgba(226, 232, 240, 0.76);
+  }
+  .quick-card {
+    padding: 14px 13px;
+    border-radius: 16px;
+    gap: 10px;
+  }
+  .announcement-row {
+    gap: 12px;
+    padding: 14px 14px;
+  }
+  .category-chip {
+    min-width: 0;
+    padding: 11px 8px;
+    gap: 5px;
+    border-radius: 12px;
   }
   .landing-search-select {
     border-radius: 14px;

@@ -22,9 +22,9 @@ export function AnnouncementRow({ title, desc, date, tone, compact = false }) {
     >
       <div
         style={{
-          width: 46,
-          height: 46,
-          borderRadius: 14,
+          width: compact ? 40 : 46,
+          height: compact ? 40 : 46,
+          borderRadius: compact ? 12 : 14,
           background: "linear-gradient(180deg, rgba(255,255,255,0.94), rgba(239,244,251,0.94))",
           border: "1px solid rgba(214, 224, 237, 0.9)",
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
@@ -35,22 +35,22 @@ export function AnnouncementRow({ title, desc, date, tone, compact = false }) {
           flexShrink: 0,
         }}
       >
-        <HomeIcon name={palette.icon} label={title} size={18} />
+        <HomeIcon name={palette.icon} label={title} size={compact ? 16 : 18} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#7a8da5", marginBottom: 2 }}>
+        <div style={{ fontSize: compact ? 9 : 10, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#7a8da5", marginBottom: 2 }}>
           {palette.label}
         </div>
-        <div style={{ fontSize: 14, fontWeight: 800, color: "#1a2040", letterSpacing: "-0.01em" }}>{title}</div>
-        <div style={{ fontSize: 11, color: "#64748b", marginTop: 3, lineHeight: 1.6 }}>{desc}</div>
+        <div style={{ fontSize: compact ? 13 : 14, fontWeight: 800, color: "#1a2040", letterSpacing: "-0.01em" }}>{title}</div>
+        <div style={{ fontSize: compact ? 10 : 11, color: "#64748b", marginTop: 3, lineHeight: compact ? 1.5 : 1.6 }}>{desc}</div>
       </div>
       <div
         style={{
-          fontSize: 11,
+          fontSize: compact ? 10 : 11,
           color: "#94a3b8",
           flexShrink: 0,
-          marginLeft: compact ? 56 : 8,
-          width: compact ? "calc(100% - 56px)" : "auto",
+          marginLeft: compact ? 48 : 8,
+          width: compact ? "calc(100% - 48px)" : "auto",
         }}
       >
         {date}

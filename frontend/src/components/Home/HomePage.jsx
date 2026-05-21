@@ -844,7 +844,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
             }}
           >
             {quickAccess.map((item) => (
-              <QuickCard key={item.id} {...item} featured={item.id === "results"} />
+              <QuickCard key={item.id} {...item} featured={item.id === "results"} compact={isMobile} />
             ))}
           </div>
         </div>
@@ -879,9 +879,9 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
               >
                 <div
                   style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 14,
+                    width: isMobile ? 36 : 42,
+                    height: isMobile ? 36 : 42,
+                    borderRadius: isMobile ? 12 : 14,
                     margin: "0 auto 10px",
                     background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,244,251,0.96))",
                     border: "1px solid rgba(214, 224, 237, 0.9)",
@@ -892,12 +892,12 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                     color: "#173b74",
                   }}
                 >
-                  <HomeIcon name={stat.icon} label={stat.label} size={18} />
+                  <HomeIcon name={stat.icon} label={stat.label} size={isMobile ? 16 : 18} />
                 </div>
-                <div style={{ fontSize: isMobile ? 14 : 18, fontWeight: 800, color: "#0f2d6e" }}>{stat.value}</div>
-                <div style={{ fontSize: isMobile ? 9 : 11, color: "#64748b", marginTop: 3 }}>{stat.label}</div>
+                <div style={{ fontSize: isMobile ? 13 : 18, fontWeight: 800, color: "#0f2d6e" }}>{stat.value}</div>
+                <div style={{ fontSize: isMobile ? 8 : 11, color: "#64748b", marginTop: 3, lineHeight: isMobile ? 1.3 : 1.45 }}>{stat.label}</div>
                 {stat.description && (
-                  <div style={{ fontSize: isMobile ? 9 : 10, color: "#94a3b8", marginTop: 6, lineHeight: 1.45 }}>
+                  <div style={{ fontSize: isMobile ? 8 : 10, color: "#94a3b8", marginTop: isMobile ? 4 : 6, lineHeight: 1.4 }}>
                     {stat.description}
                   </div>
                 )}
@@ -949,7 +949,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: isXs ? "repeat(2, minmax(0, 1fr))" : isCompactScreen ? "repeat(4, minmax(0, 1fr))" : "repeat(8, minmax(0, 1fr))", gap: 10 }}>
             {categories.map((category) => (
-              <CategoryChip key={category.label} {...category} onClick={() => handleCategoryClick(category.label)} />
+              <CategoryChip key={category.label} {...category} compact={isMobile} onClick={() => handleCategoryClick(category.label)} />
             ))}
           </div>
         </div>
@@ -981,7 +981,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                   borderBottom: (isMobile || isTablet) && index < (isXs ? 4 : isMobile ? 4 : 3) ? "1px solid #f1f5f9" : "none",
                 }}
               >
-                <FeatureChip {...feature} />
+                <FeatureChip {...feature} compact={isMobile} />
               </div>
             ))}
           </div>

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./Home.css";
 import { HomeIcon } from "./HomeIcons";
 
-export function CategoryChip({ label, color, bg, icon, onClick }) {
+export function CategoryChip({ label, color, bg, icon, onClick, compact = false }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -29,9 +29,9 @@ export function CategoryChip({ label, color, bg, icon, onClick }) {
     >
       <div
         style={{
-          width: 38,
-          height: 38,
-          borderRadius: 12,
+          width: compact ? 34 : 38,
+          height: compact ? 34 : 38,
+          borderRadius: compact ? 10 : 12,
           background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,244,251,0.96))",
           border: "1px solid rgba(214, 224, 237, 0.9)",
           boxShadow: hovered ? "0 10px 18px rgba(15, 35, 92, 0.10)" : "inset 0 1px 0 rgba(255,255,255,0.86)",
@@ -41,21 +41,21 @@ export function CategoryChip({ label, color, bg, icon, onClick }) {
           color: hovered ? "#173b74" : "#6a7f97",
         }}
       >
-        <HomeIcon name={icon} label={label} size={18} color={hovered ? "#173b74" : "#6a7f97"} />
+        <HomeIcon name={icon} label={label} size={compact ? 16 : 18} color={hovered ? "#173b74" : "#6a7f97"} />
       </div>
-      <div style={{ fontSize: 10, fontWeight: 800, color: hovered ? "#173b74" : "#475569", textAlign: "center", lineHeight: 1.35 }}>{label}</div>
+      <div style={{ fontSize: compact ? 9 : 10, fontWeight: 800, color: hovered ? "#173b74" : "#475569", textAlign: "center", lineHeight: compact ? 1.25 : 1.35 }}>{label}</div>
     </div>
   );
 }
 
-export function FeatureChip({ bg, label, icon }) {
+export function FeatureChip({ bg, label, icon, compact = false }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "18px 12px" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? 6 : 8, padding: compact ? "14px 10px" : "18px 12px" }}>
       <div
         style={{
-          width: 52,
-          height: 52,
-          borderRadius: 18,
+          width: compact ? 42 : 52,
+          height: compact ? 42 : 52,
+          borderRadius: compact ? 14 : 18,
           background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,244,251,0.96))",
           border: "1px solid rgba(214, 224, 237, 0.9)",
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
@@ -65,9 +65,9 @@ export function FeatureChip({ bg, label, icon }) {
           color: "#173b74",
         }}
       >
-        <HomeIcon name={icon} label={label} size={22} />
+        <HomeIcon name={icon} label={label} size={compact ? 18 : 22} />
       </div>
-      <div style={{ fontSize: 10, fontWeight: 800, color: "#475569", textAlign: "center", lineHeight: 1.35 }}>{label}</div>
+      <div style={{ fontSize: compact ? 9 : 10, fontWeight: 800, color: "#475569", textAlign: "center", lineHeight: compact ? 1.25 : 1.35 }}>{label}</div>
     </div>
   );
 }
