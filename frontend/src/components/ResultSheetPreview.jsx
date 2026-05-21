@@ -66,6 +66,45 @@ function SummaryCard({ title, children, style }) {
   );
 }
 
+function OverviewMeter({ label, value, detail, color, ringValue }) {
+  return (
+    <div style={{ display: "grid", justifyItems: "center", gap: 8, padding: "12px 8px" }}>
+      <div
+        style={{
+          width: 76,
+          height: 76,
+          borderRadius: "50%",
+          background: `conic-gradient(${color} 0 ${Math.max(0, Math.min(100, ringValue))}%, #e7eefc ${Math.max(0, Math.min(100, ringValue))}% 100%)`,
+          display: "grid",
+          placeItems: "center",
+        }}
+      >
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            background: "#fff",
+            display: "grid",
+            placeItems: "center",
+            color: "#0f172a",
+            fontWeight: 900,
+            fontSize: 11,
+            textAlign: "center",
+            lineHeight: 1.15,
+          }}
+        >
+          {value}
+        </div>
+      </div>
+      <div style={{ textAlign: "center", display: "grid", gap: 3 }}>
+        <div style={{ fontSize: 10.5, fontWeight: 900, color }}>{label}</div>
+        <div style={{ fontSize: 10, color: "#334155", fontWeight: 700 }}>{detail}</div>
+      </div>
+    </div>
+  );
+}
+
 export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
   const branding = useMemo(() => getResultSheetBranding(model.schoolInfo), [model.schoolInfo]);
   const pageMeasureRef = useRef(null);
@@ -174,20 +213,136 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
       fontFamily: "'IBM Plex Sans', 'Arial', sans-serif",
     },
     metaRow: {
-      display: "flex",
-      justifyContent: "center",
-      gap: 22,
-      flexWrap: "wrap",
-      fontSize: 13,
-      color: "#111",
+      display: "grid",
+      gridTemplateColumns: "1fr auto",
+      gap: 12,
+      alignItems: "stretch",
       paddingBottom: 8,
       borderBottom: `4px double ${ACCENT}`,
     },
+    metaTags: {
+      display: "flex",
+      justifyContent: "center",
+      gap: 14,
+      flexWrap: "wrap",
+      fontSize: 13,
+      color: "#111",
+      alignItems: "center",
+    },
+    generatedCard: {
+      minWidth: 118,
+      borderRadius: 10,
+      background: ACCENT,
+      color: "#fff",
+      display: "grid",
+      alignContent: "center",
+      justifyItems: "center",
+      padding: "10px 12px",
+      textAlign: "center",
+    },
+    generatedLabel: {
+      fontSize: 9.5,
+      fontWeight: 800,
+      letterSpacing: 0.25,
+      textTransform: "uppercase",
+    },
+    generatedValue: {
+      marginTop: 5,
+      fontSize: 11.5,
+      fontWeight: 800,
+    },
     summaryGrid: {
       display: "grid",
-      gridTemplateColumns: "1.15fr 0.95fr 1fr",
+      gridTemplateColumns: "1.12fr 1fr 1fr 1fr",
       gap: 12,
       alignItems: "start",
+    },
+    performanceShell: {
+      display: "grid",
+      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+      gap: 8,
+      padding: "8px 8px 10px",
+    },
+    subjectBand: {
+      border: `1px solid ${BORDER}`,
+      background: "#fff",
+      display: "grid",
+      gap: 0,
+    },
+    subjectBandHeader: {
+      background: ACCENT,
+      color: "#fff",
+      fontWeight: 900,
+      fontSize: 10.5,
+      padding: "8px 10px",
+      textTransform: "uppercase",
+      letterSpacing: 0.2,
+    },
+    subjectBandGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+    },
+    subjectCard: {
+      borderRight: `1px solid ${BORDER}`,
+      borderBottom: `1px solid ${BORDER}`,
+      padding: "10px 8px",
+      display: "grid",
+      gap: 8,
+      background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
+    },
+    subjectTop: {
+      display: "grid",
+      gap: 2,
+      justifyItems: "center",
+      textAlign: "center",
+    },
+    subjectName: {
+      fontSize: 12,
+      fontWeight: 900,
+      color: ACCENT,
+      textTransform: "uppercase",
+    },
+    subjectSub: {
+      fontSize: 9,
+      color: "#64748b",
+      textTransform: "uppercase",
+      letterSpacing: 0.2,
+    },
+    subjectStats: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 6,
+    },
+    statMini: {
+      border: `1px solid ${BORDER}`,
+      borderRadius: 8,
+      padding: "5px 4px",
+      textAlign: "center",
+      background: "#fff",
+    },
+    statMiniLabel: {
+      fontSize: 8.5,
+      fontWeight: 800,
+      color: "#64748b",
+      textTransform: "uppercase",
+    },
+    statMiniValue: {
+      marginTop: 2,
+      fontSize: 14,
+      fontWeight: 900,
+      color: "#0f172a",
+    },
+    tableHeadingRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "baseline",
+      gap: 12,
+      marginTop: 4,
+    },
+    tableHeadingMeta: {
+      fontSize: 10,
+      color: "#475569",
+      fontWeight: 700,
     },
     summaryTable: {
       width: "100%",
@@ -386,6 +541,150 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
     </table>
   );
 
+  const renderSummaryBand = () => (
+    <>
+      <h2 style={styles.sectionTitle}>Official Result Sheet</h2>
+      <div style={styles.metaRow}>
+        <div style={styles.metaTags}>
+          <span><strong>Year:</strong> {model.meta.year}</span>
+          <span>|</span>
+          <span><strong>Term:</strong> {model.meta.term}</span>
+          <span>|</span>
+          <span><strong>Exam:</strong> {model.meta.exam}</span>
+          <span>|</span>
+          <span><strong>Class:</strong> {model.meta.classLabel}</span>
+        </div>
+        <div style={styles.generatedCard}>
+          <div style={styles.generatedLabel}>Report Generated</div>
+          <div style={styles.generatedValue}>{model.generatedAtLabel}</div>
+        </div>
+      </div>
+
+      <div style={styles.summaryGrid} ref={summaryMeasureRef}>
+        <SummaryCard title="RESULTS SUMMARY">
+          <table style={styles.summaryTable}>
+            <tbody>
+              {model.summaryRows.map(([label, value]) => (
+                <tr key={label}>
+                  <td style={styles.summaryCell}>{label}:</td>
+                  <td style={styles.summaryValue}>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </SummaryCard>
+
+        <SummaryCard title="DIVISION SUMMARY (Complete Only)">
+          <table style={styles.summaryTable}>
+            <thead>
+              <tr>
+                <th style={styles.summaryHeaderCell}>Division</th>
+                <th style={styles.summaryHeaderCell}>Students</th>
+                <th style={styles.summaryHeaderCell}>Percentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {model.divisionSummaryRows.map((row) => (
+                <tr key={row.key}>
+                  <td style={styles.summaryCell}>{row.label}</td>
+                  <td style={styles.summaryValue}>{row.students}</td>
+                  <td style={styles.summaryValue}>{row.percentage}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </SummaryCard>
+
+        <SummaryCard title="SEX SUMMARY">
+          <table style={styles.summaryTable}>
+            <thead>
+              <tr>
+                <th style={styles.summaryHeaderCell}></th>
+                <th style={styles.summaryHeaderCell}>Male</th>
+                <th style={styles.summaryHeaderCell}>Female</th>
+                <th style={styles.summaryHeaderCell}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ["Total", model.sexSummary.total],
+                ["Complete", model.sexSummary.complete],
+                ["Incomplete", model.sexSummary.incomplete],
+                ["Absent", model.sexSummary.absent],
+                ["Avg (Complete)", model.sexSummary.average],
+                ["Pass (I-IV)", model.sexSummary.pass],
+                ["Fail (0)", model.sexSummary.fail],
+              ].map(([label, values]) => (
+                <tr key={label}>
+                  <td style={styles.summaryCell}>{label}:</td>
+                  <td style={styles.summaryValue}>{values.male}</td>
+                  <td style={styles.summaryValue}>{values.female}</td>
+                  <td style={styles.summaryValue}>{Number(values.male) + Number(values.female)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </SummaryCard>
+
+        <SummaryCard title="PERFORMANCE OVERVIEW">
+          <div style={styles.performanceShell}>
+            <OverviewMeter
+              label="Pass Rate"
+              value={`${model.performanceOverview.passRate}%`}
+              detail={`I-IV | ${model.performanceOverview.passCount} / ${model.performanceOverview.completeCount}`}
+              color="#2f8f43"
+              ringValue={Number(model.performanceOverview.passRate)}
+            />
+            <OverviewMeter
+              label="Fail Rate"
+              value={`${model.performanceOverview.failRate}%`}
+              detail={`0 | ${model.performanceOverview.failCount} / ${model.performanceOverview.completeCount}`}
+              color="#2563eb"
+              ringValue={Number(model.performanceOverview.failRate)}
+            />
+            <OverviewMeter
+              label="Class Average"
+              value={model.performanceOverview.classAverage}
+              detail="Complete Only"
+              color="#7c3aed"
+              ringValue={Math.min(100, Number(model.performanceOverview.classAverage) || 0)}
+            />
+          </div>
+        </SummaryCard>
+      </div>
+
+      <div style={styles.subjectBand}>
+        <div style={styles.subjectBandHeader}>Subject Performance Summary (Complete Only)</div>
+        <div style={styles.subjectBandGrid}>
+          {model.subjectSummaries.map((subject, index) => (
+            <div
+              key={subject.key}
+              style={{
+                ...styles.subjectCard,
+                borderRight: (index + 1) % 5 === 0 ? "none" : styles.subjectCard.borderRight,
+              }}
+            >
+              <div style={styles.subjectTop}>
+                <div style={styles.subjectName}>{subject.subject}</div>
+                <div style={styles.subjectSub}>Entries {subject.entries}</div>
+              </div>
+              <div style={styles.subjectStats}>
+                <div style={styles.statMini}>
+                  <div style={styles.statMiniLabel}>Avg</div>
+                  <div style={styles.statMiniValue}>{subject.average}</div>
+                </div>
+                <div style={styles.statMini}>
+                  <div style={styles.statMiniLabel}>Pass Rate</div>
+                  <div style={{ ...styles.statMiniValue, fontSize: 12.5 }}>{subject.passRate}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+
   const footerContent = (
     <div style={styles.footerWrap}>
       <div style={styles.keyRow}>
@@ -447,82 +746,15 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
             </div>
 
             {page.isFirstPage && (
-              <>
-                <h2 style={styles.sectionTitle}>Official Result Sheet</h2>
-                <div style={styles.metaRow}>
-                  <span><strong>Year:</strong> {model.meta.year}</span>
-                  <span>|</span>
-                  <span><strong>Term:</strong> {model.meta.term}</span>
-                  <span>|</span>
-                  <span><strong>Exam:</strong> {model.meta.exam}</span>
-                  <span>|</span>
-                  <span><strong>Class:</strong> {model.meta.classLabel}</span>
-                </div>
-
-                <div style={styles.summaryGrid} ref={summaryMeasureRef}>
-                  <SummaryCard title="RESULTS SUMMARY">
-                    <table style={styles.summaryTable}>
-                      <tbody>
-                        {model.summaryRows.map(([label, value]) => (
-                          <tr key={label}>
-                            <td style={styles.summaryCell}>{label}:</td>
-                            <td style={styles.summaryValue}>{value}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </SummaryCard>
-
-                  <SummaryCard title="DIVISION SUMMARY">
-                    <table style={styles.summaryTable}>
-                      <tbody>
-                        {model.divisionRows.map(([label, value]) => (
-                          <tr key={label}>
-                            <td style={styles.summaryCell}>{label}</td>
-                            <td style={styles.summaryValue}>{value}</td>
-                          </tr>
-                        ))}
-                        <tr>
-                          <td style={{ ...styles.summaryCell, fontWeight: 900 }}>Total (Complete):</td>
-                          <td style={{ ...styles.summaryValue, fontWeight: 900 }}>{model.completeStudents.length}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </SummaryCard>
-
-                  <SummaryCard title="SEX SUMMARY">
-                    <table style={styles.summaryTable}>
-                      <thead>
-                        <tr>
-                          <th style={styles.summaryHeaderCell}></th>
-                          <th style={styles.summaryHeaderCell}>MALE</th>
-                          <th style={styles.summaryHeaderCell}>FEMALE</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[
-                          ["Total", model.sexSummary.total],
-                          ["Complete", model.sexSummary.complete],
-                          ["Incomplete", model.sexSummary.incomplete],
-                          ["Absent", model.sexSummary.absent],
-                          ["Avg (Complete)", model.sexSummary.average],
-                          ["Pass (I-IV)", model.sexSummary.pass],
-                          ["Fail (0)", model.sexSummary.fail],
-                        ].map(([label, values]) => (
-                          <tr key={label}>
-                            <td style={styles.summaryCell}>{label}:</td>
-                            <td style={styles.summaryValue}>{values.male}</td>
-                            <td style={styles.summaryValue}>{values.female}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </SummaryCard>
-                </div>
-              </>
+              renderSummaryBand()
             )}
 
-            <h3 style={styles.resultHeading}>Students Results</h3>
+            <div style={styles.tableHeadingRow}>
+              <h3 style={styles.resultHeading}>Students Results</h3>
+              <div style={styles.tableHeadingMeta}>
+                Showing {page.students.length} of {model.students.length} students
+              </div>
+            </div>
             {renderStudentTable(page.students)}
 
             {page.isLastPage && footerContent}
@@ -543,39 +775,14 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange }) {
             <img src={branding.rightLogoSrc} alt="" style={styles.logo} />
           </div>
 
-          <h2 style={styles.sectionTitle}>Official Result Sheet</h2>
-          <div style={styles.metaRow}>
-            <span><strong>Year:</strong> {model.meta.year}</span>
-            <span>|</span>
-            <span><strong>Term:</strong> {model.meta.term}</span>
-            <span>|</span>
-            <span><strong>Exam:</strong> {model.meta.exam}</span>
-            <span>|</span>
-            <span><strong>Class:</strong> {model.meta.classLabel}</span>
-          </div>
+          {renderSummaryBand()}
 
-          <div ref={summaryMeasureRef} style={styles.summaryGrid}>
-            <SummaryCard title="RESULTS SUMMARY">
-              <table style={styles.summaryTable}>
-                <tbody>
-                  {model.summaryRows.map(([label, value]) => (
-                    <tr key={label}>
-                      <td style={styles.summaryCell}>{label}:</td>
-                      <td style={styles.summaryValue}>{value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </SummaryCard>
-            <SummaryCard title="DIVISION SUMMARY">
-              <div style={{ height: 220 }} />
-            </SummaryCard>
-            <SummaryCard title="SEX SUMMARY">
-              <div style={{ height: 220 }} />
-            </SummaryCard>
+          <div style={styles.tableHeadingRow}>
+            <h3 style={styles.resultHeading}>Students Results</h3>
+            <div style={styles.tableHeadingMeta}>
+              Showing {model.students.length} of {model.students.length} students
+            </div>
           </div>
-
-          <h3 style={styles.resultHeading}>Students Results</h3>
           {renderStudentTable(model.students, true)}
 
           <div ref={footerMeasureRef}>

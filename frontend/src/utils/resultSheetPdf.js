@@ -14,7 +14,7 @@ const STATUS_COLORS = {
 const PAGE_MARGIN = 12;
 const PAGE_HEADER_HEIGHT = 56;
 const SUMMARY_START_Y = 76;
-const TABLE_START_Y = 152;
+const TABLE_START_Y = 176;
 const RESULT_TABLE_WIDTHS = {
   cno: 18,
   name: 52,
@@ -118,6 +118,20 @@ function drawTitleBlock(doc, model) {
     cursorX += doc.getTextWidth(text) + 6;
   });
 
+  const badgeWidth = 44;
+  const badgeHeight = 16;
+  const badgeX = pageWidth - PAGE_MARGIN - badgeWidth;
+  const badgeY = top + 1;
+  doc.setFillColor(...ACCENT);
+  doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 2, 2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.8);
+  doc.setTextColor(255, 255, 255);
+  doc.text("Report Generated", badgeX + badgeWidth / 2, badgeY + 5.2, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.2);
+  doc.text(model.generatedAtLabel || "", badgeX + badgeWidth / 2, badgeY + 11, { align: "center" });
+
   doc.setDrawColor(...ACCENT);
   doc.setLineWidth(0.45);
   doc.line(PAGE_MARGIN + 2, top + 22, pageWidth - PAGE_MARGIN - 2, top + 22);
@@ -137,9 +151,10 @@ function drawSummaryBlocks(doc, model) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const totalWidth = pageWidth - PAGE_MARGIN * 2;
   const gap = 5;
-  const leftWidth = 104;
-  const middleWidth = 80;
-  const rightWidth = totalWidth - leftWidth - middleWidth - gap * 2;
+  const leftWidth = 78;
+  const middleWidth = 78;
+  const sexWidth = 82;
+  const performanceWidth = totalWidth - leftWidth - middleWidth - sexWidth - gap * 3;
   const topY = SUMMARY_START_Y;
   const rowHeight = 8.2;
 
@@ -167,43 +182,44 @@ function drawSummaryBlocks(doc, model) {
   autoTable(doc, {
     startY: topY + 9,
     margin: { left: divisionX, right: pageWidth - divisionX - middleWidth },
-    body: [
-      ...model.divisionRows.map(([label, value]) => [label.replace(/:$/, ""), String(value)]),
-      ["Total (Complete)", String(model.completeStudents.length)],
-    ],
+    head: [["Division", "Students", "%"]],
+    body: model.divisionSummaryRows.map((row) => [row.label, String(row.students), row.percentage]),
     theme: "grid",
     styles: {
-      fontSize: 8.5,
-      cellPadding: 2,
+      fontSize: 7.8,
+      cellPadding: 1.7,
       textColor: TEXT,
       lineColor: BORDER,
       lineWidth: 0.15,
     },
-    columnStyles: {
-      0: { halign: "left", cellWidth: middleWidth - 18 },
-      1: { halign: "right", fontStyle: "bold", cellWidth: 18 },
+    headStyles: {
+      fillColor: [255, 255, 255],
+      textColor: TEXT,
+      fontStyle: "bold",
+      lineColor: BORDER,
+      lineWidth: 0.15,
     },
-    didParseCell: (data) => {
-      if (data.row.index === model.divisionRows.length) {
-        data.cell.styles.fontStyle = "bold";
-      }
+    columnStyles: {
+      0: { halign: "left", cellWidth: middleWidth - 30 },
+      1: { halign: "right", fontStyle: "bold", cellWidth: 13 },
+      2: { halign: "right", fontStyle: "bold", cellWidth: 17 },
     },
   });
 
   const sexX = divisionX + middleWidth + gap;
-  drawSummaryTitle(doc, sexX, topY, rightWidth, "SEX SUMMARY");
+  drawSummaryTitle(doc, sexX, topY, sexWidth, "SEX SUMMARY");
   autoTable(doc, {
     startY: topY + 9,
-    margin: { left: sexX, right: PAGE_MARGIN },
-    head: [["", "MALE", "FEMALE"]],
+    margin: { left: sexX, right: pageWidth - sexX - sexWidth },
+    head: [["", "MALE", "FEMALE", "TOTAL"]],
     body: [
-      ["Total", String(model.sexSummary.total.male), String(model.sexSummary.total.female)],
-      ["Complete", String(model.sexSummary.complete.male), String(model.sexSummary.complete.female)],
-      ["Incomplete", String(model.sexSummary.incomplete.male), String(model.sexSummary.incomplete.female)],
-      ["Absent", String(model.sexSummary.absent.male), String(model.sexSummary.absent.female)],
-      ["Avg (Complete)", String(model.sexSummary.average.male), String(model.sexSummary.average.female)],
-      ["Pass (I-IV)", String(model.sexSummary.pass.male), String(model.sexSummary.pass.female)],
-      ["Fail (0)", String(model.sexSummary.fail.male), String(model.sexSummary.fail.female)],
+      ["Total", String(model.sexSummary.total.male), String(model.sexSummary.total.female), String(model.sexSummary.total.male + model.sexSummary.total.female)],
+      ["Complete", String(model.sexSummary.complete.male), String(model.sexSummary.complete.female), String(model.sexSummary.complete.male + model.sexSummary.complete.female)],
+      ["Incomplete", String(model.sexSummary.incomplete.male), String(model.sexSummary.incomplete.female), String(model.sexSummary.incomplete.male + model.sexSummary.incomplete.female)],
+      ["Absent", String(model.sexSummary.absent.male), String(model.sexSummary.absent.female), String(model.sexSummary.absent.male + model.sexSummary.absent.female)],
+      ["Avg (Complete)", String(model.sexSummary.average.male), String(model.sexSummary.average.female), String(model.completeAverage)],
+      ["Pass (I-IV)", String(model.sexSummary.pass.male), String(model.sexSummary.pass.female), String(model.passCount)],
+      ["Fail (0)", String(model.sexSummary.fail.male), String(model.sexSummary.fail.female), String(model.failCount)],
     ],
     theme: "grid",
     styles: {
@@ -221,13 +237,79 @@ function drawSummaryBlocks(doc, model) {
       lineWidth: 0.15,
     },
     columnStyles: {
-      0: { halign: "left", cellWidth: rightWidth - 32 },
-      1: { halign: "right", fontStyle: "bold", cellWidth: 16 },
-      2: { halign: "right", fontStyle: "bold", cellWidth: 16 },
+      0: { halign: "left", cellWidth: sexWidth - 34 },
+      1: { halign: "right", fontStyle: "bold", cellWidth: 11 },
+      2: { halign: "right", fontStyle: "bold", cellWidth: 11 },
+      3: { halign: "right", fontStyle: "bold", cellWidth: 12 },
     },
     didParseCell: (data) => {
       data.row.height = rowHeight;
     },
+  });
+
+  const performanceX = sexX + sexWidth + gap;
+  drawSummaryTitle(doc, performanceX, topY, performanceWidth, "PERFORMANCE OVERVIEW");
+  const perfY = topY + 13;
+  const perfCenters = [
+    { x: performanceX + 18, color: [47, 143, 67], label: "PASS RATE", value: `${model.performanceOverview.passRate}%`, detail: `I-IV ${model.performanceOverview.passCount}/${model.performanceOverview.completeCount}` },
+    { x: performanceX + performanceWidth / 2, color: [37, 99, 235], label: "FAIL RATE", value: `${model.performanceOverview.failRate}%`, detail: `0 ${model.performanceOverview.failCount}/${model.performanceOverview.completeCount}` },
+    { x: performanceX + performanceWidth - 18, color: [124, 58, 237], label: "CLASS AVG", value: model.performanceOverview.classAverage, detail: "Complete Only" },
+  ];
+  perfCenters.forEach((item) => {
+    doc.setDrawColor(...item.color);
+    doc.setLineWidth(2.2);
+    doc.circle(item.x, perfY + 15, 10, "S");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.8);
+    doc.setTextColor(...TEXT);
+    doc.text(item.value, item.x, perfY + 16, { align: "center" });
+    doc.setFontSize(7.2);
+    doc.setTextColor(...item.color);
+    doc.text(item.label, item.x, perfY + 30, { align: "center" });
+    doc.setTextColor(...TEXT);
+    doc.text(item.detail, item.x, perfY + 35, { align: "center" });
+  });
+}
+
+function drawSubjectSummaryBand(doc, model) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const totalWidth = pageWidth - PAGE_MARGIN * 2;
+  const bandY = 141;
+  const headerHeight = 8.5;
+  const bodyHeight = 19;
+  const columns = Math.max(model.subjectSummaries.length, 1);
+  const cardWidth = totalWidth / columns;
+
+  doc.setFillColor(...ACCENT);
+  doc.setDrawColor(...BORDER);
+  doc.rect(PAGE_MARGIN, bandY, totalWidth, headerHeight, "FD");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9.2);
+  doc.setTextColor(255, 255, 255);
+  doc.text("SUBJECT PERFORMANCE SUMMARY (COMPLETE ONLY)", PAGE_MARGIN + 3, bandY + 5.7);
+
+  model.subjectSummaries.forEach((subject, index) => {
+    const x = PAGE_MARGIN + index * cardWidth;
+    doc.setDrawColor(...BORDER);
+    doc.setLineWidth(0.15);
+    doc.rect(x, bandY + headerHeight, cardWidth, bodyHeight);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.2);
+    doc.setTextColor(...ACCENT);
+    doc.text(subject.subject, x + cardWidth / 2, bandY + headerHeight + 5.5, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Entries ${subject.entries}`, x + cardWidth / 2, bandY + headerHeight + 9.8, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.8);
+    doc.setTextColor(100, 116, 139);
+    doc.text("AVG", x + 4, bandY + headerHeight + 14.2);
+    doc.text("PASS", x + cardWidth / 2 + 2, bandY + headerHeight + 14.2);
+    doc.setFontSize(9.5);
+    doc.setTextColor(...TEXT);
+    doc.text(subject.average, x + 4, bandY + headerHeight + 18.3);
+    doc.text(subject.passRate, x + cardWidth / 2 + 2, bandY + headerHeight + 18.3);
   });
 }
 
@@ -320,6 +402,7 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
   drawSchoolHeader(doc, model, assets);
   drawTitleBlock(doc, model);
   drawSummaryBlocks(doc, model);
+  drawSubjectSummaryBand(doc, model);
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const subjectStartIndex = 3;
@@ -377,6 +460,7 @@ export async function buildResultSheetPdf(model, { fileName } = {}) {
       if (data.pageNumber === 1) {
         drawTitleBlock(doc, model);
         drawSummaryBlocks(doc, model);
+        drawSubjectSummaryBand(doc, model);
       } else {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(12);

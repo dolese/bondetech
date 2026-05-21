@@ -43,6 +43,25 @@ function averageOf(values) {
   return (values.reduce((sum, value) => sum + toNumber(value), 0) / values.length).toFixed(1);
 }
 
+function percentOf(part, total) {
+  if (!total) return "0.0%";
+  return `${((toNumber(part) / toNumber(total)) * 100).toFixed(1)}%`;
+}
+
+function formatGeneratedAt(date = new Date()) {
+  const dateLabel = date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const timeLabel = date.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  return `${dateLabel} ${timeLabel}`;
+}
+
 function summarizeSex(students, status) {
   const male = students.filter((student) => student.sex === "M");
   const female = students.filter((student) => student.sex === "F");
@@ -124,6 +143,40 @@ export function buildResultSheetModel(classData, computed) {
     },
   };
 
+  const divisionSummaryRows = DIVISION_ORDER.map((division) => {
+    const count = divisionCount[division] || 0;
+    return {
+      key: division,
+      label: division === "0" ? "Division 0 (Fail)" : `Division ${division}`,
+      students: count,
+      percentage: percentOf(count, completeStudents.length),
+    };
+  });
+
+  const subjectSummaries = subjects.map((subject, index) => {
+    const scored = students
+      .map((student) => student.grades?.[index])
+      .filter((grade) => grade && grade.score !== null && grade.score !== undefined && grade.score !== "");
+    const numericScores = scored
+      .map((grade) => Number(grade.score))
+      .filter((score) => Number.isFinite(score));
+    const passCountForSubject = scored.filter((grade) => {
+      if (grade.raw === "ABS") return false;
+      const score = Number(grade.score);
+      return Number.isFinite(score) ? score >= 30 : String(grade.grade ?? "").toUpperCase() !== "F";
+    }).length;
+    return {
+      key: `${subject}-${index}`,
+      subject,
+      average: averageOf(numericScores),
+      passRate: percentOf(passCountForSubject, numericScores.length),
+      entries: numericScores.length,
+    };
+  });
+
+  const failRate = completeStudents.length ? ((failCount / completeStudents.length) * 100).toFixed(2) : "0.00";
+  const passRate = completeStudents.length ? ((passCount / completeStudents.length) * 100).toFixed(2) : "0.00";
+
   return {
     className: classData.name,
     classLabel,
@@ -157,7 +210,18 @@ export function buildResultSheetModel(classData, computed) {
       ["Fail Count (Division 0)", failCount],
     ],
     divisionRows: DIVISION_ORDER.map((division) => [`Division ${division === "0" ? "0 (Fail)" : `${division}:`}`, divisionCount[division] || 0]),
+    divisionSummaryRows,
     sexSummary,
+    subjectSummaries,
+    performanceOverview: {
+      passRate,
+      failRate,
+      classAverage: completeAverage,
+      passCount,
+      failCount,
+      completeCount: completeStudents.length,
+    },
+    generatedAtLabel: formatGeneratedAt(),
   };
 }
 
@@ -196,7 +260,7 @@ export function getResultSheetBody(model, students = model.students) {
 }
 
 export function getResultSheetDateLabel() {
-  return new Date().toLocaleDateString();
+  return formatGeneratedAt();
 }
 
 export function buildGradeTable(model) {
