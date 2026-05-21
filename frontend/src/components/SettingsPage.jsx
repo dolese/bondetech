@@ -11,6 +11,21 @@ import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
 
+function TinyIcon({ children }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+      style={{ display: "block" }}
+    >
+      {children}
+    </svg>
+  );
+}
+
 export function SettingsPage({
   classData,
   schoolSettings,
@@ -349,38 +364,69 @@ export function SettingsPage({
     },
     subjectList: {
       display: "grid",
-      gap: 10,
+      gap: 8,
+    },
+    subjectTableHeader: {
+      display: isMobile ? "none" : "grid",
+      gridTemplateColumns: "minmax(180px, 1fr) 180px auto",
+      gap: 12,
+      alignItems: "center",
+      padding: "0 12px 6px",
+    },
+    subjectHeaderLabel: {
+      fontSize: 10,
+      fontWeight: 800,
+      color: "#64748b",
+      textTransform: "uppercase",
+      letterSpacing: "0.12em",
     },
     subjectCard: {
       display: "grid",
-      gridTemplateColumns: isMobile ? "1fr" : "minmax(150px, 1fr) auto auto",
+      gridTemplateColumns: isMobile ? "1fr" : "minmax(180px, 1fr) 180px auto",
       alignItems: isMobile ? "stretch" : "center",
       gap: 12,
-      background: "#f8fbff",
-      border: "1px solid #d0dcf8",
-      borderRadius: 14,
-      padding: isMobile ? "12px" : "12px 14px",
-      boxShadow: "0 10px 24px rgba(15, 23, 42, 0.04)",
+      background: "#fbfdff",
+      border: "1px solid #dbe6fb",
+      borderRadius: 12,
+      padding: isMobile ? "12px" : "10px 12px",
+      boxShadow: "0 8px 18px rgba(15, 23, 42, 0.035)",
     },
     subjectIdentity: {
       display: "grid",
-      gap: 4,
+      gap: 6,
       minWidth: 0,
     },
     subjectName: {
-      fontSize: 13,
+      fontSize: 14,
       fontWeight: 800,
       color: "#0f172a",
       letterSpacing: "0.01em",
     },
+    subjectBadgeRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      flexWrap: "wrap",
+    },
+    subjectBadge: {
+      display: "inline-flex",
+      alignItems: "center",
+      padding: "4px 8px",
+      borderRadius: 999,
+      fontSize: 10,
+      fontWeight: 800,
+      letterSpacing: "0.06em",
+      textTransform: "uppercase",
+    },
     subjectHint: {
-      fontSize: 11,
+      fontSize: 10,
       color: "#64748b",
+      lineHeight: 1.5,
     },
     subjectTypeWrap: {
       display: "grid",
       gap: 5,
-      minWidth: isMobile ? 0 : 140,
+      minWidth: isMobile ? 0 : 180,
     },
     subjectTypeLabel: {
       fontSize: 10,
@@ -394,7 +440,7 @@ export function SettingsPage({
       alignItems: "center",
       justifyContent: isMobile ? "space-between" : "flex-end",
       gap: 8,
-      flexWrap: "wrap",
+      flexWrap: isMobile ? "wrap" : "nowrap",
     },
     subjectMoveGroup: {
       display: "inline-flex",
@@ -402,30 +448,34 @@ export function SettingsPage({
       gap: 6,
       padding: 4,
       borderRadius: 999,
-      background: "#eef4ff",
-      border: "1px solid #d7e4ff",
+      background: "#eff5ff",
+      border: "1px solid #d8e4fb",
     },
     subjectRemove: {
-      background: "#fff5f5",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      background: "#fff7f5",
       color: "#b42318",
-      border: "1px solid #f3c7c2",
+      border: "1px solid #f0d0ca",
       borderRadius: 999,
-      padding: "6px 10px",
+      padding: "7px 10px",
       fontSize: 11,
       fontWeight: 800,
       cursor: "pointer",
       whiteSpace: "nowrap",
     },
     subjectArrow: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
       background: "#ffffff",
       color: "#1d4ed8",
-      border: "1px solid #c9d8ff",
+      border: "1px solid #cfdbf7",
       borderRadius: 999,
-      width: 28,
-      height: 28,
+      width: 30,
+      height: 30,
       padding: 0,
-      fontSize: 11,
-      fontWeight: 800,
       cursor: "pointer",
       lineHeight: 1,
     },
@@ -814,6 +864,19 @@ export function SettingsPage({
           </div>
         </div>
         <div style={styles.subjectList}>
+          {!isMobile ? (
+            <div style={styles.subjectTableHeader}>
+              <div style={styles.subjectHeaderLabel}>
+                {t("settingsSubjects", "Subjects")}
+              </div>
+              <div style={styles.subjectHeaderLabel}>
+                {t("settingsSubjectType", "Subject Type")}
+              </div>
+              <div style={{ ...styles.subjectHeaderLabel, textAlign: "right" }}>
+                {t("actions", "Actions")}
+              </div>
+            </div>
+          ) : null}
           {subjects.length === 0 && (
             <div style={{ fontSize: 10, color: "#999" }}>
               {t("settingsNoSubjectsYet", "No subjects yet.")}
@@ -823,14 +886,32 @@ export function SettingsPage({
             <div key={subj} style={styles.subjectCard}>
               <div style={styles.subjectIdentity}>
                 <div style={styles.subjectName}>{subj}</div>
-                <div style={styles.subjectHint}>
-                  {getSubjectType(subj) === "optional"
-                    ? t("settingsOptionalSubjectHint", "Shown only when a student takes it.")
-                    : t("settingsCompulsorySubjectHint", "Always included in marks and results output.")}
+                <div style={styles.subjectBadgeRow}>
+                  <span
+                    style={{
+                      ...styles.subjectBadge,
+                      background:
+                        getSubjectType(subj) === "optional" ? "#fff7ed" : "#edf7ff",
+                      color:
+                        getSubjectType(subj) === "optional" ? "#b45309" : "#0f5fa8",
+                      border: `1px solid ${
+                        getSubjectType(subj) === "optional" ? "#fed7aa" : "#bfdbfe"
+                      }`,
+                    }}
+                  >
+                    {getSubjectType(subj) === "optional"
+                      ? t("optional", "Optional")
+                      : t("compulsory", "Compulsory")}
+                  </span>
+                  <span style={styles.subjectHint}>
+                    {getSubjectType(subj) === "optional"
+                      ? t("settingsOptionalSubjectHint", "Included only when a student takes it.")
+                      : t("settingsCompulsorySubjectHint", "Included in every result and report export.")}
+                  </span>
                 </div>
               </div>
               <div style={styles.subjectTypeWrap}>
-                <div style={styles.subjectTypeLabel}>
+                <div style={{ ...styles.subjectTypeLabel, display: isMobile ? "block" : "none" }}>
                   {t("settingsSubjectType", "Subject Type")}
                 </div>
                 <select
@@ -854,16 +935,28 @@ export function SettingsPage({
                     onClick={() => handleMoveSubject(idx, -1)}
                     disabled={updatingSubjects || idx === 0}
                     title={t("settingsMoveUp", "Move up")}
+                    aria-label={t("settingsMoveUp", "Move up")}
                   >
-                    Up
+                    <TinyIcon>
+                      <path
+                        d="M7 3.25 3.75 6.5h2v4.25h2.5V6.5h2L7 3.25Z"
+                        fill="currentColor"
+                      />
+                    </TinyIcon>
                   </button>
                   <button
                     style={styles.subjectArrow}
                     onClick={() => handleMoveSubject(idx, 1)}
                     disabled={updatingSubjects || idx === subjects.length - 1}
                     title={t("settingsMoveDown", "Move down")}
+                    aria-label={t("settingsMoveDown", "Move down")}
                   >
-                    Dn
+                    <TinyIcon>
+                      <path
+                        d="M7 10.75 10.25 7.5h-2V3.25h-2.5V7.5h-2L7 10.75Z"
+                        fill="currentColor"
+                      />
+                    </TinyIcon>
                   </button>
                 </div>
                 <button
@@ -872,6 +965,17 @@ export function SettingsPage({
                   disabled={updatingSubjects}
                   title={`Remove ${subj}`}
                 >
+                  <TinyIcon>
+                    <path
+                      d="M4.75 4.75h.9v5.1h-.9v-5.1Zm3.6 0h.9v5.1h-.9v-5.1Z"
+                      fill="currentColor"
+                    />
+                    <path
+                      d="M3 3.85h8v.9H3v-.9Zm1.15-1.6h5.7v.9h-5.7v-.9Zm.5 8.8V3.85h4.7v7.2H4.65Z"
+                      stroke="currentColor"
+                      strokeWidth="0.7"
+                    />
+                  </TinyIcon>
                   Remove
                 </button>
               </div>
