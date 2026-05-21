@@ -232,7 +232,7 @@ export function ResultSheetPrintDocument({ model, pageRanges, pageSize = "a3" })
     },
     summaryGrid: {
       display: "grid",
-      gridTemplateColumns: isA4 ? "1fr 1fr" : "0.96fr 1.04fr 1.04fr 1.2fr",
+      gridTemplateColumns: isA4 ? "1fr 1fr" : "1fr 1fr 1fr 1fr",
       gap: 8,
       alignItems: "start",
     },
@@ -328,16 +328,18 @@ export function ResultSheetPrintDocument({ model, pageRanges, pageSize = "a3" })
     summaryTable: {
       width: "100%",
       borderCollapse: "collapse",
-      fontSize: 11,
+      tableLayout: "fixed",
+      fontSize: 9.6,
     },
     summaryCell: {
       border: `1px solid ${BORDER}`,
-      padding: "8px 10px",
+      padding: "5px 6px",
       color: "#111",
+      wordBreak: "break-word",
     },
     summaryValue: {
       border: `1px solid ${BORDER}`,
-      padding: "8px 10px",
+      padding: "5px 6px",
       textAlign: "right",
       fontWeight: 800,
       color: "#111",
@@ -345,10 +347,11 @@ export function ResultSheetPrintDocument({ model, pageRanges, pageSize = "a3" })
     },
     summaryHeaderCell: {
       border: `1px solid ${BORDER}`,
-      padding: "8px 10px",
+      padding: "5px 4px",
       textAlign: "center",
       fontWeight: 800,
       color: "#111",
+      wordBreak: "break-word",
     },
     resultHeading: {
       margin: "4px 0 0",
@@ -359,9 +362,12 @@ export function ResultSheetPrintDocument({ model, pageRanges, pageSize = "a3" })
     },
     resultTable: {
       width: "100%",
+      minWidth: "100%",
+      maxWidth: "100%",
       borderCollapse: "collapse",
       tableLayout: "fixed",
       fontSize: 9.2,
+      display: "table",
     },
     th: {
       background: ACCENT,
@@ -463,6 +469,7 @@ export function ResultSheetPrintDocument({ model, pageRanges, pageSize = "a3" })
   };
 
   const renderStudentTable = (students) => (
+    <div style={{ width: "100%" }}>
     <table style={styles.resultTable}>
       <colgroup>
         <col style={{ width: "8%" }} />
@@ -522,6 +529,7 @@ export function ResultSheetPrintDocument({ model, pageRanges, pageSize = "a3" })
         ))}
       </tbody>
     </table>
+    </div>
   );
 
   const renderSummaryBand = () => (
