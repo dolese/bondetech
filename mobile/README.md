@@ -55,8 +55,10 @@ This app now includes:
 - login screen with secure session restore using `expo-secure-store`
 - teacher, academic, and admin mobile staff home
 - teacher schedule tab built from the saved timetable entries
+- teacher class detail with class metrics and student filtering
 - parent learner dashboard from the linked learner profile
 - parent results-detail tab across saved exams
+- parent report-style snapshot cards for latest class results
 - school announcements tab from the shared Bonde homepage overview
 - account tab with refresh and sign-out actions
 

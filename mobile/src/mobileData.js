@@ -248,3 +248,43 @@ export function summarizeParentProfile(profile) {
     allExams,
   };
 }
+
+export function summarizeClassRoster(classData = {}) {
+  const students = Array.isArray(classData?.students) ? classData.students : [];
+  const subjects = Array.isArray(classData?.subjects) ? classData.subjects : [];
+
+  let present = 0;
+  let absent = 0;
+  let incomplete = 0;
+
+  students.forEach((student) => {
+    const status = String(student?.status || "present").trim().toLowerCase();
+    if (status === "absent") absent += 1;
+    else if (status === "incomplete") incomplete += 1;
+    else present += 1;
+  });
+
+  return {
+    totalStudents: students.length,
+    present,
+    absent,
+    incomplete,
+    subjectCount: subjects.length,
+  };
+}
+
+export function buildParentReportSnapshots(profile) {
+  const summary = summarizeParentProfile(profile);
+  return summary.entries
+    .filter((entry) => entry.examCount > 0)
+    .map((entry) => ({
+      classId: entry.classId,
+      classLabel: entry.classLabel,
+      latestExamName: entry.latestExamName,
+      average: entry.average,
+      division: entry.division,
+      remarks: entry.remarks,
+      latestSubjects: entry.latestSubjects,
+    }))
+    .sort((left, right) => left.classLabel.localeCompare(right.classLabel, "en"));
+}

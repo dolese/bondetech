@@ -26,9 +26,11 @@ import {
   login,
 } from "./src/api";
 import {
+  buildParentReportSnapshots,
   buildTeacherSchedule,
   formatClassLabel,
   formatRoleLabel,
+  summarizeClassRoster,
   summarizeParentProfile,
   summarizeTeacherAssignments,
 } from "./src/mobileData";
@@ -105,6 +107,15 @@ function TabButton({ active, label, onPress }) {
         {label}
       </Text>
     </Pressable>
+  );
+}
+
+function MiniMetric({ label, value }) {
+  return (
+    <View style={styles.miniMetric}>
+      <Text style={styles.miniMetricValue}>{value}</Text>
+      <Text style={styles.miniMetricLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -285,6 +296,25 @@ function TeacherHome({
     [user, classes]
   );
   const activeClass = classes.find((entry) => entry.id === selectedClassId) || null;
+  const [studentQuery, setStudentQuery] = useState("");
+  const rosterSummary = useMemo(
+    () => summarizeClassRoster(classDetails?.data || {}),
+    [classDetails]
+  );
+  const filteredStudents = useMemo(() => {
+    const students = Array.isArray(classDetails?.data?.students)
+      ? classDetails.data.students
+      : [];
+    const query = String(studentQuery || "").trim().toLowerCase();
+    if (!query) return students.slice(0, 16);
+    return students
+      .filter((student) =>
+        [student?.name, student?.indexNo, student?.status]
+          .map((value) => String(value || "").toLowerCase())
+          .some((value) => value.includes(query))
+      )
+      .slice(0, 16);
+  }, [classDetails, studentQuery]);
 
   return (
     <View style={styles.stack}>
@@ -360,6 +390,12 @@ function TeacherHome({
             <Text style={styles.errorText}>{classDetails.error}</Text>
           ) : classDetails?.data ? (
             <View style={styles.stack}>
+              <View style={styles.miniMetricRow}>
+                <MiniMetric label="Students" value={String(rosterSummary.totalStudents)} />
+                <MiniMetric label="Present" value={String(rosterSummary.present)} />
+                <MiniMetric label="Absent" value={String(rosterSummary.absent)} />
+                <MiniMetric label="Subjects" value={String(rosterSummary.subjectCount)} />
+              </View>
               <View style={styles.chipRow}>
                 {(classDetails.data.subjects || []).map((subject) => (
                   <View key={subject} style={styles.subjectChip}>
@@ -367,9 +403,20 @@ function TeacherHome({
                   </View>
                 ))}
               </View>
+              <View style={styles.formBlockCompact}>
+                <Text style={styles.inputLabel}>Find student</Text>
+                <TextInput
+                  value={studentQuery}
+                  onChangeText={setStudentQuery}
+                  placeholder="Search name, index no, or status"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={styles.input}
+                />
+              </View>
               <Text style={styles.subsectionLabel}>Students</Text>
               <View style={styles.studentList}>
-                {(classDetails.data.students || []).slice(0, 12).map((student) => (
+                {filteredStudents.map((student) => (
                   <View key={student.id} style={styles.studentRow}>
                     <View style={styles.studentAvatar}>
                       <Text style={styles.studentAvatarText}>
@@ -384,6 +431,9 @@ function TeacherHome({
                     </View>
                   </View>
                 ))}
+                {!filteredStudents.length ? (
+                  <Text style={styles.emptyText}>No students match this search.</Text>
+                ) : null}
               </View>
             </View>
           ) : null}
@@ -530,9 +580,64 @@ function ParentHome({ user, profile }) {
 
 function ParentResultsTab({ profile }) {
   const summary = useMemo(() => summarizeParentProfile(profile), [profile]);
+  const snapshots = useMemo(() => buildParentReportSnapshots(profile), [profile]);
 
   return (
     <View style={styles.stack}>
+      <ShellCard subtle>
+        <SectionTitle
+          eyebrow="REPORT SNAPSHOT"
+          title="Latest class result cards"
+          detail="A compact report-style summary built from the learner profile data currently exposed by the backend."
+        />
+        {snapshots.length ? (
+          <View style={styles.stack}>
+            {snapshots.map((snapshot) => (
+              <View key={`${snapshot.classId}-${snapshot.latestExamName}`} style={styles.reportCard}>
+                <View style={styles.reportCardHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.reportCardTitle}>{snapshot.classLabel}</Text>
+                    <Text style={styles.reportCardMeta}>{snapshot.latestExamName}</Text>
+                  </View>
+                  <View style={styles.reportDivisionPill}>
+                    <Text style={styles.reportDivisionText}>
+                      {snapshot.division ? `Div ${snapshot.division}` : "INC"}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.miniMetricRow}>
+                  <MiniMetric
+                    label="Average"
+                    value={snapshot.average === null ? "INC" : String(snapshot.average)}
+                  />
+                  <MiniMetric
+                    label="Subjects"
+                    value={String(snapshot.latestSubjects.length)}
+                  />
+                </View>
+                <View style={styles.chipRow}>
+                  {snapshot.latestSubjects.map((subject) => (
+                    <View
+                      key={`${snapshot.classId}-${snapshot.latestExamName}-${subject.label}`}
+                      style={styles.scoreChip}
+                    >
+                      <Text style={styles.scoreChipText}>
+                        {subject.label} {subject.score}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+                {snapshot.remarks ? (
+                  <Text style={styles.reportRemarks}>Remarks: {snapshot.remarks}</Text>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.emptyText}>No report snapshot is available yet.</Text>
+        )}
+      </ShellCard>
+
       <ShellCard>
         <SectionTitle
           eyebrow="EXAM DETAILS"
@@ -796,7 +901,7 @@ export default function App() {
     if (isParentPortal) {
       return [
         { key: "home", label: "Home" },
-        { key: "results", label: "Results" },
+        { key: "results", label: "Reports" },
         { key: "announcements", label: "Notices" },
         { key: "account", label: "Account" },
       ];
@@ -1056,6 +1161,9 @@ const styles = StyleSheet.create({
   formBlock: {
     marginBottom: 14,
   },
+  formBlockCompact: {
+    marginTop: 4,
+  },
   inputLabel: {
     fontSize: 12,
     fontWeight: "800",
@@ -1211,6 +1319,32 @@ const styles = StyleSheet.create({
   },
   stack: {
     gap: 16,
+  },
+  miniMetricRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  miniMetric: {
+    flexGrow: 1,
+    minWidth: 72,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  miniMetricValue: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: MOBILE_THEME.text,
+  },
+  miniMetricLabel: {
+    marginTop: 4,
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#64748b",
   },
   metricGrid: {
     gap: 10,
@@ -1398,6 +1532,45 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: MOBILE_THEME.muted,
     lineHeight: 18,
+  },
+  reportCard: {
+    borderRadius: 20,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#dbe4f2",
+    padding: 16,
+    gap: 12,
+  },
+  reportCardHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  reportCardTitle: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: MOBILE_THEME.text,
+  },
+  reportCardMeta: {
+    marginTop: 4,
+    fontSize: 12,
+    color: MOBILE_THEME.muted,
+  },
+  reportDivisionPill: {
+    borderRadius: 999,
+    backgroundColor: "#dbeafe",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  reportDivisionText: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: MOBILE_THEME.primary,
+  },
+  reportRemarks: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#475569",
   },
   scheduleCard: {
     borderRadius: 18,
