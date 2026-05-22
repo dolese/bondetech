@@ -8,9 +8,18 @@ const MANAGEABLE_USER_ROLE_OPTIONS = USER_ROLE_OPTIONS.filter((option) => option
 
 function generateTemporaryPassword() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#*!";
+  const cryptoApi =
+    typeof globalThis !== "undefined" && globalThis.crypto && typeof globalThis.crypto.getRandomValues === "function"
+      ? globalThis.crypto
+      : null;
+  if (!cryptoApi) {
+    return `Tmp#${Date.now().toString(36)}${String(Math.floor(Date.now() % 1e6)).padStart(6, "0")}`.slice(0, 12);
+  }
+  const randomBytes = new Uint32Array(12);
+  cryptoApi.getRandomValues(randomBytes);
   let value = "";
-  for (let i = 0; i < 12; i += 1) {
-    value += alphabet[Math.floor(Math.random() * alphabet.length)];
+  for (let i = 0; i < randomBytes.length; i += 1) {
+    value += alphabet[randomBytes[i] % alphabet.length];
   }
   return value;
 }
