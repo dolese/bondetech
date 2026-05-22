@@ -1,7 +1,13 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DIVISION_COLORS } from "../utils/constants";
 import { getResultSheetBranding } from "../utils/exportBranding";
-import { getDivisionDisplay, getResultSheetLayout, getResultSheetPageSpec } from "../utils/resultSheetShared";
+import {
+  getDivisionDisplay,
+  getResultSheetLayout,
+  getResultSheetPageSpec,
+  getResultSheetTableFixedWidth,
+  getResultSheetTableHeaders,
+} from "../utils/resultSheetShared";
 
 const ACCENT = "#163f97";
 const BORDER = "#aebedf";
@@ -150,9 +156,8 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
   const isA4 = String(pageSize).toLowerCase() === "a4";
   const leftLogoSrc = branding.leftLogoSrc || branding.rightLogoSrc;
   const rightLogoSrc = branding.rightLogoSrc || branding.leftLogoSrc;
-  const resultTableFixedWidth = isA4
-    ? { cno: 7, name: 19, sex: 5, points: 7, division: 8 }
-    : { cno: 8, name: 18, sex: 5, points: 8, division: 9 };
+  const resultTableFixedWidth = useMemo(() => getResultSheetTableFixedWidth(pageSize), [pageSize]);
+  const tableHeaders = useMemo(() => getResultSheetTableHeaders(model), [model]);
   const subjectColumnWidth = `${
     (
       (100
@@ -573,14 +578,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       </colgroup>
       <thead ref={withRefs ? tableHeadMeasureRef : undefined}>
         <tr>
-          {[
-            "CNO",
-            "Student Name",
-            "Sex",
-            ...model.subjects,
-            "POINTS",
-            "DIVISION",
-          ].map((heading) => (
+          {tableHeaders.map((heading) => (
             <th key={heading} style={styles.th}>
               {heading}
             </th>

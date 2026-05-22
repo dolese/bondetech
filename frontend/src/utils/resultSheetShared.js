@@ -236,16 +236,18 @@ export function buildResultSheetModel(classData, computed) {
 }
 
 export function getResultSheetHead(model) {
-  return [
-    [
-      "CNO",
-      "Student Name",
-      "Sex",
-      ...model.subjects,
-      "POINTS",
-      "DIVISION",
-    ],
-  ];
+  return [getResultSheetTableHeaders(model)];
+}
+
+export function getResultSheetTableFixedWidth(pageSize = "a3") {
+  if (String(pageSize).toLowerCase() === "a4") {
+    return { cno: 7, name: 19, sex: 5, points: 7, division: 8 };
+  }
+  return { cno: 8, name: 18, sex: 5, points: 8, division: 9 };
+}
+
+export function getResultSheetTableHeaders(model) {
+  return ["CNO", "Student Name", "Sex", ...model.subjects, "POINTS", "DIVISION"];
 }
 
 export function getDivisionDisplay(student) {
