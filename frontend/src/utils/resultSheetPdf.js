@@ -173,6 +173,18 @@ function drawSummaryTitle(doc, x, y, width, title) {
   doc.text(title, x + width / 2, y + 5.8, { align: "center" });
 }
 
+function getCompactSubjectLabel(subject) {
+  const text = String(subject || "").trim().toUpperCase();
+  if (!text) return "-";
+  if (text.length <= 4) return text;
+  const tokens = text.split(/\s+/).filter(Boolean);
+  if (tokens.length > 1) {
+    const acronym = tokens.map((token) => token[0]).join("").slice(0, 4);
+    if (acronym.length >= 2) return acronym;
+  }
+  return text.slice(0, 4);
+}
+
 function drawSummaryBlocks(doc, model, config) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const { PAGE_MARGIN, SUMMARY_START_Y } = config;
@@ -185,12 +197,47 @@ function drawSummaryBlocks(doc, model, config) {
   const performanceWidth = totalWidth - leftWidth - middleWidth - sexWidth - gap * 3;
   const topY = SUMMARY_START_Y;
   const rowHeight = compact ? 6.6 : 8.2;
+  const summaryRows = compact
+    ? [
+      ["Total", model.students.length],
+      ["Complete (>=7)", model.completeStudents.length],
+      ["Incomplete (1-6)", model.incompleteStudents.length],
+      ["Absent", model.absentStudents.length],
+      ["Avg (Complete)", model.completeAverage],
+      ["Pass (I-IV)", model.passCount],
+      ["Fail (0)", model.failCount],
+    ]
+    : model.summaryRows;
+  const divisionHead = compact ? [["Div", "No.", "%"]] : [["Division", "Students", "%"]];
+  const divisionBody = compact
+    ? model.divisionSummaryRows.map((row) => [row.key === "0" ? "Div 0" : `Div ${row.key}`, String(row.students), row.percentage])
+    : model.divisionSummaryRows.map((row) => [row.label, String(row.students), row.percentage]);
+  const sexHead = compact ? [["", "M", "F", "T"]] : [["", "MALE", "FEMALE", "TOTAL"]];
+  const sexBody = compact
+    ? [
+      ["Total", String(model.sexSummary.total.male), String(model.sexSummary.total.female), String(model.sexSummary.total.male + model.sexSummary.total.female)],
+      ["Comp", String(model.sexSummary.complete.male), String(model.sexSummary.complete.female), String(model.sexSummary.complete.male + model.sexSummary.complete.female)],
+      ["Incomp", String(model.sexSummary.incomplete.male), String(model.sexSummary.incomplete.female), String(model.sexSummary.incomplete.male + model.sexSummary.incomplete.female)],
+      ["Absent", String(model.sexSummary.absent.male), String(model.sexSummary.absent.female), String(model.sexSummary.absent.male + model.sexSummary.absent.female)],
+      ["Avg", String(model.sexSummary.average.male), String(model.sexSummary.average.female), String(model.completeAverage)],
+      ["Pass", String(model.sexSummary.pass.male), String(model.sexSummary.pass.female), String(model.passCount)],
+      ["Fail", String(model.sexSummary.fail.male), String(model.sexSummary.fail.female), String(model.failCount)],
+    ]
+    : [
+      ["Total", String(model.sexSummary.total.male), String(model.sexSummary.total.female), String(model.sexSummary.total.male + model.sexSummary.total.female)],
+      ["Complete", String(model.sexSummary.complete.male), String(model.sexSummary.complete.female), String(model.sexSummary.complete.male + model.sexSummary.complete.female)],
+      ["Incomplete", String(model.sexSummary.incomplete.male), String(model.sexSummary.incomplete.female), String(model.sexSummary.incomplete.male + model.sexSummary.incomplete.female)],
+      ["Absent", String(model.sexSummary.absent.male), String(model.sexSummary.absent.female), String(model.sexSummary.absent.male + model.sexSummary.absent.female)],
+      ["Avg (Complete)", String(model.sexSummary.average.male), String(model.sexSummary.average.female), String(model.completeAverage)],
+      ["Pass (I-IV)", String(model.sexSummary.pass.male), String(model.sexSummary.pass.female), String(model.passCount)],
+      ["Fail (0)", String(model.sexSummary.fail.male), String(model.sexSummary.fail.female), String(model.failCount)],
+    ];
 
   drawSummaryTitle(doc, PAGE_MARGIN, topY, leftWidth, "RESULTS SUMMARY");
   autoTable(doc, {
     startY: topY + 9,
     margin: { left: PAGE_MARGIN, right: pageWidth - PAGE_MARGIN - leftWidth },
-    body: model.summaryRows.map(([label, value]) => [label, String(value)]),
+    body: summaryRows.map(([label, value]) => [label, String(value)]),
     theme: "grid",
     styles: {
       fontSize: compact ? 7.2 : 8.5,
@@ -210,8 +257,8 @@ function drawSummaryBlocks(doc, model, config) {
   autoTable(doc, {
     startY: topY + 9,
     margin: { left: divisionX, right: pageWidth - divisionX - middleWidth },
-    head: [["Division", "Students", "%"]],
-    body: model.divisionSummaryRows.map((row) => [row.label, String(row.students), row.percentage]),
+    head: divisionHead,
+    body: divisionBody,
     theme: "grid",
     styles: {
       fontSize: compact ? 6.8 : 7.8,
@@ -228,9 +275,9 @@ function drawSummaryBlocks(doc, model, config) {
       lineWidth: 0.15,
     },
     columnStyles: {
-      0: { halign: "left", cellWidth: middleWidth - 30 },
-      1: { halign: "right", fontStyle: "bold", cellWidth: 13 },
-      2: { halign: "right", fontStyle: "bold", cellWidth: 17 },
+      0: { halign: "left", cellWidth: compact ? middleWidth - 26 : middleWidth - 30 },
+      1: { halign: "right", fontStyle: "bold", cellWidth: compact ? 11 : 13 },
+      2: { halign: "right", fontStyle: "bold", cellWidth: compact ? 15 : 17 },
     },
   });
 
@@ -239,16 +286,8 @@ function drawSummaryBlocks(doc, model, config) {
   autoTable(doc, {
     startY: topY + 9,
     margin: { left: sexX, right: pageWidth - sexX - sexWidth },
-    head: [["", "MALE", "FEMALE", "TOTAL"]],
-    body: [
-      ["Total", String(model.sexSummary.total.male), String(model.sexSummary.total.female), String(model.sexSummary.total.male + model.sexSummary.total.female)],
-      ["Complete", String(model.sexSummary.complete.male), String(model.sexSummary.complete.female), String(model.sexSummary.complete.male + model.sexSummary.complete.female)],
-      ["Incomplete", String(model.sexSummary.incomplete.male), String(model.sexSummary.incomplete.female), String(model.sexSummary.incomplete.male + model.sexSummary.incomplete.female)],
-      ["Absent", String(model.sexSummary.absent.male), String(model.sexSummary.absent.female), String(model.sexSummary.absent.male + model.sexSummary.absent.female)],
-      ["Avg (Complete)", String(model.sexSummary.average.male), String(model.sexSummary.average.female), String(model.completeAverage)],
-      ["Pass (I-IV)", String(model.sexSummary.pass.male), String(model.sexSummary.pass.female), String(model.passCount)],
-      ["Fail (0)", String(model.sexSummary.fail.male), String(model.sexSummary.fail.female), String(model.failCount)],
-    ],
+    head: sexHead,
+    body: sexBody,
     theme: "grid",
     styles: {
       fontSize: compact ? 7 : 8.2,
@@ -265,10 +304,10 @@ function drawSummaryBlocks(doc, model, config) {
       lineWidth: 0.15,
     },
     columnStyles: {
-      0: { halign: "left", cellWidth: sexWidth - 34 },
-      1: { halign: "right", fontStyle: "bold", cellWidth: 11 },
-      2: { halign: "right", fontStyle: "bold", cellWidth: 11 },
-      3: { halign: "right", fontStyle: "bold", cellWidth: 12 },
+      0: { halign: "left", cellWidth: compact ? sexWidth - 37 : sexWidth - 34 },
+      1: { halign: "right", fontStyle: "bold", cellWidth: compact ? 12 : 11 },
+      2: { halign: "right", fontStyle: "bold", cellWidth: compact ? 12 : 11 },
+      3: { halign: "right", fontStyle: "bold", cellWidth: compact ? 13 : 12 },
     },
     didParseCell: (data) => {
       data.row.height = rowHeight;
@@ -326,7 +365,7 @@ function drawSubjectSummaryBand(doc, model, config) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(compact ? 7 : 9.2);
   doc.setTextColor(255, 255, 255);
-  doc.text("SUBJECT PERFORMANCE SUMMARY (COMPLETE ONLY)", PAGE_MARGIN + 3, bandY + (compact ? 4.4 : 5.7));
+  doc.text(compact ? "SUBJECT PERFORMANCE (COMPLETE)" : "SUBJECT PERFORMANCE SUMMARY (COMPLETE ONLY)", PAGE_MARGIN + 3, bandY + (compact ? 4.4 : 5.7));
 
   model.subjectSummaries.forEach((subject, index) => {
     const x = PAGE_MARGIN + index * cardWidth;
@@ -336,7 +375,7 @@ function drawSubjectSummaryBand(doc, model, config) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(compact ? 7.1 : 9.2);
     doc.setTextColor(...ACCENT);
-    doc.text(subject.subject, x + cardWidth / 2, bandY + headerHeight + (compact ? 4 : 5.5), { align: "center" });
+    doc.text(compact ? getCompactSubjectLabel(subject.subject) : subject.subject, x + cardWidth / 2, bandY + headerHeight + (compact ? 4 : 5.5), { align: "center" });
     doc.setFont("helvetica", "normal");
     doc.setFontSize(compact ? 5.2 : 6.8);
     doc.setTextColor(100, 116, 139);
