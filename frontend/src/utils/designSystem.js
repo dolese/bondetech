@@ -15,6 +15,54 @@ export function glassPanelStyle({ compact = false, dense = false, padding, radiu
   };
 }
 
+export function liquidGlassStyle({
+  padding = 18,
+  radius = 24,
+  tint = "blue",
+  blur = 26,
+  borderOpacity = 0.72,
+  shadowOpacity = 0.12,
+} = {}) {
+  const palettes = {
+    blue: {
+      glow: "rgba(59,130,246,0.14)",
+      glowSoft: "rgba(14,165,233,0.09)",
+      surfaceTop: "rgba(255,255,255,0.88)",
+      surfaceBottom: "rgba(239,246,255,0.62)",
+    },
+    amber: {
+      glow: "rgba(245,158,11,0.14)",
+      glowSoft: "rgba(251,191,36,0.10)",
+      surfaceTop: "rgba(255,255,255,0.88)",
+      surfaceBottom: "rgba(255,250,235,0.64)",
+    },
+    slate: {
+      glow: "rgba(148,163,184,0.12)",
+      glowSoft: "rgba(226,232,240,0.10)",
+      surfaceTop: "rgba(255,255,255,0.88)",
+      surfaceBottom: "rgba(248,250,252,0.66)",
+    },
+  };
+  const active = palettes[tint] || palettes.blue;
+  return {
+    borderRadius: radius,
+    padding,
+    border: `1px solid rgba(255,255,255,${borderOpacity})`,
+    background: `
+      radial-gradient(circle at top left, ${active.glow}, transparent 34%),
+      radial-gradient(circle at bottom right, ${active.glowSoft}, transparent 38%),
+      linear-gradient(180deg, ${active.surfaceTop}, ${active.surfaceBottom})
+    `,
+    boxShadow: `
+      0 22px 54px rgba(15,23,42,${shadowOpacity}),
+      0 8px 24px rgba(255,255,255,0.18) inset,
+      inset 0 1px 0 rgba(255,255,255,0.92)
+    `,
+    backdropFilter: `blur(${blur}px) saturate(150%)`,
+    WebkitBackdropFilter: `blur(${blur}px) saturate(150%)`,
+  };
+}
+
 export function softCardStyle({ padding = 14, radius = 18 } = {}) {
   return {
     borderRadius: radius,

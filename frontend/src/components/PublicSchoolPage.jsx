@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useI18n } from "../i18n";
 import { LanguageToggle } from "./LanguageToggle";
-import { premiumFontStack } from "../utils/designSystem";
+import { liquidGlassStyle, premiumFontStack } from "../utils/designSystem";
 
 function SchoolCrest({ size = 44 }) {
   return (
@@ -147,10 +147,7 @@ export function PublicSchoolPage({ onBackHome, onOpenLogin }) {
 
         <div
           style={{
-            background: "rgba(255,255,255,0.9)",
-            border: "1px solid rgba(214,224,237,0.9)",
-            borderRadius: 28,
-            boxShadow: "0 22px 60px rgba(15,23,42,0.08)",
+            ...liquidGlassStyle({ radius: 30, padding: 0, tint: "blue", blur: 28 }),
             overflow: "hidden",
           }}
         >
@@ -226,10 +223,7 @@ export function PublicSchoolPage({ onBackHome, onOpenLogin }) {
                   <div
                     key={item.label}
                     style={{
-                      background: "#fff",
-                      borderRadius: 18,
-                      border: "1px solid rgba(226,232,240,0.95)",
-                      padding: "14px 14px 12px",
+                      ...liquidGlassStyle({ radius: 18, padding: "14px 14px 12px", tint: "slate", blur: 18, shadowOpacity: 0.08 }),
                     }}
                   >
                     <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginBottom: 4 }}>{item.label}</div>
@@ -257,10 +251,7 @@ export function PublicSchoolPage({ onBackHome, onOpenLogin }) {
                 <div
                   key={card.title}
                   style={{
-                    borderRadius: 20,
-                    border: "1px solid rgba(226,232,240,0.95)",
-                    background: "#fff",
-                    padding: "18px 18px 16px",
+                    ...liquidGlassStyle({ radius: 20, padding: "18px 18px 16px", tint: "slate", blur: 18, shadowOpacity: 0.08 }),
                   }}
                 >
                   <div style={{ fontSize: 16, fontWeight: 800, color: "#0f2d6e", marginBottom: 8 }}>{card.title}</div>
