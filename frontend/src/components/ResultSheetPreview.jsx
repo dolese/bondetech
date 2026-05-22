@@ -63,13 +63,15 @@ function SummaryCard({ title, children, style }) {
   );
 }
 
-function OverviewMeter({ label, value, detail, color, ringValue }) {
+function OverviewMeter({ label, value, detail, color, ringValue, compact = false }) {
+  const outerSize = compact ? 64 : 76;
+  const innerSize = compact ? 46 : 56;
   return (
-    <div style={{ display: "grid", justifyItems: "center", gap: 8, padding: "12px 8px" }}>
+    <div style={{ display: "grid", justifyItems: "center", gap: compact ? 6 : 8, padding: compact ? "10px 6px" : "12px 8px" }}>
       <div
         style={{
-          width: 76,
-          height: 76,
+          width: outerSize,
+          height: outerSize,
           borderRadius: "50%",
           background: `conic-gradient(${color} 0 ${Math.max(0, Math.min(100, ringValue))}%, #e7eefc ${Math.max(0, Math.min(100, ringValue))}% 100%)`,
           display: "grid",
@@ -78,15 +80,15 @@ function OverviewMeter({ label, value, detail, color, ringValue }) {
       >
         <div
           style={{
-            width: 56,
-            height: 56,
+            width: innerSize,
+            height: innerSize,
             borderRadius: "50%",
             background: "#fff",
             display: "grid",
             placeItems: "center",
             color: "#0f172a",
             fontWeight: 900,
-            fontSize: 11,
+            fontSize: compact ? 9.5 : 11,
             textAlign: "center",
             lineHeight: 1.15,
           }}
@@ -95,8 +97,8 @@ function OverviewMeter({ label, value, detail, color, ringValue }) {
         </div>
       </div>
       <div style={{ textAlign: "center", display: "grid", gap: 3 }}>
-        <div style={{ fontSize: 10.5, fontWeight: 900, color }}>{label}</div>
-        <div style={{ fontSize: 10, color: "#334155", fontWeight: 700 }}>{detail}</div>
+        <div style={{ fontSize: compact ? 9.2 : 10.5, fontWeight: 900, color }}>{label}</div>
+        <div style={{ fontSize: compact ? 8.6 : 10, color: "#334155", fontWeight: 700 }}>{detail}</div>
       </div>
     </div>
   );
@@ -142,6 +144,8 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
   const PAGE_WIDTH_MM = pageSpec.width - SAFE_MARGIN_MM * 2;
   const PAGE_HEIGHT_MM = pageSpec.height - SAFE_MARGIN_MM * 2;
   const isA4 = String(pageSize).toLowerCase() === "a4";
+  const leftLogoSrc = branding.leftLogoSrc || branding.rightLogoSrc;
+  const rightLogoSrc = branding.rightLogoSrc || branding.leftLogoSrc;
   const subjectColumnWidth = `${Math.max(isA4 ? 4.8 : 4.2, ((isA4 ? 54 : 52) / Math.max(model.subjects.length, 1))).toFixed(2)}%`;
   const pageMeasureRef = useRef(null);
   const headerMeasureRef = useRef(null);
@@ -205,26 +209,28 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     },
     header: {
       display: "grid",
-      gridTemplateColumns: "76px 1fr 76px",
+      gridTemplateColumns: isA4 ? "62px minmax(0, 1fr) 62px" : "76px minmax(0, 1fr) 76px",
       alignItems: "center",
       gap: 10,
       borderBottom: `4px double ${ACCENT}`,
       paddingBottom: 12,
     },
     logo: {
-      width: 64,
-      height: 64,
+      width: isA4 ? 56 : 64,
+      height: isA4 ? 56 : 64,
       objectFit: "contain",
       justifySelf: "center",
+      display: "block",
     },
     titleCenter: {
       textAlign: "center",
       display: "grid",
       gap: 4,
+      minWidth: 0,
     },
     schoolName: {
       margin: 0,
-      fontSize: 23,
+      fontSize: isA4 ? 20 : 23,
       lineHeight: 1.1,
       fontWeight: 900,
       color: ACCENT,
@@ -234,7 +240,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     },
     headerLine: {
       margin: 0,
-      fontSize: 13,
+      fontSize: isA4 ? 11.2 : 13,
       fontWeight: 700,
       color: "#161616",
     },
@@ -250,7 +256,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     },
     metaRow: {
       display: "grid",
-      gridTemplateColumns: "1fr auto",
+      gridTemplateColumns: isA4 ? "minmax(0, 1fr) 112px" : "1fr auto",
       gap: 12,
       alignItems: "stretch",
       paddingBottom: 8,
@@ -259,9 +265,9 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     metaTags: {
       display: "flex",
       justifyContent: "center",
-      gap: 10,
+      gap: isA4 ? 8 : 10,
       flexWrap: "wrap",
-      fontSize: 13,
+      fontSize: isA4 ? 11.5 : 13,
       color: "#111",
       alignItems: "center",
     },
@@ -289,15 +295,16 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     },
     summaryGrid: {
       display: "grid",
-      gridTemplateColumns: isA4 ? "1fr 1fr" : "1fr 1fr 1fr 1fr",
-      gap: 8,
+      gridTemplateColumns: isA4 ? "minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.32fr)" : "1fr 1fr 1fr 1fr",
+      gridTemplateAreas: isA4 ? "\"results division performance\" \"sex sex performance\"" : undefined,
+      gap: isA4 ? 6 : 8,
       alignItems: "start",
     },
     performanceShell: {
       display: "grid",
-      gridTemplateColumns: isA4 ? "1fr" : "repeat(3, minmax(0, 1fr))",
-      gap: 8,
-      padding: "8px 8px 10px",
+      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+      gap: isA4 ? 6 : 8,
+      padding: isA4 ? "8px 6px 8px" : "8px 8px 10px",
     },
     subjectBand: {
       border: `1px solid ${BORDER}`,
@@ -386,17 +393,17 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       width: "100%",
       borderCollapse: "collapse",
       tableLayout: "fixed",
-      fontSize: 9.6,
+      fontSize: isA4 ? 8.5 : 9.6,
     },
     summaryCell: {
       border: `1px solid ${BORDER}`,
-      padding: "5px 6px",
+      padding: isA4 ? "4px 4px" : "5px 6px",
       color: "#111",
-      wordBreak: "break-word",
+      overflowWrap: "anywhere",
     },
     summaryValue: {
       border: `1px solid ${BORDER}`,
-      padding: "5px 6px",
+      padding: isA4 ? "4px 4px" : "5px 6px",
       textAlign: "right",
       fontWeight: 800,
       color: "#111",
@@ -404,11 +411,11 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     },
     summaryHeaderCell: {
       border: `1px solid ${BORDER}`,
-      padding: "5px 4px",
+      padding: isA4 ? "4px 3px" : "5px 4px",
       textAlign: "center",
       fontWeight: 800,
       color: "#111",
-      wordBreak: "break-word",
+      overflowWrap: "anywhere",
     },
     resultHeading: {
       margin: "4px 0 0",
@@ -615,7 +622,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       </div>
 
       <div style={styles.summaryGrid} ref={summaryMeasureRef}>
-        <SummaryCard title="RESULTS SUMMARY">
+        <SummaryCard title="RESULTS SUMMARY" style={isA4 ? { gridArea: "results" } : undefined}>
           <table style={styles.summaryTable}>
             <tbody>
               {model.summaryRows.map(([label, value]) => (
@@ -650,7 +657,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
           </table>
         </SummaryCard>
 
-        <SummaryCard title="DIVISION SUMMARY (Complete Only)">
+        <SummaryCard title="DIVISION SUMMARY (Complete Only)" style={isA4 ? { gridArea: "division" } : undefined}>
           <table style={styles.summaryTable}>
             <thead>
               <tr>
@@ -671,7 +678,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
           </table>
         </SummaryCard>
 
-        <SummaryCard title="SEX SUMMARY">
+        <SummaryCard title="SEX SUMMARY" style={isA4 ? { gridArea: "sex" } : undefined}>
           <table style={styles.summaryTable}>
             <thead>
               <tr>
@@ -702,7 +709,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
           </table>
         </SummaryCard>
 
-        <SummaryCard title="PERFORMANCE OVERVIEW">
+        <SummaryCard title="PERFORMANCE OVERVIEW" style={isA4 ? { gridArea: "performance" } : undefined}>
           <div style={styles.performanceShell}>
             <OverviewMeter
               label="Pass Rate"
@@ -710,6 +717,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
               detail={`I-IV | ${model.performanceOverview.passCount} / ${model.performanceOverview.completeCount}`}
               color="#2f8f43"
               ringValue={Number(model.performanceOverview.passRate)}
+              compact={isA4}
             />
             <OverviewMeter
               label="Fail Rate"
@@ -717,6 +725,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
               detail={`0 | ${model.performanceOverview.failCount} / ${model.performanceOverview.completeCount}`}
               color="#2563eb"
               ringValue={Number(model.performanceOverview.failRate)}
+              compact={isA4}
             />
             <OverviewMeter
               label="Class Average"
@@ -724,6 +733,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
               detail="Complete Only"
               color="#7c3aed"
               ringValue={Math.min(100, Number(model.performanceOverview.classAverage) || 0)}
+              compact={isA4}
             />
           </div>
         </SummaryCard>
@@ -815,13 +825,13 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
         {pages.map((page) => (
           <div key={`page-${page.index}`} style={styles.page} className="result-sheet-page">
             <div style={styles.header}>
-              <img src={branding.leftLogoSrc} alt="Left crest" style={styles.logo} />
+              <img src={leftLogoSrc} alt="Left crest" style={styles.logo} />
               <div style={styles.titleCenter}>
                 <h1 style={styles.schoolName}>{branding.headerName}</h1>
                 <p style={styles.headerLine}>{branding.headerSubtitle}</p>
                 <p style={styles.headerLine}>{branding.headerAddress}</p>
               </div>
-              <img src={branding.rightLogoSrc} alt="Right crest" style={styles.logo} />
+              <img src={rightLogoSrc} alt="Right crest" style={styles.logo} />
             </div>
 
             {page.isFirstPage && (
@@ -845,13 +855,13 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       <div style={styles.measureShell}>
         <div ref={pageMeasureRef} style={styles.page}>
           <div ref={headerMeasureRef} style={styles.header}>
-            <img src={branding.leftLogoSrc} alt="" style={styles.logo} />
+            <img src={leftLogoSrc} alt="" style={styles.logo} />
             <div style={styles.titleCenter}>
               <h1 style={styles.schoolName}>{branding.headerName}</h1>
               <p style={styles.headerLine}>{branding.headerSubtitle}</p>
               <p style={styles.headerLine}>{branding.headerAddress}</p>
             </div>
-            <img src={branding.rightLogoSrc} alt="" style={styles.logo} />
+            <img src={rightLogoSrc} alt="" style={styles.logo} />
           </div>
 
           {renderSummaryBand()}
