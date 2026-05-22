@@ -4,8 +4,32 @@ import { formatUserRole, USER_ROLE_OPTIONS } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
 
-const DEFAULT_RESET_PASSWORD = "Bonde@2026";
 const MANAGEABLE_USER_ROLE_OPTIONS = USER_ROLE_OPTIONS.filter((option) => option.value !== "student");
+
+function generateTemporaryPassword() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#*!";
+  let value = "";
+  for (let i = 0; i < 12; i += 1) {
+    value += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return value;
+}
+
+function downloadCsv(filename, rows = []) {
+  if (typeof window === "undefined") return;
+  const content = rows
+    .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, "\"\"")}"`).join(","))
+    .join("\n");
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const href = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = href;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(href);
+}
 
 function initialsFrom(user) {
   const source = String(user?.displayName || user?.username || "?")
@@ -302,6 +326,10 @@ export function AccountPage({
   const [editingUsername, setEditingUsername] = useState("");
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [activityStatusFilter, setActivityStatusFilter] = useState("all");
+  const [activityUserFilter, setActivityUserFilter] = useState("");
+  const [activitySearch, setActivitySearch] = useState("");
   const [homepageForm, setHomepageForm] = useState({
     announcements: [],
     highlights: [],
@@ -410,6 +438,75 @@ export function AccountPage({
           .some((value) => String(value).toLowerCase().includes(query));
       });
   }, [manageableUsers, roleFilter, userSearch]);
+
+  useEffect(() => {
+    setSelectedUsers((prev) => prev.filter((username) => managedUserCards.some((userCard) => userCard.username === username)));
+  }, [managedUserCards]);
+
+  const roleSummaryRows = useMemo(() => {
+    const rows = {};
+    manageableUsers.forEach((managedUser) => {
+      const role = managedUser.role || "unknown";
+      if (!rows[role]) {
+        rows[role] = { role, total: 0, active: 0, inactive: 0, resetRequired: 0 };
+      }
+      rows[role].total += 1;
+      if (managedUser.active !== false) rows[role].active += 1;
+      if (managedUser.active === false) rows[role].inactive += 1;
+      if (managedUser.mustChangePassword === true) rows[role].resetRequired += 1;
+    });
+    return Object.values(rows).sort((a, b) => a.role.localeCompare(b.role));
+  }, [manageableUsers]);
+
+  const profileMissingFields = useMemo(() => {
+    const missing = [];
+    if (!String(form.phone || "").trim()) missing.push("Phone");
+    if (!String(form.email || "").trim()) missing.push("Email");
+    if ((form.role === "parent" || form.role === "student") && !String(form.linkedIndexNo || "").trim()) {
+      missing.push("Linked Student Index No");
+    }
+    return missing;
+  }, [form.email, form.linkedIndexNo, form.phone, form.role]);
+
+  const profileCompletionPercent = useMemo(() => {
+    const checks = [
+      Boolean(String(form.displayName || "").trim()),
+      Boolean(String(form.phone || "").trim()),
+      Boolean(String(form.email || "").trim()),
+      form.role === "parent" || form.role === "student"
+        ? Boolean(String(form.linkedIndexNo || "").trim())
+        : true,
+    ];
+    const complete = checks.filter(Boolean).length;
+    return Math.round((complete / checks.length) * 100);
+  }, [form.displayName, form.email, form.linkedIndexNo, form.phone, form.role]);
+
+  const recentSecurityLogs = useMemo(
+    () =>
+      authLogs
+        .filter((log) => log.username === user?.username)
+        .slice(0, 5),
+    [authLogs, user?.username]
+  );
+
+  const filteredActivityLogs = useMemo(() => {
+    const query = activitySearch.trim().toLowerCase();
+    return authLogs.filter((log) => {
+      if (activityStatusFilter !== "all" && log.status !== activityStatusFilter) return false;
+      if (activityUserFilter.trim() && log.username !== activityUserFilter.trim()) return false;
+      if (!query) return true;
+      return [
+        log.username,
+        log.action,
+        log.role,
+        log.reason,
+        log.ip,
+        log.userAgent,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    });
+  }, [activitySearch, activityStatusFilter, activityUserFilter, authLogs]);
 
   const classPickerOptions = useMemo(
     () =>
@@ -575,7 +672,7 @@ export function AccountPage({
 
   const handleCreateUser = async () => {
     const username = adminForm.username.trim();
-    const password = adminForm.password || DEFAULT_RESET_PASSWORD;
+    const password = adminForm.password || generateTemporaryPassword();
     if (!username) {
       setAdminError(t("usernameRequired"));
       return;
@@ -600,7 +697,7 @@ export function AccountPage({
       });
       setAdminForm(blankManagedUser());
       setUserFormOpen(false);
-      setAdminMessage(`User created. Default password: ${DEFAULT_RESET_PASSWORD}`);
+      setAdminMessage(`User created. Temporary password: ${password}`);
     } catch (err) {
       setAdminError(err.message || t("unableToCreateUser"));
     } finally {
@@ -642,10 +739,11 @@ export function AccountPage({
   const handleResetManagedPassword = async (username) => {
     const payload = editingUsers[username];
     if (!payload) return;
+    const temporaryPassword = generateTemporaryPassword();
     const teacherAccess = normalizeTeacherAccessPayload(payload);
     const normalizedPayload = {
       ...payload,
-      password: DEFAULT_RESET_PASSWORD,
+      password: temporaryPassword,
       mustChangePassword: true,
       teacherRoles: teacherAccess.teacherRoles,
       teacherAssignments: teacherAccess.teacherAssignments,
@@ -664,7 +762,7 @@ export function AccountPage({
       }));
       setEditingUsername("");
       setActionMenuUser("");
-      setAdminMessage(`Password reset for ${username}. Default password: ${DEFAULT_RESET_PASSWORD}`);
+      setAdminMessage(`Password reset for ${username}. Temporary password: ${temporaryPassword}`);
     } catch (err) {
       setAdminError(err.message || `Unable to reset password for ${username}`);
     }
@@ -920,6 +1018,97 @@ export function AccountPage({
 
   const failedLogsCount = authLogs.filter((l) => l.status === "failed").length;
 
+  const handleToggleAllVisibleUsers = (checked) => {
+    if (!checked) {
+      setSelectedUsers([]);
+      return;
+    }
+    setSelectedUsers(managedUserCards.map((managedUser) => managedUser.username));
+  };
+
+  const handleToggleSelectedUser = (username, checked) => {
+    setSelectedUsers((prev) => (
+      checked ? [...new Set([...prev, username])] : prev.filter((value) => value !== username)
+    ));
+  };
+
+  const applyBulkAction = async (action) => {
+    if (!selectedUsers.length) {
+      setAdminError("Select at least one user first.");
+      return;
+    }
+    try {
+      setAdminError("");
+      setAdminMessage("");
+      if (action === "export") {
+        const rows = [
+          ["Username", "Display Name", "Role", "Status", "Email", "Phone", "Must Change Password"],
+          ...manageableUsers
+            .filter((managedUser) => selectedUsers.includes(managedUser.username))
+            .map((managedUser) => [
+              managedUser.username,
+              managedUser.displayName || "",
+              managedUser.role || "",
+              managedUser.active !== false ? "active" : "inactive",
+              managedUser.email || "",
+              managedUser.phone || "",
+              managedUser.mustChangePassword === true ? "yes" : "no",
+            ]),
+        ];
+        downloadCsv(`user-export-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+        setAdminMessage(`Exported ${selectedUsers.length} users.`);
+        return;
+      }
+
+      for (const username of selectedUsers) {
+        const payload = editingUsers[username];
+        if (!payload) continue;
+        const teacherAccess = normalizeTeacherAccessPayload(payload);
+        if (action === "activate" || action === "deactivate") {
+          await onUpdateUser?.(username, {
+            ...payload,
+            teacherRoles: teacherAccess.teacherRoles,
+            teacherAssignments: teacherAccess.teacherAssignments,
+            active: action === "activate",
+            password: "",
+          });
+          updateManagedField(username, "active", action === "activate");
+        }
+        if (action === "reset") {
+          const temporaryPassword = generateTemporaryPassword();
+          await onUpdateUser?.(username, {
+            ...payload,
+            teacherRoles: teacherAccess.teacherRoles,
+            teacherAssignments: teacherAccess.teacherAssignments,
+            password: temporaryPassword,
+            mustChangePassword: true,
+          });
+          updateManagedField(username, "mustChangePassword", true);
+        }
+      }
+      setAdminMessage(`Bulk action "${action}" applied to ${selectedUsers.length} users.`);
+    } catch (err) {
+      setAdminError(err.message || "Unable to run bulk action.");
+    }
+  };
+
+  const exportActivityLogs = () => {
+    const rows = [
+      ["Timestamp", "Username", "Role", "Action", "Status", "IP", "User Agent", "Reason"],
+      ...filteredActivityLogs.map((log) => [
+        log.createdAt ? new Date(log.createdAt).toISOString() : "",
+        log.username || "",
+        log.role || "",
+        log.action || "",
+        log.status || "",
+        log.ip || "",
+        log.userAgent || "",
+        log.reason || "",
+      ]),
+    ];
+    downloadCsv(`auth-activity-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+  };
+
   const tabs = [
     { key: "profile", label: "Profile" },
     ...(canManageUsers
@@ -1137,6 +1326,33 @@ export function AccountPage({
               gap: 18,
             }}
           >
+            <div
+              style={{
+                ...sectionStyle,
+                gridColumn: "1 / -1",
+                display: "grid",
+                gap: 8,
+                border: `1px solid ${profileCompletionPercent >= 100 ? "#86efac" : "#fcd34d"}`,
+                background: profileCompletionPercent >= 100 ? "linear-gradient(135deg, #ecfdf3, #f7fee7)" : "linear-gradient(135deg, #fffbeb, #fef9c3)",
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.08em", color: "#92400e" }}>
+                Profile completion
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#102a43" }}>
+                {profileCompletionPercent}% complete
+              </div>
+              {profileMissingFields.length ? (
+                <div style={{ fontSize: 13, color: "#7c2d12", lineHeight: 1.6 }}>
+                  Missing fields: {profileMissingFields.join(", ")}.
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "#166534", lineHeight: 1.6 }}>
+                  Great — your profile details are complete.
+                </div>
+              )}
+            </div>
+
             <div style={{ ...sectionStyle, display: "grid", gap: 16 }}>
               <div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
@@ -1259,6 +1475,59 @@ export function AccountPage({
               >
                 {passwordSaving ? "Updating..." : "Update Password"}
               </button>
+
+              <div style={{ marginTop: 4, borderTop: "1px solid rgba(148,163,184,0.25)", paddingTop: 12, display: "grid", gap: 10 }}>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#102a43" }}>Security Snapshot</div>
+                  <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>
+                    Recent sign-in attempts for your account.
+                  </div>
+                </div>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {recentSecurityLogs.length ? recentSecurityLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      style={{
+                        borderRadius: 10,
+                        border: `1px solid ${log.status === "success" ? "#bbf7d0" : "#fecdd3"}`,
+                        background: log.status === "success" ? "#f0fdf4" : "#fff5f5",
+                        padding: "8px 10px",
+                        display: "grid",
+                        gap: 3,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "#102a43" }}>
+                        {(log.action || "login").toUpperCase()} · {log.status || "info"}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#64748b" }}>
+                        {log.createdAt ? new Date(log.createdAt).toLocaleString() : "Unknown time"} · {log.ip || "Unknown IP"}
+                      </div>
+                      {log.userAgent && (
+                        <div style={{ fontSize: 11, color: "#64748b" }}>{log.userAgent}</div>
+                      )}
+                    </div>
+                  )) : (
+                    <div style={{ fontSize: 12, color: "#64748b" }}>No recent security events found.</div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  style={{
+                    border: "1px solid #fecaca",
+                    background: "#fff1f2",
+                    color: "#b42318",
+                    borderRadius: 10,
+                    padding: "10px 14px",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    width: isMobile ? "100%" : "auto",
+                  }}
+                >
+                  Force Sign Out (Current Session)
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1286,7 +1555,7 @@ export function AccountPage({
                   if (!userFormOpen) {
                     setAdminForm({
                       ...blankManagedUser(),
-                      password: DEFAULT_RESET_PASSWORD,
+                      password: generateTemporaryPassword(),
                     });
                   }
                 }}
@@ -1316,7 +1585,7 @@ export function AccountPage({
                   <TextInput label="Email" value={adminForm.email} onChange={(value) => setAdminForm((prev) => ({ ...prev, email: value }))} />
                   <TextInput label="Phone" value={adminForm.phone} onChange={(value) => setAdminForm((prev) => ({ ...prev, phone: value }))} />
                   <TextInput label="Linked Student Index No" value={adminForm.linkedIndexNo} onChange={(value) => setAdminForm((prev) => ({ ...prev, linkedIndexNo: value }))} />
-                  <TextInput label="Default Password" value={adminForm.password || DEFAULT_RESET_PASSWORD} onChange={(value) => setAdminForm((prev) => ({ ...prev, password: value }))} />
+                  <TextInput label="Temporary Password" value={adminForm.password} onChange={(value) => setAdminForm((prev) => ({ ...prev, password: value }))} />
                 </div>
 
                 {adminForm.role === "teacher" && (
@@ -1419,7 +1688,7 @@ export function AccountPage({
                 )}
 
                 <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
-                  New and reset accounts use the default password <strong>{DEFAULT_RESET_PASSWORD}</strong> and must change it on next sign-in.
+                  New and reset accounts now use generated temporary passwords and must change them on next sign-in.
                 </div>
 
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -1468,6 +1737,66 @@ export function AccountPage({
 
             <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
               Showing {managedUserCards.length} of {manageableUsers.length} users
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: singleColumn ? "1fr" : "repeat(auto-fit, minmax(min(100%, 210px), 1fr))",
+                gap: 10,
+              }}
+            >
+              {roleSummaryRows.map((row) => (
+                <div key={row.role} style={{ ...softGlassStyle, borderRadius: 12, padding: "10px 12px", display: "grid", gap: 4 }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: "#102a43", textTransform: "capitalize" }}>{formatUserRole(row.role)}</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>
+                    {row.active} active · {row.inactive} inactive · {row.resetRequired} reset required
+                  </div>
+                  <div style={{ fontSize: 19, fontWeight: 900, color: "#0f172a" }}>{row.total}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ ...softGlassStyle, borderRadius: 14, padding: isMobile ? 12 : 14, display: "grid", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, color: "#334155" }}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(managedUserCards.length) && selectedUsers.length === managedUserCards.length}
+                    onChange={(event) => handleToggleAllVisibleUsers(event.target.checked)}
+                  />
+                  Select all visible
+                </label>
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
+                  {selectedUsers.length} selected
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {[
+                  { key: "activate", label: "Activate" },
+                  { key: "deactivate", label: "Deactivate" },
+                  { key: "reset", label: "Reset Passwords" },
+                  { key: "export", label: "Export CSV" },
+                ].map((action) => (
+                  <button
+                    key={action.key}
+                    type="button"
+                    onClick={() => applyBulkAction(action.key)}
+                    style={{
+                      border: "1px solid #bfdbfe",
+                      background: "#eff6ff",
+                      color: "#1d4ed8",
+                      borderRadius: 10,
+                      padding: "8px 12px",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {editingUsername ? (() => {
@@ -1624,7 +1953,7 @@ export function AccountPage({
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "minmax(220px, 1.5fr) minmax(120px, 0.9fr) minmax(180px, 1fr) minmax(130px, 0.8fr) 60px",
+                    gridTemplateColumns: "32px minmax(220px, 1.5fr) minmax(120px, 0.9fr) minmax(180px, 1fr) minmax(130px, 0.8fr) 60px",
                     gap: 12,
                     padding: "0 16px",
                     color: "#64748b",
@@ -1634,6 +1963,7 @@ export function AccountPage({
                     textTransform: "uppercase",
                   }}
                 >
+                  <span />
                   <span>User</span>
                   <span>Role</span>
                   <span>Teacher Duties</span>
@@ -1658,11 +1988,20 @@ export function AccountPage({
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: isMobile ? "1fr auto" : "minmax(220px, 1.5fr) minmax(120px, 0.9fr) minmax(180px, 1fr) minmax(130px, 0.8fr) 60px",
+                        gridTemplateColumns: isMobile ? "1fr auto" : "32px minmax(220px, 1.5fr) minmax(120px, 0.9fr) minmax(180px, 1fr) minmax(130px, 0.8fr) 60px",
                         gap: 12,
                         alignItems: "center",
                       }}
                     >
+                      {!isMobile ? (
+                        <label style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedUsers.includes(managedUser.username)}
+                            onChange={(event) => handleToggleSelectedUser(managedUser.username, event.target.checked)}
+                          />
+                        </label>
+                      ) : null}
                       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
                         <div
                           style={{
@@ -1743,6 +2082,14 @@ export function AccountPage({
 
                     {isMobile && (
                       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+                        <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#475569", fontWeight: 700 }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedUsers.includes(managedUser.username)}
+                            onChange={(event) => handleToggleSelectedUser(managedUser.username, event.target.checked)}
+                          />
+                          Select
+                        </label>
                         <RoleBadge role={managedUser.role} />
                         <StatusBadge active={managedUser.active !== false} />
                         {isTeacher ? (
@@ -1873,8 +2220,55 @@ export function AccountPage({
               </div>
             </div>
 
+            <div style={{ display: "grid", gridTemplateColumns: adaptiveWideFieldGrid, gap: 12 }}>
+              <SelectInput
+                label="Status"
+                value={activityStatusFilter}
+                onChange={setActivityStatusFilter}
+                options={[
+                  { label: "All statuses", value: "all" },
+                  { label: "Success", value: "success" },
+                  { label: "Failed", value: "failed" },
+                ]}
+              />
+              <TextInput
+                label="Username"
+                value={activityUserFilter}
+                onChange={setActivityUserFilter}
+                placeholder="Filter by exact username"
+              />
+              <TextInput
+                label="Search"
+                value={activitySearch}
+                onChange={setActivitySearch}
+                placeholder="Search reason, role, IP, action, or device"
+              />
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
+                Showing {filteredActivityLogs.length} of {authLogs.length} activity records
+              </div>
+              <button
+                type="button"
+                onClick={exportActivityLogs}
+                style={{
+                  border: "1px solid #bfdbfe",
+                  background: "#eff6ff",
+                  color: "#1d4ed8",
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                Export CSV
+              </button>
+            </div>
+
             <div style={{ display: "grid", gap: 10 }}>
-              {authLogs.length ? authLogs.map((log) => (
+              {filteredActivityLogs.length ? filteredActivityLogs.map((log) => (
                 <div
                   key={log.id}
                   style={{
@@ -1934,6 +2328,9 @@ export function AccountPage({
                     <div style={{ fontSize: isXs ? 11 : 12, color: "#64748b", marginTop: 3 }}>
                       {(log.action || "login").toUpperCase()} • {log.role || "n/a"} • {log.createdAt ? new Date(log.createdAt).toLocaleString() : ""}
                     </div>
+                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                      {(log.ip || "Unknown IP")} {log.userAgent ? `• ${log.userAgent}` : ""}
+                    </div>
                     {log.reason && (
                       <div style={{ fontSize: 12, color: "#425466", marginTop: 2 }}>{log.reason}</div>
                     )}
@@ -1941,7 +2338,7 @@ export function AccountPage({
                 </div>
               )) : (
                 <div style={{ fontSize: 13, color: "#64748b", border: "1px dashed #d5dfef", borderRadius: 12, padding: 20, textAlign: "center" }}>
-                  {t("noLoginActivity")}
+                  No records match the current filters.
                 </div>
               )}
             </div>

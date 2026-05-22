@@ -11,6 +11,9 @@ import {
   softCardStyle,
 } from "../utils/designSystem";
 
+const DASHBOARD_KPI_ORDER_KEY = "bonde-dashboard-kpi-order";
+const DASHBOARD_KPI_PINNED_KEY = "bonde-dashboard-kpi-pinned";
+
 const TONE_STYLES = {
   info: {
     background: "linear-gradient(135deg, rgba(37,99,235,0.10), rgba(14,165,233,0.07))",
@@ -363,7 +366,8 @@ function buildChartPath(points, width, height, padding) {
   return { coords, line, area, innerHeight };
 }
 
-function MetricCard({ item, compact, dense }) {
+function MetricCard({ item, compact, dense, onClick, onPinToggle, onMoveUp, onMoveDown, pinned = false }) {
+  const interactive = typeof onClick === "function";
   return (
     <div
       style={{
@@ -377,8 +381,82 @@ function MetricCard({ item, compact, dense }) {
         display: "grid",
         alignContent: "space-between",
         gap: dense ? 8 : 12,
+        cursor: interactive ? "pointer" : "default",
       }}
+      onClick={interactive ? onClick : undefined}
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      onKeyDown={interactive ? (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      } : undefined}
     >
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
+        <button
+          type="button"
+          aria-label={pinned ? `Unpin ${item.label}` : `Pin ${item.label}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onPinToggle?.();
+          }}
+          style={{
+            border: "1px solid rgba(148,163,184,0.28)",
+            background: pinned ? "rgba(253,224,71,0.25)" : "rgba(255,255,255,0.72)",
+            color: pinned ? "#a16207" : "#64748b",
+            borderRadius: 999,
+            padding: "2px 7px",
+            fontSize: 11,
+            fontWeight: 800,
+            cursor: "pointer",
+          }}
+        >
+          {pinned ? "Pinned" : "Pin"}
+        </button>
+        <button
+          type="button"
+          aria-label={`Move ${item.label} up`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onMoveUp?.();
+          }}
+          style={{
+            border: "1px solid rgba(148,163,184,0.28)",
+            background: "rgba(255,255,255,0.72)",
+            color: "#64748b",
+            borderRadius: 999,
+            width: 24,
+            height: 24,
+            fontSize: 12,
+            fontWeight: 800,
+            cursor: "pointer",
+          }}
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          aria-label={`Move ${item.label} down`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onMoveDown?.();
+          }}
+          style={{
+            border: "1px solid rgba(148,163,184,0.28)",
+            background: "rgba(255,255,255,0.72)",
+            color: "#64748b",
+            borderRadius: 999,
+            width: 24,
+            height: 24,
+            fontSize: 12,
+            fontWeight: 800,
+            cursor: "pointer",
+          }}
+        >
+          ↓
+        </button>
+      </div>
       <div
         style={{
           width: dense ? 42 : 58,
@@ -476,6 +554,25 @@ export function Dashboard({
   const [searchResults, setSearchResults] = useState(null);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [comparisonPreset, setComparisonPreset] = useState("current");
+  const [kpiOrder, setKpiOrder] = useState(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const value = JSON.parse(window.localStorage.getItem(DASHBOARD_KPI_ORDER_KEY) || "[]");
+      return Array.isArray(value) ? value : [];
+    } catch {
+      return [];
+    }
+  });
+  const [pinnedKpis, setPinnedKpis] = useState(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const value = JSON.parse(window.localStorage.getItem(DASHBOARD_KPI_PINNED_KEY) || "[]");
+      return Array.isArray(value) ? value : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     if (!managedUsers.length && typeof onLoadUsers === "function") {
@@ -515,16 +612,35 @@ export function Dashboard({
   );
 
   useEffect(() => {
-    if (filterYear === "all" && years.length) {
-      setFilterYear(years[0]);
+    if (comparisonPreset === "all") {
+      setFilterYear("all");
       return;
     }
-    if (filterYear !== "all" && filterYear && !years.includes(filterYear) && years.length) {
+    if (comparisonPreset === "previous") {
+      setFilterYear(years[1] || years[0] || "all");
+      return;
+    }
+    setFilterYear(years[0] || "all");
+  }, [comparisonPreset, years]);
+
+  useEffect(() => {
+    if (filterYear === "all") return;
+    if (filterYear && !years.includes(filterYear) && years.length) {
       setFilterYear(years[0]);
     }
   }, [filterYear, years]);
 
-  const selectedYear = filterYear === "all" ? years[0] || "" : filterYear;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(DASHBOARD_KPI_ORDER_KEY, JSON.stringify(kpiOrder));
+  }, [kpiOrder]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(DASHBOARD_KPI_PINNED_KEY, JSON.stringify(pinnedKpis));
+  }, [pinnedKpis]);
+
+  const selectedYear = filterYear === "all" ? "" : filterYear;
 
   const filteredClasses = useMemo(() => {
     if (!selectedYear) return allComputed;
@@ -597,6 +713,7 @@ export function Dashboard({
   const kpiItems = isTeacherPortal ? [
     {
       label: "Assigned Classes",
+      key: "assigned-classes",
       value: teacherAssignedClasses.toLocaleString(),
       icon: <TeacherIcon />,
       color: "#0f8b8d",
@@ -604,9 +721,14 @@ export function Dashboard({
       shadow: "rgba(15,139,141,0.14)",
       delta: `${filteredClasses.length.toLocaleString()} visible class workspace${filteredClasses.length === 1 ? "" : "s"}`,
       deltaColor: "#059669",
+      onClick: () => {
+        const firstClass = filteredClasses[0] || allComputed[0];
+        if (firstClass) onOpenClass?.(firstClass.id);
+      },
     },
     {
       label: "Teaching Periods",
+      key: "teaching-periods",
       value: teacherAssignedPeriods.toLocaleString(),
       icon: <ClipboardIcon />,
       color: "#2563eb",
@@ -614,9 +736,11 @@ export function Dashboard({
       shadow: "rgba(37,99,235,0.14)",
       delta: "Counted from timetable assignments",
       deltaColor: "#2563eb",
+      onClick: onOpenTimetable,
     },
     {
       label: "Subjects Taught",
+      key: "subjects-taught",
       value: teacherSubjectCount.toLocaleString(),
       icon: <BookIcon />,
       color: "#d97706",
@@ -624,9 +748,11 @@ export function Dashboard({
       shadow: "rgba(217,119,6,0.16)",
       delta: "Distinct subjects in current timetable",
       deltaColor: "#b45309",
+      onClick: onOpenTimetable,
     },
     {
       label: "Result Coverage",
+      key: "result-coverage",
       value: `${dataCompleteness}%`,
       icon: <PieIcon />,
       color: "#7c3aed",
@@ -634,10 +760,12 @@ export function Dashboard({
       shadow: "rgba(124,58,237,0.14)",
       delta: `${totalResults.toLocaleString()} entered marks`,
       deltaColor: "#7c3aed",
+      onClick: onOpenReports,
     },
   ] : [
     {
       label: "Total Students",
+      key: "total-students",
       value: totalStudents.toLocaleString(),
       icon: <UserPlusIcon />,
       color: "#0f8b8d",
@@ -645,9 +773,14 @@ export function Dashboard({
       shadow: "rgba(15,139,141,0.14)",
       delta: buildTrendCaption(totalStudents, previousStudentCount, " this year"),
       deltaColor: "#059669",
+      onClick: () => {
+        const firstClass = filteredClasses[0] || allComputed[0];
+        if (firstClass) onOpenClass?.(firstClass.id);
+      },
     },
     {
       label: "Total Teachers",
+      key: "total-teachers",
       value: teacherCount.toLocaleString(),
       icon: <TeacherIcon />,
       color: "#2563eb",
@@ -655,9 +788,11 @@ export function Dashboard({
       shadow: "rgba(37,99,235,0.14)",
       delta: `${managedUsers.filter((user) => user.active !== false).length.toLocaleString()} active accounts`,
       deltaColor: "#2563eb",
+      onClick: onOpenAccount,
     },
     {
       label: "Total Subjects",
+      key: "total-subjects",
       value: uniqueSubjects.length.toLocaleString(),
       icon: <ClipboardIcon />,
       color: "#d97706",
@@ -665,9 +800,11 @@ export function Dashboard({
       shadow: "rgba(217,119,6,0.16)",
       delta: `${filteredClasses.length.toLocaleString()} classes configured`,
       deltaColor: "#b45309",
+      onClick: onOpenSettings,
     },
     {
       label: "Total Results",
+      key: "total-results",
       value: totalResults.toLocaleString(),
       icon: <BookIcon />,
       color: "#7c3aed",
@@ -675,9 +812,11 @@ export function Dashboard({
       shadow: "rgba(124,58,237,0.14)",
       delta: buildTrendCaption(totalResults, previousResults, " this year"),
       deltaColor: "#7c3aed",
+      onClick: onOpenReports,
     },
     {
       label: "Average Pass Rate",
+      key: "average-pass-rate",
       value: `${passRate}%`,
       icon: <PieIcon />,
       color: "#ef4444",
@@ -685,7 +824,106 @@ export function Dashboard({
       shadow: "rgba(239,68,68,0.14)",
       delta: buildTrendCaption(passRate, previousPassRate, " from last year"),
       deltaColor: "#dc2626",
+      onClick: onOpenReports,
     },
+  ];
+
+  const orderedKpiItems = useMemo(() => {
+    const orderIndex = new Map(kpiOrder.map((key, index) => [key, index]));
+    return [...kpiItems].sort((left, right) => {
+      const leftPinned = pinnedKpis.includes(left.key) ? 0 : 1;
+      const rightPinned = pinnedKpis.includes(right.key) ? 0 : 1;
+      if (leftPinned !== rightPinned) return leftPinned - rightPinned;
+      const leftOrder = orderIndex.has(left.key) ? orderIndex.get(left.key) : Number.MAX_SAFE_INTEGER;
+      const rightOrder = orderIndex.has(right.key) ? orderIndex.get(right.key) : Number.MAX_SAFE_INTEGER;
+      if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+      return left.label.localeCompare(right.label);
+    });
+  }, [kpiItems, kpiOrder, pinnedKpis]);
+
+  const moveKpi = useCallback((key, direction) => {
+    setKpiOrder((prev) => {
+      const source = prev.length ? [...prev] : orderedKpiItems.map((item) => item.key);
+      const currentIndex = source.indexOf(key);
+      if (currentIndex < 0) source.push(key);
+      const index = source.indexOf(key);
+      const nextIndex = direction === "up" ? Math.max(0, index - 1) : Math.min(source.length - 1, index + 1);
+      if (index === nextIndex) return source;
+      const next = [...source];
+      const [item] = next.splice(index, 1);
+      next.splice(nextIndex, 0, item);
+      return next;
+    });
+  }, [orderedKpiItems]);
+
+  const togglePinKpi = useCallback((key) => {
+    setPinnedKpis((prev) => (
+      prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key]
+    ));
+  }, []);
+
+  const failedLast24h = authLogs.filter((log) => log.status === "failed" && (Date.now() - new Date(log.createdAt).getTime()) <= 24 * 60 * 60 * 1000).length;
+  const failedPrev24h = authLogs.filter((log) => {
+    if (log.status !== "failed") return false;
+    const age = Date.now() - new Date(log.createdAt).getTime();
+    return age > 24 * 60 * 60 * 1000 && age <= 48 * 60 * 60 * 1000;
+  }).length;
+  const unpublishedClasses = Math.max(0, filteredClasses.length - publishedClassesCount);
+  const inactiveStaff = managedUsers.filter((user) => (user.role === "teacher" || user.role === "academic") && user.active === false).length;
+  const missingMarksStudents = Math.max(0, totalStudents - Math.round((dataCompleteness / 100) * totalStudents));
+  const attentionItems = isTeacherPortal ? [
+    ...(dataCompleteness < 75 ? [{
+      id: "coverage",
+      tone: "warning",
+      title: "Result coverage is below target",
+      detail: `${dataCompleteness}% complete · ${missingMarksStudents} students likely missing marks`,
+      actionLabel: "Open Results",
+      onClick: onOpenReports,
+    }] : []),
+    ...(failedLast24h >= 4 ? [{
+      id: "failed-logins",
+      tone: "danger",
+      title: "Failed sign-ins increased",
+      detail: `${failedLast24h} failures in last 24h (${failedPrev24h} previous 24h)`,
+      actionLabel: "Open Account Activity",
+      onClick: onOpenAccount,
+    }] : []),
+  ] : [
+    ...(failedLast24h >= 5 && failedLast24h > failedPrev24h ? [{
+      id: "failed-logins",
+      tone: "danger",
+      title: "Authentication failures spiking",
+      detail: `${failedLast24h} failures in last 24h (${failedPrev24h} previous 24h)`,
+      actionLabel: "Review activity",
+      onClick: onOpenAccount,
+    }] : []),
+    ...(unpublishedClasses > 0 ? [{
+      id: "unpublished",
+      tone: "warning",
+      title: "Classes still unpublished",
+      detail: `${unpublishedClasses} class workspace${unpublishedClasses === 1 ? "" : "s"} not published`,
+      actionLabel: "Open reports",
+      onClick: onOpenReports,
+    }] : []),
+    ...(missingMarksStudents > 0 ? [{
+      id: "missing-marks",
+      tone: "warning",
+      title: "Marks completion needs follow-up",
+      detail: `${missingMarksStudents} students likely missing entries`,
+      actionLabel: "Open mark entry",
+      onClick: () => {
+        const firstClass = filteredClasses[0] || allComputed[0];
+        if (firstClass) onOpenClass?.(firstClass.id);
+      },
+    }] : []),
+    ...(inactiveStaff > 0 ? [{
+      id: "inactive-staff",
+      tone: "info",
+      title: "Inactive teaching accounts detected",
+      detail: `${inactiveStaff} staff account${inactiveStaff === 1 ? "" : "s"} are inactive`,
+      actionLabel: "Manage users",
+      onClick: onOpenAccount,
+    }] : []),
   ];
 
   const { coords, line, area } = useMemo(
@@ -1030,9 +1268,101 @@ export function Dashboard({
             gap: dense ? 10 : 16,
           }}
         >
-          {kpiItems.map((item) => (
-            <MetricCard key={item.label} item={item} compact={compact} dense={dense} />
+          {orderedKpiItems.map((item) => (
+            <MetricCard
+              key={item.key}
+              item={item}
+              compact={compact}
+              dense={dense}
+              onClick={item.onClick}
+              pinned={pinnedKpis.includes(item.key)}
+              onPinToggle={() => togglePinKpi(item.key)}
+              onMoveUp={() => moveKpi(item.key, "up")}
+              onMoveDown={() => moveKpi(item.key, "down")}
+            />
           ))}
+        </div>
+
+        <div
+          style={{
+            ...glassPanel,
+            borderRadius: 26,
+            padding: dense ? 12 : 16,
+            display: "grid",
+            gap: 10,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ fontSize: compact ? 17 : 19, fontWeight: 900, color: "#0f172a" }}>Attention Center</div>
+            <div style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
+              {[
+                { key: "current", label: "Current Year" },
+                { key: "previous", label: "Previous Year" },
+                { key: "all", label: "All Years" },
+              ].map((preset) => (
+                <button
+                  key={preset.key}
+                  type="button"
+                  onClick={() => setComparisonPreset(preset.key)}
+                  style={{
+                    border: "1px solid rgba(148,163,184,0.35)",
+                    background: comparisonPreset === preset.key ? "linear-gradient(135deg, #0f2d6e, #2563eb)" : "rgba(255,255,255,0.72)",
+                    color: comparisonPreset === preset.key ? "#fff" : "#334155",
+                    borderRadius: 999,
+                    padding: "6px 10px",
+                    fontSize: 11,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                  }}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {attentionItems.length ? (
+            <div style={{ display: "grid", gap: 8 }}>
+              {attentionItems.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    ...softCardStyle({ padding: "12px 14px", radius: 16 }),
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    border: `1px solid ${item.tone === "danger" ? "rgba(239,68,68,0.32)" : item.tone === "warning" ? "rgba(245,158,11,0.34)" : "rgba(59,130,246,0.28)"}`,
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>{item.title}</div>
+                    <div style={{ marginTop: 3, fontSize: 12, color: "#64748b" }}>{item.detail}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={item.onClick}
+                    style={{
+                      border: "none",
+                      borderRadius: 10,
+                      background: "#2563eb",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      padding: "8px 10px",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {item.actionLabel}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: "#475569", fontWeight: 700 }}>
+              No urgent attention items for this comparison preset.
+            </div>
+          )}
         </div>
 
         <div
