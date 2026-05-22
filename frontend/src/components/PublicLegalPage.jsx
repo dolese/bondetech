@@ -234,7 +234,7 @@ export function PublicLegalPage({ type = "terms", onBackHome, onOpenLogin }) {
                 <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.08em" }}>
                   BONDE OS
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.78)" }}>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.78)" }}>
                   Results System
                 </div>
               </div>
@@ -268,7 +268,7 @@ export function PublicLegalPage({ type = "terms", onBackHome, onOpenLogin }) {
                   ...liquidGlassStyle({ radius: 18, padding: "14px 16px", tint: "slate", blur: 18, shadowOpacity: 0.08 }),
                 }}
               >
-                <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginBottom: 4 }}>
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, marginBottom: 4 }}>
                   {language === "sw" ? "Mfumo" : "System"}
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: "#173b74" }}>
@@ -280,7 +280,7 @@ export function PublicLegalPage({ type = "terms", onBackHome, onOpenLogin }) {
                   ...liquidGlassStyle({ radius: 18, padding: "14px 16px", tint: "slate", blur: 18, shadowOpacity: 0.08 }),
                 }}
               >
-                <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginBottom: 4 }}>
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, marginBottom: 4 }}>
                   {language === "sw" ? "Inatumika Kwa" : "Used For"}
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: "#173b74" }}>
@@ -317,7 +317,7 @@ export function PublicLegalPage({ type = "terms", onBackHome, onOpenLogin }) {
                 paddingTop: 18,
               }}
             >
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.7 }}>
+              <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>
                 {language === "sw"
                   ? "Kwa maelezo zaidi, wasiliana na Bonde Secondary School kupitia mawasiliano rasmi ya shule."
                   : "For further clarification, contact Bonde Secondary School through the official school contact channels."}

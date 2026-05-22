@@ -466,9 +466,12 @@
   .home-section-title {
     font-size: 18px;
   }
+  .home-section-kicker {
+    font-size: 12px;
+  }
   .home-section-copy {
-    font-size: 11px;
-    line-height: 1.55;
+    font-size: 12px;
+    line-height: 1.6;
   }
   .home-highlight-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

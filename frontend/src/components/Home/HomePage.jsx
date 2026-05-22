@@ -481,7 +481,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             <SchoolCrest size={isMobile ? 36 : 44} />
             <div>
               <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 800, color: navBg, letterSpacing: 0.3, lineHeight: 1.2 }}>BONDE SECONDARY SCHOOL</div>
-              <div style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, color: "#1ea4b8", letterSpacing: 1, textTransform: "uppercase" }}>{t("resultSystem")}</div>
+              <div style={{ fontSize: isMobile ? 10 : 10, fontWeight: 700, color: "#1ea4b8", letterSpacing: 1, textTransform: "uppercase" }}>{t("resultSystem")}</div>
             </div>
           </div>
 
@@ -607,7 +607,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           }}
         >
           <div style={{ color: "#fff" }}>
-            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: "5px 14px", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 18 }}>
+            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: "5px 14px", fontSize: isMobile ? 12 : 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 18 }}>
               {heroBadge}
             </div>
             <h1 className="home-serif-title" style={{ fontSize: isMobile ? 30 : 48, fontWeight: 700, lineHeight: 1.08, margin: "0 0 16px", letterSpacing: -0.8, maxWidth: 620 }}>
@@ -660,7 +660,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                         color="#ffffff"
                       />
                     </div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.74)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    <div style={{ fontSize: isMobile ? 12 : 11, fontWeight: 700, color: "rgba(255,255,255,0.74)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                       {metric.label}
                     </div>
                   </div>
@@ -675,18 +675,18 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           <div className="home-hero-panel" style={{ borderRadius: 24, padding: isMobile ? "18px 16px" : "22px 20px", width: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{t("latestExam")}: {latestExamLabel}</div>
-              <span style={{ fontSize: 11, color: "#64748b" }}>{stats.latestYear || t("currentYear")}</span>
+              <span style={{ fontSize: isMobile ? 12 : 11, color: "#64748b" }}>{stats.latestYear || t("currentYear")}</span>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
               <div style={{ background: "#f8faff", borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>{t("totalStudents")}</div>
+                <div style={{ fontSize: isMobile ? 12 : 11, color: "#64748b", marginBottom: 4 }}>{t("totalStudents")}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 22, fontWeight: 800, color: "#0f2d6e" }}>{Number(stats.totalStudents || 0).toLocaleString()}</span>
                 </div>
               </div>
               <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>{t("activeClasses")}</div>
+                <div style={{ fontSize: isMobile ? 12 : 11, color: "#64748b", marginBottom: 4 }}>{t("activeClasses")}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 22, fontWeight: 800, color: "#059669" }}>{stats.totalClasses || 0}</span>
                 </div>
@@ -694,20 +694,20 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 10 }}>{t("studentsByForm")}</div>
+              <div style={{ fontSize: isMobile ? 12 : 11, fontWeight: 700, color: "#475569", marginBottom: 10 }}>{t("studentsByForm")}</div>
               <MiniBarChart bars={chartBars} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div style={{ background: "#fffbeb", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: 10, color: "#92400e", fontWeight: 600, marginBottom: 3 }}>{t("publishedClassesLabel")}</div>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: "#92400e", fontWeight: 600, marginBottom: 3 }}>{t("publishedClassesLabel")}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>{stats.publishedClasses || 0}</div>
-                <div style={{ fontSize: 10, color: "#64748b" }}>{formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)}</div>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>{formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)}</div>
               </div>
               <div style={{ background: "#f5f3ff", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: 10, color: "#5b21b6", fontWeight: 600, marginBottom: 3 }}>{t("averageClassSizeLabel")}</div>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: "#5b21b6", fontWeight: 600, marginBottom: 3 }}>{t("averageClassSizeLabel")}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>{stats.averageClassSize || 0}</div>
-                <div style={{ fontSize: 10, color: "#64748b" }}>{formatCount(stats.monthlyExamCount, "monthly exam", "mitihani ya kila mwezi", language)}</div>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>{formatCount(stats.monthlyExamCount, "monthly exam", "mitihani ya kila mwezi", language)}</div>
               </div>
             </div>
           </div>
@@ -724,7 +724,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                 <div className="home-section-copy">{t("searchInstructions")}</div>
               </div>
               {homepageStatus === "fallback" && (
-                <span style={{ fontSize: 11, color: "#64748b" }}>{t("liveOverviewUnavailable")}</span>
+                <span style={{ fontSize: isMobile ? 12 : 11, color: "#64748b" }}>{t("liveOverviewUnavailable")}</span>
               )}
             </div>
 
@@ -807,7 +807,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                   >
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{result.name}</div>
-                      <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                      <div style={{ fontSize: isMobile ? 12 : 11, color: "#64748b", marginTop: 2 }}>
                         {result.indexNo} | {result.form} | {result.year}
                       </div>
                     </div>
@@ -895,9 +895,9 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                   <HomeIcon name={stat.icon} label={stat.label} size={isMobile ? 16 : 18} />
                 </div>
                 <div style={{ fontSize: isMobile ? 13 : 18, fontWeight: 800, color: "#0f2d6e" }}>{stat.value}</div>
-                <div style={{ fontSize: isMobile ? 8 : 11, color: "#64748b", marginTop: 3, lineHeight: isMobile ? 1.3 : 1.45 }}>{stat.label}</div>
+                <div style={{ fontSize: isMobile ? 10 : 11, color: "#64748b", marginTop: 3, lineHeight: isMobile ? 1.35 : 1.45 }}>{stat.label}</div>
                 {stat.description && (
-                  <div style={{ fontSize: isMobile ? 8 : 10, color: "#94a3b8", marginTop: isMobile ? 4 : 6, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: isMobile ? 9 : 10, color: "#94a3b8", marginTop: isMobile ? 4 : 6, lineHeight: 1.45 }}>
                     {stat.description}
                   </div>
                 )}
@@ -1003,10 +1003,10 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               <SchoolCrest size={44} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", letterSpacing: 0.3 }}>BONDE SECONDARY SCHOOL</div>
-                <div style={{ fontSize: 10, color: "#93c5fd" }}>{t("resultSystem")}</div>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: "#93c5fd" }}>{t("resultSystem")}</div>
               </div>
             </div>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: 260 }}>
+            <p style={{ fontSize: isMobile ? 13 : 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: 260 }}>
               {schoolSettings.district},
               <br />
               {schoolSettings.postal}
@@ -1033,7 +1033,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                   background: "none",
                   border: "none",
                   padding: 0,
-                  fontSize: 12,
+                  fontSize: isMobile ? 13 : 12,
                   color: "rgba(255,255,255,0.65)",
                   marginBottom: 8,
                   cursor: "pointer",
@@ -1047,13 +1047,13 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 14 }}>{t("contactUs")}</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
               <span>Phone</span> {schoolSettings.headmasterPhone}
             </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
               <span>Email</span> {schoolSettings.email}
             </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: "rgba(255,255,255,0.65)", display: "flex", alignItems: "center", gap: 8 }}>
               <span>Office</span> {schoolSettings.address}
             </div>
           </div>
@@ -1064,20 +1064,20 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             <button
               type="button"
               onClick={onOpenTerms}
-              style={{ background: "none", border: "none", padding: 0, fontSize: 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}
+              style={{ background: "none", border: "none", padding: 0, fontSize: isMobile ? 12 : 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}
             >
               {language === "sw" ? "Masharti ya Matumizi" : "Terms of Use"}
             </button>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.30)" }}>|</span>
+            <span style={{ fontSize: isMobile ? 11 : 10, color: "rgba(255,255,255,0.30)" }}>|</span>
             <button
               type="button"
               onClick={onOpenPrivacy}
-              style={{ background: "none", border: "none", padding: 0, fontSize: 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}
+              style={{ background: "none", border: "none", padding: 0, fontSize: isMobile ? 12 : 11, color: "rgba(255,255,255,0.62)", cursor: "pointer" }}
             >
               {language === "sw" ? "Sera ya Faragha" : "Privacy Policy"}
             </button>
           </div>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.50)" }}>
+          <span style={{ fontSize: isMobile ? 12 : 11, color: "rgba(255,255,255,0.50)" }}>
             Copyright {currentYear} Bonde Secondary School. All Rights Reserved.
           </span>
         </div>

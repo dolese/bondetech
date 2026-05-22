@@ -169,10 +169,10 @@ export function PublicSchoolPage({ onBackHome, onOpenLogin }) {
                 <SchoolCrest size={56} />
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.08em" }}>BONDE OS</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.78)" }}>Results System</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.78)" }}>Results System</div>
                 </div>
               </div>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)" }}>
                 {content.kicker}
               </div>
               <div style={{ fontFamily: displayFontStack, fontSize: 34, fontWeight: 700, lineHeight: 1.05, marginTop: 10 }}>{content.title}</div>
@@ -192,7 +192,7 @@ export function PublicSchoolPage({ onBackHome, onOpenLogin }) {
                   padding: "12px 14px",
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)" }}>
                   {content.mottoLabel}
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 800 }}>{content.motto}</div>
@@ -226,7 +226,7 @@ export function PublicSchoolPage({ onBackHome, onOpenLogin }) {
                       ...liquidGlassStyle({ radius: 18, padding: "14px 14px 12px", tint: "slate", blur: 18, shadowOpacity: 0.08 }),
                     }}
                   >
-                    <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginBottom: 4 }}>{item.label}</div>
+                    <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, marginBottom: 4 }}>{item.label}</div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: "#173b74", lineHeight: 1.45 }}>{item.value}</div>
                   </div>
                 ))}
@@ -272,7 +272,7 @@ export function PublicSchoolPage({ onBackHome, onOpenLogin }) {
                 paddingTop: 18,
               }}
             >
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.7 }}>
+              <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>
                 {language === "sw"
                   ? "Kwa taarifa zaidi kuhusu shule, tafadhali tumia mawasiliano rasmi ya Bonde Secondary School."
                   : "For more information about the school, please use the official Bonde Secondary School contact channels."}
