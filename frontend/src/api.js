@@ -111,7 +111,7 @@ export const API = {
     return get(`/classes/${cid}/students${qs ? `?${qs}` : ""}`);
   },
   addStudent:     (cid, data)   => post(`/classes/${cid}/students`, data),
-  bulkImport:     (cid, students, examType) => post(`/classes/${cid}/students/bulk`, { students, examType }),
+  bulkImport:     (cid, students, examType, meta = {}) => post(`/classes/${cid}/students/bulk`, { students, examType, ...meta }),
   reorderStudentCnos: (cid)     => patch(`/classes/${cid}/students`, { action: "reorder-cnos" }),
   updateStudent:  (cid, sid, data) => put(`/classes/${cid}/students/${sid}`, data),
   deleteStudent:  (cid, sid)    => del(`/classes/${cid}/students/${sid}`),

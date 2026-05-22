@@ -34,7 +34,11 @@ module.exports = async (req, res) => {
         }
       }
       const body = await readJsonBody(req);
-      const updated = await updateStudentRecord(db, classId, studentId, body);
+      const updated = await updateStudentRecord(db, classId, studentId, {
+        ...(body || {}),
+        _updatedBy: currentUser?.username || currentUser?.displayName || "",
+        _changeSource: body?._changeSource || "single-edit",
+      });
       return sendJson(res, 200, updated);
     } catch (err) {
       const status = /class not found|student not found/i.test(err.message) ? 404 : 500;

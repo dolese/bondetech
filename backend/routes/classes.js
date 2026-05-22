@@ -192,7 +192,11 @@ router.post("/:id/students/bulk", requireRole(canManageStudents, "You do not hav
       getDb(),
       req.params.id,
       req.body?.students,
-      req.body?.examType
+      req.body?.examType,
+      {
+        updatedBy: req.authUser?.username || req.authUser?.displayName || "",
+        source: req.body?._changeSource || "bulk-save",
+      },
     );
     res.status(201).json(result);
   } catch (err) {
@@ -233,7 +237,11 @@ router.put(
         return res.status(403).json({ error: "You do not have permission to manage this class" });
       }
     }
-    const updated = await updateStudentRecord(getDb(), req.params.id, req.params.sid, req.body || {});
+    const updated = await updateStudentRecord(getDb(), req.params.id, req.params.sid, {
+      ...(req.body || {}),
+      _updatedBy: req.authUser?.username || req.authUser?.displayName || "",
+      _changeSource: req.body?._changeSource || "single-edit",
+    });
     res.json(updated);
   } catch (err) {
     res.status(/class not found|student not found/i.test(err.message) ? 404 : 500).json({ error: err.message });

@@ -32,7 +32,10 @@ module.exports = async (req, res) => {
       }
     }
     const body = await readJsonBody(req);
-    const result = await bulkImportStudents(db, classId, body.students, body.examType);
+    const result = await bulkImportStudents(db, classId, body.students, body.examType, {
+      updatedBy: currentUser?.username || currentUser?.displayName || "",
+      source: body?._changeSource || "bulk-save",
+    });
     return sendJson(res, 200, result);
   } catch (err) {
     const status = /class not found/i.test(err.message)

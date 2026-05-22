@@ -36,10 +36,36 @@ function gradeDisplayValue(grade) {
 }
 
 function normalizeMarkInput(value) {
-  if (value === "" || value === null || value === undefined) return "";
-  const num = Number(value);
-  if (!Number.isFinite(num)) return "";
-  return Math.min(100, Math.max(0, Math.trunc(num)));
+  return String(value ?? "").trim().toUpperCase();
+}
+
+const BULK_JUMP_THRESHOLD_DEFAULT = 25;
+const BULK_DRAFT_TTL_MS = 1000 * 60 * 60 * 24;
+
+function parseBulkMark(value) {
+  const raw = normalizeMarkInput(value);
+  if (!raw) return { kind: "empty", value: null };
+  if (raw === "ABS") return { kind: "abs", value: "ABS" };
+  const num = Number(raw);
+  if (!Number.isFinite(num)) return { kind: "invalid", value: raw };
+  if (num < 0 || num > 100) return { kind: "range", value: raw };
+  return { kind: "number", value: Math.trunc(num) };
+}
+
+function compareMarks(left, right) {
+  const normalize = (value) => {
+    if (value === "" || value === null || value === undefined) return null;
+    if (typeof value === "string" && value.toUpperCase() === "ABS") return "ABS";
+    const num = Number(value);
+    return Number.isFinite(num) ? Math.trunc(num) : value;
+  };
+  return normalize(left) === normalize(right);
+}
+
+function isLikelyHeaderRow(cells = []) {
+  const first = String(cells[0] ?? "").trim().toLowerCase();
+  const second = String(cells[1] ?? "").trim().toLowerCase();
+  return first === "cno" || first === "index_no" || second === "name";
 }
 
 function normalizeSubjectMetadataList(classData = {}) {
@@ -135,6 +161,11 @@ export function EntryPanel({
   const [bulkScores, setBulkScores] = useState({});
   const [bulkSaving, setBulkSaving] = useState(false);
   const [bulkNotice, setBulkNotice] = useState("");
+  const [bulkDirty, setBulkDirty] = useState(false);
+  const [bulkJumpThreshold, setBulkJumpThreshold] = useState(BULK_JUMP_THRESHOLD_DEFAULT);
+  const [pasteGridText, setPasteGridText] = useState("");
+  const [pastePreviewRows, setPastePreviewRows] = useState([]);
+  const [pasteSelectedRows, setPasteSelectedRows] = useState({});
   const [subjectInput, setSubjectInput] = useState("");
   const [subjectError, setSubjectError] = useState("");
   const [updatingSubjects, setUpdatingSubjects] = useState(false);
@@ -173,6 +204,7 @@ export function EntryPanel({
   const { isMobile, isTablet } = useViewport();
   const compactLayout = isMobile || isTablet;
   const editingLocked = Boolean(resultsLocked);
+  const bulkDraftKey = `bondetech.bulkDraft.${classId}.${effectiveExam}`;
 
   useEffect(() => {
     setClassYear(classData.year ?? "");
@@ -188,6 +220,10 @@ export function EntryPanel({
     setShowImportMenu(false);
     setShowExportMenu(false);
     setShowAdvancedMenu(false);
+    setBulkDirty(false);
+    setPasteGridText("");
+    setPastePreviewRows([]);
+    setPasteSelectedRows({});
   }, [classData.id, classData.year, classData.form, classData.stream]);
 
   useEffect(() => {
@@ -199,7 +235,7 @@ export function EntryPanel({
   }, [effectiveExam]);
 
   useEffect(() => {
-    if (!bulkMode) return;
+    if (!bulkMode || bulkDirty) return;
     const next = {};
     (computed ?? []).forEach((s) => {
       // Use raw score (current exam's entered value) so teachers edit what they entered,
@@ -212,7 +248,52 @@ export function EntryPanel({
       });
     });
     setBulkScores(next);
-  }, [bulkMode, computed, subjects]);
+  }, [bulkMode, bulkDirty, computed, subjects]);
+
+  useEffect(() => {
+    if (!bulkMode) return;
+    try {
+      const raw = window.localStorage.getItem(bulkDraftKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const expiresAt = Number(parsed?.expiresAt || 0);
+      if (!expiresAt || expiresAt <= Date.now()) {
+        window.localStorage.removeItem(bulkDraftKey);
+        return;
+      }
+      const data = parsed?.data;
+      if (!data || typeof data !== "object") return;
+      const shouldRestore = window.confirm("Restore unsaved bulk draft for this class and exam?");
+      if (shouldRestore) {
+        setBulkScores(data);
+        setBulkDirty(true);
+        setBulkNotice("Draft restored.");
+      } else {
+        window.localStorage.removeItem(bulkDraftKey);
+      }
+    } catch {
+      // Ignore local draft parse/storage errors.
+    }
+  }, [bulkDraftKey, bulkMode]);
+
+  useEffect(() => {
+    if (!bulkMode || !bulkDirty) return;
+    const timer = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          bulkDraftKey,
+          JSON.stringify({
+            savedAt: new Date().toISOString(),
+            expiresAt: Date.now() + BULK_DRAFT_TTL_MS,
+            data: bulkScores,
+          }),
+        );
+      } catch {
+        // Ignore local draft storage errors.
+      }
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [bulkDraftKey, bulkDirty, bulkMode, bulkScores]);
 
   const filtered = (computed ?? [])
     .filter(s =>
@@ -228,6 +309,141 @@ export function EntryPanel({
       if (typeof bVal === "string") bVal = bVal.toLowerCase();
       return sortAsc ? (aVal > bVal ? 1 : -1) : bVal > aVal ? 1 : -1;
     });
+
+  const summarizeBulkValidation = (students = filtered, sourceScores = bulkScores) => {
+    const summary = {
+      hardErrors: 0,
+      warnings: 0,
+      missingMarks: 0,
+      unusualJumps: 0,
+      details: [],
+    };
+    const examOrder = examOptions.map((entry) => entry.value);
+    students.forEach((student) => {
+      const row = sourceScores[student.id] ?? subjects.map(() => "");
+      const availableExamKeys = Object.keys(student.examScores ?? {});
+      const activeExamIndex = examOrder.indexOf(effectiveExam);
+      const priorExam =
+        activeExamIndex > 0
+          ? examOrder
+              .slice(0, activeExamIndex)
+              .reverse()
+              .find((exam) => availableExamKeys.includes(exam))
+          : "";
+      const priorScores = priorExam ? student.examScores?.[priorExam] ?? [] : [];
+
+      subjects.forEach((subject, index) => {
+        if (!isSubjectVisibleForStudent(student, index)) return;
+        const parsed = parseBulkMark(row[index]);
+        if (parsed.kind === "empty") {
+          summary.warnings += 1;
+          summary.missingMarks += 1;
+          summary.details.push({
+            level: "warning",
+            studentId: student.id,
+            studentName: student.name,
+            indexNo: student.index_no,
+            subject,
+            message: "Missing mark",
+          });
+          return;
+        }
+        if (parsed.kind === "invalid") {
+          summary.hardErrors += 1;
+          summary.details.push({
+            level: "error",
+            studentId: student.id,
+            studentName: student.name,
+            indexNo: student.index_no,
+            subject,
+            message: `Not a number: ${parsed.value}`,
+          });
+          return;
+        }
+        if (parsed.kind === "range") {
+          summary.hardErrors += 1;
+          summary.details.push({
+            level: "error",
+            studentId: student.id,
+            studentName: student.name,
+            indexNo: student.index_no,
+            subject,
+            message: `Out of range: ${parsed.value}`,
+          });
+          return;
+        }
+        if (parsed.kind !== "number") return;
+        const prevRaw = priorScores[index];
+        const prev = Number(prevRaw);
+        if (Number.isFinite(prev) && Math.abs(parsed.value - prev) >= bulkJumpThreshold) {
+          summary.warnings += 1;
+          summary.unusualJumps += 1;
+          summary.details.push({
+            level: "warning",
+            studentId: student.id,
+            studentName: student.name,
+            indexNo: student.index_no,
+            subject,
+            message: `Unusual jump (${prev} → ${parsed.value})${priorExam ? ` vs ${priorExam}` : ""}`,
+          });
+        }
+      });
+    });
+    return summary;
+  };
+
+  const bulkValidationSummary = summarizeBulkValidation();
+
+  const parsePasteGridRows = (rawText) => {
+    const rows = String(rawText || "")
+      .split(/\r?\n/)
+      .map((line) => line.trimEnd())
+      .filter((line) => line.trim() !== "");
+    if (!rows.length) {
+      return [];
+    }
+    const byCno = new Map(((computed ?? [])).map((student) => [String(student.index_no || "").trim(), student]));
+    return rows.map((line, rowIndex) => {
+      const cells = line.split("\t").map((cell) => cell.trim());
+      if (!cells.length) {
+        return { key: `row-${rowIndex + 1}`, rowNumber: rowIndex + 1, status: "skipped", reason: "Empty row", cells };
+      }
+      if (isLikelyHeaderRow(cells)) {
+        return { key: `row-${rowIndex + 1}`, rowNumber: rowIndex + 1, status: "skipped", reason: "Header row", cells };
+      }
+      const cno = String(cells[0] || "").trim();
+      const student = byCno.get(cno);
+      if (!student) {
+        return {
+          key: `row-${rowIndex + 1}`,
+          rowNumber: rowIndex + 1,
+          status: "skipped",
+          reason: cno ? `No student found for CNO ${cno}` : "Missing CNO",
+          cells,
+        };
+      }
+      const scoreOffset = cells.length >= 3 + subjects.length ? 3 : 1;
+      const row = subjects.map((_, index) => cells[scoreOffset + index] ?? "");
+      const rowSummary = summarizeBulkValidation([student], { [student.id]: row });
+      const status = rowSummary.hardErrors > 0 ? "error" : rowSummary.warnings > 0 ? "warning" : "valid";
+      return {
+        key: `row-${rowIndex + 1}`,
+        rowNumber: rowIndex + 1,
+        status,
+        reason:
+          status === "error"
+            ? rowSummary.details.find((detail) => detail.level === "error")?.message || "Validation error"
+            : status === "warning"
+            ? rowSummary.details.find((detail) => detail.level === "warning")?.message || "Validation warning"
+            : "Ready",
+        studentId: student.id,
+        studentName: student.name,
+        indexNo: student.index_no,
+        row,
+        cells,
+      };
+    });
+  };
 
   const handleEdit = s => {
     setEditId(s.id);
@@ -259,6 +475,7 @@ export function EntryPanel({
       optionalSubjects: Array.isArray(editData.optionalSubjects) ? editData.optionalSubjects : [],
       scores,
       examType: effectiveExam,
+      _changeSource: "single-edit",
     });
     setEditId(null);
     setEditData(null);
@@ -487,10 +704,25 @@ export function EntryPanel({
         i === subjectIdx ? normalized : v
       ),
     }));
+    setBulkDirty(true);
   };
 
   const handleBulkSave = async () => {
     if (editingLocked || bulkSaving) return;
+    const validation = summarizeBulkValidation();
+    if (validation.hardErrors > 0) {
+      setBulkNotice(`Fix ${validation.hardErrors} error${validation.hardErrors > 1 ? "s" : ""} before saving.`);
+      return;
+    }
+    if (validation.warnings > 0) {
+      const confirmed = window.confirm(
+        `There are ${validation.warnings} warning(s): ${validation.missingMarks} missing mark(s), ${validation.unusualJumps} unusual jump(s). Save anyway?`
+      );
+      if (!confirmed) {
+        setBulkNotice("Save cancelled. Review warnings first.");
+        return;
+      }
+    }
     setBulkSaving(true);
     setBulkNotice("");
     let failures = 0;
@@ -498,11 +730,16 @@ export function EntryPanel({
       for (const s of filtered) {
         const row = bulkScores[s.id] ?? subjects.map(() => "");
         const scores = row.map((v) => {
-          if (v === "" || v == null) return null;
-          const n = normalizeMarkInput(v);
-          return n === "" ? null : n;
+          const parsed = parseBulkMark(v);
+          if (parsed.kind === "empty") return null;
+          if (parsed.kind === "abs") return "ABS";
+          if (parsed.kind === "number") return parsed.value;
+          return null;
         });
-        const result = await onUpdateStudent({ ...s, scores, examType: effectiveExam }, { silent: true });
+        const result = await onUpdateStudent(
+          { ...s, scores, examType: effectiveExam, _changeSource: "bulk-save" },
+          { silent: true },
+        );
         if (!result?.ok) failures += 1;
       }
       setBulkNotice(
@@ -510,8 +747,60 @@ export function EntryPanel({
           ? `Saved with ${failures} error${failures > 1 ? "s" : ""}.`
           : "All scores saved."
       );
+      if (failures === 0) {
+        setBulkDirty(false);
+        try {
+          window.localStorage.removeItem(bulkDraftKey);
+        } catch {
+          // Ignore local draft storage errors.
+        }
+      }
     } finally {
       setBulkSaving(false);
+    }
+  };
+
+  const handlePreviewPasteGrid = () => {
+    const preview = parsePasteGridRows(pasteGridText);
+    setPastePreviewRows(preview);
+    const selected = {};
+    preview.forEach((row) => {
+      if (row.status === "valid") {
+        selected[row.key] = true;
+      }
+    });
+    setPasteSelectedRows(selected);
+  };
+
+  const applyPastePreviewRows = (mode = "valid") => {
+    const toApply = pastePreviewRows.filter((row) => {
+      if (!row.studentId) return false;
+      if (row.status === "error" || row.status === "skipped") return false;
+      if (mode === "selected") return Boolean(pasteSelectedRows[row.key]);
+      return row.status === "valid";
+    });
+    if (!toApply.length) {
+      setBulkNotice(mode === "selected" ? "No selected preview rows to apply." : "No valid preview rows to apply.");
+      return;
+    }
+    setBulkScores((prev) => {
+      const next = { ...prev };
+      toApply.forEach((row) => {
+        next[row.studentId] = row.row.map((value) => normalizeMarkInput(value));
+      });
+      return next;
+    });
+    setBulkDirty(true);
+    setBulkNotice(`${toApply.length} preview row${toApply.length > 1 ? "s" : ""} applied to grid.`);
+  };
+
+  const handleReadClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setPasteGridText(text || "");
+      setBulkNotice("Clipboard pasted to preview input.");
+    } catch {
+      setBulkNotice("Unable to read clipboard. Paste manually into the box.");
     }
   };
 
@@ -526,6 +815,16 @@ export function EntryPanel({
       await onReorderStudentCnos();
     } finally {
       setReorderingCnos(false);
+    }
+  };
+
+  const handleToggleBulkMode = () => {
+    setBulkMode((prev) => !prev);
+    setBulkNotice("");
+    if (bulkMode) {
+      setPasteGridText("");
+      setPastePreviewRows([]);
+      setPasteSelectedRows({});
     }
   };
 
@@ -854,7 +1153,7 @@ export function EntryPanel({
               Safe Import ⓘ
             </div>
             <button
-              onClick={() => setBulkMode(!bulkMode)}
+              onClick={handleToggleBulkMode}
               title="Bulk score entry"
               disabled={editingLocked}
               style={{
@@ -1525,6 +1824,115 @@ export function EntryPanel({
               </button>
             </div>
           </div>
+          <div
+            style={{
+              marginTop: 8,
+              border: "1px solid #dbeafe",
+              borderRadius: 8,
+              background: "#f8fbff",
+              padding: 8,
+              fontSize: 10,
+              color: "#334155",
+            }}
+          >
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+              <b>Pre-save checks</b>
+              <span>Errors: {bulkValidationSummary.hardErrors}</span>
+              <span>Warnings: {bulkValidationSummary.warnings}</span>
+              <span>Missing: {bulkValidationSummary.missingMarks}</span>
+              <span>Unusual jumps: {bulkValidationSummary.unusualJumps}</span>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                Jump threshold
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={bulkJumpThreshold}
+                  onChange={(e) => setBulkJumpThreshold(Math.max(1, Math.min(100, Number(e.target.value || BULK_JUMP_THRESHOLD_DEFAULT))))}
+                  style={{ width: 52, padding: "2px 4px", fontSize: 10 }}
+                />
+              </label>
+            </div>
+            {!!bulkValidationSummary.details.length && (
+              <div style={{ marginTop: 6, maxHeight: 80, overflowY: "auto" }}>
+                {bulkValidationSummary.details.slice(0, 8).map((detail, index) => (
+                  <div key={`${detail.studentId}-${detail.subject}-${index}`} style={{ color: detail.level === "error" ? "#991b1b" : "#92400e" }}>
+                    {detail.level === "error" ? "⛔" : "⚠️"} {detail.indexNo} {detail.studentName} • {detail.subject}: {detail.message}
+                  </div>
+                ))}
+                {bulkValidationSummary.details.length > 8 && (
+                  <div style={{ color: "#64748b" }}>+{bulkValidationSummary.details.length - 8} more…</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              border: "1px solid #dbeafe",
+              borderRadius: 8,
+              background: "#ffffff",
+              padding: 8,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#1d4ed8" }}>Paste Grid Preview</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <button onClick={handleReadClipboard} style={{ ...styles.actionBtn, background: "#334155" }}>
+                  Read Clipboard
+                </button>
+                <button onClick={handlePreviewPasteGrid} style={{ ...styles.actionBtn, background: "#1d4ed8" }}>
+                  Preview Paste
+                </button>
+                <button onClick={() => applyPastePreviewRows("valid")} style={{ ...styles.actionBtn, background: "#0b6b3a" }}>
+                  Apply All Valid
+                </button>
+                <button onClick={() => applyPastePreviewRows("selected")} style={{ ...styles.actionBtn, background: "#7c3aed" }}>
+                  Apply Selected
+                </button>
+              </div>
+            </div>
+            <textarea
+              value={pasteGridText}
+              onChange={(e) => setPasteGridText(e.target.value)}
+              placeholder="Paste spreadsheet rows here (CNO, Name, Sex, subject marks...)"
+              style={{ width: "100%", minHeight: 70, marginTop: 6, fontSize: 11, padding: 6, border: "1px solid #cbd5e1", borderRadius: 4 }}
+            />
+            {!!pastePreviewRows.length && (
+              <div style={{ marginTop: 6, maxHeight: 130, overflow: "auto", border: "1px solid #e2e8f0", borderRadius: 4 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
+                  <thead>
+                    <tr style={{ background: "#f1f5f9" }}>
+                      <th style={{ padding: "4px 6px", textAlign: "left" }}>Pick</th>
+                      <th style={{ padding: "4px 6px", textAlign: "left" }}>Row</th>
+                      <th style={{ padding: "4px 6px", textAlign: "left" }}>Student</th>
+                      <th style={{ padding: "4px 6px", textAlign: "left" }}>Status</th>
+                      <th style={{ padding: "4px 6px", textAlign: "left" }}>Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pastePreviewRows.map((row) => (
+                      <tr key={row.key} style={{ background: row.status === "error" ? "#fef2f2" : row.status === "warning" ? "#fffbeb" : "#fff" }}>
+                        <td style={{ padding: "4px 6px", borderTop: "1px solid #e2e8f0" }}>
+                          <input
+                            type="checkbox"
+                            disabled={row.status === "error" || row.status === "skipped"}
+                            checked={Boolean(pasteSelectedRows[row.key])}
+                            onChange={(e) => setPasteSelectedRows((prev) => ({ ...prev, [row.key]: e.target.checked }))}
+                          />
+                        </td>
+                        <td style={{ padding: "4px 6px", borderTop: "1px solid #e2e8f0" }}>{row.rowNumber}</td>
+                        <td style={{ padding: "4px 6px", borderTop: "1px solid #e2e8f0" }}>{row.indexNo ? `${row.indexNo} ${row.studentName}` : "—"}</td>
+                        <td style={{ padding: "4px 6px", borderTop: "1px solid #e2e8f0", fontWeight: 700 }}>{row.status}</td>
+                        <td style={{ padding: "4px 6px", borderTop: "1px solid #e2e8f0" }}>{row.reason}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
 
           <div style={styles.tableScroller} tabIndex={0} role="region" aria-label="Bulk scoring table">
           <table style={styles.bulkTable}>
@@ -1564,16 +1972,22 @@ export function EntryPanel({
                           {visible ? (
                             <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
                               <input
-                                type="number"
-                                min="0"
-                                max="100"
+                                type="text"
+                                inputMode="numeric"
                                 value={bulkScores[s.id]?.[si] ?? ""}
                                 onChange={(e) => handleBulkScoreChange(s.id, si, e.target.value)}
-                                style={styles.bulkInput}
+                                style={{
+                                  ...styles.bulkInput,
+                                  borderColor: (() => {
+                                    const parsed = parseBulkMark(bulkScores[s.id]?.[si]);
+                                    return parsed.kind === "invalid" || parsed.kind === "range" ? "#dc2626" : "#ccd9f5";
+                                  })(),
+                                }}
                               />
                               {(() => {
                                 const v = bulkScores[s.id]?.[si];
-                                const g = (v !== "" && v != null) ? getGrade(Number(v)) : null;
+                                const parsed = parseBulkMark(v);
+                                const g = parsed.kind === "number" ? getGrade(parsed.value) : null;
                                 return g ? (
                                   <span style={gradeBadgeStyle(g)}>{g}</span>
                                 ) : null;

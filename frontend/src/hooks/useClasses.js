@@ -439,7 +439,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     if (!activeClass) return;
     try {
       const payload = rows.map((row) => toApiStudent({ ...row, examType: activeExam }));
-      const result = await API.bulkImport(activeClass.id, payload, activeExam);
+      const result = await API.bulkImport(activeClass.id, payload, activeExam, { _changeSource: "bulk-import" });
       await refreshClass(activeClass.id);
       const { created = 0, updated = 0, skipped = 0 } = result ?? {};
       const parts = [];

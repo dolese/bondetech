@@ -101,9 +101,30 @@ export function SettingsPage({
 
   const [auditOpen, setAuditOpen] = useState(false);
   const [loadingAudit, setLoadingAudit] = useState(false);
+  const [auditQuery, setAuditQuery] = useState("");
+  const [auditSourceFilter, setAuditSourceFilter] = useState("all");
   const [publishing, setPublishing] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [importingBackup, setImportingBackup] = useState(false);
+
+  const filteredAuditLogs = (Array.isArray(auditLogs) ? auditLogs : []).filter((log) => {
+    if (auditSourceFilter !== "all" && (log.source || "single-edit") !== auditSourceFilter) {
+      return false;
+    }
+    const query = auditQuery.trim().toLowerCase();
+    if (!query) return true;
+    const haystack = [
+      log.studentName,
+      log.studentId,
+      log.updatedBy,
+      log.source,
+      log.examType,
+      log.changes ? Object.keys(log.changes).join(" ") : "",
+    ]
+      .map((value) => String(value || "").toLowerCase())
+      .join(" ");
+    return haystack.includes(query);
+  });
 
   // Sync state when classData changes (e.g. switching active class)
   useEffect(() => {
@@ -1333,6 +1354,32 @@ export function SettingsPage({
             </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <input
+                  type="text"
+                  value={auditQuery}
+                  onChange={(e) => setAuditQuery(e.target.value)}
+                  placeholder="Filter by student, user, exam, change field"
+                  style={{
+                    minWidth: 220,
+                    flex: "1 1 240px",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: 4,
+                    fontSize: 11,
+                    padding: "4px 6px",
+                  }}
+                />
+                <select
+                  value={auditSourceFilter}
+                  onChange={(e) => setAuditSourceFilter(e.target.value)}
+                  style={{ border: "1px solid #cbd5e1", borderRadius: 4, fontSize: 11, padding: "4px 6px" }}
+                >
+                  <option value="all">All sources</option>
+                  <option value="single-edit">Single edit</option>
+                  <option value="bulk-save">Bulk save</option>
+                  <option value="bulk-import">Bulk import</option>
+                </select>
+              </div>
               <table
                 style={{
                   width: "100%",
@@ -1364,7 +1411,7 @@ export function SettingsPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {auditLogs.map((log, i) => (
+                  {filteredAuditLogs.map((log, i) => (
                     <tr
                       key={log.id || i}
                       style={{ background: i % 2 === 0 ? "#fff" : "#f7f9ff" }}
@@ -1407,6 +1454,7 @@ export function SettingsPage({
                           textOverflow: "ellipsis",
                         }}
                       >
+                        {(log.source ? `[${log.source}] ` : "") + (log.examType ? `${log.examType}: ` : "")}
                         {log.changes
                           ? Object.entries(log.changes)
                               .map(
@@ -1418,6 +1466,13 @@ export function SettingsPage({
                       </td>
                     </tr>
                   ))}
+                  {!filteredAuditLogs.length && (
+                    <tr>
+                      <td colSpan={4} style={{ padding: "8px 6px", color: "#64748b" }}>
+                        No audit records match the current filters.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

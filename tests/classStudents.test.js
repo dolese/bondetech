@@ -75,6 +75,17 @@ test("updating a non-default exam keeps the default exam in top-level scores", a
 
   const auditLogs = await db.collection("audit_logs").get();
   assert.equal(auditLogs.empty, false);
+  const [entry] = auditLogs.docs.map((doc) => doc.data());
+  assert.equal(entry.updatedBy, "admin@bonde.go.tz");
+  assert.equal(entry.source, "single-edit");
+  assert.equal(entry.examType, "April Exam");
+  assert.deepEqual(entry.changes["score:April Exam:ENG"], {
+    from: null,
+    to: 33,
+    examType: "April Exam",
+    subject: "ENG",
+    source: "single-edit",
+  });
 });
 
 test("bulk import updates an alternate exam without bleeding marks into the default exam", async () => {
@@ -92,7 +103,8 @@ test("bulk import updates an alternate exam without bleeding marks into the defa
         scores: [15, 25],
       },
     ],
-    "April Exam"
+    "April Exam",
+    { updatedBy: "academic_1", source: "bulk-import" }
   );
 
   assert.equal(result.updated, 1);
@@ -101,6 +113,12 @@ test("bulk import updates an alternate exam without bleeding marks into the defa
   assert.deepEqual(updated.data().scores, [81, 72]);
   assert.deepEqual(updated.data().exam_scores[DEFAULT_EXAM_TYPE], [81, 72]);
   assert.deepEqual(updated.data().exam_scores["April Exam"], [15, 25]);
+  const auditLogs = await db.collection("audit_logs").get();
+  assert.equal(auditLogs.empty, false);
+  const [entry] = auditLogs.docs.map((doc) => doc.data());
+  assert.equal(entry.source, "bulk-import");
+  assert.equal(entry.updatedBy, "academic_1");
+  assert.equal(entry.action, "bulk-import");
 });
 
 test("bulk import updates existing students by CNO and creates only new rows", async () => {
