@@ -17,7 +17,7 @@ import "./Home.css";
 const DEFAULT_HERO_SLIDES = [
   {
     id: "hero-1",
-    imageSrc: "https://github.com/user-attachments/assets/78f7a406-6268-4b6a-a281-70ba41089e6f",
+    imageSrc: "/asset/nembobonde.jpg",
     badge: "School Motto",
     badgeSw: "Kauli Mbiu ya Shule",
     title: "Better future starts Here",

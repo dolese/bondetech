@@ -274,7 +274,7 @@ function blankHomepageHighlight() {
 function blankHomepageSlide(index = 0) {
   return {
     id: "",
-    imageSrc: `/asset/slider${Math.min(index + 1, 3)}.png`,
+    imageSrc: index === 0 ? "/asset/nembobonde.jpg" : `/asset/slider${Math.min(index + 1, 3)}.png`,
     badge: "",
     badgeSw: "",
     title: "",
