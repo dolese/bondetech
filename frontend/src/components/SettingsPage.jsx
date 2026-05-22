@@ -558,6 +558,25 @@ export function SettingsPage({
         ⚙️ {t("settingsTitle", "Settings")}
       </h3>
 
+      <div style={styles.section}>
+        <div>
+          <div style={styles.sectionTitle}>🧭 What to do next?!</div>
+          <div style={styles.sectionSub}>
+            Recommended setup and publishing order for this class.
+          </div>
+        </div>
+        <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#334155", lineHeight: 1.6 }}>
+          <li>Complete School Settings first (name, authority, region, district, contacts, branding) and save.</li>
+          <li>Set Class Identity (class name, year, form, stream) and save.</li>
+          <li>Configure Report Context (term, exam, academic year) for the active class.</li>
+          <li>Finalize Subjects (add/remove/order and compulsory/optional types).</li>
+          <li>Enable needed Monthly Exams and set Composite Exam partners.</li>
+          <li>Do a quick backup export once setup is stable.</li>
+          <li>When results are ready, Publish Results.</li>
+          <li>After publishing, monitor Audit Log and only unpublish if you need to change locked items (subjects/monthly/composite).</li>
+        </ol>
+      </div>
+
       {/* Class name / year / form */}
       <div style={styles.section}>
         <div>
