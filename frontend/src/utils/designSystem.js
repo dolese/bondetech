@@ -1,4 +1,5 @@
-export const premiumFontStack = "'IBM Plex Sans', 'Segoe UI Variable', 'Segoe UI', sans-serif";
+export const premiumFontStack = "'Inter', 'Segoe UI Variable', 'Segoe UI', sans-serif";
+export const displayFontStack = "'IBM Plex Serif', Georgia, serif";
 
 export const pageBackground =
   "radial-gradient(circle at top left, rgba(191,219,254,0.34), transparent 24%), radial-gradient(circle at top right, rgba(186,230,253,0.28), transparent 22%), linear-gradient(180deg, #f7fafc 0%, #eff5fb 100%)";

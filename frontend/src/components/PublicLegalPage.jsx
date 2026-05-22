@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useI18n } from "../i18n";
 import { LanguageToggle } from "./LanguageToggle";
-import { liquidGlassStyle, premiumFontStack } from "../utils/designSystem";
+import { displayFontStack, liquidGlassStyle, premiumFontStack } from "../utils/designSystem";
 
 function SchoolCrest({ size = 44 }) {
   return (
@@ -240,7 +240,7 @@ export function PublicLegalPage({ type = "terms", onBackHome, onOpenLogin }) {
               </div>
             </div>
 
-            <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.1 }}>{pageTitle}</div>
+            <div style={{ fontFamily: displayFontStack, fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{pageTitle}</div>
             <div
               style={{
                 marginTop: 10,

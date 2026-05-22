@@ -274,7 +274,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       color: ACCENT,
       letterSpacing: 0.5,
       textTransform: "uppercase",
-      fontFamily: "'IBM Plex Sans', 'Arial', sans-serif",
+      fontFamily: "'Inter', 'Arial', sans-serif",
     },
     metaRow: {
       display: "grid",

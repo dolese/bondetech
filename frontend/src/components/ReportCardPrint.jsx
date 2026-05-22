@@ -205,7 +205,7 @@ export function ReportCardPrint({
       background: "#fff",
       border: "1.8px solid #111",
       padding: isCompact ? 8 : 10,
-      fontFamily: "'IBM Plex Sans', Arial, Helvetica, sans-serif",
+      fontFamily: "'Inter', Arial, Helvetica, sans-serif",
       color: "#111827",
       width: isLandscape ? dimension.minHeight : dimension.width,
       minHeight: isLandscape ? dimension.width : dimension.minHeight,

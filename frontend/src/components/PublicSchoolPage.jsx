@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useI18n } from "../i18n";
 import { LanguageToggle } from "./LanguageToggle";
-import { liquidGlassStyle, premiumFontStack } from "../utils/designSystem";
+import { displayFontStack, liquidGlassStyle, premiumFontStack } from "../utils/designSystem";
 
 function SchoolCrest({ size = 44 }) {
   return (
@@ -175,7 +175,7 @@ export function PublicSchoolPage({ onBackHome, onOpenLogin }) {
               <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)" }}>
                 {content.kicker}
               </div>
-              <div style={{ fontSize: 34, fontWeight: 900, lineHeight: 1.05, marginTop: 10 }}>{content.title}</div>
+              <div style={{ fontFamily: displayFontStack, fontSize: 34, fontWeight: 700, lineHeight: 1.05, marginTop: 10 }}>{content.title}</div>
               <div style={{ marginTop: 14, maxWidth: 620, fontSize: 14, lineHeight: 1.8, color: "rgba(255,255,255,0.84)" }}>
                 {content.intro}
               </div>
@@ -236,7 +236,7 @@ export function PublicSchoolPage({ onBackHome, onOpenLogin }) {
 
           <div style={{ padding: "24px 24px 28px" }}>
             <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 20, fontWeight: 900, color: "#0f2d6e", marginBottom: 8 }}>{content.sectionTitle}</div>
+              <div style={{ fontFamily: displayFontStack, fontSize: 20, fontWeight: 700, color: "#0f2d6e", marginBottom: 8 }}>{content.sectionTitle}</div>
               <div style={{ fontSize: 14, lineHeight: 1.75, color: "#475569", maxWidth: 820 }}>{content.sectionCopy}</div>
             </div>
 
