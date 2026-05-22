@@ -150,7 +150,20 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
   const isA4 = String(pageSize).toLowerCase() === "a4";
   const leftLogoSrc = branding.leftLogoSrc || branding.rightLogoSrc;
   const rightLogoSrc = branding.rightLogoSrc || branding.leftLogoSrc;
-  const subjectColumnWidth = `${Math.max(isA4 ? 4.8 : 4.2, ((isA4 ? 54 : 52) / Math.max(model.subjects.length, 1))).toFixed(2)}%`;
+  const resultTableFixedWidth = isA4
+    ? { cno: 7, name: 19, sex: 5, points: 7, division: 8 }
+    : { cno: 8, name: 18, sex: 5, points: 8, division: 9 };
+  const subjectColumnWidth = `${
+    (
+      (100
+        - resultTableFixedWidth.cno
+        - resultTableFixedWidth.name
+        - resultTableFixedWidth.sex
+        - resultTableFixedWidth.points
+        - resultTableFixedWidth.division)
+      / Math.max(model.subjects.length, 1)
+    ).toFixed(2)
+  }%`;
   const pageMeasureRef = useRef(null);
   const headerMeasureRef = useRef(null);
   const summaryMeasureRef = useRef(null);
@@ -260,8 +273,8 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     },
     metaRow: {
       display: "grid",
-      gridTemplateColumns: isA4 ? "minmax(0, 1fr) 112px" : "1fr auto",
-      gap: 12,
+      gridTemplateColumns: isA4 ? "1fr" : "1fr auto",
+      gap: isA4 ? 8 : 12,
       alignItems: "stretch",
       paddingBottom: 8,
       borderBottom: `4px double ${ACCENT}`,
@@ -285,6 +298,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       justifyItems: "center",
       padding: "8px 10px",
       textAlign: "center",
+      justifySelf: isA4 ? "end" : "stretch",
     },
     generatedLabel: {
       fontSize: 9.5,
@@ -299,7 +313,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     },
     summaryGrid: {
       display: "grid",
-      gridTemplateColumns: isA4 ? "repeat(2, minmax(0, 1fr))" : "1fr 1fr 1fr 1fr",
+      gridTemplateColumns: isA4 ? "1fr" : "1fr 1fr 1fr 1fr",
       gap: isA4 ? 6 : 8,
       alignItems: "start",
     },
@@ -548,14 +562,14 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     <div style={{ width: "100%" }}>
     <table style={styles.resultTable}>
       <colgroup>
-        <col style={{ width: "8%" }} />
-        <col style={{ width: "18%" }} />
-        <col style={{ width: "5%" }} />
+        <col style={{ width: `${resultTableFixedWidth.cno}%` }} />
+        <col style={{ width: `${resultTableFixedWidth.name}%` }} />
+        <col style={{ width: `${resultTableFixedWidth.sex}%` }} />
         {model.subjects.map((subject, index) => (
           <col key={`${subject}-${index}`} style={{ width: subjectColumnWidth }} />
         ))}
-        <col style={{ width: "8%" }} />
-        <col style={{ width: "9%" }} />
+        <col style={{ width: `${resultTableFixedWidth.points}%` }} />
+        <col style={{ width: `${resultTableFixedWidth.division}%` }} />
       </colgroup>
       <thead ref={withRefs ? tableHeadMeasureRef : undefined}>
         <tr>
@@ -631,7 +645,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
               {model.summaryRows.map(([label, value]) => (
                 <tr key={label}>
                   <td style={styles.summaryCell}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: isA4 ? 6 : 8, flexWrap: "wrap" }}>
                       <IconBadge
                         label={
                           label.includes("Total") ? "TS"
@@ -754,7 +768,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
               }}
             >
               <div style={styles.subjectTop}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
                   <IconBadge label={subject.subject.slice(0, Math.min(2, subject.subject.length)).toUpperCase()} tone={ACCENT} />
                   <div style={styles.subjectName}>{subject.subject}</div>
                 </div>
