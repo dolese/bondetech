@@ -154,11 +154,14 @@ export function buildResultSheetModel(classData, computed) {
   };
 
   const divisionSummaryRows = DIVISION_ORDER.map((division) => {
-    const count = divisionCount[division] || 0;
+    const matchingStudents = completeStudents.filter((student) => student.div === division);
+    const count = matchingStudents.length;
     return {
       key: division,
       label: division === "0" ? "Division 0 (Fail)" : `Division ${division}`,
       students: count,
+      male: matchingStudents.filter((student) => student.sex === "M").length,
+      female: matchingStudents.filter((student) => student.sex === "F").length,
       percentage: percentOf(count, completeStudents.length),
     };
   });

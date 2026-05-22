@@ -206,10 +206,10 @@ function drawSummaryBlocks(doc, model, config) {
       ["Fail (0)", model.failCount],
     ]
     : model.summaryRows;
-  const divisionHead = compact ? [["Div", "No.", "%"]] : [["Division", "Students", "%"]];
+  const divisionHead = compact ? [["Div", "M", "F", "No.", "%"]] : [["Division", "Male", "Female", "Students", "%"]];
   const divisionBody = compact
-    ? model.divisionSummaryRows.map((row) => [row.key === "0" ? "Div 0" : `Div ${row.key}`, String(row.students), row.percentage])
-    : model.divisionSummaryRows.map((row) => [row.label, String(row.students), row.percentage]);
+    ? model.divisionSummaryRows.map((row) => [row.key === "0" ? "Div 0" : `Div ${row.key}`, String(row.male), String(row.female), String(row.students), row.percentage])
+    : model.divisionSummaryRows.map((row) => [row.label, String(row.male), String(row.female), String(row.students), row.percentage]);
   const sexHead = compact ? [["", "M", "F", "T"]] : [["", "MALE", "FEMALE", "TOTAL"]];
   const sexBody = compact
     ? [
@@ -273,9 +273,11 @@ function drawSummaryBlocks(doc, model, config) {
       lineWidth: 0.15,
     },
     columnStyles: {
-      0: { halign: "left", cellWidth: compact ? middleWidth - 26 : middleWidth - 30 },
-      1: { halign: "right", fontStyle: "bold", cellWidth: compact ? 11 : 13 },
-      2: { halign: "right", fontStyle: "bold", cellWidth: compact ? 15 : 17 },
+      0: { halign: "left", cellWidth: compact ? middleWidth - 36 : middleWidth - 42 },
+      1: { halign: "right", fontStyle: "bold", cellWidth: compact ? 8 : 10 },
+      2: { halign: "right", fontStyle: "bold", cellWidth: compact ? 8 : 10 },
+      3: { halign: "right", fontStyle: "bold", cellWidth: compact ? 9 : 11 },
+      4: { halign: "right", fontStyle: "bold", cellWidth: compact ? 11 : 11 },
     },
   });
 

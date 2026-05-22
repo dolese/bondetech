@@ -612,6 +612,8 @@ export function ResultSheetPrintDocument({ model, pageRanges, pageSize = "a3" })
             <thead>
               <tr>
                 <th style={styles.summaryHeaderCell}>Division</th>
+                <th style={styles.summaryHeaderCell}>Male</th>
+                <th style={styles.summaryHeaderCell}>Female</th>
                 <th style={styles.summaryHeaderCell}>Students</th>
                 <th style={styles.summaryHeaderCell}>Percentage</th>
               </tr>
@@ -620,6 +622,8 @@ export function ResultSheetPrintDocument({ model, pageRanges, pageSize = "a3" })
               {model.divisionSummaryRows.map((row) => (
                 <tr key={row.key}>
                   <td style={styles.summaryCell}>{row.label}</td>
+                  <td style={styles.summaryValue}>{row.male}</td>
+                  <td style={styles.summaryValue}>{row.female}</td>
                   <td style={styles.summaryValue}>{row.students}</td>
                   <td style={styles.summaryValue}>{row.percentage}</td>
                 </tr>
