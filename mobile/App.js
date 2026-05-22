@@ -38,6 +38,36 @@ import {
   summarizeTeacherAssignments,
 } from "./src/mobileData";
 
+function getLinkedStudentsForUser(user = {}) {
+  const linkedStudents = Array.isArray(user?.linkedStudents) ? user.linkedStudents : [];
+  const normalized = linkedStudents
+    .map((entry) => ({
+      admissionNo: String(entry?.admissionNo || entry?.admission_no || "").trim().toUpperCase(),
+      indexNo: String(entry?.indexNo || entry?.index_no || "").trim(),
+    }))
+    .filter((entry) => entry.admissionNo || entry.indexNo);
+  if (normalized.length) {
+    return normalized.filter(
+      (entry, index, collection) =>
+        collection.findIndex(
+          (candidate) =>
+            candidate.admissionNo === entry.admissionNo && candidate.indexNo === entry.indexNo
+        ) === index
+    );
+  }
+  const linkedIndexNo = String(user?.linkedIndexNo || "").trim();
+  return linkedIndexNo ? [{ admissionNo: "", indexNo: linkedIndexNo }] : [];
+}
+
+function formatLinkedStudentLabel(studentRef = {}, index = 0) {
+  if (studentRef.admissionNo && studentRef.indexNo) {
+    return `${studentRef.admissionNo} / ${studentRef.indexNo}`;
+  }
+  if (studentRef.admissionNo) return studentRef.admissionNo;
+  if (studentRef.indexNo) return studentRef.indexNo;
+  return `Student ${index + 1}`;
+}
+
 function ShellCard({ children, dense = false, subtle = false }) {
   return (
     <View
@@ -230,6 +260,7 @@ function LoginScreen({
 }
 
 function AccountTab({ user, onLogout, onRefresh, refreshing }) {
+  const linkedStudents = useMemo(() => getLinkedStudentsForUser(user), [user]);
   return (
     <View style={styles.stack}>
       <ShellCard>
@@ -242,8 +273,10 @@ function AccountTab({ user, onLogout, onRefresh, refreshing }) {
           <Text style={styles.infoRow}>Username: {user.username}</Text>
           {user.email ? <Text style={styles.infoRow}>Email: {user.email}</Text> : null}
           {user.phone ? <Text style={styles.infoRow}>Phone: {user.phone}</Text> : null}
-          {user.linkedIndexNo ? (
-            <Text style={styles.infoRow}>Linked Index No: {user.linkedIndexNo}</Text>
+          {linkedStudents.length ? (
+            <Text style={styles.infoRow}>
+              Linked Students: {linkedStudents.map((entry, index) => formatLinkedStudentLabel(entry, index)).join(", ")}
+            </Text>
           ) : null}
           {user.mustChangePassword ? (
             <Text style={[styles.infoRow, { color: "#b45309" }]}>
@@ -804,21 +837,32 @@ function StaffCommunicationTab({
   );
 }
 
-function StudentProfileScreen({ indexNo, authToken, communicationContext, onBack }) {
+function StudentProfileScreen({ studentRef, authToken, communicationContext, onBack }) {
   const [profile, setProfile] = useState(null);
   const [smsHistory, setSmsHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const resolvedStudentRef = useMemo(
+    () => ({
+      admissionNo: String(studentRef?.admissionNo || "").trim().toUpperCase(),
+      indexNo: String(studentRef?.indexNo || "").trim(),
+    }),
+    [studentRef]
+  );
+  const profileTarget = resolvedStudentRef.admissionNo || resolvedStudentRef.indexNo;
 
   useEffect(() => {
+    if (!profileTarget) return;
     let cancelled = false;
     async function load() {
       setLoading(true);
       setError("");
       try {
         const [studentProfile, smsPayload] = await Promise.all([
-          getStudentProfile(indexNo),
-          authToken ? getSmsHistory(authToken, { indexNo, limit: 12 }) : Promise.resolve({ history: [] }),
+          getStudentProfile(resolvedStudentRef),
+          authToken && resolvedStudentRef.indexNo
+            ? getSmsHistory(authToken, { indexNo: resolvedStudentRef.indexNo, limit: 12 })
+            : Promise.resolve({ history: [] }),
         ]);
         if (cancelled) return;
         setProfile(studentProfile);
@@ -834,7 +878,7 @@ function StudentProfileScreen({ indexNo, authToken, communicationContext, onBack
     return () => {
       cancelled = true;
     };
-  }, [authToken, indexNo]);
+  }, [authToken, profileTarget, resolvedStudentRef]);
 
   const summary = useMemo(() => summarizeParentProfile(profile), [profile]);
   const snapshots = useMemo(() => buildParentReportSnapshots(profile), [profile]);
@@ -862,7 +906,7 @@ function StudentProfileScreen({ indexNo, authToken, communicationContext, onBack
             <SectionTitle
               eyebrow="STUDENT PROFILE"
               title={profile?.name || communicationContext?.name || "Student"}
-              detail={`${profile?.admissionNo || "-"} | ${profile?.indexNo || indexNo}`}
+              detail={`${profile?.admissionNo || "-"} | ${profile?.indexNo || resolvedStudentRef.indexNo || "-"}`}
             />
             <View style={styles.infoList}>
               <Text style={styles.infoRow}>Sex: {profile?.sex === "F" ? "Female" : "Male"}</Text>
@@ -974,7 +1018,7 @@ function StudentProfileScreen({ indexNo, authToken, communicationContext, onBack
   );
 }
 
-function ParentHome({ user, profile }) {
+function ParentHome({ user, profile, linkedStudents = [], selectedStudentRef, onSelectStudent }) {
   const summary = useMemo(() => summarizeParentProfile(profile), [profile]);
 
   return (
@@ -1006,6 +1050,26 @@ function ParentHome({ user, profile }) {
             hint="Saved across available entries"
           />
         </View>
+        {linkedStudents.length > 1 ? (
+          <View style={[styles.chipRow, { marginTop: 14 }]}>
+            {linkedStudents.map((studentRef, index) => {
+              const isActive =
+                studentRef.admissionNo === selectedStudentRef?.admissionNo &&
+                studentRef.indexNo === selectedStudentRef?.indexNo;
+              return (
+                <Pressable
+                  key={`${studentRef.admissionNo}-${studentRef.indexNo}-${index}`}
+                  onPress={() => onSelectStudent?.(studentRef)}
+                  style={[styles.scoreChip, isActive && styles.scoreChipActive]}
+                >
+                  <Text style={[styles.scoreChipText, isActive && styles.scoreChipTextActive]}>
+                    {formatLinkedStudentLabel(studentRef, index)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
       </ShellCard>
 
       {summary.latestResult ? (
@@ -1071,12 +1135,39 @@ function ParentHome({ user, profile }) {
   );
 }
 
-function ParentResultsTab({ profile }) {
+function ParentResultsTab({ profile, linkedStudents = [], selectedStudentRef, onSelectStudent }) {
   const summary = useMemo(() => summarizeParentProfile(profile), [profile]);
   const snapshots = useMemo(() => buildParentReportSnapshots(profile), [profile]);
 
   return (
     <View style={styles.stack}>
+      {linkedStudents.length > 1 ? (
+        <ShellCard dense subtle>
+          <SectionTitle
+            eyebrow="LEARNERS"
+            title="Switch linked learner"
+            detail="This parent account is connected to more than one student."
+          />
+          <View style={styles.chipRow}>
+            {linkedStudents.map((studentRef, index) => {
+              const isActive =
+                studentRef.admissionNo === selectedStudentRef?.admissionNo &&
+                studentRef.indexNo === selectedStudentRef?.indexNo;
+              return (
+                <Pressable
+                  key={`${studentRef.admissionNo}-${studentRef.indexNo}-${index}`}
+                  onPress={() => onSelectStudent?.(studentRef)}
+                  style={[styles.scoreChip, isActive && styles.scoreChipActive]}
+                >
+                  <Text style={[styles.scoreChipText, isActive && styles.scoreChipTextActive]}>
+                    {formatLinkedStudentLabel(studentRef, index)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </ShellCard>
+      ) : null}
       <ShellCard subtle>
         <SectionTitle
           eyebrow="REPORT SNAPSHOT"
@@ -1198,6 +1289,7 @@ export default function App() {
   const [overview, setOverview] = useState(null);
   const [classes, setClasses] = useState([]);
   const [profile, setProfile] = useState(null);
+  const [selectedParentStudentRef, setSelectedParentStudentRef] = useState(null);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [classDetails, setClassDetails] = useState({
     loading: false,
@@ -1222,6 +1314,7 @@ export default function App() {
 
   const isStaffPortal = user && ["teacher", "academic", "admin"].includes(user.role);
   const isParentPortal = user && user.role === "parent";
+  const linkedStudents = useMemo(() => getLinkedStudentsForUser(user), [user]);
 
   const loadTeacherClass = useCallback(async (classId, token) => {
     if (!classId) {
@@ -1264,6 +1357,7 @@ export default function App() {
         const visibleClasses = Array.isArray(classesData) ? classesData : [];
         setClasses(visibleClasses);
         setProfile(null);
+        setSelectedParentStudentRef(null);
         setStaffSms({ loading: false, error: "", data: null });
         const firstClassId = visibleClasses[0]?.id || "";
         setSelectedClassId(firstClassId);
@@ -1276,12 +1370,15 @@ export default function App() {
         return;
       }
 
-      if (sessionUser.role === "parent" && sessionUser.linkedIndexNo) {
+      const parentLinkedStudents = getLinkedStudentsForUser(sessionUser);
+      if (sessionUser.role === "parent" && parentLinkedStudents.length) {
+        const activeStudentRef = parentLinkedStudents[0];
         const [homepageOverview, studentProfile] = await Promise.all([
           overviewPromise,
-          getStudentProfile(sessionUser.linkedIndexNo),
+          getStudentProfile(activeStudentRef),
         ]);
         setOverview(homepageOverview);
+        setSelectedParentStudentRef(activeStudentRef);
         setProfile(studentProfile);
         setClasses([]);
         setSelectedClassId("");
@@ -1293,6 +1390,7 @@ export default function App() {
       setOverview(await overviewPromise);
       setClasses([]);
       setProfile(null);
+      setSelectedParentStudentRef(null);
       setSelectedClassId("");
       setClassDetails({ loading: false, error: "", data: null });
       setStaffSms({ loading: false, error: "", data: null });
@@ -1313,6 +1411,7 @@ export default function App() {
       setAuthToken(storedToken);
       setUser(sessionUser);
       setPersistSession(true);
+      setSelectedParentStudentRef(getLinkedStudentsForUser(sessionUser)[0] || null);
       setTab("home");
       await loadSessionData(storedToken, sessionUser);
     } catch {
@@ -1322,6 +1421,7 @@ export default function App() {
       setOverview(null);
       setClasses([]);
       setProfile(null);
+      setSelectedParentStudentRef(null);
       setSelectedClassId("");
       setClassDetails({ loading: false, error: "", data: null });
       setStaffSms({ loading: false, error: "", data: null });
@@ -1357,6 +1457,7 @@ export default function App() {
       setAuthToken(token);
       setUser(sessionUser);
       setPersistSession(rememberMe);
+      setSelectedParentStudentRef(getLinkedStudentsForUser(sessionUser)[0] || null);
       setTab("home");
       setPassword("");
       await loadSessionData(token, sessionUser);
@@ -1374,6 +1475,7 @@ export default function App() {
     setOverview(null);
     setClasses([]);
     setProfile(null);
+    setSelectedParentStudentRef(null);
     setSelectedClassId("");
     setClassDetails({ loading: false, error: "", data: null });
     setStaffSms({ loading: false, error: "", data: null });
@@ -1420,6 +1522,21 @@ export default function App() {
     });
   }, []);
 
+  const handleSelectParentStudent = useCallback(async (studentRef) => {
+    const nextRef = {
+      admissionNo: String(studentRef?.admissionNo || "").trim().toUpperCase(),
+      indexNo: String(studentRef?.indexNo || "").trim(),
+    };
+    if (!nextRef.admissionNo && !nextRef.indexNo) return;
+    setSelectedParentStudentRef(nextRef);
+    try {
+      const studentProfile = await getStudentProfile(nextRef);
+      setProfile(studentProfile);
+    } catch (err) {
+      setError(err.message || "Unable to load linked learner.");
+    }
+  }, []);
+
   useEffect(() => {
     if (!isStaffPortal || tab !== "communication" || !authToken) return;
     loadStaffSms({ limit: 20 });
@@ -1457,7 +1574,7 @@ export default function App() {
       if (activeStudentProfile) {
         return (
           <StudentProfileScreen
-            indexNo={activeStudentProfile.indexNo}
+            studentRef={activeStudentProfile}
             authToken={authToken}
             communicationContext={activeStudentProfile}
             onBack={() => setActiveStudentProfile(null)}
@@ -1525,12 +1642,27 @@ export default function App() {
         );
       }
       if (tab === "results") {
-        return <ParentResultsTab profile={profile} />;
+        return (
+          <ParentResultsTab
+            profile={profile}
+            linkedStudents={linkedStudents}
+            selectedStudentRef={selectedParentStudentRef}
+            onSelectStudent={handleSelectParentStudent}
+          />
+        );
       }
       if (tab === "announcements") {
         return <AnnouncementsTab overview={overview} />;
       }
-      return <ParentHome user={user} profile={profile} />;
+      return (
+        <ParentHome
+          user={user}
+          profile={profile}
+          linkedStudents={linkedStudents}
+          selectedStudentRef={selectedParentStudentRef}
+          onSelectStudent={handleSelectParentStudent}
+        />
+      );
     }
 
     if (tab === "account") {
@@ -1560,6 +1692,7 @@ export default function App() {
     handleSelectClass,
     isParentPortal,
     isStaffPortal,
+    linkedStudents,
     loadStaffSms,
     overview,
     profile,
@@ -1567,7 +1700,9 @@ export default function App() {
     selectedClassId,
     staffSms,
     tab,
+    selectedParentStudentRef,
     user,
+    handleSelectParentStudent,
   ]);
 
   if (booting) {
@@ -2006,10 +2141,16 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: "#f1f5f9",
   },
+  scoreChipActive: {
+    backgroundColor: "#dbeafe",
+  },
   scoreChipText: {
     fontSize: 11,
     fontWeight: "800",
     color: MOBILE_THEME.text,
+  },
+  scoreChipTextActive: {
+    color: MOBILE_THEME.primary,
   },
   subsectionLabel: {
     marginTop: 6,

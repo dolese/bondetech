@@ -33,6 +33,7 @@ const {
   updateStudentRecord,
   deleteStudentRecord,
   reorderStudentsBySexAndRegenerateCnos,
+  promoteStudentsToClass,
 } = require("../../lib/classStudents");
 
 const requireAuth = async (req, res, next) => {
@@ -207,16 +208,29 @@ router.post("/:id/students/bulk", requireRole(canManageStudents, "You do not hav
 
 router.patch(
   "/:id/students",
-  requireRole(canManageClasses, "Only administrators can reorder CNOs"),
+  requireRole(canManageClasses, "Only administrators can run rollover and CNO actions"),
   async (req, res) => {
-    if ((req.body?.action || "") !== "reorder-cnos") {
-      return res.status(400).json({ error: "Unsupported student action" });
-    }
     try {
-      const result = await reorderStudentsBySexAndRegenerateCnos(getDb(), req.params.id);
+      const action = String(req.body?.action || "").trim();
+      let result;
+      if (action === "reorder-cnos") {
+        result = await reorderStudentsBySexAndRegenerateCnos(getDb(), req.params.id);
+      } else if (action === "promote-rollover") {
+        result = await promoteStudentsToClass(getDb(), req.params.id, req.body?.targetClassId);
+      } else {
+        return res.status(400).json({ error: "Unsupported student action" });
+      }
       res.json(result);
     } catch (err) {
-      res.status(/class not found/i.test(err.message) ? 404 : 500).json({ error: err.message });
+      res
+        .status(
+          /class not found/i.test(err.message)
+            ? 404
+            : /required|different|published/i.test(err.message)
+            ? 400
+            : 500
+        )
+        .json({ error: err.message });
     }
   }
 );

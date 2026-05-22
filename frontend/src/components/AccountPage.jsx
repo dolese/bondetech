@@ -212,6 +212,26 @@ function formatClassOptionLabel(cls = {}) {
   return [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim() || cls.name || "Unnamed Class";
 }
 
+function normalizeLinkedStudentsText(value) {
+  return String(value || "")
+    .split(/\r?\n|,/)
+    .map((entry) => entry.trim().toUpperCase())
+    .filter(Boolean)
+    .join("\n");
+}
+
+function linkedStudentsToText(linkedStudents = [], linkedIndexNo = "") {
+  const fromArray = Array.isArray(linkedStudents)
+    ? linkedStudents
+        .map((entry) => String(entry?.admissionNo || entry?.admission_no || entry?.indexNo || entry?.index_no || "").trim().toUpperCase())
+        .filter(Boolean)
+    : [];
+  if (fromArray.length) {
+    return fromArray.join("\n");
+  }
+  return String(linkedIndexNo || "").trim().toUpperCase();
+}
+
 function blankManagedUser() {
   return {
     username: "",
@@ -219,7 +239,7 @@ function blankManagedUser() {
     role: "teacher",
     email: "",
     phone: "",
-    linkedIndexNo: "",
+    linkedStudentsText: "",
     password: "",
     active: true,
     mustChangePassword: true,
@@ -314,7 +334,7 @@ export function AccountPage({
     role: "",
     email: "",
     phone: "",
-    linkedIndexNo: "",
+    linkedStudentsText: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -358,7 +378,7 @@ export function AccountPage({
       role: user?.role ?? "admin",
       email: user?.email ?? "",
       phone: user?.phone ?? "",
-      linkedIndexNo: user?.linkedIndexNo ?? "",
+      linkedStudentsText: linkedStudentsToText(user?.linkedStudents, user?.linkedIndexNo),
     });
     setError("");
   }, [user]);
@@ -409,7 +429,7 @@ export function AccountPage({
         role: managedUser.role ?? "teacher",
         email: managedUser.email ?? "",
         phone: managedUser.phone ?? "",
-        linkedIndexNo: managedUser.linkedIndexNo ?? "",
+        linkedStudentsText: linkedStudentsToText(managedUser.linkedStudents, managedUser.linkedIndexNo),
         active: managedUser.active !== false,
         password: "",
         mustChangePassword: managedUser.mustChangePassword === true,
@@ -441,7 +461,7 @@ export function AccountPage({
           managedUser.displayName,
           managedUser.email,
           managedUser.phone,
-          managedUser.linkedIndexNo,
+          linkedStudentsToText(managedUser.linkedStudents, managedUser.linkedIndexNo),
         ]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(query));
@@ -644,11 +664,15 @@ export function AccountPage({
     setError("");
     setSaving(true);
     try {
+      const linkedStudentsText =
+        ["parent", "student"].includes(form.role)
+          ? normalizeLinkedStudentsText(form.linkedStudentsText)
+          : "";
       await onSaveProfile?.({
         displayName,
         email,
         phone: form.phone.trim(),
-        linkedIndexNo: form.linkedIndexNo.trim(),
+        linkedStudents: linkedStudentsText ? linkedStudentsText.split("\n") : [],
       });
     } catch (err) {
       setError(err.message || t("unableToSaveProfile"));
@@ -692,13 +716,15 @@ export function AccountPage({
     setAdminMessage("");
     try {
       const teacherAccess = validateTeacherAccessPayload(adminForm);
+      const linkedStudentsText =
+        adminForm.role === "parent" ? normalizeLinkedStudentsText(adminForm.linkedStudentsText) : "";
       await onCreateUser?.({
         ...adminForm,
         username,
         displayName: adminForm.displayName.trim() || username,
         email: adminForm.email.trim(),
         phone: adminForm.phone.trim(),
-        linkedIndexNo: adminForm.linkedIndexNo.trim(),
+        linkedStudents: linkedStudentsText ? linkedStudentsText.split("\n") : [],
         teacherRoles: teacherAccess.teacherRoles,
         teacherAssignments: teacherAccess.teacherAssignments,
         password,
@@ -731,8 +757,11 @@ export function AccountPage({
       setAdminError("");
       setAdminMessage("");
       const teacherAccess = validateTeacherAccessPayload(payload);
+      const linkedStudentsText =
+        payload.role === "parent" ? normalizeLinkedStudentsText(payload.linkedStudentsText) : "";
       await onUpdateUser?.(username, {
         ...payload,
+        linkedStudents: linkedStudentsText ? linkedStudentsText.split("\n") : [],
         teacherRoles: teacherAccess.teacherRoles,
         teacherAssignments: teacherAccess.teacherAssignments,
       });
@@ -1396,12 +1425,14 @@ export function AccountPage({
                   onChange={(value) => updateField("email", value)}
                   placeholder="Optional"
                 />
-                <TextInput
-                  label="Linked Student Index No"
-                  value={form.linkedIndexNo}
-                  onChange={(value) => updateField("linkedIndexNo", value)}
-                  placeholder="Student/parent accounts only"
-                />
+                {["parent", "student"].includes(form.role) ? (
+                  <TextAreaInput
+                    label="Linked Students"
+                    value={form.linkedStudentsText}
+                    onChange={(value) => updateField("linkedStudentsText", normalizeLinkedStudentsText(value))}
+                    placeholder={"One admission no or CNO per line\nExample:\nBSS-2026-0001\nS6509/0004"}
+                  />
+                ) : null}
               </div>
 
               {error && (
@@ -1593,8 +1624,15 @@ export function AccountPage({
                   <SelectInput label="Role" value={adminForm.role} onChange={(value) => setAdminForm((prev) => ({ ...prev, role: value }))} options={MANAGEABLE_USER_ROLE_OPTIONS} />
                   <TextInput label="Email" value={adminForm.email} onChange={(value) => setAdminForm((prev) => ({ ...prev, email: value }))} />
                   <TextInput label="Phone" value={adminForm.phone} onChange={(value) => setAdminForm((prev) => ({ ...prev, phone: value }))} />
-                  <TextInput label="Linked Student Index No" value={adminForm.linkedIndexNo} onChange={(value) => setAdminForm((prev) => ({ ...prev, linkedIndexNo: value }))} />
-                  <TextInput label="Temporary Password" value={adminForm.password} onChange={(value) => setAdminForm((prev) => ({ ...prev, password: value }))} />
+                  {adminForm.role === "parent" ? (
+                    <TextAreaInput
+                      label="Linked Students"
+                      value={adminForm.linkedStudentsText}
+                      onChange={(value) => setAdminForm((prev) => ({ ...prev, linkedStudentsText: normalizeLinkedStudentsText(value) }))}
+                      placeholder={"One admission no or CNO per line."}
+                    />
+                  ) : null}
+                  <TextInput label="Temporary Password" value={adminForm.password || DEFAULT_RESET_PASSWORD} onChange={(value) => setAdminForm((prev) => ({ ...prev, password: value }))} />
                 </div>
 
                 {adminForm.role === "teacher" && (
@@ -1835,7 +1873,14 @@ export function AccountPage({
                     <SelectInput label="Role" value={edit.role} onChange={(value) => updateManagedField(editingUsername, "role", value)} options={MANAGEABLE_USER_ROLE_OPTIONS} />
                     <TextInput label="Email" value={edit.email} onChange={(value) => updateManagedField(editingUsername, "email", value)} />
                     <TextInput label="Phone" value={edit.phone} onChange={(value) => updateManagedField(editingUsername, "phone", value)} />
-                    <TextInput label="Linked Student Index No" value={edit.linkedIndexNo} onChange={(value) => updateManagedField(editingUsername, "linkedIndexNo", value)} />
+                    {edit.role === "parent" ? (
+                      <TextAreaInput
+                        label="Linked Students"
+                        value={edit.linkedStudentsText}
+                        onChange={(value) => updateManagedField(editingUsername, "linkedStudentsText", normalizeLinkedStudentsText(value))}
+                        placeholder={"One admission no or CNO per line."}
+                      />
+                    ) : null}
                   </div>
 
                   {edit.role === "teacher" && (

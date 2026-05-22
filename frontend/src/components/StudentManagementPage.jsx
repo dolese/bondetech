@@ -80,6 +80,7 @@ export function StudentManagementPage({
   onAddStudentToClass,
   onUpdateStudentInClass,
   onDeleteStudentFromClass,
+  onPromoteStudents,
 }) {
   const { isMobile } = useViewport();
   const [query, setQuery] = useState("");
@@ -88,6 +89,9 @@ export function StudentManagementPage({
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(makeEmptyForm());
   const [formError, setFormError] = useState("");
+  const [promotionForm, setPromotionForm] = useState({ sourceClassId: "", targetClassId: "" });
+  const [promotionSaving, setPromotionSaving] = useState(false);
+  const [promotionError, setPromotionError] = useState("");
 
   const classOptions = useMemo(
     () =>
@@ -363,6 +367,31 @@ export function StudentManagementPage({
 
   const fieldGridColumns = isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))";
 
+  const handlePromotion = async () => {
+    if (!promotionForm.sourceClassId || !promotionForm.targetClassId) {
+      setPromotionError("Select both the source class and the target class.");
+      return;
+    }
+    if (promotionForm.sourceClassId === promotionForm.targetClassId) {
+      setPromotionError("Source class and target class must be different.");
+      return;
+    }
+    setPromotionError("");
+    setPromotionSaving(true);
+    try {
+      const result = await onPromoteStudents?.(
+        promotionForm.sourceClassId,
+        promotionForm.targetClassId
+      );
+      if (result?.ok === false) {
+        setPromotionError(result.error || "Unable to complete promotion.");
+        return;
+      }
+    } finally {
+      setPromotionSaving(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -435,6 +464,75 @@ export function StudentManagementPage({
             </div>
           ))}
         </div>
+      </section>
+
+      <section
+        style={{
+          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 24 : 30 }),
+          display: "grid",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "grid", gap: 4 }}>
+          <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a" }}>Academic Year Promotion</div>
+          <div style={{ fontSize: 13, color: "#64748b", maxWidth: 760, lineHeight: 1.6 }}>
+            Roll students into the next class while keeping their permanent identity, guardian details, and optional-subject setup aligned to the target class.
+          </div>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
+            gap: 12,
+            alignItems: "end",
+          }}
+        >
+          <label style={{ display: "grid", gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: 0.5 }}>
+              Source Class
+            </span>
+            <select
+              value={promotionForm.sourceClassId}
+              onChange={(event) => setPromotionForm((prev) => ({ ...prev, sourceClassId: event.target.value }))}
+              style={fieldStyle()}
+            >
+              <option value="">Select source class</option>
+              {classOptions.map((cls) => (
+                <option key={`source-${cls.id}`} value={cls.id}>
+                  {cls.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: 0.5 }}>
+              Target Class
+            </span>
+            <select
+              value={promotionForm.targetClassId}
+              onChange={(event) => setPromotionForm((prev) => ({ ...prev, targetClassId: event.target.value }))}
+              style={fieldStyle()}
+            >
+              <option value="">Select target class</option>
+              {classOptions
+                .filter((cls) => cls.id !== promotionForm.sourceClassId)
+                .map((cls) => (
+                  <option key={`target-${cls.id}`} value={cls.id}>
+                    {cls.label}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <button type="button" onClick={handlePromotion} disabled={promotionSaving} style={primaryButtonStyle()}>
+            {promotionSaving ? "Running..." : "Promote / Rollover"}
+          </button>
+        </div>
+        <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
+          New class CNOs are generated in the target class. Existing target students with the same admission number are refreshed instead of duplicated.
+        </div>
+        {promotionError ? (
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#b42318" }}>{promotionError}</div>
+        ) : null}
       </section>
 
       <section
@@ -549,13 +647,26 @@ export function StudentManagementPage({
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button
                         type="button"
-                        onClick={() => onOpenStudentProfile?.(student.index_no || student.indexNo)}
-                        disabled={!(student.index_no || student.indexNo)}
-                        title={student.index_no || student.indexNo ? "Open academic profile" : "Student has no CNO/index number yet"}
+                        onClick={() =>
+                          onOpenStudentProfile?.({
+                            admissionNo: student.admissionNo || student.admission_no || "",
+                            indexNo: student.index_no || student.indexNo || "",
+                          })
+                        }
+                        disabled={!(student.admissionNo || student.admission_no || student.index_no || student.indexNo)}
+                        title={
+                          student.admissionNo || student.admission_no || student.index_no || student.indexNo
+                            ? "Open academic profile"
+                            : "Student has no admission number or CNO yet"
+                        }
                         style={{
                           ...secondaryButtonStyle({ compact: true }),
-                          opacity: student.index_no || student.indexNo ? 1 : 0.55,
-                          cursor: student.index_no || student.indexNo ? "pointer" : "not-allowed",
+                          opacity:
+                            student.admissionNo || student.admission_no || student.index_no || student.indexNo ? 1 : 0.55,
+                          cursor:
+                            student.admissionNo || student.admission_no || student.index_no || student.indexNo
+                              ? "pointer"
+                              : "not-allowed",
                         }}
                       >
                         Profile

@@ -4,6 +4,7 @@ const { getDb } = require("../db");
 const {
   searchStudentsDirectory,
   getStudentProfileByIndexNo,
+  getStudentProfileByIdentifier,
 } = require("../../lib/studentDirectory");
 
 router.get("/search", async (req, res) => {
@@ -17,13 +18,16 @@ router.get("/search", async (req, res) => {
 
 router.get("/:indexNo/profile", async (req, res) => {
   try {
-    const profile = await getStudentProfileByIndexNo(
+    const profile = await getStudentProfileByIdentifier(
       getDb(),
-      decodeURIComponent(req.params.indexNo || "")
+      {
+        indexNo: decodeURIComponent(req.params.indexNo || ""),
+        admissionNo: req.query?.admissionNo || "",
+      }
     );
     res.json(profile);
   } catch (err) {
-    const status = /indexno is required/i.test(err.message)
+    const status = /indexno or admissionno is required/i.test(err.message)
       ? 400
       : /student not found/i.test(err.message)
       ? 404

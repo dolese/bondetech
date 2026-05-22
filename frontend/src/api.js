@@ -83,6 +83,20 @@ const put  = (url, body)  => request("PUT",    url, body);
 const del  = (url)        => request("DELETE", url);
 const patch = (url, body) => request("PATCH",  url, body);
 
+function buildStudentProfileUrl(target) {
+  const ref = target && typeof target === "object" ? target : { indexNo: target };
+  const indexNo = String(ref?.indexNo || ref?.linkedIndexNo || "").trim();
+  const admissionNo = String(ref?.admissionNo || "").trim().toUpperCase();
+  const identifier = indexNo || admissionNo;
+  if (!identifier) {
+    throw new Error("Student profile target is required");
+  }
+  const params = new URLSearchParams();
+  if (admissionNo) params.set("admissionNo", admissionNo);
+  const qs = params.toString();
+  return `/students/${encodeURIComponent(identifier)}/profile${qs ? `?${qs}` : ""}`;
+}
+
 // ── Classes ───────────────────────────────────────────────────────────────────
 export const API = {
   // Classes
@@ -113,6 +127,7 @@ export const API = {
   addStudent:     (cid, data)   => post(`/classes/${cid}/students`, data),
   bulkImport:     (cid, students, examType) => post(`/classes/${cid}/students/bulk`, { students, examType }),
   reorderStudentCnos: (cid)     => patch(`/classes/${cid}/students`, { action: "reorder-cnos" }),
+  promoteStudents: (cid, targetClassId) => patch(`/classes/${cid}/students`, { action: "promote-rollover", targetClassId }),
   updateStudent:  (cid, sid, data) => put(`/classes/${cid}/students/${sid}`, data),
   deleteStudent:  (cid, sid)    => del(`/classes/${cid}/students/${sid}`),
 
@@ -124,7 +139,7 @@ export const API = {
     if (opts.limit) params.set("limit", opts.limit);
     return get(`/students/search?${params.toString()}`);
   },
-  getStudentProfile: (indexNo)  => get(`/students/${encodeURIComponent(indexNo)}/profile`),
+  getStudentProfile: (target)   => get(buildStudentProfileUrl(target)),
 
   // Backup & Restore
   backup:          ()           => get("/backup"),

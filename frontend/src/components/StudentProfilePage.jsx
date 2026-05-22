@@ -31,6 +31,7 @@ function formatHistoryTime(value) {
 }
 
 export function StudentProfilePage({
+  studentRef = null,
   indexNo,
   onBack,
   communicationContext = null,
@@ -43,22 +44,33 @@ export function StudentProfilePage({
   const [error, setError] = useState(null);
   const [smsHistory, setSmsHistory] = useState([]);
   const [smsLoading, setSmsLoading] = useState(false);
+  const resolvedStudentRef = useMemo(
+    () =>
+      studentRef && typeof studentRef === "object"
+        ? {
+            admissionNo: String(studentRef.admissionNo || studentRef.admission_no || "").trim().toUpperCase(),
+            indexNo: String(studentRef.indexNo || studentRef.index_no || "").trim(),
+          }
+        : { admissionNo: "", indexNo: String(indexNo || "").trim() },
+    [indexNo, studentRef]
+  );
+  const profileTarget = resolvedStudentRef.admissionNo || resolvedStudentRef.indexNo;
 
   useEffect(() => {
-    if (!indexNo) return;
+    if (!profileTarget) return;
     setLoading(true);
     setError(null);
-    API.getStudentProfile(indexNo)
+    API.getStudentProfile(resolvedStudentRef)
       .then(setProfile)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [indexNo]);
+  }, [profileTarget, resolvedStudentRef]);
 
   useEffect(() => {
-    if (!indexNo || !loadSmsHistory) return;
+    if (!profileTarget || !loadSmsHistory) return;
     let cancelled = false;
     setSmsLoading(true);
-    Promise.resolve(loadSmsHistory(indexNo))
+    Promise.resolve(loadSmsHistory(resolvedStudentRef))
       .then((payload) => {
         if (cancelled) return;
         setSmsHistory(Array.isArray(payload?.history) ? payload.history : []);
@@ -74,7 +86,7 @@ export function StudentProfilePage({
     return () => {
       cancelled = true;
     };
-  }, [indexNo, loadSmsHistory]);
+  }, [loadSmsHistory, profileTarget, resolvedStudentRef]);
 
   const resultHistory = useMemo(() => {
     if (!profile?.entries?.length) return [];

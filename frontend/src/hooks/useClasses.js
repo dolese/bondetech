@@ -420,6 +420,30 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [classes, refreshClass, showToast]);
 
+  const onPromoteStudents = useCallback(async (sourceClassId, targetClassId, opts = {}) => {
+    const sourceClass = classes.find((cls) => cls.id === sourceClassId);
+    const targetClass = classes.find((cls) => cls.id === targetClassId);
+    if (!sourceClass || !targetClass) {
+      if (!opts.silent) showToast?.("Source or target class not found", "error");
+      return { ok: false, error: "Source or target class not found" };
+    }
+    try {
+      const result = await API.promoteStudents(sourceClassId, targetClassId);
+      await Promise.all([refreshClass(sourceClassId), refreshClass(targetClassId)]);
+      if (!opts.silent) {
+        showToast?.(
+          `Rollover complete: ${result.created || 0} created, ${result.updated || 0} refreshed in ${targetClass.name || targetClass.form || "target class"}`
+        );
+      }
+      return { ok: true, result };
+    } catch (err) {
+      if (!opts.silent) {
+        showToast?.(err.message, "error");
+      }
+      return { ok: false, error: err.message };
+    }
+  }, [classes, refreshClass, showToast]);
+
   const onAddStudent = useCallback(async (studentData) => {
     if (!activeClass) return;
     return onAddStudentToClass(activeClass.id, studentData);
@@ -720,6 +744,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onUpdateStudentInClass,
     onDeleteStudent,
     onDeleteStudentFromClass,
+    onPromoteStudents,
     onBulkImport,
     onReorderStudentCnos,
     onUpdateSchool,

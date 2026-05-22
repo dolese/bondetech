@@ -28,6 +28,20 @@ async function request(path, { method = "GET", token = "", body } = {}) {
   return data;
 }
 
+function buildStudentProfilePath(target) {
+  const ref = target && typeof target === "object" ? target : { indexNo: target };
+  const indexNo = String(ref?.indexNo || ref?.linkedIndexNo || "").trim();
+  const admissionNo = String(ref?.admissionNo || "").trim().toUpperCase();
+  const identifier = indexNo || admissionNo;
+  if (!identifier) {
+    throw new Error("Student profile target is required");
+  }
+  const params = new URLSearchParams();
+  if (admissionNo) params.set("admissionNo", admissionNo);
+  const qs = params.toString();
+  return `/students/${encodeURIComponent(identifier)}/profile${qs ? `?${qs}` : ""}`;
+}
+
 export function login(payload) {
   return request("/auth/login", {
     method: "POST",
@@ -47,8 +61,8 @@ export function getClassById(classId, token) {
   return request(`/classes/${encodeURIComponent(classId)}`, { token });
 }
 
-export function getStudentProfile(indexNo) {
-  return request(`/students/${encodeURIComponent(indexNo)}/profile`);
+export function getStudentProfile(target) {
+  return request(buildStudentProfilePath(target));
 }
 
 export function getHomepageOverview() {

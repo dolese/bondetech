@@ -43,7 +43,39 @@ function getClassDisplayLabel(cls = {}, { includeYear = true } = {}) {
 function getDefaultPageForUser(user) {
   if (!user) return "dashboard";
   if (CLASS_ACCESS_ROLES.has(user.role)) return "dashboard";
-  return user.linkedIndexNo ? "profile" : "account";
+  return getLinkedStudentsForUser(user).length ? "profile" : "account";
+}
+
+function getLinkedStudentsForUser(user = {}) {
+  const linkedStudents = Array.isArray(user?.linkedStudents) ? user.linkedStudents : [];
+  const normalized = linkedStudents
+    .map((entry) => ({
+      admissionNo: String(entry?.admissionNo || entry?.admission_no || "").trim().toUpperCase(),
+      indexNo: String(entry?.indexNo || entry?.index_no || "").trim(),
+    }))
+    .filter((entry) => entry.admissionNo || entry.indexNo);
+
+  if (normalized.length) {
+    return normalized.filter(
+      (entry, index, collection) =>
+        collection.findIndex(
+          (candidate) =>
+            candidate.admissionNo === entry.admissionNo && candidate.indexNo === entry.indexNo
+        ) === index
+    );
+  }
+
+  const linkedIndexNo = String(user?.linkedIndexNo || "").trim();
+  return linkedIndexNo ? [{ admissionNo: "", indexNo: linkedIndexNo }] : [];
+}
+
+function formatLinkedStudentLabel(studentRef = {}, index = 0) {
+  if (studentRef.admissionNo && studentRef.indexNo) {
+    return `${studentRef.admissionNo} / ${studentRef.indexNo}`;
+  }
+  if (studentRef.admissionNo) return studentRef.admissionNo;
+  if (studentRef.indexNo) return studentRef.indexNo;
+  return `Student ${index + 1}`;
 }
 
 function buildParentDirectory(classes) {
@@ -226,17 +258,24 @@ function buildTeacherPortalSummary(classes, user) {
   };
 }
 
-function findStudentCommunicationContext(classes, indexNo) {
-  const normalizedIndexNo = String(indexNo || "").trim().toLowerCase();
-  if (!normalizedIndexNo) return null;
+function findStudentCommunicationContext(classes, studentRef) {
+  const normalizedIndexNo = String(studentRef?.indexNo || studentRef || "").trim().toLowerCase();
+  const normalizedAdmissionNo = String(studentRef?.admissionNo || "").trim().toLowerCase();
+  if (!normalizedIndexNo && !normalizedAdmissionNo) return null;
 
   const matches = [];
   (classes || []).forEach((cls) => {
     (cls.students || []).forEach((student) => {
       const studentIndexNo = String(student.index_no || student.indexNo || "").trim();
-      if (studentIndexNo.toLowerCase() !== normalizedIndexNo) return;
+      const studentAdmissionNo = String(student.admissionNo || student.admission_no || "")
+        .trim()
+        .toLowerCase();
+      const matchesAdmission = normalizedAdmissionNo && studentAdmissionNo === normalizedAdmissionNo;
+      const matchesIndex = normalizedIndexNo && studentIndexNo.toLowerCase() === normalizedIndexNo;
+      if (!matchesAdmission && !matchesIndex) return;
       matches.push({
         indexNo: studentIndexNo,
+        admissionNo: String(student.admissionNo || student.admission_no || "").trim().toUpperCase(),
         phone: String(student.parentPhone || student.parent_phone || "").trim(),
         parentName: String(student.parentName || student.parent_name || "").trim(),
         studentName: String(student.name || "").trim(),
@@ -264,7 +303,7 @@ export default function App() {
   const [modalType, setModalType] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [examPickerClass, setExamPickerClass] = useState(null);
-  const [searchProfileIndexNo, setSearchProfileIndexNo] = useState(null);
+  const [searchProfileTarget, setSearchProfileTarget] = useState(null);
   const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [showUserGuide, setShowUserGuide] = useState(false);
@@ -313,8 +352,9 @@ export default function App() {
   } = useSession({
     onLoginSuccess: (user) => {
       setPage(getDefaultPageForUser(user));
-      if (user?.linkedIndexNo) {
-        setSearchProfileIndexNo(user.linkedIndexNo);
+      const linkedStudents = getLinkedStudentsForUser(user);
+      if (linkedStudents.length) {
+        setSearchProfileTarget(linkedStudents[0]);
       }
     },
     onAccountSaved: () => showToast(t("accountUpdated")),
@@ -365,6 +405,7 @@ export default function App() {
     onUpdateStudentInClass,
     onDeleteStudent,
     onDeleteStudentFromClass,
+    onPromoteStudents,
     onBulkImport,
     onReorderStudentCnos,
     onUpdateSchool,
@@ -446,9 +487,13 @@ export default function App() {
     () => (role === "teacher" ? buildTeacherPortalSummary(visibleClasses, currentUser) : null),
     [currentUser, role, visibleClasses]
   );
+  const linkedStudents = useMemo(
+    () => getLinkedStudentsForUser(currentUser),
+    [currentUser]
+  );
   const activeProfileCommunicationContext = useMemo(
-    () => findStudentCommunicationContext(classes, searchProfileIndexNo),
-    [classes, searchProfileIndexNo]
+    () => findStudentCommunicationContext(classes, searchProfileTarget),
+    [classes, searchProfileTarget]
   );
   const teacherDirectory = useMemo(
     () => buildTeacherDirectory(managedUsers, classes),
@@ -506,11 +551,11 @@ export default function App() {
   useEffect(() => {
     if (!loggedIn || !currentUser) return;
     if (canAccessClassData) return;
-    setSearchProfileIndexNo(currentUser.linkedIndexNo || null);
+    setSearchProfileTarget(linkedStudents[0] || null);
     if (["dashboard", "students", "results", "timetable", "reports", "settings", "sms"].includes(page)) {
       setPage(getDefaultPageForUser(currentUser));
     }
-  }, [canAccessClassData, currentUser, loggedIn, page]);
+  }, [canAccessClassData, currentUser, linkedStudents, loggedIn, page]);
 
   useEffect(() => {
     if (role !== "teacher") return;
@@ -570,9 +615,16 @@ export default function App() {
     setModalType("report-card");
   }, [activeComputed]);
 
-  const handleOpenStudentProfile = useCallback((indexNo) => {
-    if (!indexNo) return;
-    setSearchProfileIndexNo(indexNo);
+  const handleOpenStudentProfile = useCallback((target) => {
+    const ref =
+      target && typeof target === "object"
+        ? {
+            admissionNo: String(target.admissionNo || target.admission_no || "").trim().toUpperCase(),
+            indexNo: String(target.indexNo || target.index_no || "").trim(),
+          }
+        : { admissionNo: "", indexNo: String(target || "").trim() };
+    if (!ref.admissionNo && !ref.indexNo) return;
+    setSearchProfileTarget(ref);
     setPage("profile");
     if (isMobile) setSideOpen(false);
   }, [isMobile]);
@@ -840,6 +892,7 @@ export default function App() {
               onAddStudentToClass={onAddStudentToClass}
               onUpdateStudentInClass={onUpdateStudentInClass}
               onDeleteStudentFromClass={onDeleteStudentFromClass}
+              onPromoteStudents={onPromoteStudents}
             />
           )}
 
@@ -939,12 +992,51 @@ export default function App() {
             )
           )}
 
-          {page === "profile" && searchProfileIndexNo && (
-            <StudentProfilePage
-              indexNo={searchProfileIndexNo}
-              onBack={() => setPage("dashboard")}
-              communicationContext={activeProfileCommunicationContext}
-              loadSmsHistory={canUseSms ? (indexNo) => API.getSmsHistory({ indexNo, limit: 8 }) : null}
+          {page === "profile" && searchProfileTarget && (
+            <div style={{ display: "grid", gap: 12, minHeight: 0 }}>
+              {!canAccessClassData && linkedStudents.length > 1 ? (
+                <div style={{ padding: isMobile ? "10px 10px 0" : "14px 16px 0", display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {linkedStudents.map((studentRef, index) => {
+                    const isActive =
+                      studentRef.admissionNo === searchProfileTarget?.admissionNo &&
+                      studentRef.indexNo === searchProfileTarget?.indexNo;
+                    return (
+                      <button
+                        key={`${studentRef.admissionNo}-${studentRef.indexNo}-${index}`}
+                        type="button"
+                        onClick={() => setSearchProfileTarget(studentRef)}
+                        style={{
+                          borderRadius: 999,
+                          border: `1px solid ${isActive ? "#2563eb" : "#cbd5e1"}`,
+                          background: isActive ? "#dbeafe" : "#fff",
+                          color: isActive ? "#1d4ed8" : "#475569",
+                          padding: "8px 12px",
+                          fontSize: 12,
+                          fontWeight: 800,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {formatLinkedStudentLabel(studentRef, index)}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+              <StudentProfilePage
+                studentRef={searchProfileTarget}
+                onBack={() => setPage("dashboard")}
+                communicationContext={activeProfileCommunicationContext}
+                loadSmsHistory={
+                  canUseSms
+                    ? (studentRef) =>
+                        studentRef?.indexNo
+                          ? API.getSmsHistory({
+                              indexNo: studentRef.indexNo,
+                              limit: 8,
+                            })
+                          : Promise.resolve({ history: [] })
+                    : null
+                }
               onOpenSms={
                 canUseSms
                   ? (context) => {
@@ -959,7 +1051,8 @@ export default function App() {
                     }
                   : null
               }
-            />
+              />
+            </div>
           )}
         </div>
       </div>

@@ -11,6 +11,7 @@ const {
   listStudents,
   createStudentRecord,
   reorderStudentsBySexAndRegenerateCnos,
+  promoteStudentsToClass,
 } = require("../../../../lib/classStudents");
 const {
   getClassSnapshot,
@@ -76,17 +77,26 @@ module.exports = async (req, res) => {
 
   if (req.method === "PATCH") {
     if (!canManageClasses(currentUser.role)) {
-      return sendJson(res, 403, { error: "Only administrators can reorder CNOs" });
+      return sendJson(res, 403, { error: "Only administrators can run rollover and CNO actions" });
     }
     try {
       const body = await readJsonBody(req);
-      if ((body?.action || "") !== "reorder-cnos") {
+      const action = String(body?.action || "").trim();
+      let result;
+      if (action === "reorder-cnos") {
+        result = await reorderStudentsBySexAndRegenerateCnos(db, classId);
+      } else if (action === "promote-rollover") {
+        result = await promoteStudentsToClass(db, classId, body?.targetClassId);
+      } else {
         return sendJson(res, 400, { error: "Unsupported student action" });
       }
-      const result = await reorderStudentsBySexAndRegenerateCnos(db, classId);
       return sendJson(res, 200, result);
     } catch (err) {
-      const status = /class not found/i.test(err.message) ? 404 : 500;
+      const status = /class not found/i.test(err.message)
+        ? 404
+        : /required|different|published/i.test(err.message)
+        ? 400
+        : 500;
       return sendJson(res, status, { error: err.message });
     }
   }
