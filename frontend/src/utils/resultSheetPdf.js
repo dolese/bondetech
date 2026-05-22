@@ -27,9 +27,9 @@ function getPdfSheetConfig(pageSize = "a3") {
       orientation: spec.orientation,
       PAGE_MARGIN: 8,
       PAGE_HEADER_HEIGHT: 42,
-      SUMMARY_START_Y: 66,
-      TABLE_START_Y: 139,
-      SUBJECT_BAND_Y: 112,
+      SUMMARY_START_Y: 78,
+      TABLE_START_Y: 161,
+      SUBJECT_BAND_Y: 140,
       FOOTER_RESERVE: 30,
     };
   }
@@ -176,14 +176,15 @@ function drawSummaryTitle(doc, x, y, width, title) {
 function drawSummaryBlocks(doc, model, config) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const { PAGE_MARGIN, SUMMARY_START_Y } = config;
+  const compact = config.format === "a4";
   const totalWidth = pageWidth - PAGE_MARGIN * 2;
-  const gap = 5;
-  const leftWidth = 78;
-  const middleWidth = 78;
-  const sexWidth = 82;
+  const gap = compact ? 3 : 5;
+  const leftWidth = compact ? 64 : 78;
+  const middleWidth = compact ? 64 : 78;
+  const sexWidth = compact ? 68 : 82;
   const performanceWidth = totalWidth - leftWidth - middleWidth - sexWidth - gap * 3;
   const topY = SUMMARY_START_Y;
-  const rowHeight = 8.2;
+  const rowHeight = compact ? 6.6 : 8.2;
 
   drawSummaryTitle(doc, PAGE_MARGIN, topY, leftWidth, "RESULTS SUMMARY");
   autoTable(doc, {
@@ -192,8 +193,8 @@ function drawSummaryBlocks(doc, model, config) {
     body: model.summaryRows.map(([label, value]) => [label, String(value)]),
     theme: "grid",
     styles: {
-      fontSize: 8.5,
-      cellPadding: 2,
+      fontSize: compact ? 7.2 : 8.5,
+      cellPadding: compact ? 1.4 : 2,
       textColor: TEXT,
       lineColor: BORDER,
       lineWidth: 0.15,
@@ -213,8 +214,8 @@ function drawSummaryBlocks(doc, model, config) {
     body: model.divisionSummaryRows.map((row) => [row.label, String(row.students), row.percentage]),
     theme: "grid",
     styles: {
-      fontSize: 7.8,
-      cellPadding: 1.7,
+      fontSize: compact ? 6.8 : 7.8,
+      cellPadding: compact ? 1.2 : 1.7,
       textColor: TEXT,
       lineColor: BORDER,
       lineWidth: 0.15,
@@ -250,8 +251,8 @@ function drawSummaryBlocks(doc, model, config) {
     ],
     theme: "grid",
     styles: {
-      fontSize: 8.2,
-      cellPadding: 2,
+      fontSize: compact ? 7 : 8.2,
+      cellPadding: compact ? 1.3 : 2,
       textColor: TEXT,
       lineColor: BORDER,
       lineWidth: 0.15,
@@ -276,35 +277,46 @@ function drawSummaryBlocks(doc, model, config) {
 
   const performanceX = sexX + sexWidth + gap;
   drawSummaryTitle(doc, performanceX, topY, performanceWidth, "PERFORMANCE OVERVIEW");
-  const perfY = topY + 13;
+  const perfY = topY + (compact ? 11 : 13);
+  const ringRadius = compact ? 6.2 : 10;
+  const ringStroke = compact ? 1.7 : 2.2;
+  const ringOffset = compact ? 13 : 18;
+  const valueY = perfY + (compact ? 10 : 16);
+  const labelY = perfY + (compact ? 18 : 30);
+  const detailY = perfY + (compact ? 22 : 35);
+  const valueFont = compact ? 6.4 : 8.8;
+  const labelFont = compact ? 5.4 : 7.2;
+  const compactPassDetail = `${model.performanceOverview.passCount}/${model.performanceOverview.completeCount}`;
+  const compactFailDetail = `${model.performanceOverview.failCount}/${model.performanceOverview.completeCount}`;
   const perfCenters = [
-    { x: performanceX + 18, color: [47, 143, 67], label: "PASS RATE", value: `${model.performanceOverview.passRate}%`, detail: `I-IV ${model.performanceOverview.passCount}/${model.performanceOverview.completeCount}` },
-    { x: performanceX + performanceWidth / 2, color: [37, 99, 235], label: "FAIL RATE", value: `${model.performanceOverview.failRate}%`, detail: `0 ${model.performanceOverview.failCount}/${model.performanceOverview.completeCount}` },
-    { x: performanceX + performanceWidth - 18, color: [124, 58, 237], label: "CLASS AVG", value: model.performanceOverview.classAverage, detail: "Complete Only" },
+    { x: performanceX + ringOffset, color: [47, 143, 67], label: "PASS RATE", value: `${model.performanceOverview.passRate}%`, detail: compact ? compactPassDetail : `I-IV ${model.performanceOverview.passCount}/${model.performanceOverview.completeCount}` },
+    { x: performanceX + performanceWidth / 2, color: [37, 99, 235], label: "FAIL RATE", value: `${model.performanceOverview.failRate}%`, detail: compact ? compactFailDetail : `0 ${model.performanceOverview.failCount}/${model.performanceOverview.completeCount}` },
+    { x: performanceX + performanceWidth - ringOffset, color: [124, 58, 237], label: "CLASS AVG", value: model.performanceOverview.classAverage, detail: compact ? "Avg" : "Complete Only" },
   ];
   perfCenters.forEach((item) => {
     doc.setDrawColor(...item.color);
-    doc.setLineWidth(2.2);
-    doc.circle(item.x, perfY + 15, 10, "S");
+    doc.setLineWidth(ringStroke);
+    doc.circle(item.x, perfY + (compact ? 8.6 : 15), ringRadius, "S");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.8);
+    doc.setFontSize(valueFont);
     doc.setTextColor(...TEXT);
-    doc.text(item.value, item.x, perfY + 16, { align: "center" });
-    doc.setFontSize(7.2);
+    doc.text(item.value, item.x, valueY, { align: "center" });
+    doc.setFontSize(labelFont);
     doc.setTextColor(...item.color);
-    doc.text(item.label, item.x, perfY + 30, { align: "center" });
+    doc.text(item.label, item.x, labelY, { align: "center" });
     doc.setTextColor(...TEXT);
-    doc.text(item.detail, item.x, perfY + 35, { align: "center" });
+    doc.text(item.detail, item.x, detailY, { align: "center" });
   });
 }
 
 function drawSubjectSummaryBand(doc, model, config) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const { PAGE_MARGIN, SUBJECT_BAND_Y } = config;
+  const compact = config.format === "a4";
   const totalWidth = pageWidth - PAGE_MARGIN * 2;
   const bandY = SUBJECT_BAND_Y;
-  const headerHeight = 8.5;
-  const bodyHeight = 19;
+  const headerHeight = compact ? 6.4 : 8.5;
+  const bodyHeight = compact ? 12.8 : 19;
   const columns = Math.max(model.subjectSummaries.length, 1);
   const cardWidth = totalWidth / columns;
 
@@ -312,9 +324,9 @@ function drawSubjectSummaryBand(doc, model, config) {
   doc.setDrawColor(...BORDER);
   doc.rect(PAGE_MARGIN, bandY, totalWidth, headerHeight, "FD");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.2);
+  doc.setFontSize(compact ? 7 : 9.2);
   doc.setTextColor(255, 255, 255);
-  doc.text("SUBJECT PERFORMANCE SUMMARY (COMPLETE ONLY)", PAGE_MARGIN + 3, bandY + 5.7);
+  doc.text("SUBJECT PERFORMANCE SUMMARY (COMPLETE ONLY)", PAGE_MARGIN + 3, bandY + (compact ? 4.4 : 5.7));
 
   model.subjectSummaries.forEach((subject, index) => {
     const x = PAGE_MARGIN + index * cardWidth;
@@ -322,22 +334,22 @@ function drawSubjectSummaryBand(doc, model, config) {
     doc.setLineWidth(0.15);
     doc.rect(x, bandY + headerHeight, cardWidth, bodyHeight);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.2);
+    doc.setFontSize(compact ? 7.1 : 9.2);
     doc.setTextColor(...ACCENT);
-    doc.text(subject.subject, x + cardWidth / 2, bandY + headerHeight + 5.5, { align: "center" });
+    doc.text(subject.subject, x + cardWidth / 2, bandY + headerHeight + (compact ? 4 : 5.5), { align: "center" });
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(6.8);
+    doc.setFontSize(compact ? 5.2 : 6.8);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Entries ${subject.entries}`, x + cardWidth / 2, bandY + headerHeight + 9.8, { align: "center" });
+    doc.text(`Entries ${subject.entries}`, x + cardWidth / 2, bandY + headerHeight + (compact ? 6.8 : 9.8), { align: "center" });
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(6.8);
+    doc.setFontSize(compact ? 5.2 : 6.8);
     doc.setTextColor(100, 116, 139);
-    doc.text("AVG", x + 4, bandY + headerHeight + 14.2);
-    doc.text("PASS", x + cardWidth / 2 + 2, bandY + headerHeight + 14.2);
-    doc.setFontSize(9.5);
+    doc.text("AVG", x + (compact ? 2.5 : 4), bandY + headerHeight + (compact ? 9.4 : 14.2));
+    doc.text("PASS", x + cardWidth / 2 + (compact ? 1.2 : 2), bandY + headerHeight + (compact ? 9.4 : 14.2));
+    doc.setFontSize(compact ? 7.2 : 9.5);
     doc.setTextColor(...TEXT);
-    doc.text(subject.average, x + 4, bandY + headerHeight + 18.3);
-    doc.text(subject.passRate, x + cardWidth / 2 + 2, bandY + headerHeight + 18.3);
+    doc.text(subject.average, x + (compact ? 2.5 : 4), bandY + headerHeight + (compact ? 12.3 : 18.3));
+    doc.text(subject.passRate, x + cardWidth / 2 + (compact ? 1.2 : 2), bandY + headerHeight + (compact ? 12.3 : 18.3));
   });
 }
 
