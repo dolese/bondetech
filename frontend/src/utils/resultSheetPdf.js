@@ -502,7 +502,7 @@ export async function buildResultSheetPdf(model, { fileName, pageSize = "a3" } =
     RESULT_TABLE_WIDTHS.sex -
     RESULT_TABLE_WIDTHS.points -
     RESULT_TABLE_WIDTHS.division;
-  const subjectWidth = Math.max(10, Math.min(16, remainingWidth / Math.max(model.subjects.length, 1)));
+  const subjectWidth = Math.max(10, remainingWidth / Math.max(model.subjects.length, 1));
 
   model.subjects.forEach((_, index) => {
     columnStyles[subjectStartIndex + index] = { cellWidth: subjectWidth, halign: "center" };
