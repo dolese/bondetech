@@ -1,6 +1,6 @@
 # Bonde OS Mobile
 
-This folder contains a separate Expo app for the Bonde Results System mobile experience.
+This folder contains the Android mobile app for the Bonde Results System.
 
 It is intentionally isolated from the current Vercel deployment:
 
@@ -8,9 +8,18 @@ It is intentionally isolated from the current Vercel deployment:
 - Vercel still uses the existing root `vercel.json`
 - nothing in this folder changes the current web deployment target
 
+## Platform target
+
+- Android only
+- Android Studio workflow
+- direct Android device / emulator testing
+- Android APK/AAB release preparation
+
+The iOS and web targets have been removed from this mobile app configuration.
+
 ## Intended scope
 
-The mobile app currently targets:
+The Android app currently targets:
 
 - teacher mobile access
 - parent mobile access
@@ -28,7 +37,31 @@ cd mobile
 npm install
 ```
 
-Then run Expo Go:
+## Android Studio workflow
+
+Generate the native Android project:
+
+```powershell
+npm run prebuild:android
+```
+
+Then open this folder in Android Studio:
+
+- `C:\Users\dolese enterprises\Desktop\asset\SCHOOL\bondetech-main\mobile\android`
+
+From there you can:
+
+- run on emulator or connected device
+- build debug APK
+- generate signed APK/AAB
+
+You can also run directly from Expo's native Android command:
+
+```powershell
+npm run run:android
+```
+
+If you only need Metro running:
 
 ```powershell
 npm run start
@@ -62,18 +95,21 @@ This app now includes:
 - school announcements tab from the shared Bonde homepage overview
 - account tab with refresh and sign-out actions
 
-## Recommended test flow
+## Recommended Android test flow
 
 1. Run `npm install` inside `mobile/`.
-2. Start Expo with `npm run start`.
-3. Open the project in Expo Go.
-4. Sign in with:
+2. Run `npm run prebuild:android`.
+3. Open `mobile/android` in Android Studio.
+4. Run the app on an Android emulator or real Android device.
+5. Sign in with:
    - a teacher account to verify class scope and timetable
    - a parent account to verify linked learner results history
-5. Confirm the mobile app does not affect the live web deployment.
+6. Confirm the Android app does not affect the live web deployment.
 
 ## Next build ideas
 
+- signed APK/AAB generation profiles
+- push notifications for Android
 - native navigation with screen-level stacks
 - teacher marks-entry shortcuts
 - parent report-card PDF access

@@ -3,6 +3,9 @@
     "name": "Bonde OS Mobile",
     "slug": "bonde-os-mobile",
     "version": "1.0.0",
+    "platforms": [
+      "android"
+    ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "splash": {
@@ -12,16 +15,17 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
+      "package": "com.bonde.os.mobile",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET"
+      ],
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#f8fafc"
-      }
-    },
-    "web": {
-      "bundler": "metro"
+      },
+      "edgeToEdgeEnabled": true
     },
     "extra": {
       "apiBaseUrl": "https://dolese.tech/api"

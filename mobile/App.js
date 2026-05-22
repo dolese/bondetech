@@ -140,7 +140,7 @@ function LoginScreen({
       >
         <View style={styles.loginHero}>
           <Text style={styles.loginEyebrow}>BONDE OS MOBILE</Text>
-          <Text style={styles.loginTitle}>Teacher and parent access in Expo Go.</Text>
+          <Text style={styles.loginTitle}>Teacher and parent access for Android.</Text>
           <Text style={styles.loginSubtitle}>
             This app connects to the same Bonde backend while staying separate
             from the current Vercel web deployment.
@@ -151,7 +151,7 @@ function LoginScreen({
           <SectionTitle
             eyebrow="SIGN IN"
             title="Use your existing Bonde account"
-            detail="Teachers and parents can sign in with the same credentials used on the web app."
+            detail="Teachers and parents can sign in with the same credentials used in Bonde OS."
           />
 
           <View style={styles.formBlock}>
@@ -231,7 +231,7 @@ function AccountTab({ user, onLogout, onRefresh, refreshing }) {
           ) : null}
           {user.mustChangePassword ? (
             <Text style={[styles.infoRow, { color: "#b45309" }]}>
-              Password change is required on the web app.
+              Password change is currently handled in Bonde OS admin.
             </Text>
           ) : null}
         </View>
@@ -1043,7 +1043,7 @@ export default function App() {
           <Text style={styles.heroTitle}>Bonde OS Mobile</Text>
           <Text style={styles.heroSubtitle}>
             Signed in as {formatRoleLabel(user.role)}. This mobile app is running
-            independently from the current Vercel-hosted web admin.
+            independently from the current Bonde OS web admin.
           </Text>
         </View>
 
