@@ -544,11 +544,6 @@ export async function buildResultSheetPdf(model, { fileName, pageSize = "a3" } =
         drawTitleBlock(doc, model, config);
         drawSummaryBlocks(doc, model, config);
         drawSubjectSummaryBand(doc, model, config);
-      } else {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.setTextColor(...ACCENT);
-        doc.text("OFFICIAL RESULT SHEET", pageWidth / 2, PAGE_MARGIN + 48, { align: "center" });
       }
     },
     didParseCell: (data) => {
@@ -572,10 +567,6 @@ export async function buildResultSheetPdf(model, { fileName, pageSize = "a3" } =
   if (finalY > pageHeight - 52) {
     doc.addPage(config.format, config.orientation);
     drawSchoolHeader(doc, model, assets, config);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(...ACCENT);
-    doc.text("OFFICIAL RESULT SHEET", pageWidth / 2, PAGE_MARGIN + 48, { align: "center" });
   }
 
   drawClosingFooter(doc, model, config);
