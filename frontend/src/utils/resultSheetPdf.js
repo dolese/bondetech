@@ -1,7 +1,12 @@
 import { jsPDF } from "jspdf";
 import autoTable from "../vendor/jspdf.plugin.autotable.mjs";
 import { getResultSheetBranding } from "./exportBranding";
-import { getResultSheetBody, getResultSheetHead, getResultSheetPageSpec } from "./resultSheetShared";
+import {
+  getResultSheetBody,
+  getResultSheetHead,
+  getResultSheetPageSpec,
+  getResultSheetTableFixedWidth,
+} from "./resultSheetShared";
 
 const ACCENT = [22, 63, 151];
 const BORDER = [174, 190, 223];
@@ -10,13 +15,6 @@ const STATUS_COLORS = {
   COMPLETE: [26, 107, 47],
   INCOMPLETE: [164, 91, 0],
   ABSENT: [180, 35, 24],
-};
-const RESULT_TABLE_WIDTHS = {
-  cno: 18,
-  name: 52,
-  sex: 10,
-  points: 15,
-  division: 17,
 };
 
 function getPdfSheetConfig(pageSize = "a3") {
@@ -392,6 +390,10 @@ function drawSubjectSummaryBand(doc, model, config) {
   });
 }
 
+function mmWidth(percent, totalWidth) {
+  return (totalWidth * percent) / 100;
+}
+
 function drawClosingFooter(doc, model, config) {
   const branding = getResultSheetBranding(model.schoolInfo);
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -488,20 +490,21 @@ export async function buildResultSheetPdf(model, { fileName, pageSize = "a3" } =
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const { PAGE_MARGIN, PAGE_HEADER_HEIGHT, TABLE_START_Y, FOOTER_RESERVE } = config;
+  const tableWidth = pageWidth - PAGE_MARGIN * 2;
+  const fixedWidthPercentages = getResultSheetTableFixedWidth(pageSize);
   const subjectStartIndex = 3;
   const columnStyles = {
-    0: { cellWidth: RESULT_TABLE_WIDTHS.cno, halign: "center" },
-    1: { cellWidth: RESULT_TABLE_WIDTHS.name, halign: "left" },
-    2: { cellWidth: RESULT_TABLE_WIDTHS.sex, halign: "center" },
+    0: { cellWidth: mmWidth(fixedWidthPercentages.cno, tableWidth), halign: "center" },
+    1: { cellWidth: mmWidth(fixedWidthPercentages.name, tableWidth), halign: "left" },
+    2: { cellWidth: mmWidth(fixedWidthPercentages.sex, tableWidth), halign: "center" },
   };
   const remainingWidth =
-    pageWidth -
-    PAGE_MARGIN * 2 -
-    RESULT_TABLE_WIDTHS.cno -
-    RESULT_TABLE_WIDTHS.name -
-    RESULT_TABLE_WIDTHS.sex -
-    RESULT_TABLE_WIDTHS.points -
-    RESULT_TABLE_WIDTHS.division;
+    tableWidth -
+    mmWidth(fixedWidthPercentages.cno, tableWidth) -
+    mmWidth(fixedWidthPercentages.name, tableWidth) -
+    mmWidth(fixedWidthPercentages.sex, tableWidth) -
+    mmWidth(fixedWidthPercentages.points, tableWidth) -
+    mmWidth(fixedWidthPercentages.division, tableWidth);
   const subjectWidth = Math.max(10, remainingWidth / Math.max(model.subjects.length, 1));
 
   model.subjects.forEach((_, index) => {
@@ -509,8 +512,8 @@ export async function buildResultSheetPdf(model, { fileName, pageSize = "a3" } =
   });
 
   const totalStart = subjectStartIndex + model.subjects.length;
-  columnStyles[totalStart] = { cellWidth: RESULT_TABLE_WIDTHS.points, halign: "center" };
-  columnStyles[totalStart + 1] = { cellWidth: RESULT_TABLE_WIDTHS.division, halign: "center" };
+  columnStyles[totalStart] = { cellWidth: mmWidth(fixedWidthPercentages.points, tableWidth), halign: "center" };
+  columnStyles[totalStart + 1] = { cellWidth: mmWidth(fixedWidthPercentages.division, tableWidth), halign: "center" };
 
   autoTable(doc, {
     startY: TABLE_START_Y,
@@ -518,7 +521,7 @@ export async function buildResultSheetPdf(model, { fileName, pageSize = "a3" } =
     body: getResultSheetBody(model),
     margin: { left: PAGE_MARGIN, right: PAGE_MARGIN, top: PAGE_HEADER_HEIGHT, bottom: FOOTER_RESERVE },
     theme: "grid",
-    tableWidth: pageWidth - PAGE_MARGIN * 2,
+    tableWidth,
     rowPageBreak: "avoid",
     styles: {
       fontSize: 7.8,
