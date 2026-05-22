@@ -222,7 +222,7 @@ function SchoolCrest({ size = 40 }) {
   );
 }
 
-export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
+export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool }) {
   const { language, t } = useI18n();
   const fallbackOverview = useMemo(() => createFallbackOverview(t), [t]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -491,7 +491,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                 { label: t("home"), action: scrollToTop },
                 { label: t("results"), action: scrollToSearch },
                 { label: t("notices"), action: scrollToAnnouncements },
-                { label: t("aboutUs"), action: scrollToFooter },
+                { label: t("aboutUs"), action: onOpenSchool || scrollToFooter },
                 { label: t("contactUs"), action: scrollToFooter },
               ].map(({ label, action }) => (
                 <span key={label} onClick={action} className={`home-nav-link ${label === t("home") ? "active" : ""}`}>
@@ -550,7 +550,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy }) {
                   { label: t("home"), meta: t("start"), action: scrollToTop },
                   { label: t("results"), meta: t("portal"), action: scrollToSearch },
                   { label: t("notices"), meta: t("updates"), action: scrollToAnnouncements },
-                  { label: t("aboutUs"), meta: t("school"), action: scrollToFooter },
+                  { label: t("aboutUs"), meta: t("school"), action: onOpenSchool || scrollToFooter },
                   { label: t("contactUs"), meta: t("support"), action: scrollToFooter },
                 ].map(({ label, meta, action }) => (
                   <button

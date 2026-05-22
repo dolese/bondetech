@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { HomePage } from "./Home/HomePage";
 import { LoginPage } from "./LoginPage";
 import { PublicLegalPage } from "./PublicLegalPage";
+import { PublicSchoolPage } from "./PublicSchoolPage";
 
 function getLandingViewFromPath(pathname = "/") {
   if (pathname === "/login") return "login";
+  if (pathname === "/our-school") return "our-school";
   if (pathname === "/terms") return "terms";
   if (pathname === "/privacy") return "privacy";
   return "home";
@@ -12,6 +14,7 @@ function getLandingViewFromPath(pathname = "/") {
 
 function getPathForView(view) {
   if (view === "login") return "/login";
+  if (view === "our-school") return "/our-school";
   if (view === "terms") return "/terms";
   if (view === "privacy") return "/privacy";
   return "/";
@@ -46,6 +49,7 @@ export function Landing({ onLogin }) {
         onBack={() => navigateToView("home")}
         onOpenTerms={() => navigateToView("terms")}
         onOpenPrivacy={() => navigateToView("privacy")}
+        onOpenSchool={() => navigateToView("our-school")}
         onLogin={async (creds) => {
           const result = await onLogin?.(creds);
           navigateToView("home", { replace: true });
@@ -65,11 +69,21 @@ export function Landing({ onLogin }) {
     );
   }
 
+  if (view === "our-school") {
+    return (
+      <PublicSchoolPage
+        onBackHome={() => navigateToView("home")}
+        onOpenLogin={() => navigateToView("login")}
+      />
+    );
+  }
+
   return (
     <HomePage
       onOpenLogin={() => navigateToView("login")}
       onOpenTerms={() => navigateToView("terms")}
       onOpenPrivacy={() => navigateToView("privacy")}
+      onOpenSchool={() => navigateToView("our-school")}
     />
   );
 }
