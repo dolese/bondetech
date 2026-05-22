@@ -21,6 +21,157 @@ export const MOBILE_TIMETABLE_PERIODS = [
   { id: "period-10", label: "Activities", time: "15:00-15:30" },
 ];
 
+const DEFAULT_EXAM_TYPE = "March Exam";
+const GRADE_POINTS = { A: 1, B: 2, C: 3, D: 4, F: 5 };
+const COMPOSITE_EXAM_CONFIG = {
+  "Terminal Exam": { partnerExam: "March Exam" },
+  "September Exam": { partnerExam: "Pre-Mock Exam" },
+  "Annual Exam": { partnerExam: "September Exam" },
+};
+
+function getGrade(score) {
+  if (score === "" || score === null || score === undefined) return null;
+  const number = Number(score);
+  if (!Number.isFinite(number)) return null;
+  if (number >= 75) return "A";
+  if (number >= 60) return "B";
+  if (number >= 45) return "C";
+  if (number >= 30) return "D";
+  return "F";
+}
+
+function getGradePoints(grade) {
+  return GRADE_POINTS[String(grade || "").toUpperCase()] ?? 5;
+}
+
+function getDivision(points) {
+  if (points <= 17) return "I";
+  if (points <= 21) return "II";
+  if (points <= 25) return "III";
+  if (points <= 33) return "IV";
+  return "0";
+}
+
+function getCompositeEntry(examType = "", classCompositeConfig = {}) {
+  const defaults = COMPOSITE_EXAM_CONFIG[examType];
+  if (!defaults) return null;
+  const override = classCompositeConfig?.[examType] ?? {};
+  return { ...defaults, ...override };
+}
+
+function toNumericScore(value) {
+  const raw = typeof value === "string" ? value.trim() : value;
+  if (
+    raw === "" ||
+    raw === null ||
+    raw === undefined ||
+    (typeof raw === "string" && raw.toUpperCase() === "ABS")
+  ) {
+    return null;
+  }
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function computeStudentResult(student = {}, subjects = [], examType = DEFAULT_EXAM_TYPE, compositeConfig = {}) {
+  const examScores = student.examScores && typeof student.examScores === "object" ? student.examScores : {};
+  const currentScores = Array.isArray(examScores[examType])
+    ? examScores[examType]
+    : Array.isArray(student.scores)
+    ? student.scores
+    : [];
+  const compositeEntry = getCompositeEntry(examType, compositeConfig);
+  const partnerScores =
+    compositeEntry && Array.isArray(examScores[compositeEntry.partnerExam])
+      ? examScores[compositeEntry.partnerExam]
+      : null;
+
+  const grades = subjects.map((subject, index) => {
+    const currentRaw = currentScores[index];
+    const partnerRaw = partnerScores ? partnerScores[index] : undefined;
+    const current = toNumericScore(currentRaw);
+    const partner = toNumericScore(partnerRaw);
+    let score = current;
+
+    if (partnerScores) {
+      if (current !== null && partner !== null) score = (current + partner) / 2;
+      else score = current ?? partner;
+    }
+
+    return {
+      subject,
+      raw: typeof currentRaw === "string" ? currentRaw.trim().toUpperCase() : currentRaw,
+      score: score !== null ? Number(score.toFixed(1)) : null,
+      grade: getGrade(score),
+    };
+  });
+
+  const numericGrades = grades.filter((entry) => entry.score !== null);
+  const subjectsDone = numericGrades.length;
+  const status = subjectsDone === 0 ? "ABSENT" : subjectsDone < 7 ? "INCOMPLETE" : "COMPLETE";
+
+  if (!numericGrades.length) {
+    return {
+      ...student,
+      grades,
+      total: null,
+      average: null,
+      averageGrade: null,
+      division: null,
+      points: null,
+      resultStatus: status,
+      subjectsDone,
+    };
+  }
+
+  const total = numericGrades.reduce((sum, entry) => sum + entry.score, 0);
+  const average = Number((total / numericGrades.length).toFixed(1));
+  const averageGrade = getGrade(average);
+  let points = null;
+  let division = null;
+
+  if (status === "COMPLETE") {
+    points = [...numericGrades]
+      .sort((left, right) => getGradePoints(left.grade) - getGradePoints(right.grade))
+      .slice(0, 7)
+      .reduce((sum, entry) => sum + getGradePoints(entry.grade), 0);
+    division = getDivision(points);
+  }
+
+  return {
+    ...student,
+    grades,
+    total: Number(total.toFixed(1)),
+    average,
+    averageGrade,
+    division,
+    points,
+    resultStatus: status,
+    subjectsDone,
+  };
+}
+
+function withPositions(students = []) {
+  const ranked = students
+    .filter((student) => student.total !== null)
+    .slice()
+    .sort((left, right) => (right.total || 0) - (left.total || 0));
+  const positions = new Map();
+  ranked.forEach((student, index) => {
+    positions.set(student.id, index + 1);
+  });
+  return students.map((student) => ({
+    ...student,
+    position: positions.get(student.id) || null,
+  }));
+}
+
+function formatDivisionValue(student = {}) {
+  if (student.resultStatus === "ABSENT") return "ABS";
+  if (student.resultStatus === "INCOMPLETE") return "INC";
+  return student.division || "-";
+}
+
 export function formatRoleLabel(role = "") {
   const normalized = String(role || "").trim().toLowerCase();
   if (!normalized) return "User";
@@ -287,4 +438,74 @@ export function buildParentReportSnapshots(profile) {
       latestSubjects: entry.latestSubjects,
     }))
     .sort((left, right) => left.classLabel.localeCompare(right.classLabel, "en"));
+}
+
+export function buildClassResultSummary(classData = {}) {
+  const subjects = Array.isArray(classData.subjects) ? classData.subjects : [];
+  const students = Array.isArray(classData.students) ? classData.students : [];
+  const schoolInfo = classData.school_info ?? classData.schoolInfo ?? {};
+  const examType = schoolInfo.exam || DEFAULT_EXAM_TYPE;
+  const computedStudents = withPositions(
+    students.map((student) =>
+      computeStudentResult(student, subjects, examType, classData.composite_config ?? classData.compositeConfig ?? {})
+    )
+  );
+
+  const completeStudents = computedStudents.filter((student) => student.resultStatus === "COMPLETE");
+  const incompleteStudents = computedStudents.filter((student) => student.resultStatus === "INCOMPLETE");
+  const absentStudents = computedStudents.filter((student) => student.resultStatus === "ABSENT");
+  const passCount = completeStudents.filter((student) => student.division && student.division !== "0").length;
+  const failCount = completeStudents.filter((student) => student.division === "0").length;
+  const classAverage = completeStudents.length
+    ? (
+        completeStudents.reduce((sum, student) => sum + Number(student.average || 0), 0) /
+        completeStudents.length
+      ).toFixed(1)
+    : "0.0";
+
+  const divisionCounts = { I: 0, II: 0, III: 0, IV: 0, "0": 0 };
+  completeStudents.forEach((student) => {
+    if (student.division && divisionCounts[student.division] !== undefined) {
+      divisionCounts[student.division] += 1;
+    }
+  });
+
+  const subjectSummaries = subjects.map((subject, index) => {
+    const entries = computedStudents
+      .map((student) => student.grades?.[index])
+      .filter((entry) => entry && entry.score !== null);
+    const average = entries.length
+      ? (entries.reduce((sum, entry) => sum + Number(entry.score || 0), 0) / entries.length).toFixed(1)
+      : "0.0";
+    const passCountForSubject = entries.filter((entry) => Number(entry.score) >= 30).length;
+    return {
+      subject,
+      entries: entries.length,
+      average,
+      passRate: entries.length ? `${((passCountForSubject / entries.length) * 100).toFixed(1)}%` : "0.0%",
+    };
+  });
+
+  const rankedStudents = computedStudents
+    .slice()
+    .sort((left, right) => {
+      if ((right.total || 0) !== (left.total || 0)) return (right.total || 0) - (left.total || 0);
+      return String(left.name || "").localeCompare(String(right.name || ""), "en");
+    });
+
+  return {
+    examType,
+    totalStudents: computedStudents.length,
+    completeCount: completeStudents.length,
+    incompleteCount: incompleteStudents.length,
+    absentCount: absentStudents.length,
+    passCount,
+    failCount,
+    classAverage,
+    divisionCounts,
+    subjectSummaries,
+    topPerformers: rankedStudents.filter((student) => student.total !== null).slice(0, 5),
+    students: rankedStudents,
+    formatDivisionValue,
+  };
 }

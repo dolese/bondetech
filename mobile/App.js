@@ -22,10 +22,13 @@ import {
   getClassById,
   getHomepageOverview,
   getSession,
+  getSmsGatewayStatus,
+  getSmsHistory,
   getStudentProfile,
   login,
 } from "./src/api";
 import {
+  buildClassResultSummary,
   buildParentReportSnapshots,
   buildTeacherSchedule,
   formatClassLabel,
@@ -117,6 +120,19 @@ function MiniMetric({ label, value }) {
       <Text style={styles.miniMetricLabel}>{label}</Text>
     </View>
   );
+}
+
+function formatHistoryTime(value) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return parsed.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 
 function LoginScreen({
@@ -290,6 +306,7 @@ function TeacherHome({
   selectedClassId,
   onSelectClass,
   classDetails,
+  onOpenStudent,
 }) {
   const summary = useMemo(
     () => summarizeTeacherAssignments(user, classes),
@@ -417,7 +434,15 @@ function TeacherHome({
               <Text style={styles.subsectionLabel}>Students</Text>
               <View style={styles.studentList}>
                 {filteredStudents.map((student) => (
-                  <View key={student.id} style={styles.studentRow}>
+                  <Pressable
+                    key={student.id}
+                    onPress={() => onOpenStudent?.(student)}
+                    disabled={!student.indexNo}
+                    style={[
+                      styles.studentRow,
+                      !student.indexNo && styles.studentRowDisabled,
+                    ]}
+                  >
                     <View style={styles.studentAvatar}>
                       <Text style={styles.studentAvatarText}>
                         {(student.name || "?").slice(0, 1).toUpperCase()}
@@ -429,7 +454,10 @@ function TeacherHome({
                         {student.indexNo || "-"} | {student.status || "present"}
                       </Text>
                     </View>
-                  </View>
+                    <Text style={styles.studentRowAction}>
+                      {student.indexNo ? "Profile" : "No CNO"}
+                    </Text>
+                  </Pressable>
                 ))}
                 {!filteredStudents.length ? (
                   <Text style={styles.emptyText}>No students match this search.</Text>
@@ -477,6 +505,471 @@ function TeacherTimetableTab({ user, classes }) {
           </Text>
         )}
       </ShellCard>
+    </View>
+  );
+}
+
+function TeacherResultsTab({
+  classes,
+  selectedClassId,
+  onSelectClass,
+  classDetails,
+  onOpenStudent,
+}) {
+  const activeClass = classes.find((entry) => entry.id === selectedClassId) || null;
+  const resultSummary = useMemo(
+    () => buildClassResultSummary(classDetails?.data || {}),
+    [classDetails]
+  );
+
+  return (
+    <View style={styles.stack}>
+      <ShellCard>
+        <SectionTitle
+          eyebrow="RESULTS"
+          title={activeClass ? `${formatClassLabel(activeClass)} Result Overview` : "Class Results"}
+          detail={`Exam: ${resultSummary.examType || "Current class exam"}`}
+        />
+        <View style={styles.miniMetricRow}>
+          <MiniMetric label="Students" value={String(resultSummary.totalStudents || 0)} />
+          <MiniMetric label="Complete" value={String(resultSummary.completeCount || 0)} />
+          <MiniMetric label="Incomplete" value={String(resultSummary.incompleteCount || 0)} />
+          <MiniMetric label="Absent" value={String(resultSummary.absentCount || 0)} />
+          <MiniMetric label="Average" value={String(resultSummary.classAverage || "0.0")} />
+        </View>
+      </ShellCard>
+
+      <ShellCard subtle>
+        <SectionTitle
+          eyebrow="CLASS PICKER"
+          title="Visible classes"
+          detail="Switch class results without leaving the mobile dashboard."
+        />
+        <View style={styles.listStack}>
+          {classes.map((cls) => (
+            <Pressable
+              key={cls.id}
+              onPress={() => onSelectClass(cls.id)}
+              style={[
+                styles.classItem,
+                selectedClassId === cls.id && styles.classItemActive,
+              ]}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.classItemTitle}>{formatClassLabel(cls)}</Text>
+                <Text style={styles.classItemMeta}>
+                  {cls.studentCount || 0} students | {(cls.subjects || []).length} subjects
+                </Text>
+              </View>
+              <Text style={styles.classItemAction}>
+                {selectedClassId === cls.id ? "Active" : "Open"}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </ShellCard>
+
+      <ShellCard subtle>
+        <SectionTitle
+          eyebrow="DIVISION"
+          title="Division spread"
+          detail="Complete-result counts only."
+        />
+        <View style={styles.chipRow}>
+          {["I", "II", "III", "IV", "0"].map((division) => (
+            <View key={division} style={styles.scoreChip}>
+              <Text style={styles.scoreChipText}>
+                Div {division} {resultSummary.divisionCounts?.[division] ?? 0}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.scoreChip}>
+            <Text style={styles.scoreChipText}>Pass {resultSummary.passCount || 0}</Text>
+          </View>
+          <View style={styles.scoreChip}>
+            <Text style={styles.scoreChipText}>Fail {resultSummary.failCount || 0}</Text>
+          </View>
+        </View>
+      </ShellCard>
+
+      <ShellCard>
+        <SectionTitle
+          eyebrow="SUBJECTS"
+          title="Subject performance"
+          detail="Average and pass-rate summary from current saved scores."
+        />
+        <View style={styles.stack}>
+          {(resultSummary.subjectSummaries || []).map((subject) => (
+            <View key={subject.subject} style={styles.historyCard}>
+              <View style={styles.reportCardHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.historyTitle}>{subject.subject}</Text>
+                  <Text style={styles.historyMeta}>Entries {subject.entries}</Text>
+                </View>
+                <View style={styles.reportDivisionPill}>
+                  <Text style={styles.reportDivisionText}>{subject.passRate}</Text>
+                </View>
+              </View>
+              <View style={styles.miniMetricRow}>
+                <MiniMetric label="Average" value={String(subject.average)} />
+                <MiniMetric label="Pass Rate" value={subject.passRate} />
+              </View>
+            </View>
+          ))}
+          {!resultSummary.subjectSummaries?.length ? (
+            <Text style={styles.emptyText}>No subject performance data is available yet.</Text>
+          ) : null}
+        </View>
+      </ShellCard>
+
+      <ShellCard>
+        <SectionTitle
+          eyebrow="TOP STUDENTS"
+          title="Top performers"
+          detail="Open a learner profile from the ranked class list."
+        />
+        <View style={styles.stack}>
+          {(resultSummary.topPerformers || []).map((student) => (
+            <Pressable
+              key={`top-${student.id}`}
+              onPress={() => onOpenStudent?.(student)}
+              disabled={!student.indexNo}
+              style={styles.historyCard}
+            >
+              <View style={styles.reportCardHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.historyTitle}>{student.name || "Unnamed Student"}</Text>
+                  <Text style={styles.historyMeta}>
+                    {student.indexNo || "-"} | Pos {student.position || "-"}
+                  </Text>
+                </View>
+                <View style={styles.reportDivisionPill}>
+                  <Text style={styles.reportDivisionText}>
+                    {resultSummary.formatDivisionValue(student)}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.miniMetricRow}>
+                <MiniMetric label="Average" value={student.average ?? "-"} />
+                <MiniMetric label="Points" value={student.points ?? "-"} />
+                <MiniMetric label="Total" value={student.total ?? "-"} />
+              </View>
+            </Pressable>
+          ))}
+          {!resultSummary.topPerformers?.length ? (
+            <Text style={styles.emptyText}>No ranked students are available for this class yet.</Text>
+          ) : null}
+        </View>
+      </ShellCard>
+
+      <ShellCard>
+        <SectionTitle
+          eyebrow="ROSTER RESULTS"
+          title="Student result list"
+          detail="Quick mobile result rows for the selected class."
+        />
+        <View style={styles.stack}>
+          {(resultSummary.students || []).slice(0, 24).map((student) => (
+            <Pressable
+              key={`roster-${student.id}`}
+              onPress={() => onOpenStudent?.(student)}
+              disabled={!student.indexNo}
+              style={styles.resultRow}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.studentName}>{student.name || "Unnamed Student"}</Text>
+                <Text style={styles.studentMeta}>
+                  {student.indexNo || "-"} | Avg {student.average ?? "-"} | Points {student.points ?? "-"}
+                </Text>
+              </View>
+              <View style={styles.resultBadges}>
+                <Text style={styles.resultPill}>{resultSummary.formatDivisionValue(student)}</Text>
+                <Text style={styles.resultPillMuted}>Pos {student.position || "-"}</Text>
+              </View>
+            </Pressable>
+          ))}
+          {resultSummary.students?.length > 24 ? (
+            <Text style={styles.emptyText}>
+              Showing first 24 students. Open the web portal for the full result sheet.
+            </Text>
+          ) : null}
+        </View>
+      </ShellCard>
+    </View>
+  );
+}
+
+function StaffCommunicationTab({
+  classDetails,
+  onOpenStudent,
+  smsCenter,
+  onRefreshSms,
+}) {
+  const contacts = useMemo(() => {
+    const students = Array.isArray(classDetails?.data?.students) ? classDetails.data.students : [];
+    return students
+      .filter((student) => String(student?.parentPhone || "").trim())
+      .slice()
+      .sort((left, right) => String(left?.name || "").localeCompare(String(right?.name || ""), "en"));
+  }, [classDetails]);
+
+  return (
+    <View style={styles.stack}>
+      <ShellCard>
+        <SectionTitle
+          eyebrow="SMS CENTER"
+          title="Gateway and history"
+          detail="Live Beem gateway summary and recent portal SMS activity."
+        />
+        <View style={styles.miniMetricRow}>
+          <MiniMetric label="Configured" value={smsCenter?.data?.configured ? "Yes" : "No"} />
+          <MiniMetric label="Sender" value={smsCenter?.data?.senderId || "-"} />
+          <MiniMetric label="Batch" value={String(smsCenter?.data?.batchSize || "-")} />
+        </View>
+        <Pressable
+          onPress={onRefreshSms}
+          disabled={smsCenter?.loading}
+          style={[styles.secondaryButton, smsCenter?.loading && styles.secondaryButtonDisabled, { marginTop: 14 }]}
+        >
+          <Text style={styles.secondaryButtonText}>
+            {smsCenter?.loading ? "Refreshing SMS..." : "Refresh SMS History"}
+          </Text>
+        </Pressable>
+        {smsCenter?.error ? <Text style={[styles.errorText, { marginTop: 10 }]}>{smsCenter.error}</Text> : null}
+      </ShellCard>
+
+      <ShellCard subtle>
+        <SectionTitle
+          eyebrow="GUARDIAN CONTACTS"
+          title="Contacts from the active class"
+          detail="Tap a student to open the full mobile profile and academic history."
+        />
+        <View style={styles.stack}>
+          {contacts.map((student) => (
+            <Pressable
+              key={`contact-${student.id}`}
+              onPress={() => onOpenStudent?.(student)}
+              style={styles.resultRow}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.studentName}>{student.name || "Unnamed Student"}</Text>
+                <Text style={styles.studentMeta}>
+                  {student.parentName || "Guardian"} | {student.parentPhone}
+                </Text>
+              </View>
+              <Text style={styles.studentRowAction}>Profile</Text>
+            </Pressable>
+          ))}
+          {!contacts.length ? (
+            <Text style={styles.emptyText}>No guardian phone numbers are available in this class yet.</Text>
+          ) : null}
+        </View>
+      </ShellCard>
+
+      <ShellCard>
+        <SectionTitle
+          eyebrow="RECENT SMS"
+          title="Portal activity"
+          detail="Latest outbound SMS records already saved by the Bonde backend."
+        />
+        <View style={styles.stack}>
+          {(smsCenter?.data?.history || []).map((entry) => (
+            <View key={entry.id} style={styles.historyCard}>
+              <View style={styles.reportCardHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.historyTitle}>
+                    {entry.mode === "results" ? "Results SMS" : "Custom SMS"}
+                  </Text>
+                  <Text style={styles.historyMeta}>
+                    {formatHistoryTime(entry.created_at)} | {entry.requested_by?.displayName || entry.requested_by?.username || "-"}
+                  </Text>
+                </View>
+                <View style={styles.reportDivisionPill}>
+                  <Text style={styles.reportDivisionText}>
+                    {entry.successful ? "Submitted" : "Warnings"}
+                  </Text>
+                </View>
+              </View>
+              {entry.message_preview ? (
+                <Text style={styles.reportRemarks}>{entry.message_preview}</Text>
+              ) : null}
+            </View>
+          ))}
+          {!smsCenter?.data?.history?.length && !smsCenter?.loading ? (
+            <Text style={styles.emptyText}>No SMS history has been recorded yet.</Text>
+          ) : null}
+        </View>
+      </ShellCard>
+    </View>
+  );
+}
+
+function StudentProfileScreen({ indexNo, authToken, communicationContext, onBack }) {
+  const [profile, setProfile] = useState(null);
+  const [smsHistory, setSmsHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError("");
+      try {
+        const [studentProfile, smsPayload] = await Promise.all([
+          getStudentProfile(indexNo),
+          authToken ? getSmsHistory(authToken, { indexNo, limit: 12 }) : Promise.resolve({ history: [] }),
+        ]);
+        if (cancelled) return;
+        setProfile(studentProfile);
+        setSmsHistory(Array.isArray(smsPayload?.history) ? smsPayload.history : []);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err.message || "Unable to load student profile.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [authToken, indexNo]);
+
+  const summary = useMemo(() => summarizeParentProfile(profile), [profile]);
+  const snapshots = useMemo(() => buildParentReportSnapshots(profile), [profile]);
+
+  return (
+    <View style={styles.stack}>
+      <View style={styles.inlineButtons}>
+        <Pressable onPress={onBack} style={styles.secondaryButton}>
+          <Text style={styles.secondaryButtonText}>Back</Text>
+        </Pressable>
+      </View>
+
+      {loading ? (
+        <ShellCard>
+          <ActivityIndicator color={MOBILE_THEME.primary} />
+          <Text style={[styles.emptyText, { marginTop: 12 }]}>Loading student profile...</Text>
+        </ShellCard>
+      ) : error ? (
+        <ShellCard>
+          <Text style={styles.errorText}>{error}</Text>
+        </ShellCard>
+      ) : (
+        <>
+          <ShellCard>
+            <SectionTitle
+              eyebrow="STUDENT PROFILE"
+              title={profile?.name || communicationContext?.name || "Student"}
+              detail={`${profile?.admissionNo || "-"} | ${profile?.indexNo || indexNo}`}
+            />
+            <View style={styles.infoList}>
+              <Text style={styles.infoRow}>Sex: {profile?.sex === "F" ? "Female" : "Male"}</Text>
+              {communicationContext?.parentName || communicationContext?.phone ? (
+                <Text style={styles.infoRow}>
+                  Guardian: {communicationContext?.parentName || "Guardian"} {communicationContext?.phone ? `| ${communicationContext.phone}` : ""}
+                </Text>
+              ) : null}
+            </View>
+            <View style={[styles.miniMetricRow, { marginTop: 12 }]}>
+              <MiniMetric label="Classes" value={String(profile?.entries?.length || 0)} />
+              <MiniMetric label="Exams" value={summary.examCount || "0"} />
+              <MiniMetric label="Latest Division" value={summary.latestDivision || "INC"} />
+            </View>
+          </ShellCard>
+
+          <ShellCard subtle>
+            <SectionTitle
+              eyebrow="LATEST REPORTS"
+              title="Class result snapshots"
+              detail="Compact learner report cards from saved class entries."
+            />
+            <View style={styles.stack}>
+              {snapshots.map((snapshot) => (
+                <View key={`${snapshot.classId}-${snapshot.latestExamName}`} style={styles.reportCard}>
+                  <View style={styles.reportCardHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.reportCardTitle}>{snapshot.classLabel}</Text>
+                      <Text style={styles.reportCardMeta}>{snapshot.latestExamName}</Text>
+                    </View>
+                    <View style={styles.reportDivisionPill}>
+                      <Text style={styles.reportDivisionText}>
+                        {snapshot.division ? `Div ${snapshot.division}` : "INC"}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.chipRow}>
+                    {snapshot.latestSubjects.map((subject) => (
+                      <View key={`${snapshot.classId}-${snapshot.latestExamName}-${subject.label}`} style={styles.scoreChip}>
+                        <Text style={styles.scoreChipText}>{subject.label} {subject.score}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))}
+              {!snapshots.length ? <Text style={styles.emptyText}>No report snapshots are available yet.</Text> : null}
+            </View>
+          </ShellCard>
+
+          <ShellCard>
+            <SectionTitle
+              eyebrow="RESULT HISTORY"
+              title="Saved exam records"
+              detail="Detailed academic history from the live student profile endpoint."
+            />
+            <View style={styles.stack}>
+              {summary.allExams.map((exam, index) => (
+                <View key={`${exam.classId}-${exam.name}-${index}`} style={styles.historyCard}>
+                  <Text style={styles.historyTitle}>{exam.name}</Text>
+                  <Text style={styles.historyMeta}>
+                    {exam.classLabel}
+                    {exam.average !== null ? ` | Avg ${exam.average}` : ""}
+                    {exam.division ? ` | Div ${exam.division}` : ""}
+                  </Text>
+                  <View style={styles.chipRow}>
+                    {exam.subjects.map((subject) => (
+                      <View key={`${exam.classId}-${exam.name}-${subject.label}`} style={styles.scoreChip}>
+                        <Text style={styles.scoreChipText}>{subject.label} {subject.score}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))}
+              {!summary.allExams.length ? <Text style={styles.emptyText}>No saved exam detail is available yet.</Text> : null}
+            </View>
+          </ShellCard>
+
+          <ShellCard>
+            <SectionTitle
+              eyebrow="SMS HISTORY"
+              title="Communication activity"
+              detail="Recent SMS history already stored in the Bonde backend."
+            />
+            <View style={styles.stack}>
+              {smsHistory.map((entry) => (
+                <View key={entry.id} style={styles.historyCard}>
+                  <View style={styles.reportCardHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.historyTitle}>
+                        {entry.mode === "results" ? "Results SMS" : "Custom SMS"}
+                      </Text>
+                      <Text style={styles.historyMeta}>
+                        {formatHistoryTime(entry.created_at)} | {entry.requested_by?.displayName || entry.requested_by?.username || "-"}
+                      </Text>
+                    </View>
+                    <View style={styles.reportDivisionPill}>
+                      <Text style={styles.reportDivisionText}>{entry.successful ? "Submitted" : "Warnings"}</Text>
+                    </View>
+                  </View>
+                  {entry.message_preview ? <Text style={styles.reportRemarks}>{entry.message_preview}</Text> : null}
+                </View>
+              ))}
+              {!smsHistory.length ? <Text style={styles.emptyText}>No SMS history is recorded for this student yet.</Text> : null}
+            </View>
+          </ShellCard>
+        </>
+      )}
     </View>
   );
 }
@@ -711,6 +1204,12 @@ export default function App() {
     error: "",
     data: null,
   });
+  const [staffSms, setStaffSms] = useState({
+    loading: false,
+    error: "",
+    data: null,
+  });
+  const [activeStudentProfile, setActiveStudentProfile] = useState(null);
   const [tab, setTab] = useState("home");
   const [booting, setBooting] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
@@ -742,6 +1241,20 @@ export default function App() {
     }
   }, []);
 
+  const loadStaffSms = useCallback(async (opts = {}) => {
+    if (!authToken) return null;
+    setStaffSms((prev) => ({ ...prev, loading: true, error: "" }));
+    try {
+      const data = await getSmsGatewayStatus(authToken, opts);
+      setStaffSms({ loading: false, error: "", data });
+      return data;
+    } catch (err) {
+      const message = err.message || "Unable to load SMS activity.";
+      setStaffSms((prev) => ({ ...prev, loading: false, error: message }));
+      return null;
+    }
+  }, [authToken]);
+
   const loadSessionData = useCallback(
     async (token, sessionUser) => {
       const overviewPromise = getHomepageOverview().catch(() => null);
@@ -751,6 +1264,7 @@ export default function App() {
         const visibleClasses = Array.isArray(classesData) ? classesData : [];
         setClasses(visibleClasses);
         setProfile(null);
+        setStaffSms({ loading: false, error: "", data: null });
         const firstClassId = visibleClasses[0]?.id || "";
         setSelectedClassId(firstClassId);
         setOverview(await overviewPromise);
@@ -772,6 +1286,7 @@ export default function App() {
         setClasses([]);
         setSelectedClassId("");
         setClassDetails({ loading: false, error: "", data: null });
+        setStaffSms({ loading: false, error: "", data: null });
         return;
       }
 
@@ -780,6 +1295,7 @@ export default function App() {
       setProfile(null);
       setSelectedClassId("");
       setClassDetails({ loading: false, error: "", data: null });
+      setStaffSms({ loading: false, error: "", data: null });
     },
     [loadTeacherClass]
   );
@@ -808,6 +1324,7 @@ export default function App() {
       setProfile(null);
       setSelectedClassId("");
       setClassDetails({ loading: false, error: "", data: null });
+      setStaffSms({ loading: false, error: "", data: null });
     } finally {
       setBooting(false);
     }
@@ -859,6 +1376,8 @@ export default function App() {
     setProfile(null);
     setSelectedClassId("");
     setClassDetails({ loading: false, error: "", data: null });
+    setStaffSms({ loading: false, error: "", data: null });
+    setActiveStudentProfile(null);
     setTab("home");
     setPersistSession(false);
     setError("");
@@ -884,16 +1403,35 @@ export default function App() {
   const handleSelectClass = useCallback(
     async (classId) => {
       setSelectedClassId(classId);
+      setActiveStudentProfile(null);
       await loadTeacherClass(classId, authToken);
     },
     [authToken, loadTeacherClass]
   );
 
+  const handleOpenStudentProfile = useCallback((student) => {
+    const indexNo = String(student?.indexNo || student?.index_no || "").trim();
+    if (!indexNo) return;
+    setActiveStudentProfile({
+      indexNo,
+      name: student?.name || "",
+      parentName: student?.parentName || student?.parent_name || "",
+      phone: student?.parentPhone || student?.parent_phone || "",
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isStaffPortal || tab !== "communication" || !authToken) return;
+    loadStaffSms({ limit: 20 });
+  }, [authToken, isStaffPortal, loadStaffSms, tab]);
+
   const tabs = useMemo(() => {
     if (isStaffPortal) {
       return [
         { key: "home", label: "Home" },
+        { key: "results", label: "Results" },
         { key: "timetable", label: "Timetable" },
+        { key: "communication", label: "SMS" },
         { key: "announcements", label: "Notices" },
         { key: "account", label: "Account" },
       ];
@@ -916,6 +1454,16 @@ export default function App() {
   const content = useMemo(() => {
     if (!user) return null;
     if (isStaffPortal) {
+      if (activeStudentProfile) {
+        return (
+          <StudentProfileScreen
+            indexNo={activeStudentProfile.indexNo}
+            authToken={authToken}
+            communicationContext={activeStudentProfile}
+            onBack={() => setActiveStudentProfile(null)}
+          />
+        );
+      }
       if (tab === "account") {
         return (
           <AccountTab
@@ -926,8 +1474,29 @@ export default function App() {
           />
         );
       }
+      if (tab === "results") {
+        return (
+          <TeacherResultsTab
+            classes={classes}
+            selectedClassId={selectedClassId}
+            onSelectClass={handleSelectClass}
+            classDetails={classDetails}
+            onOpenStudent={handleOpenStudentProfile}
+          />
+        );
+      }
       if (tab === "timetable") {
         return <TeacherTimetableTab user={user} classes={classes} />;
+      }
+      if (tab === "communication") {
+        return (
+          <StaffCommunicationTab
+            classDetails={classDetails}
+            onOpenStudent={handleOpenStudentProfile}
+            smsCenter={staffSms}
+            onRefreshSms={() => loadStaffSms({ limit: 20 })}
+          />
+        );
       }
       if (tab === "announcements") {
         return <AnnouncementsTab overview={overview} />;
@@ -939,6 +1508,7 @@ export default function App() {
           selectedClassId={selectedClassId}
           onSelectClass={handleSelectClass}
           classDetails={classDetails}
+          onOpenStudent={handleOpenStudentProfile}
         />
       );
     }
@@ -982,15 +1552,20 @@ export default function App() {
   }, [
     classDetails,
     classes,
+    authToken,
+    activeStudentProfile,
     handleLogout,
+    handleOpenStudentProfile,
     handleRefresh,
     handleSelectClass,
     isParentPortal,
     isStaffPortal,
+    loadStaffSms,
     overview,
     profile,
     refreshing,
     selectedClassId,
+    staffSms,
     tab,
     user,
   ]);
@@ -1449,7 +2024,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    paddingVertical: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eef2f7",
+  },
+  studentRowDisabled: {
+    opacity: 0.65,
+  },
+  studentRowAction: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: MOBILE_THEME.primary,
   },
   studentAvatar: {
     width: 38,
@@ -1473,6 +2059,38 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontSize: 12,
     color: MOBILE_THEME.muted,
+  },
+  resultRow: {
+    borderRadius: 18,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#dbe4f2",
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  resultBadges: {
+    alignItems: "flex-end",
+    gap: 6,
+  },
+  resultPill: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "#dbeafe",
+    color: MOBILE_THEME.primary,
+    fontSize: 11,
+    fontWeight: "900",
+  },
+  resultPillMuted: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "#f1f5f9",
+    color: "#475569",
+    fontSize: 11,
+    fontWeight: "800",
   },
   noticeCard: {
     flexDirection: "row",

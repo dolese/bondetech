@@ -54,3 +54,16 @@ export function getStudentProfile(indexNo) {
 export function getHomepageOverview() {
   return request("/stats?overview=1");
 }
+
+export function getSmsGatewayStatus(token, opts = {}) {
+  const params = new URLSearchParams();
+  if (opts.limit) params.set("limit", opts.limit);
+  if (opts.indexNo) params.set("indexNo", opts.indexNo);
+  if (opts.phone) params.set("phone", opts.phone);
+  const qs = params.toString();
+  return request(`/sms${qs ? `?${qs}` : ""}`, { token });
+}
+
+export function getSmsHistory(token, opts = {}) {
+  return getSmsGatewayStatus(token, opts);
+}
