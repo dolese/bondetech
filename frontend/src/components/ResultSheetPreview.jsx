@@ -41,6 +41,10 @@ function SummaryCard({ title, children, style }) {
       style={{
         border: `1px solid ${BORDER}`,
         background: "#fff",
+        minWidth: 0,
+        alignSelf: "stretch",
+        display: "flex",
+        flexDirection: "column",
         ...style,
       }}
     >
@@ -295,8 +299,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     },
     summaryGrid: {
       display: "grid",
-      gridTemplateColumns: isA4 ? "minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.32fr)" : "1fr 1fr 1fr 1fr",
-      gridTemplateAreas: isA4 ? "\"results division performance\" \"sex sex performance\"" : undefined,
+      gridTemplateColumns: isA4 ? "repeat(2, minmax(0, 1fr))" : "1fr 1fr 1fr 1fr",
       gap: isA4 ? 6 : 8,
       alignItems: "start",
     },
@@ -393,17 +396,17 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       width: "100%",
       borderCollapse: "collapse",
       tableLayout: "fixed",
-      fontSize: isA4 ? 8.5 : 9.6,
+      fontSize: isA4 ? 8.2 : 9.6,
     },
     summaryCell: {
       border: `1px solid ${BORDER}`,
-      padding: isA4 ? "4px 4px" : "5px 6px",
+      padding: isA4 ? "3px 4px" : "5px 6px",
       color: "#111",
       overflowWrap: "anywhere",
     },
     summaryValue: {
       border: `1px solid ${BORDER}`,
-      padding: isA4 ? "4px 4px" : "5px 6px",
+      padding: isA4 ? "3px 4px" : "5px 6px",
       textAlign: "right",
       fontWeight: 800,
       color: "#111",
@@ -411,7 +414,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
     },
     summaryHeaderCell: {
       border: `1px solid ${BORDER}`,
-      padding: isA4 ? "4px 3px" : "5px 4px",
+      padding: isA4 ? "3px 3px" : "5px 4px",
       textAlign: "center",
       fontWeight: 800,
       color: "#111",
@@ -622,7 +625,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       </div>
 
       <div style={styles.summaryGrid} ref={summaryMeasureRef}>
-        <SummaryCard title="RESULTS SUMMARY" style={isA4 ? { gridArea: "results" } : undefined}>
+        <SummaryCard title="RESULTS SUMMARY">
           <table style={styles.summaryTable}>
             <tbody>
               {model.summaryRows.map(([label, value]) => (
@@ -657,7 +660,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
           </table>
         </SummaryCard>
 
-        <SummaryCard title="DIVISION SUMMARY (Complete Only)" style={isA4 ? { gridArea: "division" } : undefined}>
+        <SummaryCard title="DIVISION SUMMARY (Complete Only)">
           <table style={styles.summaryTable}>
             <thead>
               <tr>
@@ -678,7 +681,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
           </table>
         </SummaryCard>
 
-        <SummaryCard title="SEX SUMMARY" style={isA4 ? { gridArea: "sex" } : undefined}>
+        <SummaryCard title="SEX SUMMARY">
           <table style={styles.summaryTable}>
             <thead>
               <tr>
@@ -709,7 +712,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
           </table>
         </SummaryCard>
 
-        <SummaryCard title="PERFORMANCE OVERVIEW" style={isA4 ? { gridArea: "performance" } : undefined}>
+        <SummaryCard title="PERFORMANCE OVERVIEW">
           <div style={styles.performanceShell}>
             <OverviewMeter
               label="Pass Rate"
