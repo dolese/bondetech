@@ -10,7 +10,7 @@ import { validateSchoolInfo } from "../utils/validation";
 import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
-import { normalizeTzPhoneDraft } from "../utils/phone";
+import { normalizeTzPhoneListInline } from "../utils/phone";
 
 function TinyIcon({ children }) {
   return (
@@ -72,8 +72,8 @@ export function SettingsPage({
   const [schoolInfo, setSchoolInfo] = useState({
     ...DEFAULT_SCHOOL,
     ...(schoolSettings ?? {}),
-    academicPhone: normalizeTzPhoneDraft(schoolSettings?.academicPhone ?? DEFAULT_SCHOOL.academicPhone),
-    headmasterPhone: normalizeTzPhoneDraft(schoolSettings?.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone),
+    academicPhone: normalizeTzPhoneListInline(schoolSettings?.academicPhone ?? DEFAULT_SCHOOL.academicPhone),
+    headmasterPhone: normalizeTzPhoneListInline(schoolSettings?.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone),
   });
   const [schoolErrors, setSchoolErrors] = useState({});
   const [updatingSchool, setUpdatingSchool] = useState(false);
@@ -117,8 +117,8 @@ export function SettingsPage({
     setSchoolInfo({
       ...DEFAULT_SCHOOL,
       ...(schoolSettings ?? {}),
-      academicPhone: normalizeTzPhoneDraft(schoolSettings?.academicPhone ?? DEFAULT_SCHOOL.academicPhone),
-      headmasterPhone: normalizeTzPhoneDraft(schoolSettings?.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone),
+      academicPhone: normalizeTzPhoneListInline(schoolSettings?.academicPhone ?? DEFAULT_SCHOOL.academicPhone),
+      headmasterPhone: normalizeTzPhoneListInline(schoolSettings?.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone),
     });
     setSchoolErrors({});
     setMetaError("");
@@ -723,20 +723,20 @@ export function SettingsPage({
           <TextInput
             label="Academic Officer Phone"
             value={schoolInfo.academicPhone ?? ""}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, academicPhone: normalizeTzPhoneDraft(v) })}
+            onChange={(v) => setSchoolInfo({ ...schoolInfo, academicPhone: normalizeTzPhoneListInline(v) })}
             type="tel"
             inputMode="tel"
-            placeholder="255712345678"
+            placeholder="255712345678, 255754321000"
           />
           <TextInput
             label="Headmaster Phone"
             value={schoolInfo.headmasterPhone ?? ""}
             onChange={(v) =>
-              setSchoolInfo({ ...schoolInfo, headmasterPhone: normalizeTzPhoneDraft(v) })
+              setSchoolInfo({ ...schoolInfo, headmasterPhone: normalizeTzPhoneListInline(v) })
             }
             type="tel"
             inputMode="tel"
-            placeholder="255712345678"
+            placeholder="255712345678, 255754321000"
           />
         </div>
         <div>

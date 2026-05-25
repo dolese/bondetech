@@ -13,6 +13,19 @@ export function normalizeTzPhoneDraft(value) {
   return `255${digits}`;
 }
 
+export function normalizeTzPhoneListInline(value) {
+  const seen = new Set();
+  return String(value ?? "")
+    .split(/[\n,;]+/)
+    .map((entry) => normalizeTzPhoneDraft(entry))
+    .filter((entry) => {
+      if (!entry || seen.has(entry)) return false;
+      seen.add(entry);
+      return true;
+    })
+    .join(", ");
+}
+
 export function normalizeTzPhoneListDraft(value) {
   return String(value ?? "")
     .split(/[\s,;\n]+/)

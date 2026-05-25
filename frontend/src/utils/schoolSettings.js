@@ -1,4 +1,5 @@
 import { DEFAULT_EXAM_TYPE, DEFAULT_SCHOOL } from "./constants";
+import { normalizeTzPhoneListInline } from "./phone";
 import { normalizeTimetableSettings } from "./timetable";
 
 const CLASS_REPORT_KEYS = ["form", "term", "exam", "year", "reportInstruction"];
@@ -27,6 +28,8 @@ export function normalizeSchoolSettings(input = {}) {
   return {
     ...DEFAULT_SCHOOL,
     ...input,
+    academicPhone: normalizeTzPhoneListInline(input.academicPhone ?? DEFAULT_SCHOOL.academicPhone),
+    headmasterPhone: normalizeTzPhoneListInline(input.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone),
     export_branding: exportBranding,
     reportInstruction: String(input.reportInstruction ?? DEFAULT_SCHOOL.reportInstruction ?? "").trim(),
     timetable: normalizeTimetableSettings(input.timetable),
