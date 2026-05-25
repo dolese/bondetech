@@ -18,6 +18,7 @@ import {
   secondaryButtonStyle,
   softCardStyle,
 } from "../utils/designSystem";
+import { normalizeTzPhoneDraft } from "../utils/phone";
 
 function getClassLabel(cls = {}) {
   const base = [cls.form, cls.stream].filter(Boolean).join(" ").trim();
@@ -223,7 +224,7 @@ export function StudentManagementPage({
       sex: student.sex || "M",
       status: student.status || "present",
       parentName: student.parentName || "",
-      parentPhone: student.parentPhone || "",
+      parentPhone: normalizeTzPhoneDraft(student.parentPhone || ""),
       address: student.address || "",
       remarks: student.remarks || "",
       optionalSubjectsConfigured: true,
@@ -244,7 +245,12 @@ export function StudentManagementPage({
   const updateField = (key, value) => {
     setForm((prev) => ({
       ...prev,
-      [key]: key === "admission_no" ? normalizeAdmissionDraft(value) : value,
+      [key]:
+        key === "admission_no"
+          ? normalizeAdmissionDraft(value)
+          : key === "parentPhone"
+          ? normalizeTzPhoneDraft(value)
+          : value,
     }));
   };
 
@@ -338,7 +344,7 @@ export function StudentManagementPage({
       name: String(form.name || "").trim(),
       index_no: String(form.index_no || "").trim(),
       parentName: String(form.parentName || "").trim(),
-      parentPhone: String(form.parentPhone || "").trim(),
+      parentPhone: normalizeTzPhoneDraft(form.parentPhone),
       address: String(form.address || "").trim(),
       remarks: String(form.remarks || "").trim(),
       optionalSubjectsConfigured: true,
@@ -862,7 +868,9 @@ export function StudentManagementPage({
                 <input
                   value={form.parentPhone}
                   onChange={(event) => updateField("parentPhone", event.target.value)}
-                  placeholder="Phone number"
+                  placeholder="255712345678"
+                  type="tel"
+                  inputMode="tel"
                   style={fieldStyle()}
                 />
               </label>

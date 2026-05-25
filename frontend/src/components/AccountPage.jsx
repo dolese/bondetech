@@ -3,6 +3,7 @@ import { TextInput, SelectInput, TextAreaInput } from "./FormInputs";
 import { formatUserRole, USER_ROLE_OPTIONS } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
+import { normalizeTzPhoneDraft } from "../utils/phone";
 
 const MANAGEABLE_USER_ROLE_OPTIONS = USER_ROLE_OPTIONS.filter((option) => option.value !== "student");
 
@@ -377,7 +378,7 @@ export function AccountPage({
       displayName: user?.displayName ?? user?.username ?? "",
       role: user?.role ?? "admin",
       email: user?.email ?? "",
-      phone: user?.phone ?? "",
+      phone: normalizeTzPhoneDraft(user?.phone ?? ""),
       linkedStudentsText: linkedStudentsToText(user?.linkedStudents, user?.linkedIndexNo),
     });
     setError("");
@@ -428,7 +429,7 @@ export function AccountPage({
         displayName: managedUser.displayName ?? managedUser.username,
         role: managedUser.role ?? "teacher",
         email: managedUser.email ?? "",
-        phone: managedUser.phone ?? "",
+        phone: normalizeTzPhoneDraft(managedUser.phone ?? ""),
         linkedStudentsText: linkedStudentsToText(managedUser.linkedStudents, managedUser.linkedIndexNo),
         active: managedUser.active !== false,
         password: "",
@@ -595,7 +596,10 @@ export function AccountPage({
     : "repeat(auto-fit, minmax(min(100%, 280px), 1fr))";
 
   const updateField = (key, value) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [key]: key === "phone" ? normalizeTzPhoneDraft(value) : value,
+    }));
   };
 
   const normalizeTeacherAccessPayload = (payload) => {
@@ -671,7 +675,7 @@ export function AccountPage({
       await onSaveProfile?.({
         displayName,
         email,
-        phone: form.phone.trim(),
+        phone: normalizeTzPhoneDraft(form.phone),
         linkedStudents: linkedStudentsText ? linkedStudentsText.split("\n") : [],
       });
     } catch (err) {
@@ -723,7 +727,7 @@ export function AccountPage({
         username,
         displayName: adminForm.displayName.trim() || username,
         email: adminForm.email.trim(),
-        phone: adminForm.phone.trim(),
+        phone: normalizeTzPhoneDraft(adminForm.phone),
         linkedStudents: linkedStudentsText ? linkedStudentsText.split("\n") : [],
         teacherRoles: teacherAccess.teacherRoles,
         teacherAssignments: teacherAccess.teacherAssignments,
@@ -745,7 +749,7 @@ export function AccountPage({
       ...prev,
       [username]: {
         ...prev[username],
-        [key]: value,
+        [key]: key === "phone" ? normalizeTzPhoneDraft(value) : value,
       },
     }));
   };
@@ -761,6 +765,7 @@ export function AccountPage({
         payload.role === "parent" ? normalizeLinkedStudentsText(payload.linkedStudentsText) : "";
       await onUpdateUser?.(username, {
         ...payload,
+        phone: normalizeTzPhoneDraft(payload.phone),
         linkedStudents: linkedStudentsText ? linkedStudentsText.split("\n") : [],
         teacherRoles: teacherAccess.teacherRoles,
         teacherAssignments: teacherAccess.teacherAssignments,
@@ -1414,7 +1419,10 @@ export function AccountPage({
                   label="Phone"
                   value={form.phone}
                   onChange={(value) => updateField("phone", value)}
-                  placeholder="Optional"
+                  placeholder="255712345678"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                 />
               </div>
 
@@ -1623,7 +1631,15 @@ export function AccountPage({
                   <TextInput label="Display Name" value={adminForm.displayName} onChange={(value) => setAdminForm((prev) => ({ ...prev, displayName: value }))} />
                   <SelectInput label="Role" value={adminForm.role} onChange={(value) => setAdminForm((prev) => ({ ...prev, role: value }))} options={MANAGEABLE_USER_ROLE_OPTIONS} />
                   <TextInput label="Email" value={adminForm.email} onChange={(value) => setAdminForm((prev) => ({ ...prev, email: value }))} />
-                  <TextInput label="Phone" value={adminForm.phone} onChange={(value) => setAdminForm((prev) => ({ ...prev, phone: value }))} />
+                  <TextInput
+                    label="Phone"
+                    value={adminForm.phone}
+                    onChange={(value) => setAdminForm((prev) => ({ ...prev, phone: normalizeTzPhoneDraft(value) }))}
+                    placeholder="255712345678"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                  />
                   {adminForm.role === "parent" ? (
                     <TextAreaInput
                       label="Linked Students"
@@ -1872,7 +1888,15 @@ export function AccountPage({
                     <TextInput label="Display Name" value={edit.displayName} onChange={(value) => updateManagedField(editingUsername, "displayName", value)} />
                     <SelectInput label="Role" value={edit.role} onChange={(value) => updateManagedField(editingUsername, "role", value)} options={MANAGEABLE_USER_ROLE_OPTIONS} />
                     <TextInput label="Email" value={edit.email} onChange={(value) => updateManagedField(editingUsername, "email", value)} />
-                    <TextInput label="Phone" value={edit.phone} onChange={(value) => updateManagedField(editingUsername, "phone", value)} />
+                    <TextInput
+                      label="Phone"
+                      value={edit.phone}
+                      onChange={(value) => updateManagedField(editingUsername, "phone", value)}
+                      placeholder="255712345678"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                    />
                     {edit.role === "parent" ? (
                       <TextAreaInput
                         label="Linked Students"

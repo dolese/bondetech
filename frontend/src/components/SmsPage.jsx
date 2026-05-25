@@ -10,6 +10,7 @@ import {
   secondaryButtonStyle,
   softCardStyle,
 } from "../utils/designSystem";
+import { normalizeTzPhoneDraft, normalizeTzPhoneListDraft } from "../utils/phone";
 
 const MESSAGE_TEMPLATES = [
   {
@@ -82,7 +83,7 @@ const SUBJECT_LABELS = {
 };
 
 function normalizePhone(value) {
-  return String(value || "").replace(/[^\d+]/g, "").trim();
+  return normalizeTzPhoneDraft(value);
 }
 
 function uniqueRecipientKey(entry) {
@@ -402,7 +403,7 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
     if (!initialDraft) return;
     setMode(initialDraft.mode || "custom");
     setScope("manual");
-    setManualNumbers(initialDraft.phone || "");
+    setManualNumbers(normalizeTzPhoneListDraft(initialDraft.phone || ""));
     setMessage(
       initialDraft.message ||
         `Bonde Secondary School: Dear ${initialDraft.parentName || "parent/guardian"}, please contact the school regarding ${initialDraft.studentName || "the student"}.`
@@ -873,9 +874,9 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
                   <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Manual Numbers</span>
                   <textarea
                     value={manualNumbers}
-                    onChange={(e) => setManualNumbers(e.target.value)}
+                    onChange={(e) => setManualNumbers(normalizeTzPhoneListDraft(e.target.value))}
                     rows={6}
-                    placeholder="255712345678, 255754000111"
+                    placeholder={"255712345678\n255754000111"}
                     style={{ ...fieldStyle(), resize: "vertical", minHeight: 120 }}
                   />
                 </label>

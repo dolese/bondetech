@@ -10,6 +10,9 @@ export function TextInput({
   onChange,
   placeholder,
   type = "text",
+  inputMode,
+  autoComplete,
+  onBlur,
   error,
   disabled = false,
   width = "100%",
@@ -61,7 +64,10 @@ export function TextInput({
         type={type}
         value={value ?? ""}
         onChange={e => onChange?.(e.target.value)}
+        onBlur={e => onBlur?.(e.target.value)}
         placeholder={placeholder}
+        inputMode={inputMode}
+        autoComplete={autoComplete}
         disabled={disabled}
         style={styles.input}
       />

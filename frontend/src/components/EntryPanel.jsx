@@ -15,6 +15,7 @@ import { TextInput, NumberInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { exportXlsx } from "../utils/xlsxExport";
 import { DEFAULT_CONDUCT } from "../hooks/useClasses";
+import { normalizeTzPhoneDraft } from "../utils/phone";
 
 const CONDUCT_FIELDS = [
   ["utendajiKazi", "UTENDAJI KAZI"],
@@ -233,6 +234,7 @@ export function EntryPanel({
     setEditId(s.id);
     setEditData({
       ...s,
+      parentPhone: normalizeTzPhoneDraft(s.parentPhone || s.parent_phone || ""),
       optionalSubjectsConfigured: Boolean(s.optionalSubjectsConfigured),
       optionalSubjects: Array.isArray(s.optionalSubjects) ? s.optionalSubjects : [],
       conduct: { ...DEFAULT_CONDUCT, ...(s.conduct ?? {}) },
@@ -292,6 +294,7 @@ export function EntryPanel({
       ...newStudent,
       admission_no: normalizeAdmissionDraft(newStudent.admission_no),
       name: registrationName,
+      parentPhone: normalizeTzPhoneDraft(newStudent.parentPhone),
       optionalSubjects: Array.isArray(newStudent.optionalSubjects) ? newStudent.optionalSubjects : [],
       scores,
       examType: effectiveExam,
@@ -1433,8 +1436,10 @@ export function EntryPanel({
                 <TextInput
                   label="Guardian Phone"
                   value={newStudent.parentPhone ?? ""}
-                  onChange={v => setNewStudent({ ...newStudent, parentPhone: v })}
-                  placeholder="+255..."
+                  onChange={v => setNewStudent({ ...newStudent, parentPhone: normalizeTzPhoneDraft(v) })}
+                  placeholder="255712345678"
+                  type="tel"
+                  inputMode="tel"
                 />
                 <TextInput
                   label="Address"
