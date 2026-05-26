@@ -87,14 +87,15 @@ function buildStudentProfileUrl(target) {
   const ref = target && typeof target === "object" ? target : { indexNo: target };
   const indexNo = String(ref?.indexNo || ref?.linkedIndexNo || "").trim();
   const admissionNo = String(ref?.admissionNo || "").trim().toUpperCase();
-  const identifier = indexNo || admissionNo;
-  if (!identifier) {
+  if (!indexNo && !admissionNo) {
     throw new Error("Student profile target is required");
   }
+  const pathIdentifier = indexNo || "_";
   const params = new URLSearchParams();
+  if (indexNo) params.set("indexNo", indexNo);
   if (admissionNo) params.set("admissionNo", admissionNo);
   const qs = params.toString();
-  return `/students/${encodeURIComponent(identifier)}/profile${qs ? `?${qs}` : ""}`;
+  return `/students/${encodeURIComponent(pathIdentifier)}/profile${qs ? `?${qs}` : ""}`;
 }
 
 // ── Classes ───────────────────────────────────────────────────────────────────

@@ -21,7 +21,7 @@ router.get("/:indexNo/profile", async (req, res) => {
     const profile = await getStudentProfileByIdentifier(
       getDb(),
       {
-        indexNo: decodeURIComponent(req.params.indexNo || ""),
+        indexNo: req.query?.indexNo || decodeURIComponent(req.params.indexNo || ""),
         admissionNo: req.query?.admissionNo || "",
       }
     );
