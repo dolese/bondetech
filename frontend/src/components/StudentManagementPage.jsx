@@ -35,6 +35,42 @@ function normalizeAdmissionDraft(value) {
   return raw;
 }
 
+const ENROLLMENT_STATUS_OPTIONS = [
+  { value: "active", label: "Active" },
+  { value: "promoted", label: "Promoted" },
+  { value: "transferred", label: "Transferred" },
+  { value: "graduated", label: "Graduated" },
+  { value: "repeater", label: "Repeater" },
+  { value: "left", label: "Left School" },
+];
+
+const ENROLLMENT_STATUS_LABELS = Object.fromEntries(
+  ENROLLMENT_STATUS_OPTIONS.map((entry) => [entry.value, entry.label])
+);
+
+function getEnrollmentTone(value) {
+  switch (value) {
+    case "active":
+      return "teal";
+    case "promoted":
+      return "blue";
+    case "graduated":
+      return "amber";
+    case "transferred":
+      return "slate";
+    case "repeater":
+      return "red";
+    case "left":
+      return "red";
+    default:
+      return "slate";
+  }
+}
+
+function getEnrollmentLabel(value) {
+  return ENROLLMENT_STATUS_LABELS[String(value || "").trim().toLowerCase()] || "Active";
+}
+
 function makeEmptyForm() {
   return {
     classId: "",
@@ -45,6 +81,7 @@ function makeEmptyForm() {
     index_no: "",
     name: "",
     sex: "M",
+    enrollmentStatus: "active",
     status: "present",
     parentName: "",
     parentPhone: "",
@@ -66,6 +103,7 @@ function flattenStudents(classes = []) {
       year: cls.year || "",
       form: cls.form || "",
       stream: cls.stream || "",
+      enrollmentStatus: student.enrollmentStatus ?? student.enrollment_status ?? "active",
     })),
   );
 }
@@ -85,7 +123,11 @@ export function StudentManagementPage({
 }) {
   const { isMobile } = useViewport();
   const [query, setQuery] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [formFilter, setFormFilter] = useState("");
   const [classFilter, setClassFilter] = useState("");
+  const [lifecycleFilter, setLifecycleFilter] = useState("");
+  const [viewMode, setViewMode] = useState("grouped");
   const [modalMode, setModalMode] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(makeEmptyForm());
@@ -94,7 +136,28 @@ export function StudentManagementPage({
   const [promotionSaving, setPromotionSaving] = useState(false);
   const [promotionError, setPromotionError] = useState("");
 
-  const classOptions = useMemo(
+  const yearOptions = useMemo(
+    () =>
+      Array.from(new Set(classes.map((cls) => String(cls.year || "").trim()).filter(Boolean))).sort(
+        (left, right) => Number(right) - Number(left) || right.localeCompare(left, "en")
+      ),
+    [classes]
+  );
+
+  const formOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          classes
+            .filter((cls) => !yearFilter || String(cls.year || "").trim() === yearFilter)
+            .map((cls) => String(cls.form || "").trim())
+            .filter(Boolean)
+        )
+      ).sort((left, right) => left.localeCompare(right, "en")),
+    [classes, yearFilter]
+  );
+
+  const allClassOptions = useMemo(
     () =>
       [...classes]
         .sort((left, right) => getClassLabel(left).localeCompare(getClassLabel(right), "en"))
@@ -103,6 +166,19 @@ export function StudentManagementPage({
           label: getClassLabel(cls),
         })),
     [classes],
+  );
+
+  const classOptions = useMemo(
+    () =>
+      [...classes]
+        .filter((cls) => !yearFilter || String(cls.year || "").trim() === yearFilter)
+        .filter((cls) => !formFilter || String(cls.form || "").trim() === formFilter)
+        .sort((left, right) => getClassLabel(left).localeCompare(getClassLabel(right), "en"))
+      .map((cls) => ({
+          id: cls.id,
+          label: getClassLabel(cls),
+        })),
+    [classes, formFilter, yearFilter],
   );
 
   const classGroupOptions = useMemo(() => {
@@ -166,7 +242,16 @@ export function StudentManagementPage({
   const filteredStudents = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return students
+      .filter((student) => !yearFilter || String(student.year || "").trim() === yearFilter)
+      .filter((student) => !formFilter || String(student.form || "").trim() === formFilter)
       .filter((student) => !classFilter || student.classId === classFilter)
+      .filter(
+        (student) =>
+          !lifecycleFilter ||
+          String(student.enrollmentStatus || "")
+            .trim()
+            .toLowerCase() === lifecycleFilter
+      )
       .filter((student) => {
         if (!needle) return true;
         const haystack = [
@@ -185,7 +270,42 @@ export function StudentManagementPage({
         return haystack.includes(needle);
       })
       .sort((left, right) => left.name.localeCompare(right.name, "en"));
-  }, [classFilter, query, students]);
+  }, [classFilter, formFilter, lifecycleFilter, query, students, yearFilter]);
+
+  const groupedStudents = useMemo(() => {
+    const years = new Map();
+    filteredStudents.forEach((student) => {
+      const yearKey = String(student.year || "No Year").trim() || "No Year";
+      const formKey = String(student.form || "Unassigned Form").trim() || "Unassigned Form";
+      const classKey = student.classId;
+      const classLabel = student.classLabel || "Class";
+      if (!years.has(yearKey)) years.set(yearKey, new Map());
+      const forms = years.get(yearKey);
+      if (!forms.has(formKey)) forms.set(formKey, new Map());
+      const classesMap = forms.get(formKey);
+      if (!classesMap.has(classKey)) {
+        classesMap.set(classKey, { classId: classKey, classLabel, students: [] });
+      }
+      classesMap.get(classKey).students.push(student);
+    });
+
+    return Array.from(years.entries())
+      .sort(([left], [right]) => Number(right) - Number(left) || right.localeCompare(left, "en"))
+      .map(([year, forms]) => ({
+        year,
+        forms: Array.from(forms.entries())
+          .sort(([left], [right]) => left.localeCompare(right, "en"))
+          .map(([formName, classesMap]) => ({
+            formName,
+            classes: Array.from(classesMap.values())
+              .map((entry) => ({
+                ...entry,
+                students: [...entry.students].sort((left, right) => left.name.localeCompare(right.name, "en")),
+              }))
+              .sort((left, right) => left.classLabel.localeCompare(right.classLabel, "en")),
+          })),
+      }));
+  }, [filteredStudents]);
 
   const stats = useMemo(
     () => ({
@@ -193,12 +313,19 @@ export function StudentManagementPage({
       classes: new Set(students.map((student) => student.classId)).size,
       guardians: students.filter((student) => student.parentName || student.parentPhone).length,
       missingGuardian: students.filter((student) => !student.parentName && !student.parentPhone).length,
+      active: students.filter((student) => (student.enrollmentStatus || "active") === "active").length,
     }),
     [students],
   );
 
   const openAddModal = () => {
-    const defaultClass = classes.find((cls) => cls.id === classFilter) || classes[0];
+    const scopedClasses = classes
+      .filter((cls) => !yearFilter || String(cls.year || "").trim() === yearFilter)
+      .filter((cls) => !formFilter || String(cls.form || "").trim() === formFilter);
+    const defaultClass =
+      scopedClasses.find((cls) => cls.id === classFilter) ||
+      scopedClasses[0] ||
+      classes[0];
     const defaultGroupKey = defaultClass ? [defaultClass.form, defaultClass.year].filter(Boolean).join("|") : classGroupOptions[0]?.key || "";
     const defaultStream = String(defaultClass?.stream || classGroupOptions[0]?.streams?.[0]?.stream || "").trim().toUpperCase();
     setForm({
@@ -222,6 +349,7 @@ export function StudentManagementPage({
       index_no: student.index_no || "",
       name: student.name || "",
       sex: student.sex || "M",
+      enrollmentStatus: student.enrollmentStatus || student.enrollment_status || "active",
       status: student.status || "present",
       parentName: student.parentName || "",
       parentPhone: normalizeTzPhoneDraft(student.parentPhone || ""),
@@ -272,6 +400,18 @@ export function StudentManagementPage({
       setForm((prev) => ({ ...prev, optionalSubjects: nextSubjects }));
     }
   }, [form.optionalSubjects, optionalSubjectOptions]);
+
+  React.useEffect(() => {
+    if (formFilter && !formOptions.includes(formFilter)) {
+      setFormFilter("");
+    }
+  }, [formFilter, formOptions]);
+
+  React.useEffect(() => {
+    if (classFilter && !classOptions.some((entry) => entry.id === classFilter)) {
+      setClassFilter("");
+    }
+  }, [classFilter, classOptions]);
 
   const updateClassGroup = (groupKey) => {
     const group = classGroupOptions.find((entry) => entry.key === groupKey);
@@ -454,6 +594,7 @@ export function StudentManagementPage({
         >
           {[
             ["Students", stats.students, "All student records currently available."],
+            ["Active", stats.active, "Students currently marked as active in the school register."],
             ["Classes", stats.classes, "Classes linked to student records."],
             ["Guardians", stats.guardians, "Students with parent or guardian contact saved."],
             ["Need Contact", stats.missingGuardian, "Students still missing guardian information."],
@@ -503,7 +644,7 @@ export function StudentManagementPage({
               style={fieldStyle()}
             >
               <option value="">Select source class</option>
-              {classOptions.map((cls) => (
+              {allClassOptions.map((cls) => (
                 <option key={`source-${cls.id}`} value={cls.id}>
                   {cls.label}
                 </option>
@@ -520,7 +661,7 @@ export function StudentManagementPage({
               style={fieldStyle()}
             >
               <option value="">Select target class</option>
-              {classOptions
+              {allClassOptions
                 .filter((cls) => cls.id !== promotionForm.sourceClassId)
                 .map((cls) => (
                   <option key={`target-${cls.id}`} value={cls.id}>
@@ -563,12 +704,39 @@ export function StudentManagementPage({
               Search, filter, and maintain full student records from one place.
             </div>
           </div>
-          <div style={pillStyle({ tone: classFilter ? "teal" : "slate" })}>{filteredStudents.length} visible</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <div style={pillStyle({ tone: classFilter || formFilter || yearFilter || lifecycleFilter ? "teal" : "slate" })}>
+              {filteredStudents.length} visible
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {[
+                ["grouped", "Grouped"],
+                ["table", "Table"],
+              ].map(([value, label]) => {
+                const active = viewMode === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setViewMode(value)}
+                    style={{
+                      ...(active ? pillStyle({ tone: "blue" }) : pillStyle({ tone: "slate" })),
+                      cursor: "pointer",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "minmax(320px, 1.45fr) minmax(220px, 0.8fr)",
+            gridTemplateColumns: isMobile
+              ? "1fr"
+              : "minmax(260px, 1.2fr) repeat(4, minmax(150px, 0.68fr))",
             gap: 12,
           }}
         >
@@ -578,11 +746,23 @@ export function StudentManagementPage({
             placeholder="Search by admission no, student name, CNO, parent, or class"
             style={fieldStyle()}
           />
-          <select
-            value={classFilter}
-            onChange={(event) => setClassFilter(event.target.value)}
-            style={fieldStyle()}
-          >
+          <select value={yearFilter} onChange={(event) => setYearFilter(event.target.value)} style={fieldStyle()}>
+            <option value="">All Years</option>
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+          <select value={formFilter} onChange={(event) => setFormFilter(event.target.value)} style={fieldStyle()}>
+            <option value="">All Forms</option>
+            {formOptions.map((formOption) => (
+              <option key={formOption} value={formOption}>
+                {formOption}
+              </option>
+            ))}
+          </select>
+          <select value={classFilter} onChange={(event) => setClassFilter(event.target.value)} style={fieldStyle()}>
             <option value="">All Classes</option>
             {classOptions.map((cls) => (
               <option key={cls.id} value={cls.id}>
@@ -590,21 +770,30 @@ export function StudentManagementPage({
               </option>
             ))}
           </select>
+          <select value={lifecycleFilter} onChange={(event) => setLifecycleFilter(event.target.value)} style={fieldStyle()}>
+            <option value="">All Lifecycle States</option>
+            {ENROLLMENT_STATUS_OPTIONS.map((entry) => (
+              <option key={entry.value} value={entry.value}>
+                {entry.label}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div
-          style={{
-            overflowX: "auto",
-            borderRadius: 22,
-            border: "1px solid rgba(214,226,245,0.92)",
-            background: "rgba(255,255,255,0.82)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
-          }}
-        >
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1080 }}>
+        {viewMode === "table" ? (
+          <div
+            style={{
+              overflowX: "auto",
+              borderRadius: 22,
+              border: "1px solid rgba(214,226,245,0.92)",
+              background: "rgba(255,255,255,0.82)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
+            }}
+          >
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1180 }}>
             <thead>
               <tr>
-                {["Admission No", "CNO", "Student", "Sex", "Status", "Class", "Guardian", "Phone", "Actions"].map((label) => (
+                {["Admission No", "CNO", "Student", "Sex", "Lifecycle", "Status", "Class", "Guardian", "Phone", "Actions"].map((label) => (
                   <th
                     key={label}
                     style={{
@@ -641,6 +830,11 @@ export function StudentManagementPage({
                     </div>
                   </td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.sex || "-"}</td>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
+                    <span style={pillStyle({ tone: getEnrollmentTone(student.enrollmentStatus) })}>
+                      {getEnrollmentLabel(student.enrollmentStatus)}
+                    </span>
+                  </td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
                     <span style={pillStyle({ tone: student.status === "present" ? "teal" : student.status === "absent" ? "amber" : "red" })}>
                       {student.status || "-"}
@@ -706,7 +900,7 @@ export function StudentManagementPage({
               {!filteredStudents.length ? (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     style={{
                       padding: "24px 14px",
                       textAlign: "center",
@@ -719,8 +913,132 @@ export function StudentManagementPage({
                 </tr>
               ) : null}
             </tbody>
-          </table>
-        </div>
+            </table>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: 14 }}>
+            {groupedStudents.map((yearGroup) => (
+              <div key={yearGroup.year} style={{ display: "grid", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: "#0f172a" }}>{yearGroup.year}</div>
+                  <div style={pillStyle({ tone: "blue" })}>
+                    {yearGroup.forms.reduce((count, formEntry) => count + formEntry.classes.reduce((sum, cls) => sum + cls.students.length, 0), 0)} students
+                  </div>
+                </div>
+                {yearGroup.forms.map((formEntry) => (
+                  <div key={`${yearGroup.year}-${formEntry.formName}`} style={{ display: "grid", gap: 10 }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: "#16325c" }}>{formEntry.formName}</div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(300px, 1fr))",
+                        gap: 12,
+                      }}
+                    >
+                      {formEntry.classes.map((classEntry) => (
+                        <div
+                          key={classEntry.classId}
+                          style={{
+                            ...softCardStyle({ padding: 14, radius: 22 }),
+                            display: "grid",
+                            gap: 10,
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{classEntry.classLabel}</div>
+                            <div style={pillStyle({ tone: "slate" })}>{classEntry.students.length} students</div>
+                          </div>
+                          <div style={{ display: "grid", gap: 8 }}>
+                            {classEntry.students.map((student) => (
+                              <div
+                                key={`${classEntry.classId}-${student.id}`}
+                                style={{
+                                  borderRadius: 16,
+                                  border: "1px solid rgba(214,226,245,0.92)",
+                                  background: "rgba(255,255,255,0.88)",
+                                  padding: "12px 12px 10px",
+                                  display: "grid",
+                                  gap: 8,
+                                }}
+                              >
+                                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+                                  <div>
+                                    <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
+                                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                                      {(student.admissionNo || student.admission_no || "No admission no")} | {(student.index_no || student.indexNo || "No CNO")}
+                                    </div>
+                                  </div>
+                                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                                    <span style={pillStyle({ tone: getEnrollmentTone(student.enrollmentStatus) })}>
+                                      {getEnrollmentLabel(student.enrollmentStatus)}
+                                    </span>
+                                    <span style={pillStyle({ tone: student.status === "present" ? "teal" : student.status === "absent" ? "amber" : "red" })}>
+                                      {student.status || "-"}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div style={{ display: "grid", gap: 2, fontSize: 12, color: "#475569" }}>
+                                  <div>Guardian: {student.parentName || "-"}</div>
+                                  <div>Phone: {student.parentPhone || "-"}</div>
+                                </div>
+                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      onOpenStudentProfile?.({
+                                        admissionNo: student.admissionNo || student.admission_no || "",
+                                        indexNo: student.index_no || student.indexNo || "",
+                                      })
+                                    }
+                                    disabled={!(student.admissionNo || student.admission_no || student.index_no || student.indexNo)}
+                                    style={{
+                                      ...secondaryButtonStyle({ compact: true }),
+                                      opacity:
+                                        student.admissionNo || student.admission_no || student.index_no || student.indexNo ? 1 : 0.55,
+                                      cursor:
+                                        student.admissionNo || student.admission_no || student.index_no || student.indexNo
+                                          ? "pointer"
+                                          : "not-allowed",
+                                    }}
+                                  >
+                                    Profile
+                                  </button>
+                                  <button type="button" onClick={() => openEditModal(student)} style={{ ...pillStyle({ tone: "blue" }), cursor: "pointer" }}>
+                                    Edit
+                                  </button>
+                                  {canDeleteStudents ? (
+                                    <button type="button" onClick={() => handleDelete(student)} style={{ ...pillStyle({ tone: "red" }), cursor: "pointer" }}>
+                                      Delete
+                                    </button>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+            {!groupedStudents.length ? (
+              <div
+                style={{
+                  borderRadius: 22,
+                  border: "1px dashed rgba(191,219,254,0.92)",
+                  background: "rgba(255,255,255,0.76)",
+                  padding: "24px 14px",
+                  textAlign: "center",
+                  color: "#64748b",
+                  fontSize: 14,
+                }}
+              >
+                No students match the current filters.
+              </div>
+            ) : null}
+          </div>
+        )}
       </section>
 
       {modalMode ? (
@@ -841,7 +1159,22 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Status</span>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Lifecycle Status</span>
+                <select
+                  value={form.enrollmentStatus}
+                  onChange={(event) => updateField("enrollmentStatus", event.target.value)}
+                  style={fieldStyle()}
+                >
+                  {ENROLLMENT_STATUS_OPTIONS.map((entry) => (
+                    <option key={entry.value} value={entry.value}>
+                      {entry.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={{ display: "grid", gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Record Status</span>
                 <select
                   value={form.status}
                   onChange={(event) => updateField("status", event.target.value)}
