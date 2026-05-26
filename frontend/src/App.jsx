@@ -960,6 +960,10 @@ export default function App() {
                 computed={activeComputed}
                 allClasses={role === "teacher" ? visibleAllComputed : displayAllComputed}
                 onOpenReportCard={onOpenReportCard}
+                onSelectClass={(id, exam) => {
+                  setActiveId(id);
+                  setActiveExam(exam || DEFAULT_EXAM_TYPE);
+                }}
               />
             ) : (
               noClassBlock

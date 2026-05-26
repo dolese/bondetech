@@ -111,6 +111,7 @@ export function ReportsPage({
   computed,
   allClasses = [],
   onOpenReportCard,
+  onSelectClass,
 }) {
   const { isMobile, isTablet } = useViewport();
   const { t } = useI18n();
@@ -138,6 +139,11 @@ export function ReportsPage({
   const [selectedStudentId, setSelectedStudentId] = useState(
     () => present[0]?.id ?? "",
   );
+  const [selectedForm, setSelectedForm] = useState(() => classData.form || "all");
+
+  useEffect(() => {
+    setSelectedForm(classData.form || "all");
+  }, [classData.form, classData.id]);
 
   useEffect(() => {
     setSelectedSubject(classData.subjects?.[0] ?? "");
@@ -271,6 +277,36 @@ export function ReportsPage({
       best: classStats[0] ?? null,
     };
   }, [allClasses, classData.id, classData.year]);
+
+  const formSections = useMemo(() => {
+    const grouped = new Map();
+    (allClasses ?? []).forEach((entry) => {
+      const formKey = String(entry.form || "Other").trim() || "Other";
+      if (!grouped.has(formKey)) grouped.set(formKey, []);
+      const activeStudents = (entry.computed ?? []).filter(
+        (student) => student.total !== null,
+      );
+      grouped.get(formKey).push({
+        ...entry,
+        label: getClassLabel(entry),
+        studentCount: entry.students?.length ?? 0,
+        rankedCount: activeStudents.length,
+        avg: averageOf(activeStudents.map((student) => Number(student.avg || 0))),
+        exam: entry.school_info?.exam || DEFAULT_EXAM_TYPE,
+      });
+    });
+    return Array.from(grouped.entries())
+      .map(([form, classes]) => ({
+        form,
+        classes: classes.sort((a, b) => a.label.localeCompare(b.label)),
+      }))
+      .sort((a, b) => a.form.localeCompare(b.form, undefined, { numeric: true }));
+  }, [allClasses]);
+
+  const visibleFormSections = useMemo(() => {
+    if (selectedForm === "all") return formSections;
+    return formSections.filter((section) => section.form === selectedForm);
+  }, [formSections, selectedForm]);
 
   const waitForRender = () =>
     new Promise((resolve) =>
@@ -575,10 +611,214 @@ export function ReportsPage({
       color: "#666",
       fontSize: 12,
     },
+    formFilterWrap: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap",
+    },
+    formFilterChip: {
+      padding: "7px 12px",
+      borderRadius: 999,
+      border: "1px solid #cfe0ff",
+      background: "#fff",
+      color: "#33506d",
+      fontSize: 11,
+      fontWeight: 800,
+      cursor: "pointer",
+    },
+    classSectionCard: {
+      background: "#fff",
+      borderRadius: 16,
+      border: "1px solid #e1e8f5",
+      boxShadow: "0 10px 28px rgba(0,51,102,0.06)",
+      padding: isMobile ? 14 : 18,
+      display: "grid",
+      gap: 12,
+    },
+    classTileGrid: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: 10,
+    },
+    classTile: {
+      borderRadius: 14,
+      border: "1px solid #dbe7ff",
+      background: "linear-gradient(180deg, #fbfdff, #f4f8ff)",
+      padding: 14,
+      display: "grid",
+      gap: 8,
+    },
+    classTileMeta: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap",
+      fontSize: 11,
+      color: "#64748b",
+    },
   };
 
   return (
     <div style={styles.panel}>
+      <div style={styles.classSectionCard}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            alignItems: "flex-start",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex", marginBottom: 8 }}>
+              Form Reports
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#102a43" }}>
+              {t("reportsBrowseByForm", "Browse Reports by Form")}
+            </div>
+            <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.7 }}>
+              {t(
+                "reportsBrowseByFormSub",
+                "Open a class report center from its form section instead of navigating class by class.",
+              )}
+            </div>
+          </div>
+          <div style={{ minWidth: isMobile ? "100%" : 240 }}>
+            <label style={styles.controlLabel}>
+              {t("reportsFormFilter", "Form Filter")}
+            </label>
+            <div style={styles.formFilterWrap}>
+              <button
+                type="button"
+                style={{
+                  ...styles.formFilterChip,
+                  background: selectedForm === "all" ? "#0b4f9e" : "#fff",
+                  color: selectedForm === "all" ? "#fff" : styles.formFilterChip.color,
+                  borderColor: selectedForm === "all" ? "#0b4f9e" : "#cfe0ff",
+                }}
+                onClick={() => setSelectedForm("all")}
+              >
+                {t("reportsAllForms", "All Forms")}
+              </button>
+              {formSections.map((section) => (
+                <button
+                  key={section.form}
+                  type="button"
+                  style={{
+                    ...styles.formFilterChip,
+                    background: selectedForm === section.form ? "#0b4f9e" : "#fff",
+                    color: selectedForm === section.form ? "#fff" : styles.formFilterChip.color,
+                    borderColor: selectedForm === section.form ? "#0b4f9e" : "#cfe0ff",
+                  }}
+                  onClick={() => setSelectedForm(section.form)}
+                >
+                  {section.form}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {visibleFormSections.length ? (
+          visibleFormSections.map((section) => (
+            <div key={section.form} style={{ display: "grid", gap: 10 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>
+                  {section.form}
+                </div>
+                <div style={{ fontSize: 11, color: "#64748b" }}>
+                  {t("reportsClassCount", "{count} class{suffix}", {
+                    count: section.classes.length,
+                    suffix: section.classes.length === 1 ? "" : "es",
+                  })}
+                </div>
+              </div>
+              <div style={styles.classTileGrid}>
+                {section.classes.map((entry) => {
+                  const active = entry.id === classData.id;
+                  return (
+                    <div
+                      key={entry.id}
+                      style={{
+                        ...styles.classTile,
+                        borderColor: active ? "#0b4f9e" : styles.classTile.border.split(" ").slice(-1)[0],
+                        boxShadow: active ? "0 0 0 2px rgba(11,79,158,0.12)" : "none",
+                        background: active
+                          ? "linear-gradient(180deg, #f1f6ff, #e7f0ff)"
+                          : styles.classTile.background,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: 8,
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 900, color: "#102a43" }}>
+                            {entry.label}
+                          </div>
+                          <div style={{ fontSize: 11, color: "#64748b" }}>
+                            {entry.exam}
+                          </div>
+                        </div>
+                        {active ? (
+                          <div style={{ ...pillStyle({ tone: "blue" }), fontSize: 10 }}>
+                            {t("reportsActiveClass", "Active")}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div style={styles.classTileMeta}>
+                        <span>
+                          {t("reportsStudentsCount", "{count} students", {
+                            count: entry.studentCount,
+                          })}
+                        </span>
+                        <span>
+                          {t("reportsRankedCount", "{count} ranked", {
+                            count: entry.rankedCount,
+                          })}
+                        </span>
+                        <span>
+                          {t("reportsAvgShort", "Avg {avg}", {
+                            avg: entry.avg ? entry.avg.toFixed(1) : "0.0",
+                          })}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <button
+                          type="button"
+                          style={active ? secondaryButtonStyle({ compact: true }) : primaryButtonStyle({ compact: true })}
+                          onClick={() => onSelectClass?.(entry.id, entry.school_info?.exam || DEFAULT_EXAM_TYPE)}
+                        >
+                          {active
+                            ? t("reportsCurrentClass", "Current Class")
+                            : t("reportsOpenClassReports", "Open Reports")}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div style={styles.empty}>
+            {t("reportsNoFormsFound", "No form report sections are available yet.")}
+          </div>
+        )}
+      </div>
+
       <div style={{ ...actionPanel, display: "grid", gap: 16 }}>
         <div
           style={{
