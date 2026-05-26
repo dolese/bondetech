@@ -112,7 +112,11 @@ export function CommandPalette({
         icon: "ST",
         label: student.name || "Student",
         subtitle: buildStudentSubtitle(student),
-        action: () => onOpenStudentProfile?.(student.indexNo),
+        action: () =>
+          onOpenStudentProfile?.({
+            admissionNo: student.admissionNo || "",
+            indexNo: student.indexNo || "",
+          }),
       });
     });
 

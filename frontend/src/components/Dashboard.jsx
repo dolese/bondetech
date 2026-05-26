@@ -1851,7 +1851,12 @@ export function Dashboard({
                   {searchResults.map((student) => (
                     <button
                       key={`${student.classId}-${student.studentId}`}
-                      onClick={() => onViewProfile?.(student.indexNo)}
+                      onClick={() =>
+                        onViewProfile?.({
+                          admissionNo: student.admissionNo || "",
+                          indexNo: student.indexNo || "",
+                        })
+                      }
                       style={{
                         border: "1px solid rgba(191,219,254,0.5)",
                         background: "rgba(255,255,255,0.74)",

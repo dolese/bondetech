@@ -103,6 +103,7 @@ function buildParentDirectory(classes) {
         studentId: student.id,
         name: student.name || "Unnamed Student",
         indexNo: student.index_no || student.indexNo || "",
+        admissionNo: student.admissionNo || student.admission_no || "",
         classLabel: getClassDisplayLabel(cls),
       });
       parentMap.set(key, existing);
@@ -116,6 +117,22 @@ function buildParentDirectory(classes) {
       students: entry.students.sort((a, b) => a.name.localeCompare(b.name, "en")),
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "en"));
+}
+
+function normalizeProfileTarget(target) {
+  if (target && typeof target === "object") {
+    return {
+      admissionNo: String(target.admissionNo || target.admission_no || "").trim().toUpperCase(),
+      indexNo: String(target.indexNo || target.index_no || "").trim(),
+    };
+  }
+  const raw = String(target || "").trim();
+  const upper = raw.toUpperCase();
+  const looksLikeAdmissionNo = /^[A-Z0-9]+-\d{4}-\d{4,}$/.test(upper);
+  return {
+    admissionNo: looksLikeAdmissionNo ? upper : "",
+    indexNo: looksLikeAdmissionNo ? "" : raw,
+  };
 }
 
 function buildTeacherDirectory(users, classes) {
@@ -622,13 +639,7 @@ export default function App() {
   }, [activeComputed]);
 
   const handleOpenStudentProfile = useCallback((target) => {
-    const ref =
-      target && typeof target === "object"
-        ? {
-            admissionNo: String(target.admissionNo || target.admission_no || "").trim().toUpperCase(),
-            indexNo: String(target.indexNo || target.index_no || "").trim(),
-          }
-        : { admissionNo: "", indexNo: String(target || "").trim() };
+    const ref = normalizeProfileTarget(target);
     if (!ref.admissionNo && !ref.indexNo) return;
     setSearchProfileTarget(ref);
     setPage("profile");
@@ -797,8 +808,8 @@ export default function App() {
                   setActiveId(id);
                   setPage("students");
                 }}
-                onViewProfile={(indexNo) => {
-                  handleOpenStudentProfile(indexNo);
+                onViewProfile={(studentRef) => {
+                  handleOpenStudentProfile(studentRef);
                 }}
                 onOpenAccount={() => setPage("account")}
                 onOpenReports={() => {
