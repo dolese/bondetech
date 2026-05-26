@@ -422,6 +422,7 @@ export default function App() {
     onChangeExam,
     onUpdateCompositeConfig,
     onUpdateTimetable,
+    hydrateAllClassesWithStudents,
     resetClassesState,
   } = useClasses({
     loggedIn: loggedIn && canAccessClassData,
@@ -582,6 +583,11 @@ export default function App() {
       setPage(canAccessClassData ? "students" : "account");
     }
   }, [canAccessClassData, canManageStudentsGlobally, page]);
+
+  useEffect(() => {
+    if (!loggedIn || !canManageStudentsGlobally || page !== "student-management") return;
+    Promise.resolve(hydrateAllClassesWithStudents()).catch(() => {});
+  }, [canManageStudentsGlobally, hydrateAllClassesWithStudents, loggedIn, page]);
 
   useEffect(() => {
     if (page === "sms" && !canUseSms) {

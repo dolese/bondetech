@@ -193,6 +193,22 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, []);
 
+  const hydrateAllClassesWithStudents = useCallback(async () => {
+    const classIds = classes.map((cls) => cls.id).filter(Boolean);
+    if (!classIds.length) return;
+    const loaded = await Promise.all(
+      classIds.map(async (id) => {
+        try {
+          return normalizeClass(await API.getClass(id));
+        } catch {
+          return classes.find((cls) => cls.id === id) || null;
+        }
+      })
+    );
+    const nextById = new Map(loaded.filter(Boolean).map((cls) => [cls.id, cls]));
+    setClasses((prev) => prev.map((cls) => nextById.get(cls.id) || cls));
+  }, [classes]);
+
   useEffect(() => {
     if (loggedIn && activeId) {
       refreshClass(activeId);
@@ -763,6 +779,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onChangeExam,
     onUpdateCompositeConfig,
     onUpdateTimetable,
+    hydrateAllClassesWithStudents,
     resetClassesState,
   };
 }
