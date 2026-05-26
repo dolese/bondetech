@@ -1,5 +1,5 @@
 import { DEFAULT_EXAM_TYPE, DEFAULT_SCHOOL } from "./constants";
-import { normalizeTzPhoneListInline } from "./phone";
+import { buildPhoneCollection } from "./phone";
 import { normalizeTimetableSettings } from "./timetable";
 
 const CLASS_REPORT_KEYS = ["form", "term", "exam", "year", "reportInstruction"];
@@ -25,11 +25,22 @@ export function normalizeSchoolSettings(input = {}) {
     DEFAULT_SCHOOL.export_branding?.rightLogoSrc
   );
 
+  const academicPhones = buildPhoneCollection(
+    input.academicPhone ?? DEFAULT_SCHOOL.academicPhone,
+    input.academicPhones ?? []
+  );
+  const headmasterPhones = buildPhoneCollection(
+    input.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone,
+    input.headmasterPhones ?? []
+  );
+
   return {
     ...DEFAULT_SCHOOL,
     ...input,
-    academicPhone: normalizeTzPhoneListInline(input.academicPhone ?? DEFAULT_SCHOOL.academicPhone),
-    headmasterPhone: normalizeTzPhoneListInline(input.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone),
+    academicPhone: academicPhones[0] || "",
+    academicPhones,
+    headmasterPhone: headmasterPhones[0] || "",
+    headmasterPhones,
     export_branding: exportBranding,
     reportInstruction: String(input.reportInstruction ?? DEFAULT_SCHOOL.reportInstruction ?? "").trim(),
     timetable: normalizeTimetableSettings(input.timetable),

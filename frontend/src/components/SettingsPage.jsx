@@ -7,10 +7,10 @@ import {
 } from "../utils/constants";
 import { updateExportBranding } from "../utils/exportBranding";
 import { validateSchoolInfo } from "../utils/validation";
-import { TextInput, SelectInput } from "./FormInputs";
+import { TextInput, SelectInput, TextAreaInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
-import { normalizeTzPhoneListInline } from "../utils/phone";
+import { buildPhoneCollection, normalizeTzPhoneDraft, normalizeTzPhoneListDraft, phonesToDraft } from "../utils/phone";
 
 function TinyIcon({ children }) {
   return (
@@ -25,6 +25,28 @@ function TinyIcon({ children }) {
       {children}
     </svg>
   );
+}
+
+function buildSchoolInfoState(input = {}) {
+  const academicPhones = buildPhoneCollection(
+    input?.academicPhone ?? DEFAULT_SCHOOL.academicPhone,
+    input?.academicPhones ?? []
+  );
+  const headmasterPhones = buildPhoneCollection(
+    input?.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone,
+    input?.headmasterPhones ?? []
+  );
+
+  return {
+    ...DEFAULT_SCHOOL,
+    ...(input ?? {}),
+    academicPhone: academicPhones[0] || "",
+    academicPhones,
+    academicPhonesDraft: phonesToDraft(academicPhones.slice(1)),
+    headmasterPhone: headmasterPhones[0] || "",
+    headmasterPhones,
+    headmasterPhonesDraft: phonesToDraft(headmasterPhones.slice(1)),
+  };
 }
 
 export function SettingsPage({
@@ -70,10 +92,7 @@ export function SettingsPage({
 
   // School info state
   const [schoolInfo, setSchoolInfo] = useState({
-    ...DEFAULT_SCHOOL,
-    ...(schoolSettings ?? {}),
-    academicPhone: normalizeTzPhoneListInline(schoolSettings?.academicPhone ?? DEFAULT_SCHOOL.academicPhone),
-    headmasterPhone: normalizeTzPhoneListInline(schoolSettings?.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone),
+    ...buildSchoolInfoState(schoolSettings),
   });
   const [schoolErrors, setSchoolErrors] = useState({});
   const [updatingSchool, setUpdatingSchool] = useState(false);
@@ -114,12 +133,7 @@ export function SettingsPage({
     setClassYear(classData.year ?? "");
     setClassForm(classData.form ?? "Form I");
     setClassStream(classData.stream ?? "A");
-    setSchoolInfo({
-      ...DEFAULT_SCHOOL,
-      ...(schoolSettings ?? {}),
-      academicPhone: normalizeTzPhoneListInline(schoolSettings?.academicPhone ?? DEFAULT_SCHOOL.academicPhone),
-      headmasterPhone: normalizeTzPhoneListInline(schoolSettings?.headmasterPhone ?? DEFAULT_SCHOOL.headmasterPhone),
-    });
+    setSchoolInfo(buildSchoolInfoState(schoolSettings));
     setSchoolErrors({});
     setMetaError("");
     setMonthlyExams(
@@ -170,9 +184,27 @@ export function SettingsPage({
       setSchoolErrors(validation.errors);
       return;
     }
+    const academicPhones = buildPhoneCollection(
+      schoolInfo.academicPhone,
+      schoolInfo.academicPhonesDraft
+    );
+    const headmasterPhones = buildPhoneCollection(
+      schoolInfo.headmasterPhone,
+      schoolInfo.headmasterPhonesDraft
+    );
+    const payload = {
+      ...schoolInfo,
+      academicPhone: academicPhones[0] || "",
+      academicPhones,
+      headmasterPhone: headmasterPhones[0] || "",
+      headmasterPhones,
+    };
+    delete payload.academicPhonesDraft;
+    delete payload.headmasterPhonesDraft;
     setSchoolErrors({});
     setUpdatingSchool(true);
-    await onSaveSchoolSettings?.(schoolInfo);
+    await onSaveSchoolSettings?.(payload);
+    setSchoolInfo(buildSchoolInfoState(payload));
     setUpdatingSchool(false);
   };
 
@@ -723,20 +755,34 @@ export function SettingsPage({
           <TextInput
             label="Academic Officer Phone"
             value={schoolInfo.academicPhone ?? ""}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, academicPhone: normalizeTzPhoneListInline(v) })}
+            onChange={(v) => setSchoolInfo({ ...schoolInfo, academicPhone: normalizeTzPhoneDraft(v) })}
             type="tel"
             inputMode="tel"
-            placeholder="255712345678, 255754321000"
+            placeholder="255712345678"
+          />
+          <TextAreaInput
+            label="Academic Officer Extra Phones"
+            value={schoolInfo.academicPhonesDraft ?? ""}
+            onChange={(v) => setSchoolInfo({ ...schoolInfo, academicPhonesDraft: normalizeTzPhoneListDraft(v) })}
+            placeholder={"255754000111\n255621000222"}
+            rows={3}
           />
           <TextInput
             label="Headmaster Phone"
             value={schoolInfo.headmasterPhone ?? ""}
             onChange={(v) =>
-              setSchoolInfo({ ...schoolInfo, headmasterPhone: normalizeTzPhoneListInline(v) })
+              setSchoolInfo({ ...schoolInfo, headmasterPhone: normalizeTzPhoneDraft(v) })
             }
             type="tel"
             inputMode="tel"
-            placeholder="255712345678, 255754321000"
+            placeholder="255712345678"
+          />
+          <TextAreaInput
+            label="Headmaster Extra Phones"
+            value={schoolInfo.headmasterPhonesDraft ?? ""}
+            onChange={(v) => setSchoolInfo({ ...schoolInfo, headmasterPhonesDraft: normalizeTzPhoneListDraft(v) })}
+            placeholder={"255754000111\n255621000222"}
+            rows={3}
           />
         </div>
         <div>

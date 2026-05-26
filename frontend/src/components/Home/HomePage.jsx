@@ -56,6 +56,16 @@ const DEFAULT_HERO_SLIDES = [
   },
 ];
 
+function formatContactPhones(primaryPhone, phoneList = []) {
+  return Array.from(
+    new Set(
+      [primaryPhone, ...(Array.isArray(phoneList) ? phoneList : [])]
+        .map((entry) => String(entry || "").trim())
+        .filter(Boolean)
+    )
+  ).join(" / ");
+}
+
 function createFallbackOverview(t) {
   return {
     stats: {
@@ -452,6 +462,10 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   const isCompactScreen = isMobile || isTablet;
   
   const containerClass = `home-content-wrapper ${isMobile ? 'home-content-wrapper-mobile' : 'home-content-wrapper-desktop'}`;
+  const headmasterPhonesDisplay = formatContactPhones(
+    schoolSettings.headmasterPhone,
+    schoolSettings.headmasterPhones
+  );
 
   const categories = [
     { label: language === "sw" ? "Kidato I\nMatokeo" : "Form I\nResults", color: "#2563eb", bg: "#dbeafe", icon: "results" },
@@ -1048,7 +1062,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 14 }}>{t("contactUs")}</div>
             <div style={{ fontSize: isMobile ? 13 : 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Phone</span> {schoolSettings.headmasterPhone}
+              <span>Phone</span> {headmasterPhonesDisplay}
             </div>
             <div style={{ fontSize: isMobile ? 13 : 12, color: "rgba(255,255,255,0.65)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
               <span>Email</span> {schoolSettings.email}

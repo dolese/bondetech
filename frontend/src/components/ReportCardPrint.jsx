@@ -99,6 +99,17 @@ function formatReportDate() {
   return `${day}-${month}-${year}`;
 }
 
+function formatOfficePhones(primaryPhone, phoneList = []) {
+  const values = Array.from(
+    new Set(
+      [primaryPhone, ...(Array.isArray(phoneList) ? phoneList : [])]
+        .map((entry) => String(entry || "").trim())
+        .filter(Boolean)
+    )
+  );
+  return values.join(" / ");
+}
+
 function getSwahiliHeaderTitles(branding, schoolInfo) {
   const authorityRaw = String(branding.headerSubtitle || schoolInfo.authority || "").trim();
   const schoolRaw = String(branding.headerName || schoolInfo.name || "").trim();
@@ -199,6 +210,14 @@ export function ReportCardPrint({
   const resolvedConduct = mergeConductWithSuggestion(student, subjects, classData);
   const reportDate = formatReportDate();
   const headerTitles = getSwahiliHeaderTitles(branding, schoolInfo);
+  const academicPhonesDisplay = formatOfficePhones(
+    schoolInfo.academicPhone,
+    schoolInfo.academicPhones
+  );
+  const headmasterPhonesDisplay = formatOfficePhones(
+    schoolInfo.headmasterPhone,
+    schoolInfo.headmasterPhones
+  );
 
   const styles = {
     card: {
@@ -321,6 +340,7 @@ export function ReportCardPrint({
       minHeight: 16,
       paddingBottom: 1,
       fontWeight: 600,
+      whiteSpace: "pre-wrap",
     },
     doubleRule: {
       borderTop: "2px solid #163f97",
@@ -731,11 +751,11 @@ export function ReportCardPrint({
         <div style={styles.phoneGrid}>
           <div style={styles.phoneItem}>
             <div style={styles.remarkLabel}>Namba ya simu ya Mtaaluma:</div>
-            <div style={styles.infoValue}>{schoolInfo.academicPhone || ""}</div>
+            <div style={styles.infoValue}>{academicPhonesDisplay || ""}</div>
           </div>
           <div style={styles.phoneItem}>
             <div style={styles.remarkLabel}>Namba ya simu ya Mkuu wa Shule:</div>
-            <div style={styles.infoValue}>{schoolInfo.headmasterPhone || ""}</div>
+            <div style={styles.infoValue}>{headmasterPhonesDisplay || ""}</div>
           </div>
         </div>
 

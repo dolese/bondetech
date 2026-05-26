@@ -33,3 +33,27 @@ export function normalizeTzPhoneListDraft(value) {
     .filter(Boolean)
     .join("\n");
 }
+
+export function parseTzPhoneList(value) {
+  return Array.from(
+    new Set(
+      String(value ?? "")
+        .split(/[\s,;\n]+/)
+        .map((entry) => normalizeTzPhoneDraft(entry))
+        .filter(Boolean),
+    ),
+  );
+}
+
+export function buildPhoneCollection(primaryValue, listValue) {
+  const list = parseTzPhoneList(listValue);
+  const primary = normalizeTzPhoneDraft(primaryValue);
+  if (primary) {
+    return [primary, ...list.filter((entry) => entry !== primary)];
+  }
+  return list;
+}
+
+export function phonesToDraft(value) {
+  return Array.isArray(value) ? value.map((entry) => normalizeTzPhoneDraft(entry)).filter(Boolean).join("\n") : "";
+}
