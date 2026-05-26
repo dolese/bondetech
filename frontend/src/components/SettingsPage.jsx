@@ -7,10 +7,10 @@ import {
 } from "../utils/constants";
 import { updateExportBranding } from "../utils/exportBranding";
 import { validateSchoolInfo } from "../utils/validation";
-import { TextInput, SelectInput, TextAreaInput } from "./FormInputs";
+import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
-import { buildPhoneCollection, normalizeTzPhoneDraft, normalizeTzPhoneListDraft, phonesToDraft } from "../utils/phone";
+import { buildPhoneCollection, normalizeTzPhoneDraft } from "../utils/phone";
 
 function TinyIcon({ children }) {
   return (
@@ -42,10 +42,10 @@ function buildSchoolInfoState(input = {}) {
     ...(input ?? {}),
     academicPhone: academicPhones[0] || "",
     academicPhones,
-    academicPhonesDraft: phonesToDraft(academicPhones.slice(1)),
+    academicPhoneExtras: academicPhones.slice(1),
     headmasterPhone: headmasterPhones[0] || "",
     headmasterPhones,
-    headmasterPhonesDraft: phonesToDraft(headmasterPhones.slice(1)),
+    headmasterPhoneExtras: headmasterPhones.slice(1),
   };
 }
 
@@ -186,11 +186,11 @@ export function SettingsPage({
     }
     const academicPhones = buildPhoneCollection(
       schoolInfo.academicPhone,
-      schoolInfo.academicPhonesDraft
+      schoolInfo.academicPhoneExtras
     );
     const headmasterPhones = buildPhoneCollection(
       schoolInfo.headmasterPhone,
-      schoolInfo.headmasterPhonesDraft
+      schoolInfo.headmasterPhoneExtras
     );
     const payload = {
       ...schoolInfo,
@@ -199,13 +199,35 @@ export function SettingsPage({
       headmasterPhone: headmasterPhones[0] || "",
       headmasterPhones,
     };
-    delete payload.academicPhonesDraft;
-    delete payload.headmasterPhonesDraft;
+    delete payload.academicPhoneExtras;
+    delete payload.headmasterPhoneExtras;
     setSchoolErrors({});
     setUpdatingSchool(true);
     await onSaveSchoolSettings?.(payload);
     setSchoolInfo(buildSchoolInfoState(payload));
     setUpdatingSchool(false);
+  };
+
+  const updatePhoneExtras = (key, index, value) => {
+    setSchoolInfo((prev) => {
+      const next = Array.isArray(prev[key]) ? [...prev[key]] : [];
+      next[index] = normalizeTzPhoneDraft(value);
+      return { ...prev, [key]: next };
+    });
+  };
+
+  const addPhoneExtra = (key) => {
+    setSchoolInfo((prev) => ({
+      ...prev,
+      [key]: [...(Array.isArray(prev[key]) ? prev[key] : []), ""],
+    }));
+  };
+
+  const removePhoneExtra = (key, index) => {
+    setSchoolInfo((prev) => ({
+      ...prev,
+      [key]: (Array.isArray(prev[key]) ? prev[key] : []).filter((_, i) => i !== index),
+    }));
   };
 
   const handleUpdateReportContext = async () => {
@@ -401,6 +423,50 @@ export function SettingsPage({
       fontWeight: 700,
       cursor: "pointer",
       fontSize: 12,
+    },
+    subtleBtn: {
+      padding: "6px 12px",
+      minHeight: 30,
+      borderRadius: 8,
+      border: "1px solid #c7d6f5",
+      background: "#f7faff",
+      color: "#0b4f9e",
+      fontWeight: 700,
+      cursor: "pointer",
+      fontSize: 11,
+      justifySelf: "start",
+    },
+    dangerGhostBtn: {
+      padding: "6px 10px",
+      minHeight: 30,
+      borderRadius: 8,
+      border: "1px solid #f1c1bd",
+      background: "#fff7f6",
+      color: "#b42318",
+      fontWeight: 700,
+      cursor: "pointer",
+      fontSize: 11,
+      whiteSpace: "nowrap",
+    },
+    phoneGroup: {
+      display: "grid",
+      gap: 8,
+      alignContent: "start",
+    },
+    phoneExtrasWrap: {
+      display: "grid",
+      gap: 8,
+    },
+    phoneExtraRow: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) auto",
+      gap: 8,
+      alignItems: "end",
+    },
+    phoneGroupHint: {
+      fontSize: 10,
+      color: "#667",
+      lineHeight: 1.5,
     },
     subjectList: {
       display: "grid",
@@ -752,38 +818,90 @@ export function SettingsPage({
             onChange={(v) => setSchoolInfo({ ...schoolInfo, district: v })}
             error={schoolErrors.district}
           />
-          <TextInput
-            label="Academic Officer Phone"
-            value={schoolInfo.academicPhone ?? ""}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, academicPhone: normalizeTzPhoneDraft(v) })}
-            type="tel"
-            inputMode="tel"
-            placeholder="255712345678"
-          />
-          <TextAreaInput
-            label="Academic Officer Extra Phones"
-            value={schoolInfo.academicPhonesDraft ?? ""}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, academicPhonesDraft: normalizeTzPhoneListDraft(v) })}
-            placeholder={"255754000111\n255621000222"}
-            rows={3}
-          />
-          <TextInput
-            label="Headmaster Phone"
-            value={schoolInfo.headmasterPhone ?? ""}
-            onChange={(v) =>
-              setSchoolInfo({ ...schoolInfo, headmasterPhone: normalizeTzPhoneDraft(v) })
-            }
-            type="tel"
-            inputMode="tel"
-            placeholder="255712345678"
-          />
-          <TextAreaInput
-            label="Headmaster Extra Phones"
-            value={schoolInfo.headmasterPhonesDraft ?? ""}
-            onChange={(v) => setSchoolInfo({ ...schoolInfo, headmasterPhonesDraft: normalizeTzPhoneListDraft(v) })}
-            placeholder={"255754000111\n255621000222"}
-            rows={3}
-          />
+          <div style={styles.phoneGroup}>
+            <TextInput
+              label="Academic Officer Phone"
+              value={schoolInfo.academicPhone ?? ""}
+              onChange={(v) => setSchoolInfo({ ...schoolInfo, academicPhone: normalizeTzPhoneDraft(v) })}
+              type="tel"
+              inputMode="tel"
+              placeholder="255712345678"
+            />
+            <div style={styles.phoneExtrasWrap}>
+              {(schoolInfo.academicPhoneExtras ?? []).map((phone, index) => (
+                <div key={`academic-extra-${index}`} style={styles.phoneExtraRow}>
+                  <TextInput
+                    label={index === 0 ? "Academic Officer Extra Phones" : `Academic Officer Extra Phone ${index + 1}`}
+                    value={phone ?? ""}
+                    onChange={(v) => updatePhoneExtras("academicPhoneExtras", index, v)}
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="255754000111"
+                  />
+                  <button
+                    type="button"
+                    style={styles.dangerGhostBtn}
+                    onClick={() => removePhoneExtra("academicPhoneExtras", index)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              style={styles.subtleBtn}
+              onClick={() => addPhoneExtra("academicPhoneExtras")}
+            >
+              Add another academic phone
+            </button>
+            <div style={styles.phoneGroupHint}>
+              Primary phone stays first. Add extra numbers as separate rows.
+            </div>
+          </div>
+          <div style={styles.phoneGroup}>
+            <TextInput
+              label="Headmaster Phone"
+              value={schoolInfo.headmasterPhone ?? ""}
+              onChange={(v) =>
+                setSchoolInfo({ ...schoolInfo, headmasterPhone: normalizeTzPhoneDraft(v) })
+              }
+              type="tel"
+              inputMode="tel"
+              placeholder="255712345678"
+            />
+            <div style={styles.phoneExtrasWrap}>
+              {(schoolInfo.headmasterPhoneExtras ?? []).map((phone, index) => (
+                <div key={`headmaster-extra-${index}`} style={styles.phoneExtraRow}>
+                  <TextInput
+                    label={index === 0 ? "Headmaster Extra Phones" : `Headmaster Extra Phone ${index + 1}`}
+                    value={phone ?? ""}
+                    onChange={(v) => updatePhoneExtras("headmasterPhoneExtras", index, v)}
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="255621000222"
+                  />
+                  <button
+                    type="button"
+                    style={styles.dangerGhostBtn}
+                    onClick={() => removePhoneExtra("headmasterPhoneExtras", index)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              style={styles.subtleBtn}
+              onClick={() => addPhoneExtra("headmasterPhoneExtras")}
+            >
+              Add another headmaster phone
+            </button>
+            <div style={styles.phoneGroupHint}>
+              Use separate saved numbers instead of one inline field.
+            </div>
+          </div>
         </div>
         <div>
           <div style={styles.sectionTitle}>

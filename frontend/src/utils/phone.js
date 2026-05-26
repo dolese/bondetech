@@ -35,6 +35,15 @@ export function normalizeTzPhoneListDraft(value) {
 }
 
 export function parseTzPhoneList(value) {
+  if (Array.isArray(value)) {
+    return Array.from(
+      new Set(
+        value
+          .map((entry) => normalizeTzPhoneDraft(entry))
+          .filter(Boolean),
+      ),
+    );
+  }
   return Array.from(
     new Set(
       String(value ?? "")
