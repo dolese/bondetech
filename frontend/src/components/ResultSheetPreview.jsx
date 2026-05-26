@@ -146,7 +146,14 @@ function MetaChip({ icon, label, value, tone = "#163f97" }) {
   );
 }
 
-export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = "a3" }) {
+export function ResultSheetPreview({
+  model,
+  isMobile,
+  onPagesChange,
+  pageSize = "a3",
+  mode = "preview",
+  forcedPageRanges = null,
+}) {
   const branding = useMemo(() => getResultSheetBranding(model.schoolInfo), [model.schoolInfo]);
   const pageSpec = useMemo(() => getResultSheetPageSpec(pageSize), [pageSize]);
   const layout = useMemo(() => getResultSheetLayout(pageSize), [pageSize]);
@@ -154,6 +161,7 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
   const PAGE_WIDTH_MM = pageSpec.width - SAFE_MARGIN_MM * 2;
   const PAGE_HEIGHT_MM = pageSpec.height - SAFE_MARGIN_MM * 2;
   const isA4 = String(pageSize).toLowerCase() === "a4";
+  const isPrint = mode === "print";
   const leftLogoSrc = branding.leftLogoSrc || branding.rightLogoSrc;
   const rightLogoSrc = branding.rightLogoSrc || branding.leftLogoSrc;
   const resultTableFixedWidth = useMemo(() => getResultSheetTableFixedWidth(pageSize), [pageSize]);
@@ -175,9 +183,13 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
   const tableHeadMeasureRef = useRef(null);
   const footerMeasureRef = useRef(null);
   const rowMeasureRefs = useRef([]);
-  const [pageRanges, setPageRanges] = useState([{ start: 0, end: model.students.length }]);
+  const [measuredPageRanges, setMeasuredPageRanges] = useState([{ start: 0, end: model.students.length }]);
 
   useLayoutEffect(() => {
+    if (forcedPageRanges?.length) {
+      onPagesChange?.(forcedPageRanges);
+      return undefined;
+    }
     const frame = requestAnimationFrame(() => {
       const pageHeight = pageMeasureRef.current?.clientHeight ?? 0;
       const headerHeight = headerMeasureRef.current?.getBoundingClientRect().height ?? 0;
@@ -190,12 +202,14 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       const otherCapacity = Math.max(pageHeight - headerHeight - footerHeight - tableHeadHeight - 24, 40);
       const nextRanges = paginateRowsByHeights(rowHeights, firstCapacity, otherCapacity);
 
-      setPageRanges(nextRanges);
+      setMeasuredPageRanges(nextRanges);
       onPagesChange?.(nextRanges);
     });
 
     return () => cancelAnimationFrame(frame);
-  }, [model, onPagesChange]);
+  }, [forcedPageRanges, model, onPagesChange]);
+
+  const pageRanges = forcedPageRanges?.length ? forcedPageRanges : measuredPageRanges;
 
   const pages = useMemo(
     () =>
@@ -213,21 +227,24 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      gap: layout.pageGapPx,
+      gap: isPrint ? 0 : layout.pageGapPx,
       minWidth: "max-content",
-      padding: "0 12px",
+      padding: isPrint ? 0 : "0 12px",
+      background: isPrint ? "#fff" : undefined,
     },
     page: {
       width: `${PAGE_WIDTH_MM}mm`,
       minHeight: `${PAGE_HEIGHT_MM}mm`,
       background: "#fff",
       border: `1.6px solid ${ACCENT}`,
-      boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+      boxShadow: isPrint ? "none" : "0 10px 30px rgba(0,0,0,0.08)",
       padding: isMobile ? 10 : (isA4 ? 10 : 12),
       boxSizing: "border-box",
       display: "flex",
       flexDirection: "column",
       gap: 12,
+      pageBreakAfter: isPrint ? "always" : undefined,
+      breakAfter: isPrint ? "page" : undefined,
     },
     header: {
       display: "grid",
@@ -840,9 +857,26 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
 
   return (
     <>
+      {isPrint ? (
+        <style>{`
+          @page {
+            size: ${pageSpec.format.toUpperCase()} ${pageSpec.orientation};
+            margin: ${SAFE_MARGIN_MM}mm;
+          }
+          body { margin: 0; background: #fff; }
+          .result-sheet-print-page:last-child {
+            page-break-after: auto !important;
+            break-after: auto !important;
+          }
+        `}</style>
+      ) : null}
       <div style={styles.pageStack}>
         {pages.map((page) => (
-          <div key={`page-${page.index}`} style={styles.page} className="result-sheet-page">
+          <div
+            key={`page-${page.index}`}
+            style={styles.page}
+            className={isPrint ? "result-sheet-print-page" : "result-sheet-page"}
+          >
             <div style={styles.header}>
               <img src={leftLogoSrc} alt="Left crest" style={styles.logo} />
               <div style={styles.titleCenter}>
@@ -871,34 +905,36 @@ export function ResultSheetPreview({ model, isMobile, onPagesChange, pageSize = 
         ))}
       </div>
 
-      <div style={styles.measureShell}>
-        <div ref={pageMeasureRef} style={styles.page}>
-          <div ref={headerMeasureRef} style={styles.header}>
-            <img src={leftLogoSrc} alt="" style={styles.logo} />
-            <div style={styles.titleCenter}>
-              <h1 style={styles.schoolName}>{branding.headerName}</h1>
-              <p style={styles.headerLine}>{branding.headerSubtitle}</p>
-              <p style={styles.headerLine}>{branding.headerAddress}</p>
+      {!forcedPageRanges?.length ? (
+        <div style={styles.measureShell}>
+          <div ref={pageMeasureRef} style={styles.page}>
+            <div ref={headerMeasureRef} style={styles.header}>
+              <img src={leftLogoSrc} alt="" style={styles.logo} />
+              <div style={styles.titleCenter}>
+                <h1 style={styles.schoolName}>{branding.headerName}</h1>
+                <p style={styles.headerLine}>{branding.headerSubtitle}</p>
+                <p style={styles.headerLine}>{branding.headerAddress}</p>
+              </div>
+              <img src={rightLogoSrc} alt="" style={styles.logo} />
             </div>
-            <img src={rightLogoSrc} alt="" style={styles.logo} />
-          </div>
 
-          {renderSummaryBand()}
+            {renderSummaryBand()}
 
-          <div style={styles.tableHeadingRow}>
-            <h3 style={styles.resultHeading}>Students Results</h3>
-            <div style={styles.tableHeadingMeta}>
-              Showing {model.students.length} of {model.students.length} students
+            <div style={styles.tableHeadingRow}>
+              <h3 style={styles.resultHeading}>Students Results</h3>
+              <div style={styles.tableHeadingMeta}>
+                Showing {model.students.length} of {model.students.length} students
+              </div>
             </div>
-          </div>
-          {renderStudentTable(model.students, true)}
+            {renderStudentTable(model.students, true)}
 
-          <div ref={footerMeasureRef}>
-            {footerContent}
-            {renderPageFooter(pages.length - 1, true)}
+            <div ref={footerMeasureRef}>
+              {footerContent}
+              {renderPageFooter(pages.length - 1, true)}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
     </>
   );
 }
