@@ -146,14 +146,13 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
 
   const styles = {
     panel: {
-      flex: 1,
-      overflowY: "auto",
+      width: "100%",
+      overflowY: "visible",
       overflowX: "hidden",
       padding: isMobile ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 12,
-      minHeight: 0,
       minWidth: 0,
     },
     sheetViewport: {

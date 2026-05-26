@@ -155,7 +155,22 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", minHeight: 0, paddingTop: isMobile ? 10 : 14 }}>
+      <div
+        style={
+          tab === "sheet"
+            ? {
+                display: "block",
+                width: "100%",
+                paddingTop: isMobile ? 10 : 14,
+              }
+            : {
+                flex: 1,
+                display: "flex",
+                minHeight: 0,
+                paddingTop: isMobile ? 10 : 14,
+              }
+        }
+      >
         {tab === "analysis" && (
           <AnalysisPanel classData={classData} computed={computed} />
         )}
