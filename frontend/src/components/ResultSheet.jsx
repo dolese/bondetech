@@ -148,13 +148,24 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     panel: {
       flex: 1,
       overflowY: "auto",
-      overflowX: "auto",
+      overflowX: "hidden",
       padding: isMobile ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 12,
       minHeight: 0,
       minWidth: 0,
+    },
+    sheetViewport: {
+      width: "100%",
+      maxWidth: "100%",
+      overflowX: "auto",
+      overflowY: "visible",
+      paddingBottom: 4,
+      display: "flex",
+      justifyContent: "center",
+      WebkitOverflowScrolling: "touch",
+      overscrollBehaviorX: "contain",
     },
     actions: {
       display: "flex",
@@ -259,7 +270,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         </div>
       )}
 
-      <div style={{ overflowX: "auto", paddingBottom: 4, display: "flex", justifyContent: "center" }}>
+      <div style={styles.sheetViewport}>
         {!model.students.length ? (
           <div
             style={{

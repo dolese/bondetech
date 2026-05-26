@@ -228,9 +228,11 @@ export function ResultSheetPreview({
       flexDirection: "column",
       alignItems: "center",
       gap: isPrint ? 0 : layout.pageGapPx,
-      minWidth: "max-content",
+      width: isPrint ? "100%" : "fit-content",
+      maxWidth: isPrint ? "100%" : "none",
       padding: isPrint ? 0 : "0 12px",
       background: isPrint ? "#fff" : undefined,
+      boxSizing: "border-box",
     },
     page: {
       width: `${PAGE_WIDTH_MM}mm`,
