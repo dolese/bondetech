@@ -4,21 +4,7 @@ const { resolveSessionUser, canReadClassData } = require("../../lib/auth");
 const { getClassWithStudents } = require("../../lib/classes");
 const { buildAiSystemPrompt } = require("../../lib/aiPrompt");
 const { getAiToolDefinitions, executeAiTool } = require("../../lib/aiTools");
-
-const OPENAI_API_URL = "https://api.openai.com/v1/responses";
-const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-5";
-
-function toResponseInputMessages(messages = []) {
-  return messages.map((entry) => ({
-    role: entry.role,
-    content: [
-      {
-        type: entry.role === "assistant" ? "output_text" : "input_text",
-        text: entry.content,
-      },
-    ],
-  }));
-}
+const { runAiConversation } = require("../../lib/aiProviders");
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -37,9 +23,6 @@ module.exports = async (req, res) => {
   }
   if (!canReadClassData(currentUser.role)) {
     return sendJson(res, 403, { error: "You do not have permission to use the AI assistant" });
-  }
-  if (!process.env.OPENAI_API_KEY) {
-    return sendJson(res, 503, { error: "OPENAI_API_KEY is not configured on the server" });
   }
 
   try {
@@ -72,66 +55,19 @@ module.exports = async (req, res) => {
       activeClass,
       activeExam: String(context.activeExam || "").trim(),
     });
-
-    const createResponse = async (payload) => {
-      const response = await fetch(OPENAI_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data?.error?.message || data?.error || "OpenAI request failed");
-      }
-      return data;
-    };
-
-    let response = await createResponse({
-      model: DEFAULT_MODEL,
+    const response = await runAiConversation({
       instructions,
-      tools: getAiToolDefinitions(),
-      input: toResponseInputMessages(messages),
+      messages,
+      toolDefinitions: getAiToolDefinitions(),
+      executeTool: (call) => executeAiTool(db, currentUser, call),
     });
-
-    for (let attempt = 0; attempt < 6; attempt += 1) {
-      const toolCalls = Array.isArray(response?.output)
-        ? response.output.filter((item) => item.type === "function_call")
-        : [];
-      if (!toolCalls.length) break;
-
-      const toolOutputs = [];
-      for (const call of toolCalls) {
-        try {
-          const result = await executeAiTool(db, currentUser, call);
-          toolOutputs.push({
-            type: "function_call_output",
-            call_id: call.call_id,
-            output: JSON.stringify(result),
-          });
-        } catch (err) {
-          toolOutputs.push({
-            type: "function_call_output",
-            call_id: call.call_id,
-            output: JSON.stringify({ error: err.message }),
-          });
-        }
-      }
-
-      response = await createResponse({
-        model: DEFAULT_MODEL,
-        previous_response_id: response.id,
-        input: toolOutputs,
-      });
-    }
 
     return sendJson(res, 200, {
-      reply: response?.output_text || "I could not generate a response.",
-      model: DEFAULT_MODEL,
+      reply: response.reply,
+      model: response.model,
+      provider: response.provider,
     });
   } catch (err) {
-    return sendJson(res, 500, { error: err.message || "Unable to complete AI request" });
+    return sendJson(res, err.status || 500, { error: err.message || "Unable to complete AI request" });
   }
 };
