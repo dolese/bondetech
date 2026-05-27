@@ -14,6 +14,7 @@ import { JSONImportModal } from "./components/JSONImportModal";
 import { XLSXImportModal } from "./components/XLSXImportModal";
 import { StudentManagementPage } from "./components/StudentManagementPage";
 import { SmsPage } from "./components/SmsPage";
+import { AiAssistantPage } from "./components/AiAssistantPage";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 import { ExamPickerScreen } from "./components/ExamPickerScreen";
@@ -383,6 +384,7 @@ export default function App() {
   const canViewSettings = role === "admin";
   const canManageStudentsGlobally = role === "admin" || role === "academic";
   const canUseSms = CLASS_ACCESS_ROLES.has(role);
+  const canUseAi = CLASS_ACCESS_ROLES.has(role);
   const navItems = [
     ...classNavItems.filter((item) => canViewSettings || item.key !== "settings"),
     ...(canManageStudentsGlobally
@@ -390,6 +392,9 @@ export default function App() {
       : []),
     ...(canUseSms
       ? [{ key: "sms", label: t("sms", "SMS"), requiresClass: false }]
+      : []),
+    ...(canUseAi
+      ? [{ key: "ai-assistant", label: t("aiAssistant", "AI Assistant"), requiresClass: false }]
       : []),
     ...(canManageUsers
       ? [
@@ -613,6 +618,12 @@ export default function App() {
   }, [canAccessClassData, canUseSms, page]);
 
   useEffect(() => {
+    if (page === "ai-assistant" && !canUseAi) {
+      setPage(canAccessClassData ? "students" : "account");
+    }
+  }, [canAccessClassData, canUseAi, page]);
+
+  useEffect(() => {
     if (!loggedIn || role !== "admin") return;
     Promise.resolve(loadUsers()).catch(() => {});
     Promise.resolve(loadAuthLogs(12)).catch(() => {});
@@ -685,6 +696,7 @@ export default function App() {
     if (page === "teachers") return t("teachers");
     if (page === "parents") return t("parents");
     if (page === "sms") return t("sms", "SMS");
+    if (page === "ai-assistant") return t("aiAssistant", "AI Assistant");
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
@@ -939,6 +951,15 @@ export default function App() {
               showToast={showToast}
               initialDraft={smsDraft}
               onDraftApplied={() => setSmsDraft(null)}
+            />
+          )}
+
+          {page === "ai-assistant" && canUseAi && (
+            <AiAssistantPage
+              classes={visibleClasses}
+              activeClass={displayActiveClass}
+              activeExam={activeExam}
+              currentUser={currentUser}
             />
           )}
 

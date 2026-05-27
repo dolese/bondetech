@@ -59,6 +59,10 @@
       "destination": "/api/index.js?dispatch=sms"
     },
     {
+      "source": "/api/ai/chat",
+      "destination": "/api/index.js?dispatch=ai-chat"
+    },
+    {
       "source": "/api/auth/login",
       "destination": "/api/index.js?dispatch=auth-login"
     },

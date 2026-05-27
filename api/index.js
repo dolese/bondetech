@@ -9,6 +9,7 @@ const proxyCsv = require("../serverless/proxy-csv/index.js");
 const statsIndex = require("../serverless/stats/index.js");
 const studentSearch = require("../serverless/students/search.js");
 const studentProfile = require("../serverless/students/[indexNo].js");
+const aiIndex = require("../serverless/ai/index.js");
 const authIndex = require("../serverless/auth/index.js");
 const { sendJson } = require("../lib/http");
 
@@ -50,6 +51,8 @@ module.exports = async (req, res) => {
         return studentSearch(req, res);
       case "student-profile":
         return studentProfile(req, res);
+      case "ai-chat":
+        return aiIndex(req, res);
       case "proxy-csv":
         return proxyCsv(req, res);
       case "sms":

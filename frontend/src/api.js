@@ -141,6 +141,7 @@ export const API = {
     return get(`/students/search?${params.toString()}`);
   },
   getStudentProfile: (target)   => get(buildStudentProfileUrl(target)),
+  aiChat:          (data)       => post("/ai/chat", data),
 
   // Backup & Restore
   backup:          ()           => get("/backup"),

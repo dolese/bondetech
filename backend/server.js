@@ -63,6 +63,7 @@ app.use("/api/students", require("./routes/students"));
 app.use("/api/homepage", require("./routes/homepage"));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/sms", require("./routes/sms"));
+app.use("/api/ai", require("./routes/ai"));
 
 app.get("/api/stats", async (req, res) => {
   try {

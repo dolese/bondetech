@@ -118,6 +118,14 @@ function navIcon(key) {
           <path d="M7.5 13h6.2" />
         </SvgIcon>
       );
+    case "ai-assistant":
+      return (
+        <SvgIcon>
+          <path d="M12 3.8 14.4 8l4.7.8-3.3 3.3.6 4.7L12 14.7 7.6 16.8l.6-4.7-3.3-3.3 4.7-.8Z" />
+          <path d="M12 8.8v6.2" />
+          <path d="M8.9 11.9h6.2" />
+        </SvgIcon>
+      );
     case "reports":
       return (
         <SvgIcon>
@@ -169,7 +177,7 @@ function buildNavSections(navItems, accountLabel, accountSubtitle, t) {
     },
     {
       title: t("communicationSection"),
-      items: ["parents", "sms"],
+      items: ["parents", "sms", "ai-assistant"],
     },
     {
       title: t("reportsSection"),
