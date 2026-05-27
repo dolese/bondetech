@@ -9,6 +9,18 @@ const { getAiToolDefinitions, executeAiTool } = require("../../lib/aiTools");
 const OPENAI_API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-5";
 
+function toResponseInputMessages(messages = []) {
+  return messages.map((entry) => ({
+    role: entry.role,
+    content: [
+      {
+        type: entry.role === "assistant" ? "output_text" : "input_text",
+        text: entry.content,
+      },
+    ],
+  }));
+}
+
 async function requireAuth(req, res, next) {
   try {
     const user = await resolveSessionUser(getDb(), req);
@@ -85,10 +97,7 @@ router.post("/chat", async (req, res) => {
       model: DEFAULT_MODEL,
       instructions,
       tools: toolDefinitions,
-      input: messages.map((entry) => ({
-        role: entry.role,
-        content: [{ type: "input_text", text: entry.content }],
-      })),
+      input: toResponseInputMessages(messages),
     });
 
     for (let attempt = 0; attempt < 6; attempt += 1) {

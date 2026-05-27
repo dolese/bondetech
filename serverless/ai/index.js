@@ -8,6 +8,18 @@ const { getAiToolDefinitions, executeAiTool } = require("../../lib/aiTools");
 const OPENAI_API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-5";
 
+function toResponseInputMessages(messages = []) {
+  return messages.map((entry) => ({
+    role: entry.role,
+    content: [
+      {
+        type: entry.role === "assistant" ? "output_text" : "input_text",
+        text: entry.content,
+      },
+    ],
+  }));
+}
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     return sendJson(res, 405, { error: "Method not allowed" });
@@ -81,10 +93,7 @@ module.exports = async (req, res) => {
       model: DEFAULT_MODEL,
       instructions,
       tools: getAiToolDefinitions(),
-      input: messages.map((entry) => ({
-        role: entry.role,
-        content: [{ type: "input_text", text: entry.content }],
-      })),
+      input: toResponseInputMessages(messages),
     });
 
     for (let attempt = 0; attempt < 6; attempt += 1) {
