@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { API } from "../api";
 import { useViewport } from "../utils/useViewport";
-import {
-  fieldStyle,
-  pillStyle,
-  primaryButtonStyle,
-  secondaryButtonStyle,
-} from "../utils/designSystem";
+import { fieldStyle, pillStyle, secondaryButtonStyle } from "../utils/designSystem";
 
 function getClassLabel(classRecord = {}) {
   return (
@@ -107,21 +102,22 @@ function ContextChip({ label, value }) {
   return (
     <div
       style={{
-        display: "grid",
-        gap: 3,
+        display: "flex",
+        gap: 8,
+        alignItems: "center",
         minWidth: 0,
-        padding: "10px 12px",
-        borderRadius: 14,
-        background: "rgba(248,250,252,0.72)",
+        padding: "8px 12px",
+        borderRadius: 999,
+        background: "rgba(248,250,252,0.62)",
         border: "1px solid rgba(226,232,240,0.88)",
       }}
     >
-      <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", color: "#64748b" }}>
+      <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", color: "#64748b", whiteSpace: "nowrap" }}>
         {label}
       </span>
       <span
         style={{
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: 800,
           color: "#0f172a",
           overflow: "hidden",
@@ -148,6 +144,7 @@ export function AiAssistantPage({
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -247,7 +244,7 @@ export function AiAssistantPage({
             padding: isMobile ? "15px 16px 12px" : "18px 22px 12px",
             borderBottom: "1px solid rgba(226,232,240,0.84)",
             display: "grid",
-            gap: 12,
+            gap: 10,
           }}
         >
           <div
@@ -273,8 +270,8 @@ export function AiAssistantPage({
                     </span>
                   ) : null}
                 </div>
-                <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: 14 }}>
-                  School operations chat for results, student lookups, and guardian message drafting.
+                <p style={{ margin: "3px 0 0", color: "#64748b", fontSize: 14 }}>
+                  Results, student lookups, and guardian drafting.
                 </p>
               </div>
             </div>
@@ -300,46 +297,51 @@ export function AiAssistantPage({
 
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+              display: "flex",
+              flexWrap: "wrap",
               gap: 8,
             }}
           >
-            <ContextChip label="Selected Class" value={selectedClass ? getClassLabel(selectedClass) : "Flexible"} />
-            <ContextChip label="Exam Context" value={activeExam || "Use class default"} />
-            <ContextChip label="Student Identity" value="Admission Number preferred" />
+            <ContextChip label="Class" value={selectedClass ? getClassLabel(selectedClass) : "Flexible"} />
+            <ContextChip label="Exam" value={activeExam || "Default"} />
+            <ContextChip label="Identity" value="Admission No." />
           </div>
         </header>
 
-        <div
-          style={{
-            padding: isMobile ? "10px 16px 9px" : "10px 22px 9px",
-            borderBottom: "1px solid rgba(226,232,240,0.78)",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 7,
-          }}
-        >
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              onClick={() => sendMessage(suggestion)}
-              disabled={isSending}
-              style={{
-                ...secondaryButtonStyle({ compact: true }),
-                borderRadius: 999,
-                fontWeight: 700,
-                padding: isMobile ? "8px 12px" : "9px 13px",
-                fontSize: 12,
-                background: "rgba(255,255,255,0.74)",
-                boxShadow: "none",
-              }}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
+        {showQuickActions ? (
+          <div
+            style={{
+              padding: isMobile ? "10px 16px 10px" : "10px 22px 10px",
+              borderBottom: "1px solid rgba(226,232,240,0.78)",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 7,
+            }}
+          >
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                onClick={() => {
+                  setShowQuickActions(false);
+                  sendMessage(suggestion);
+                }}
+                disabled={isSending}
+                style={{
+                  ...secondaryButtonStyle({ compact: true }),
+                  borderRadius: 999,
+                  fontWeight: 700,
+                  padding: isMobile ? "8px 12px" : "9px 13px",
+                  fontSize: 12,
+                  background: "rgba(255,255,255,0.74)",
+                  boxShadow: "none",
+                }}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         <div
           ref={listRef}
@@ -364,8 +366,8 @@ export function AiAssistantPage({
                   gridTemplateColumns: isMobile
                     ? "minmax(0, 1fr)"
                     : isAssistant
-                    ? "36px minmax(0, 820px)"
-                    : "minmax(0, 820px) 36px",
+                    ? "36px minmax(0, 1080px)"
+                    : "minmax(0, 1080px) 36px",
                   justifyContent: isAssistant ? "start" : "end",
                   alignItems: "start",
                   gap: 14,
@@ -374,7 +376,7 @@ export function AiAssistantPage({
                 {!isMobile && isAssistant ? <AssistantBadge /> : null}
                 <div
                   style={{
-                    maxWidth: 820,
+                    maxWidth: 1080,
                     justifySelf: isAssistant ? "start" : "end",
                     borderRadius: isAssistant ? (isMobile ? 20 : 0) : 24,
                     padding: isAssistant ? (isMobile ? "14px 16px" : "2px 0 0") : "14px 16px",
@@ -525,60 +527,88 @@ export function AiAssistantPage({
             }}
             style={{
               display: "grid",
-              gap: 10,
-              borderRadius: 22,
+              gap: 8,
+              gridTemplateColumns: "auto minmax(0, 1fr) auto",
+              alignItems: "center",
+              borderRadius: 999,
               border: "1px solid rgba(214,226,245,0.92)",
               background: "#ffffff",
               boxShadow: "0 12px 24px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.96)",
-              padding: isXs ? 12 : 14,
+              padding: isXs ? 8 : 10,
             }}
           >
+            <button
+              type="button"
+              onClick={() => setShowQuickActions((current) => !current)}
+              style={{
+                width: isMobile ? 46 : 52,
+                height: isMobile ? 46 : 52,
+                borderRadius: "50%",
+                border: "none",
+                background: "linear-gradient(180deg, #ffffff, #f8fafc)",
+                boxShadow: "0 8px 18px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.96)",
+                display: "grid",
+                placeItems: "center",
+                cursor: "pointer",
+                color: "#111827",
+                flexShrink: 0,
+              }}
+              aria-label="Toggle quick prompts"
+            >
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+
             <textarea
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               placeholder="Ask about a class, a student Admission Number, incomplete results, or guardian SMS drafting."
-              rows={3}
+              rows={1}
               style={{
                 border: "none",
                 outline: "none",
                 resize: "none",
-                minHeight: isMobile ? 74 : 86,
+                minHeight: isMobile ? 28 : 32,
+                maxHeight: 120,
                 fontFamily: "inherit",
-                fontSize: 15,
-                lineHeight: 1.6,
+                fontSize: isMobile ? 17 : 18,
+                lineHeight: 1.45,
                 color: "#0f172a",
                 background: "transparent",
-                padding: "2px 2px 0",
+                padding: "8px 6px",
+                overflowY: "auto",
               }}
             />
-
-            <div
+            <button
+              type="submit"
+              disabled={isSending || !draft.trim()}
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 12,
-                flexWrap: "wrap",
-                alignItems: "center",
+                width: isMobile ? 46 : 52,
+                height: isMobile ? 46 : 52,
+                borderRadius: "50%",
+                border: "none",
+                background: "#050505",
+                color: "#ffffff",
+                display: "grid",
+                placeItems: "center",
+                cursor: isSending || !draft.trim() ? "not-allowed" : "pointer",
+                opacity: isSending || !draft.trim() ? 0.5 : 1,
+                flexShrink: 0,
               }}
+              aria-label="Send message"
             >
-              <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
-                Admission Number is preferred when you ask about a specific student.
-              </span>
-              <button
-                type="submit"
-                disabled={isSending || !draft.trim()}
-                style={{
-                  ...primaryButtonStyle(),
-                  borderRadius: 16,
-                  minWidth: isMobile ? 132 : 148,
-                  opacity: isSending || !draft.trim() ? 0.58 : 1,
-                  cursor: isSending || !draft.trim() ? "not-allowed" : "pointer",
-                }}
-              >
-                Send Message
-              </button>
-            </div>
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19V5" />
+                <path d="m5 12 7-7 7 7" />
+              </svg>
+            </button>
           </form>
+
+          <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600, paddingLeft: 6 }}>
+            Admission Number is preferred when you ask about a specific student.
+          </div>
         </div>
       </section>
     </div>
