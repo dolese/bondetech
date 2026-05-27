@@ -108,12 +108,12 @@ function ContextChip({ label, value }) {
     <div
       style={{
         display: "grid",
-        gap: 4,
+        gap: 3,
         minWidth: 0,
-        padding: "12px 14px",
-        borderRadius: 16,
-        background: "rgba(248,250,252,0.88)",
-        border: "1px solid rgba(226,232,240,0.96)",
+        padding: "10px 12px",
+        borderRadius: 14,
+        background: "rgba(248,250,252,0.72)",
+        border: "1px solid rgba(226,232,240,0.88)",
       }}
     >
       <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", color: "#64748b" }}>
@@ -236,25 +236,25 @@ export function AiAssistantPage({
           borderRadius: isMobile ? 22 : 30,
           border: "1px solid rgba(226,232,240,0.92)",
           background:
-            "radial-gradient(circle at top left, rgba(219,234,254,0.70), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(246,250,255,0.94))",
-          boxShadow: "0 24px 56px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.96)",
+            "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96))",
+          boxShadow: "0 18px 42px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.96)",
           overflow: isMobile ? "visible" : "hidden",
           marginBottom: isMobile ? 6 : 0,
         }}
       >
         <header
           style={{
-            padding: isMobile ? "16px 16px 14px" : "20px 22px 16px",
+            padding: isMobile ? "15px 16px 12px" : "18px 22px 12px",
             borderBottom: "1px solid rgba(226,232,240,0.84)",
             display: "grid",
-            gap: 14,
+            gap: 12,
           }}
         >
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
-              gap: 14,
+              gap: 12,
               flexWrap: "wrap",
               alignItems: isMobile ? "stretch" : "center",
             }}
@@ -263,7 +263,7 @@ export function AiAssistantPage({
               <AssistantBadge />
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-                  <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 24, lineHeight: 1.1, color: "#0f172a" }}>
+                  <h1 style={{ margin: 0, fontSize: isMobile ? 19 : 22, lineHeight: 1.1, color: "#0f172a" }}>
                     Academic Assistant
                   </h1>
                   <span style={pillStyle({ tone: "blue" })}>Read-only</span>
@@ -273,13 +273,13 @@ export function AiAssistantPage({
                     </span>
                   ) : null}
                 </div>
-                <p style={{ margin: "6px 0 0", color: "#64748b", fontSize: 14 }}>
+                <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: 14 }}>
                   School operations chat for results, student lookups, and guardian message drafting.
                 </p>
               </div>
             </div>
 
-            <label style={{ display: "grid", gap: 6, minWidth: 240, maxWidth: 320, flex: "1 1 260px" }}>
+            <label style={{ display: "grid", gap: 5, minWidth: 220, maxWidth: 300, flex: "1 1 240px" }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", color: "#64748b" }}>
                 CLASS CONTEXT
               </span>
@@ -301,8 +301,8 @@ export function AiAssistantPage({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 10,
+              gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+              gap: 8,
             }}
           >
             <ContextChip label="Selected Class" value={selectedClass ? getClassLabel(selectedClass) : "Flexible"} />
@@ -313,11 +313,11 @@ export function AiAssistantPage({
 
         <div
           style={{
-            padding: isMobile ? "12px 16px 10px" : "14px 22px 10px",
+            padding: isMobile ? "10px 16px 9px" : "10px 22px 9px",
             borderBottom: "1px solid rgba(226,232,240,0.78)",
             display: "flex",
             flexWrap: "wrap",
-            gap: 8,
+            gap: 7,
           }}
         >
           {suggestions.map((suggestion) => (
@@ -330,6 +330,10 @@ export function AiAssistantPage({
                 ...secondaryButtonStyle({ compact: true }),
                 borderRadius: 999,
                 fontWeight: 700,
+                padding: isMobile ? "8px 12px" : "9px 13px",
+                fontSize: 12,
+                background: "rgba(255,255,255,0.74)",
+                boxShadow: "none",
               }}
             >
               {suggestion}
@@ -342,10 +346,12 @@ export function AiAssistantPage({
           style={{
             minHeight: 0,
             overflowY: isMobile ? "visible" : "auto",
-            padding: isMobile ? "18px 16px 18px" : "26px 22px 22px",
+            padding: isMobile ? "18px 16px 18px" : "22px 22px 22px",
             display: "grid",
             gap: isMobile ? 18 : 24,
             alignContent: "start",
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0), rgba(248,250,252,0.48) 100%)",
           }}
         >
           {messages.map((message, index) => {
@@ -371,19 +377,19 @@ export function AiAssistantPage({
                     maxWidth: 820,
                     justifySelf: isAssistant ? "start" : "end",
                     borderRadius: isAssistant ? (isMobile ? 20 : 0) : 24,
-                    padding: isAssistant ? "2px 0 0" : "16px 18px",
+                    padding: isAssistant ? (isMobile ? "14px 16px" : "2px 0 0") : "14px 16px",
                     background: isAssistant
                       ? isMobile
-                        ? "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(243,247,255,0.92))"
+                        ? "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(246,248,252,0.92))"
                         : "transparent"
-                      : "linear-gradient(135deg, #1d4ed8, #0f8b8d)",
+                      : "linear-gradient(135deg, rgba(29,78,216,0.96), rgba(14,116,144,0.94))",
                     color: isAssistant ? "#0f172a" : "#ffffff",
                     boxShadow: isAssistant
                       ? isMobile
-                        ? "0 10px 22px rgba(15,23,42,0.05)"
+                        ? "0 8px 18px rgba(15,23,42,0.04)"
                         : "none"
-                      : "0 16px 32px rgba(29,78,216,0.18)",
-                    border: isAssistant && isMobile ? "1px solid rgba(226,232,240,0.92)" : "none",
+                      : "0 14px 28px rgba(29,78,216,0.15)",
+                    border: isAssistant && isMobile ? "1px solid rgba(226,232,240,0.82)" : "none",
                   }}
                 >
                   <div
@@ -399,13 +405,13 @@ export function AiAssistantPage({
                     ) : null}
                     <div
                       style={{
-                        fontSize: 11,
-                        fontWeight: 900,
-                        letterSpacing: "0.08em",
-                        color: isAssistant ? "#64748b" : "rgba(255,255,255,0.78)",
-                      }}
-                    >
-                      {isAssistant ? "ACADEMIC ASSISTANT" : "YOU"}
+                      fontSize: 11,
+                      fontWeight: 900,
+                      letterSpacing: "0.08em",
+                      color: isAssistant ? "#64748b" : "rgba(255,255,255,0.74)",
+                    }}
+                  >
+                    {isAssistant ? "ACADEMIC ASSISTANT" : "YOU"}
                     </div>
                   </div>
                   <div
@@ -413,6 +419,7 @@ export function AiAssistantPage({
                       whiteSpace: "pre-wrap",
                       lineHeight: 1.72,
                       fontSize: 15,
+                      color: isAssistant ? "#0f172a" : "#ffffff",
                     }}
                   >
                     {message.content}
@@ -439,9 +446,9 @@ export function AiAssistantPage({
                   ...(isMobile
                     ? {
                         borderRadius: 20,
-                        border: "1px solid rgba(226,232,240,0.92)",
-                        background: "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(243,247,255,0.92))",
-                        boxShadow: "0 10px 22px rgba(15,23,42,0.05)",
+                        border: "1px solid rgba(226,232,240,0.82)",
+                        background: "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(246,248,252,0.92))",
+                        boxShadow: "0 8px 18px rgba(15,23,42,0.04)",
                         padding: "14px 16px",
                       }
                     : null),
@@ -487,9 +494,9 @@ export function AiAssistantPage({
 
         <div
           style={{
-            padding: isMobile ? "14px 16px 16px" : "16px 22px 22px",
+            padding: isMobile ? "12px 16px 16px" : "14px 22px 18px",
             borderTop: "1px solid rgba(226,232,240,0.84)",
-            background: "rgba(255,255,255,0.90)",
+            background: "rgba(255,255,255,0.94)",
             display: "grid",
             gap: 10,
             position: "relative",
@@ -518,11 +525,11 @@ export function AiAssistantPage({
             }}
             style={{
               display: "grid",
-              gap: 12,
+              gap: 10,
               borderRadius: 22,
-              border: "1px solid rgba(214,226,245,0.96)",
+              border: "1px solid rgba(214,226,245,0.92)",
               background: "#ffffff",
-              boxShadow: "0 18px 32px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.96)",
+              boxShadow: "0 12px 24px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.96)",
               padding: isXs ? 12 : 14,
             }}
           >
