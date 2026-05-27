@@ -140,6 +140,7 @@ export function AiAssistantPage({
   activeClass = null,
   activeExam = "",
   currentUser = null,
+  topBarHeight = 64,
 }) {
   const { isMobile, isXs } = useViewport();
   const [selectedClassId, setSelectedClassId] = useState(() => activeClass?.id || "");
@@ -216,6 +217,15 @@ export function AiAssistantPage({
         padding: isMobile ? 10 : 18,
         minHeight: 0,
         display: "grid",
+        ...(isMobile
+          ? {
+              height: `calc(100dvh - ${topBarHeight}px)`,
+              overflowY: "auto",
+              overflowX: "hidden",
+              paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 14px)",
+              WebkitOverflowScrolling: "touch",
+            }
+          : null),
       }}
     >
       <section
@@ -229,6 +239,7 @@ export function AiAssistantPage({
             "radial-gradient(circle at top left, rgba(219,234,254,0.70), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(246,250,255,0.94))",
           boxShadow: "0 24px 56px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.96)",
           overflow: isMobile ? "visible" : "hidden",
+          marginBottom: isMobile ? 6 : 0,
         }}
       >
         <header

@@ -960,6 +960,7 @@ export default function App() {
               activeClass={displayActiveClass}
               activeExam={activeExam}
               currentUser={currentUser}
+              topBarHeight={topBarHeight}
             />
           )}
 
