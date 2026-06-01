@@ -2,6 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API } from "../api";
 import { useViewport } from "../utils/useViewport";
 import { fieldStyle, pillStyle } from "../utils/designSystem";
+import { useI18n } from "../i18n";
+
+const CHAT_STORAGE_PREFIX = "ai_assistant_chat_v1";
+const MAX_DRAFT_CHARS = 4000;
+
+const ACTION_TONES = ["formal", "concise", "urgent"];
 
 /* ─────────────────────────────────────────────
    Helpers
@@ -34,6 +40,41 @@ function buildSuggestionPrompts(classRecord) {
       { icon: "🔍", text: "How should I search for a student by Admission Number?" },
     ];
   }
+
+  function buildSavedTemplates(role, classRecord) {
+    const label = classRecord ? getClassLabel(classRecord) : "the active class";
+    if (role === "admin" || role === "academic") {
+      return [
+        { icon: "⚠️", text: `Find at-risk students in ${label}.` },
+        { icon: "📈", text: `Compare trends for ${label} between this exam and the previous exam.` },
+        { icon: "📞", text: `Build guardian contact queue for at-risk students in ${label}.` },
+      ];
+    }
+    return [
+      { icon: "📊", text: `Summarize ${label}.` },
+      { icon: "🔎", text: `Show incomplete students in ${label}.` },
+      { icon: "🧭", text: `What follow-up should I prioritize for ${label}?` },
+    ];
+  }
+
+  function buildFollowupPrompts(latestAssistantText, selectedClass) {
+    const baseLabel = selectedClass ? getClassLabel(selectedClass) : "this class";
+    const text = String(latestAssistantText || "").toLowerCase();
+    const prompts = [];
+    if (text.includes("at-risk") || text.includes("division 0") || text.includes("failed")) {
+      prompts.push(`Create an intervention checklist for ${baseLabel}.`);
+      prompts.push(`Draft guardian follow-up for the highest-risk students in ${baseLabel}.`);
+    }
+    if (text.includes("incomplete") || text.includes("absent")) {
+      prompts.push(`List missing-result and absent students in ${baseLabel} with next actions.`);
+    }
+    prompts.push(`Give me a concise summary for ${baseLabel}.`);
+    return [...new Set(prompts)].slice(0, 3);
+  }
+
+  function getPreferredLanguageText(lang = "en") {
+    return lang === "sw" ? "sw" : "en";
+  }
   const label = getClassLabel(classRecord);
   return [
     { icon: "📊", text: `Summarize ${label}.` },
@@ -47,6 +88,12 @@ function formatTime(date) {
   if (!date) return "";
   const d = date instanceof Date ? date : new Date(date);
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function buildConversationStorageKey(classId, examName) {
+  const classPart = classId || "all-classes";
+  const examPart = examName || "default-exam";
+  return `${CHAT_STORAGE_PREFIX}:${classPart}:${examPart}`;
 }
 
 /* ─────────────────────────────────────────────
@@ -498,7 +545,9 @@ export function AiAssistantPage({
   activeExam = "",
   currentUser = null,
   topBarHeight = 64,
+  onApproveAction = null,
 }) {
+  const { t, language } = useI18n();
   const { isMobile, isXs, isTablet } = useViewport();
   const [selectedClassId, setSelectedClassId] = useState(() => activeClass?.id || "");
   const [messages, setMessages] = useState(() => buildInitialMessages(activeClass));
@@ -507,12 +556,22 @@ export function AiAssistantPage({
   const [isSending, setIsSending] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showScrollFab, setShowScrollFab] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState(null);
+  const [responseLanguage, setResponseLanguage] = useState(() => getPreferredLanguageText(language));
+  const [guardianTone, setGuardianTone] = useState("formal");
+  const [actionMode, setActionMode] = useState(false);
   const listRef = useRef(null);
   const textareaRef = useRef(null);
   const fabTimeoutRef = useRef(null);
 
   // Inject CSS keyframes once
   useEffect(() => { injectKeyframes(); }, []);
+  useEffect(() => () => {
+    if (fabTimeoutRef.current) clearTimeout(fabTimeoutRef.current);
+  }, []);
+  useEffect(() => {
+    setResponseLanguage(getPreferredLanguageText(language));
+  }, [language]);
 
   // Sync selected class from parent
   useEffect(() => {
@@ -559,8 +618,24 @@ export function AiAssistantPage({
     }
     return activeClass || null;
   }, [activeClass, classOptions, selectedClassId]);
+  const conversationStorageKey = useMemo(
+    () => buildConversationStorageKey(selectedClassId, activeExam),
+    [selectedClassId, activeExam]
+  );
 
   const suggestions = useMemo(() => buildSuggestionPrompts(selectedClass), [selectedClass]);
+  const savedTemplates = useMemo(
+    () => buildSavedTemplates(String(currentUser?.role || "").toLowerCase(), selectedClass),
+    [currentUser?.role, selectedClass]
+  );
+  const latestAssistantMessage = useMemo(
+    () => [...messages].reverse().find((message) => message.role === "assistant"),
+    [messages]
+  );
+  const followupPrompts = useMemo(
+    () => buildFollowupPrompts(latestAssistantMessage?.content, selectedClass),
+    [latestAssistantMessage?.content, selectedClass]
+  );
 
   // Determine if this is a fresh conversation (only welcome msg)
   const isFreshConversation = messages.length <= 1 && messages[0]?.role === "assistant";
@@ -575,10 +650,45 @@ export function AiAssistantPage({
 
   useEffect(() => { autoResize(); }, [draft, autoResize]);
 
+  // Restore conversation for current class/exam context
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(conversationStorageKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const normalized = parsed
+          .filter((entry) => entry && typeof entry.content === "string")
+          .map((entry) => ({
+            role: entry.role === "user" ? "user" : "assistant",
+            content: String(entry.content),
+            time: entry.time ? new Date(entry.time) : new Date(),
+            meta: entry.meta && typeof entry.meta === "object" ? entry.meta : null,
+          }));
+        if (normalized.length > 0) {
+          setMessages(normalized);
+          return;
+        }
+      }
+    } catch (_) {
+      // ignore malformed cached conversations
+    }
+
+    setMessages(buildInitialMessages(selectedClass));
+    setError("");
+  }, [conversationStorageKey, selectedClass]);
+
+  useEffect(() => {
+    sessionStorage.setItem(conversationStorageKey, JSON.stringify(messages));
+  }, [conversationStorageKey, messages]);
+
   // Send message
   async function sendMessage(content) {
     const text = String(content || "").trim();
     if (!text || isSending) return;
+    if (text.length > MAX_DRAFT_CHARS) {
+      setError(`Message is too long. Please keep it under ${MAX_DRAFT_CHARS} characters.`);
+      return;
+    }
 
     const nextMessages = [...messages, { role: "user", content: text, time: new Date() }];
     setMessages(nextMessages);
@@ -597,6 +707,9 @@ export function AiAssistantPage({
         context: {
           activeClassId: selectedClass?.id || "",
           activeExam: activeExam || "",
+          actionMode,
+          responseLanguage,
+          guardianTone,
         },
       });
       setMessages((current) => [
@@ -605,6 +718,7 @@ export function AiAssistantPage({
           role: "assistant",
           content: String(response?.reply || "I could not generate a response."),
           time: new Date(),
+          meta: response?.meta && typeof response.meta === "object" ? response.meta : null,
         },
       ]);
     } catch (err) {
@@ -624,9 +738,41 @@ export function AiAssistantPage({
 
   // Clear conversation
   function clearConversation() {
+    sessionStorage.removeItem(conversationStorageKey);
     setMessages(buildInitialMessages(selectedClass));
     setError("");
     setShowQuickActions(false);
+  }
+
+  async function copyMessage(content, index) {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(content);
+      } else {
+        throw new Error("Clipboard API unavailable");
+      }
+      setCopiedIndex(index);
+      if (fabTimeoutRef.current) clearTimeout(fabTimeoutRef.current);
+      fabTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 1200);
+    } catch (_) {
+      setError("Unable to copy text from this browser.");
+    }
+  }
+
+  function exportMessage(content, index) {
+    try {
+      const blob = new Blob([String(content || "")], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ai-summary-${index + 1}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (_) {
+      setError("Unable to export summary from this browser.");
+    }
   }
 
   const chatMaxWidth = isMobile ? "100%" : isTablet ? "100%" : 1200;
@@ -686,7 +832,7 @@ export function AiAssistantPage({
                     Academic Assistant
                   </h1>
                   <span style={pillStyle({ tone: "blue" })}>AI</span>
-                  <span style={pillStyle({ tone: "slate" })}>Read-only</span>
+                  <span style={pillStyle({ tone: actionMode ? "green" : "slate" })}>{actionMode ? "Action mode" : "Read-only"}</span>
                 </div>
                 <p style={{ margin: "2px 0 0", color: "#64748b", fontSize: 13, fontWeight: 500 }}>
                   Results, student lookups, and guardian drafting
@@ -712,6 +858,43 @@ export function AiAssistantPage({
                     </option>
                   ))}
                 </select>
+              </label>
+              <label style={{ display: "grid", gap: 4, minWidth: 110 }}>
+                <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
+                  Language
+                </span>
+                <select
+                  value={responseLanguage}
+                  onChange={(event) => setResponseLanguage(event.target.value === "sw" ? "sw" : "en")}
+                  style={{ ...fieldStyle(), paddingRight: 26, fontSize: 13 }}
+                >
+                  <option value="en">{t("english", "English")}</option>
+                  <option value="sw">{t("swahili", "Swahili")}</option>
+                </select>
+              </label>
+              <label style={{ display: "grid", gap: 4, minWidth: 120 }}>
+                <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
+                  Tone
+                </span>
+                <select
+                  value={guardianTone}
+                  onChange={(event) => setGuardianTone(ACTION_TONES.includes(event.target.value) ? event.target.value : "formal")}
+                  style={{ ...fieldStyle(), paddingRight: 26, fontSize: 13 }}
+                >
+                  {ACTION_TONES.map((toneValue) => (
+                    <option key={toneValue} value={toneValue}>
+                      {toneValue}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 8px 10px 2px" }}>
+                <input
+                  type="checkbox"
+                  checked={actionMode}
+                  onChange={(event) => setActionMode(event.target.checked)}
+                />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Action mode</span>
               </label>
 
               {messages.length > 1 && (
@@ -873,12 +1056,52 @@ export function AiAssistantPage({
                       {isAssistant ? "ACADEMIC ASSISTANT" : "YOU"}
                     </div>
                     {message.time && (
-                      <div style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        color: isAssistant ? "#cbd5e1" : "rgba(255,255,255,0.45)",
-                      }}>
-                        {formatTime(message.time)}
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {isAssistant && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => copyMessage(message.content, index)}
+                              style={{
+                                border: "1px solid rgba(203,213,225,0.7)",
+                                background: "rgba(255,255,255,0.8)",
+                                borderRadius: 999,
+                                padding: "2px 8px",
+                                fontSize: 10,
+                                fontWeight: 700,
+                                color: "#64748b",
+                                cursor: "pointer",
+                              }}
+                              aria-label="Copy assistant message"
+                            >
+                              {copiedIndex === index ? "Copied" : "Copy"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => exportMessage(message.content, index)}
+                              style={{
+                                border: "1px solid rgba(203,213,225,0.7)",
+                                background: "rgba(255,255,255,0.8)",
+                                borderRadius: 999,
+                                padding: "2px 8px",
+                                fontSize: 10,
+                                fontWeight: 700,
+                                color: "#64748b",
+                                cursor: "pointer",
+                              }}
+                              aria-label="Export assistant message"
+                            >
+                              Export
+                            </button>
+                          </>
+                        )}
+                        <div style={{
+                          fontSize: 10,
+                          fontWeight: 600,
+                          color: isAssistant ? "#cbd5e1" : "rgba(255,255,255,0.45)",
+                        }}>
+                          {formatTime(message.time)}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -888,6 +1111,41 @@ export function AiAssistantPage({
                       <div style={{ whiteSpace: "pre-wrap" }}>{message.content}</div>
                     )}
                   </div>
+                  {isAssistant && message?.meta?.confidence && (
+                    <div style={{ marginTop: 10, fontSize: 11, color: "#64748b", display: "grid", gap: 4 }}>
+                      <div>
+                        Confidence: <strong>{String(message.meta.confidence.level || "low").toUpperCase()}</strong>
+                      </div>
+                      {Array.isArray(message.meta.confidence.reasons) && message.meta.confidence.reasons.length > 0 && (
+                        <div style={{ color: "#94a3b8" }}>{message.meta.confidence.reasons.join(" • ")}</div>
+                      )}
+                      {message?.meta?.citations && (
+                        <div style={{ color: "#94a3b8" }}>
+                          Data used: {message.meta.citations.classLabel || "Flexible class"} · {message.meta.citations.examType || "Default exam"} · {Number(message.meta.citations.studentCount || 0)} students
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {isAssistant && actionMode && message?.meta?.actionDraft?.queue?.length > 0 && (
+                    <div style={{ marginTop: 10 }}>
+                      <button
+                        type="button"
+                        onClick={() => onApproveAction?.(message.meta.actionDraft)}
+                        style={{
+                          border: "1px solid rgba(34,197,94,0.45)",
+                          background: "rgba(240,253,244,0.9)",
+                          color: "#166534",
+                          borderRadius: 999,
+                          padding: "6px 12px",
+                          fontSize: 11,
+                          fontWeight: 800,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Approve and open SMS queue ({message.meta.actionDraft.queue.length})
+                      </button>
+                    </div>
+                  )}
                 </div>
                 {!isAssistant && <UserBadge />}
               </div>
@@ -921,6 +1179,55 @@ export function AiAssistantPage({
                   />
                 ))}
               </div>
+            </div>
+          )}
+          {isFreshConversation && (
+            <div
+              className="ai-msg-enter"
+              style={{
+                maxWidth: msgMaxWidth,
+                alignSelf: "flex-start",
+                width: "100%",
+              }}
+            >
+              <div style={{ marginTop: 2, marginBottom: 6, fontSize: 11, fontWeight: 800, color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                Saved templates
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
+                {savedTemplates.map((s) => (
+                  <SuggestionCard
+                    key={s.text}
+                    icon={s.icon}
+                    text={s.text}
+                    onClick={() => sendMessage(s.text)}
+                    disabled={isSending}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          {!isFreshConversation && followupPrompts.length > 0 && !isSending && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxWidth: msgMaxWidth }}>
+              {followupPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => sendMessage(prompt)}
+                  className="ai-suggestion-btn"
+                  style={{
+                    borderRadius: 999,
+                    border: "1px solid rgba(191,219,254,0.8)",
+                    background: "rgba(239,246,255,0.88)",
+                    color: "#1e40af",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {prompt}
+                </button>
+              ))}
             </div>
           )}
 
@@ -1054,6 +1361,7 @@ export function AiAssistantPage({
               }
               rows={1}
               enterKeyHint="send"
+              maxLength={MAX_DRAFT_CHARS}
               style={{
                 flex: 1,
                 border: "none",
@@ -1111,8 +1419,12 @@ export function AiAssistantPage({
             padding: "6px 8px 0",
           }}>
             <span>Admission Number is preferred for specific students</span>
-            {!isMobile && (
-              <span style={{ color: "#cbd5e1" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ color: draft.length >= MAX_DRAFT_CHARS ? "#ef4444" : "#cbd5e1" }}>
+                {draft.length}/{MAX_DRAFT_CHARS}
+              </span>
+              {!isMobile && (
+                <span style={{ color: "#cbd5e1" }}>
                 <kbd style={{
                   padding: "2px 6px",
                   borderRadius: 5,
@@ -1133,8 +1445,9 @@ export function AiAssistantPage({
                   color: "#94a3b8",
                 }}>Shift+Enter</kbd>
                 {" for new line"}
-              </span>
-            )}
+                </span>
+              )}
+            </span>
           </div>
         </div>
       </section>

@@ -961,6 +961,18 @@ export default function App() {
               activeExam={activeExam}
               currentUser={currentUser}
               topBarHeight={topBarHeight}
+              onApproveAction={(actionDraft) => {
+                const queue = Array.isArray(actionDraft?.queue) ? actionDraft.queue : [];
+                if (!queue.length) return;
+                setSmsDraft({
+                  mode: "custom",
+                  phone: queue.map((entry) => entry.recipientPhone).filter(Boolean).join(", "),
+                  parentName: queue[0]?.recipientName || "",
+                  studentName: queue[0]?.studentName || "",
+                  message: queue[0]?.message || "",
+                });
+                setPage("sms");
+              }}
             />
           )}
 
