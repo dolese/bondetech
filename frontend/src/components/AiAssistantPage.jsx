@@ -3,6 +3,9 @@ import { API } from "../api";
 import { useViewport } from "../utils/useViewport";
 import { fieldStyle, pillStyle } from "../utils/designSystem";
 
+const CHAT_STORAGE_PREFIX = "ai_assistant_chat_v1";
+const MAX_DRAFT_CHARS = 4000;
+
 /* ─────────────────────────────────────────────
    Helpers
    ───────────────────────────────────────────── */
@@ -47,6 +50,12 @@ function formatTime(date) {
   if (!date) return "";
   const d = date instanceof Date ? date : new Date(date);
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function buildConversationStorageKey(classId, examName) {
+  const classPart = classId || "all-classes";
+  const examPart = examName || "default-exam";
+  return `${CHAT_STORAGE_PREFIX}:${classPart}:${examPart}`;
 }
 
 /* ─────────────────────────────────────────────
@@ -507,12 +516,16 @@ export function AiAssistantPage({
   const [isSending, setIsSending] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showScrollFab, setShowScrollFab] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState(null);
   const listRef = useRef(null);
   const textareaRef = useRef(null);
   const fabTimeoutRef = useRef(null);
 
   // Inject CSS keyframes once
   useEffect(() => { injectKeyframes(); }, []);
+  useEffect(() => () => {
+    if (fabTimeoutRef.current) clearTimeout(fabTimeoutRef.current);
+  }, []);
 
   // Sync selected class from parent
   useEffect(() => {
@@ -559,6 +572,10 @@ export function AiAssistantPage({
     }
     return activeClass || null;
   }, [activeClass, classOptions, selectedClassId]);
+  const conversationStorageKey = useMemo(
+    () => buildConversationStorageKey(selectedClassId, activeExam),
+    [selectedClassId, activeExam]
+  );
 
   const suggestions = useMemo(() => buildSuggestionPrompts(selectedClass), [selectedClass]);
 
@@ -575,10 +592,44 @@ export function AiAssistantPage({
 
   useEffect(() => { autoResize(); }, [draft, autoResize]);
 
+  // Restore conversation for current class/exam context
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(conversationStorageKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const normalized = parsed
+          .filter((entry) => entry && typeof entry.content === "string")
+          .map((entry) => ({
+            role: entry.role === "user" ? "user" : "assistant",
+            content: String(entry.content),
+            time: entry.time ? new Date(entry.time) : new Date(),
+          }));
+        if (normalized.length > 0) {
+          setMessages(normalized);
+          return;
+        }
+      }
+    } catch (_) {
+      // ignore malformed cached conversations
+    }
+
+    setMessages(buildInitialMessages(selectedClass));
+    setError("");
+  }, [conversationStorageKey, selectedClass]);
+
+  useEffect(() => {
+    sessionStorage.setItem(conversationStorageKey, JSON.stringify(messages));
+  }, [conversationStorageKey, messages]);
+
   // Send message
   async function sendMessage(content) {
     const text = String(content || "").trim();
     if (!text || isSending) return;
+    if (text.length > MAX_DRAFT_CHARS) {
+      setError(`Message is too long. Please keep it under ${MAX_DRAFT_CHARS} characters.`);
+      return;
+    }
 
     const nextMessages = [...messages, { role: "user", content: text, time: new Date() }];
     setMessages(nextMessages);
@@ -624,9 +675,25 @@ export function AiAssistantPage({
 
   // Clear conversation
   function clearConversation() {
+    sessionStorage.removeItem(conversationStorageKey);
     setMessages(buildInitialMessages(selectedClass));
     setError("");
     setShowQuickActions(false);
+  }
+
+  async function copyMessage(content, index) {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(content);
+      } else {
+        throw new Error("Clipboard API unavailable");
+      }
+      setCopiedIndex(index);
+      if (fabTimeoutRef.current) clearTimeout(fabTimeoutRef.current);
+      fabTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 1200);
+    } catch (_) {
+      setError("Unable to copy text from this browser.");
+    }
   }
 
   const chatMaxWidth = isMobile ? "100%" : isTablet ? "100%" : 1200;
@@ -873,12 +940,33 @@ export function AiAssistantPage({
                       {isAssistant ? "ACADEMIC ASSISTANT" : "YOU"}
                     </div>
                     {message.time && (
-                      <div style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        color: isAssistant ? "#cbd5e1" : "rgba(255,255,255,0.45)",
-                      }}>
-                        {formatTime(message.time)}
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {isAssistant && (
+                          <button
+                            type="button"
+                            onClick={() => copyMessage(message.content, index)}
+                            style={{
+                              border: "1px solid rgba(203,213,225,0.7)",
+                              background: "rgba(255,255,255,0.8)",
+                              borderRadius: 999,
+                              padding: "2px 8px",
+                              fontSize: 10,
+                              fontWeight: 700,
+                              color: "#64748b",
+                              cursor: "pointer",
+                            }}
+                            aria-label="Copy assistant message"
+                          >
+                            {copiedIndex === index ? "Copied" : "Copy"}
+                          </button>
+                        )}
+                        <div style={{
+                          fontSize: 10,
+                          fontWeight: 600,
+                          color: isAssistant ? "#cbd5e1" : "rgba(255,255,255,0.45)",
+                        }}>
+                          {formatTime(message.time)}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1054,6 +1142,7 @@ export function AiAssistantPage({
               }
               rows={1}
               enterKeyHint="send"
+              maxLength={MAX_DRAFT_CHARS}
               style={{
                 flex: 1,
                 border: "none",
@@ -1111,8 +1200,12 @@ export function AiAssistantPage({
             padding: "6px 8px 0",
           }}>
             <span>Admission Number is preferred for specific students</span>
-            {!isMobile && (
-              <span style={{ color: "#cbd5e1" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ color: draft.length >= MAX_DRAFT_CHARS ? "#ef4444" : "#cbd5e1" }}>
+                {draft.length}/{MAX_DRAFT_CHARS}
+              </span>
+              {!isMobile && (
+                <span style={{ color: "#cbd5e1" }}>
                 <kbd style={{
                   padding: "2px 6px",
                   borderRadius: 5,
@@ -1133,8 +1226,9 @@ export function AiAssistantPage({
                   color: "#94a3b8",
                 }}>Shift+Enter</kbd>
                 {" for new line"}
-              </span>
-            )}
+                </span>
+              )}
+            </span>
           </div>
         </div>
       </section>
