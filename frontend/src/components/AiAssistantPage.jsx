@@ -32,6 +32,10 @@ function buildInitialMessages(activeClass) {
   ];
 }
 
+function getPreferredLanguageText(lang = "en") {
+  return lang === "sw" ? "sw" : "en";
+}
+
 function buildSuggestionPrompts(classRecord) {
   if (!classRecord) {
     return [
@@ -41,40 +45,6 @@ function buildSuggestionPrompts(classRecord) {
     ];
   }
 
-  function buildSavedTemplates(role, classRecord) {
-    const label = classRecord ? getClassLabel(classRecord) : "the active class";
-    if (role === "admin" || role === "academic") {
-      return [
-        { icon: "⚠️", text: `Find at-risk students in ${label}.` },
-        { icon: "📈", text: `Compare trends for ${label} between this exam and the previous exam.` },
-        { icon: "📞", text: `Build guardian contact queue for at-risk students in ${label}.` },
-      ];
-    }
-    return [
-      { icon: "📊", text: `Summarize ${label}.` },
-      { icon: "🔎", text: `Show incomplete students in ${label}.` },
-      { icon: "🧭", text: `What follow-up should I prioritize for ${label}?` },
-    ];
-  }
-
-  function buildFollowupPrompts(latestAssistantText, selectedClass) {
-    const baseLabel = selectedClass ? getClassLabel(selectedClass) : "this class";
-    const text = String(latestAssistantText || "").toLowerCase();
-    const prompts = [];
-    if (text.includes("at-risk") || text.includes("division 0") || text.includes("failed")) {
-      prompts.push(`Create an intervention checklist for ${baseLabel}.`);
-      prompts.push(`Draft guardian follow-up for the highest-risk students in ${baseLabel}.`);
-    }
-    if (text.includes("incomplete") || text.includes("absent")) {
-      prompts.push(`List missing-result and absent students in ${baseLabel} with next actions.`);
-    }
-    prompts.push(`Give me a concise summary for ${baseLabel}.`);
-    return [...new Set(prompts)].slice(0, 3);
-  }
-
-  function getPreferredLanguageText(lang = "en") {
-    return lang === "sw" ? "sw" : "en";
-  }
   const label = getClassLabel(classRecord);
   return [
     { icon: "📊", text: `Summarize ${label}.` },
@@ -82,6 +52,37 @@ function buildSuggestionPrompts(classRecord) {
     { icon: "⚠️", text: `Which students are incomplete in ${label}?` },
     { icon: "📱", text: `Draft guardian SMS for failed students in ${label}.` },
   ];
+}
+
+function buildSavedTemplates(role, classRecord) {
+  const label = classRecord ? getClassLabel(classRecord) : "the active class";
+  if (role === "admin" || role === "academic") {
+    return [
+      { icon: "⚠️", text: `Find at-risk students in ${label}.` },
+      { icon: "📈", text: `Compare trends for ${label} between this exam and the previous exam.` },
+      { icon: "📞", text: `Build guardian contact queue for at-risk students in ${label}.` },
+    ];
+  }
+  return [
+    { icon: "📊", text: `Summarize ${label}.` },
+    { icon: "🔎", text: `Show incomplete students in ${label}.` },
+    { icon: "🧭", text: `What follow-up should I prioritize for ${label}?` },
+  ];
+}
+
+function buildFollowupPrompts(latestAssistantText, selectedClass) {
+  const baseLabel = selectedClass ? getClassLabel(selectedClass) : "this class";
+  const text = String(latestAssistantText || "").toLowerCase();
+  const prompts = [];
+  if (text.includes("at-risk") || text.includes("division 0") || text.includes("failed")) {
+    prompts.push(`Create an intervention checklist for ${baseLabel}.`);
+    prompts.push(`Draft guardian follow-up for the highest-risk students in ${baseLabel}.`);
+  }
+  if (text.includes("incomplete") || text.includes("absent")) {
+    prompts.push(`List missing-result and absent students in ${baseLabel} with next actions.`);
+  }
+  prompts.push(`Give me a concise summary for ${baseLabel}.`);
+  return [...new Set(prompts)].slice(0, 3);
 }
 
 function formatTime(date) {
