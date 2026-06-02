@@ -16,18 +16,41 @@ export const DEFAULT_CONDUCT = {
   ushirikiano: "",
 };
 
+const normalizeSubjectName = (value) => String(value || "").trim();
+
 const normalizeSubjectMetadata = (metadata = [], subjects = []) => {
   const byName = new Map(
     (Array.isArray(metadata) ? metadata : []).flatMap((entry) => {
-      const name = String(entry?.name || entry?.subject || "").trim();
+      const name = normalizeSubjectName(entry?.name || entry?.subject || "");
       if (!name) return [];
       const type = String(entry?.type || "compulsory").trim().toLowerCase();
       return [[name.toLowerCase(), { name, type: type === "optional" ? "optional" : "compulsory" }]];
     }),
   );
   return (Array.isArray(subjects) ? subjects : []).map((subject) => {
-    const name = String(subject || "").trim();
+    const name = normalizeSubjectName(subject);
     return byName.get(name.toLowerCase()) || { name, type: "compulsory" };
+  });
+};
+
+const buildSubjectMetadataWithOverrides = (
+  subjects = [],
+  metadata = [],
+  overrides = {},
+) => {
+  const normalizedOverrides = Object.fromEntries(
+    Object.entries(overrides || {}).flatMap(([name, type]) => {
+      const normalizedName = normalizeSubjectName(name).toLowerCase();
+      if (!normalizedName) return [];
+      return [[normalizedName, type === "optional" ? "optional" : "compulsory"]];
+    }),
+  );
+  const normalizedMetadata = normalizeSubjectMetadata(metadata, subjects);
+  return normalizedMetadata.map((entry) => {
+    const key = entry.name.toLowerCase();
+    return normalizedOverrides[key]
+      ? { name: entry.name, type: normalizedOverrides[key] }
+      : entry;
   });
 };
 
@@ -536,6 +559,72 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, refreshClass, showToast]);
 
+  const onApplySubjectMaster = useCallback(async ({
+    classIds = [],
+    subjectName,
+    subjectType = "compulsory",
+  } = {}) => {
+    const normalizedName = normalizeSubjectName(subjectName);
+    if (!normalizedName) {
+      throw new Error("Subject name is required");
+    }
+    const normalizedType = subjectType === "optional" ? "optional" : "compulsory";
+    const targetClasses = classes.filter((cls) => classIds.includes(cls.id));
+    if (!targetClasses.length) {
+      throw new Error("No target classes selected");
+    }
+
+    const successes = [];
+    const failures = [];
+
+    for (const cls of targetClasses) {
+      const existingSubjects = Array.isArray(cls.subjects) ? cls.subjects : DEFAULT_SUBJECTS;
+      const subjectExists = existingSubjects.some(
+        (entry) => entry.toLowerCase() === normalizedName.toLowerCase(),
+      );
+      const nextSubjects = subjectExists ? existingSubjects : [...existingSubjects, normalizedName];
+      const nextMetadata = buildSubjectMetadataWithOverrides(
+        nextSubjects,
+        cls.subject_metadata ?? cls.subjectMetadata ?? [],
+        { [normalizedName]: normalizedType },
+      );
+
+      try {
+        await API.updateClass(cls.id, {
+          subjects: nextSubjects,
+          subjectMetadata: nextMetadata,
+        });
+        successes.push(cls.id);
+      } catch (err) {
+        failures.push({
+          label: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim() || cls.name || cls.id,
+          message: err.message,
+        });
+      }
+    }
+
+    if (successes.length) {
+      await Promise.all(successes.map((id) => refreshClass(id)));
+    }
+
+    if (successes.length && failures.length) {
+      showToast?.(
+        `${normalizedName}: updated ${successes.length} class${successes.length === 1 ? "" : "es"}, ${failures.length} failed`,
+        "error",
+      );
+    } else if (successes.length) {
+      showToast?.(
+        `${normalizedName} applied to ${successes.length} class${successes.length === 1 ? "" : "es"}`,
+      );
+    }
+
+    if (failures.length) {
+      throw new Error(failures.map((entry) => `${entry.label}: ${entry.message}`).join(" | "));
+    }
+
+    return { updated: successes.length };
+  }, [classes, refreshClass, showToast]);
+
   const onUpdateMonthlyExams = useCallback(async (monthlyExams) => {
     if (!activeClass) return;
     try {
@@ -767,6 +856,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onReorderStudentCnos,
     onUpdateSchool,
     onUpdateSubjects,
+    onApplySubjectMaster,
     onUpdateMonthlyExams,
     onUpdateClassMeta,
     onArchiveClass,

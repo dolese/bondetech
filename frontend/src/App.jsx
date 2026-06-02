@@ -439,6 +439,7 @@ export default function App() {
     onReorderStudentCnos,
     onUpdateSchool,
     onUpdateSubjects,
+    onApplySubjectMaster,
     onUpdateMonthlyExams,
     onUpdateClassMeta,
     onArchiveClass,
@@ -994,6 +995,8 @@ export default function App() {
           {page === "subjects" && canAccessClassData && (
             <SubjectsPage
               classes={visibleClasses}
+              canManage={role === "admin" || role === "academic"}
+              onApplySubjectMaster={onApplySubjectMaster}
               onNavigateToClass={(classId) => {
                 setActiveId(classId);
                 setPage("students");
