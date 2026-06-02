@@ -16,6 +16,7 @@ import { StudentManagementPage } from "./components/StudentManagementPage";
 import { SmsPage } from "./components/SmsPage";
 import { AiAssistantPage } from "./components/AiAssistantPage";
 import { FormsStreamsPage } from "./components/FormsStreamsPage";
+import { SubjectsPage } from "./components/SubjectsPage";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 import { ExamPickerScreen } from "./components/ExamPickerScreen";
@@ -393,6 +394,7 @@ export default function App() {
       ? [{ key: "student-management", label: t("studentManagement"), requiresClass: false }]
       : []),
     { key: "forms-streams", label: "Forms & Streams", requiresClass: false },
+    { key: "subjects", label: "Subjects", requiresClass: false },
     ...(canUseSms
       ? [{ key: "sms", label: t("sms", "SMS"), requiresClass: false }]
       : []),
@@ -701,6 +703,7 @@ export default function App() {
     if (page === "sms") return t("sms", "SMS");
     if (page === "ai-assistant") return t("aiAssistant", "AI Assistant");
     if (page === "forms-streams") return "Forms & Streams";
+    if (page === "subjects") return "Subjects";
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
@@ -964,6 +967,17 @@ export default function App() {
               }}
               onCreateClass={(opts) => {
                 addClass(opts);
+                if (isMobile) setSideOpen(false);
+              }}
+            />
+          )}
+
+          {page === "subjects" && canAccessClassData && (
+            <SubjectsPage
+              classes={visibleClasses}
+              onNavigateToClass={(classId) => {
+                setActiveId(classId);
+                setPage("students");
                 if (isMobile) setSideOpen(false);
               }}
             />
