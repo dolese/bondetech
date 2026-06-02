@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { CLASS_FORMS, CLASS_STREAMS } from "../hooks/useClasses";
 import { premiumFontStack } from "../utils/designSystem";
+import { useViewport } from "../utils/useViewport";
 
 function StatCard({ label, value, sub }) {
   return (
@@ -211,6 +212,8 @@ export function FormsStreamsPage({
     return map;
   }, [yearClasses]);
 
+  const { isMobile } = useViewport();
+
   const handleNavigate = (cls) => {
     onNavigateToClass?.(cls);
   };
@@ -224,13 +227,13 @@ export function FormsStreamsPage({
       style={{
         flex: 1,
         overflowY: "auto",
-        padding: "28px 28px 40px",
+        padding: isMobile ? "14px 12px 28px" : "28px 28px 40px",
         fontFamily: premiumFontStack,
         background: "#f1f5fb",
         minHeight: 0,
       }}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: 24 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: isMobile ? 16 : 24 }}>
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
@@ -282,6 +285,7 @@ export function FormsStreamsPage({
         </div>
 
         {/* Grid */}
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         <div
           style={{
             borderRadius: 24,
@@ -289,6 +293,7 @@ export function FormsStreamsPage({
             background: "linear-gradient(180deg,#ffffff,#f8fbff)",
             boxShadow: "0 14px 40px rgba(15,23,42,0.07)",
             overflow: "hidden",
+            minWidth: 560,
           }}
         >
           {/* Column headers */}
@@ -365,6 +370,7 @@ export function FormsStreamsPage({
             );
           })}
         </div>
+        </div>{/* end scroll wrapper */}
 
         {/* Legend */}
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>

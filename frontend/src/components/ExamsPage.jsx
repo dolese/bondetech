@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { CLASS_FORMS } from "../hooks/useClasses";
 import { premiumFontStack } from "../utils/designSystem";
 import { EXAM_TYPES, getMonthlyExamKey } from "../utils/constants";
+import { useViewport } from "../utils/useViewport";
 
 const EXAM_META = {
   "March Exam":     { icon: "SE", color: "#0b6b3a", bg: "#e6f9ee", border: "#7dd3a8" },
@@ -262,6 +263,7 @@ function ClassRow({ cls, canManage, baseExamOptions, onChangeExam, onNavigate })
 }
 
 export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, onNavigateToClass }) {
+  const { isMobile } = useViewport();
   const [filterForm, setFilterForm] = useState("all");
   const [filterYear, setFilterYear] = useState("all");
   const [filterExam, setFilterExam] = useState("all");
@@ -309,13 +311,13 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
       style={{
         flex: 1,
         overflowY: "auto",
-        padding: "28px 28px 40px",
+        padding: isMobile ? "14px 12px 28px" : "28px 28px 40px",
         fontFamily: premiumFontStack,
         background: "#f1f5fb",
         minHeight: 0,
       }}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: 24 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: isMobile ? 16 : 24 }}>
 
         {/* Header */}
         <div>
@@ -418,6 +420,7 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
               {classes.length === 0 ? "No classes found." : "No classes match the current filters."}
             </div>
           ) : (
+            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
             <div
               style={{
                 borderRadius: 20,
@@ -425,6 +428,7 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
                 background: "#ffffff",
                 boxShadow: "0 14px 40px rgba(15,23,42,0.07)",
                 overflow: "hidden",
+                minWidth: 560,
               }}
             >
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -463,6 +467,7 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
                 </tbody>
               </table>
             </div>
+            </div>{/* end scroll wrapper */}
           )}
         </div>
 

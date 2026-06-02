@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { CLASS_FORMS } from "../hooks/useClasses";
 import { premiumFontStack } from "../utils/designSystem";
 import { DEFAULT_SUBJECTS } from "../utils/constants";
+import { useViewport } from "../utils/useViewport";
 
 function getSubjectType(subjectName, metadataList = []) {
   const lower = subjectName.toLowerCase();
@@ -196,6 +197,7 @@ function SubjectRow({ entry, expanded, onToggle, onNavigate }) {
 }
 
 export function SubjectsPage({ classes = [], onNavigateToClass }) {
+  const { isMobile } = useViewport();
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterForm, setFilterForm] = useState("all");
@@ -234,13 +236,13 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
       style={{
         flex: 1,
         overflowY: "auto",
-        padding: "28px 28px 40px",
+        padding: isMobile ? "14px 12px 28px" : "28px 28px 40px",
         fontFamily: premiumFontStack,
         background: "#f1f5fb",
         minHeight: 0,
       }}
     >
-      <div style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gap: 24 }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gap: isMobile ? 16 : 24 }}>
 
         {/* Header */}
         <div>
@@ -388,6 +390,7 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
               : "No subjects match your filters."}
           </div>
         ) : (
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           <div
             style={{
               borderRadius: 20,
@@ -395,6 +398,7 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
               background: "#ffffff",
               boxShadow: "0 14px 40px rgba(15,23,42,0.07)",
               overflow: "hidden",
+              minWidth: 480,
             }}
           >
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -437,6 +441,7 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
               </tbody>
             </table>
           </div>
+          </div>{/* end scroll wrapper */}
         )}
 
         <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, fontWeight: 600 }}>
