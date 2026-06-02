@@ -186,20 +186,7 @@ export function FormsStreamsPage({
     return map;
   }, [yearClasses]);
 
-  const activeStreams = useMemo(() => {
-    const used = new Set(yearClasses.map((cls) => String(cls.stream || "").trim().toUpperCase()).filter(Boolean));
-    return CLASS_STREAMS.filter((s) => used.has(s) || used.size === 0);
-  }, [yearClasses]);
-
-  const displayStreams = useMemo(() => {
-    const used = new Set(yearClasses.map((cls) => String(cls.stream || "").trim().toUpperCase()).filter(Boolean));
-    if (!used.size) return CLASS_STREAMS.slice(0, 3);
-    const extended = [...CLASS_STREAMS];
-    const firstUnused = extended.find((s) => !used.has(s));
-    const result = extended.filter((s) => used.has(s));
-    if (firstUnused && canCreateClasses) result.push(firstUnused);
-    return result;
-  }, [yearClasses, canCreateClasses]);
+  const displayStreams = CLASS_STREAMS;
 
   const stats = useMemo(() => {
     const totalStudents = yearClasses.reduce(

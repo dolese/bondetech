@@ -979,7 +979,10 @@ export default function App() {
             <ExamsPage
               classes={visibleClasses}
               canManage={role === "admin"}
-              onChangeClassExam={saveExamForClass}
+              onChangeClassExam={async (cls, exam) => {
+                await saveExamForClass(cls, exam);
+                if (cls.id === activeId) setActiveExam(exam);
+              }}
               onNavigateToClass={(classId) => {
                 setActiveId(classId);
                 setPage("students");
