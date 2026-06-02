@@ -452,6 +452,7 @@ export default function App() {
     onChangeExam,
     onUpdateCompositeConfig,
     onUpdateTimetable,
+    onApplyExamMaster,
     hydrateAllClassesWithStudents,
     resetClassesState,
   } = useClasses({
@@ -980,6 +981,7 @@ export default function App() {
             <ExamsPage
               classes={visibleClasses}
               canManage={role === "admin"}
+              onApplyExamMaster={onApplyExamMaster}
               onChangeClassExam={async (cls, exam) => {
                 await saveExamForClass(cls, exam);
                 if (cls.id === activeId) setActiveExam(exam);

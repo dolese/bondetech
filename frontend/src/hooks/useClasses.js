@@ -692,6 +692,71 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, []);
 
+  const onApplyExamMaster = useCallback(async ({
+    classIds = [],
+    exam,
+  } = {}) => {
+    const normalizedExam = String(exam || "").trim();
+    if (!normalizedExam) {
+      throw new Error("Exam is required");
+    }
+    const targetClasses = classes.filter((cls) => classIds.includes(cls.id));
+    if (!targetClasses.length) {
+      throw new Error("No target classes selected");
+    }
+
+    const successes = [];
+    const failures = [];
+
+    for (const cls of targetClasses) {
+      if (cls.published) {
+        failures.push({
+          label: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim() || cls.name || cls.id,
+          message: "Results are published",
+        });
+        continue;
+      }
+      try {
+        const updatedSchoolInfo = { ...(cls.school_info ?? DEFAULT_SCHOOL), exam: normalizedExam };
+        await API.updateClass(cls.id, { schoolInfo: updatedSchoolInfo });
+        successes.push(cls.id);
+      } catch (err) {
+        failures.push({
+          label: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim() || cls.name || cls.id,
+          message: err.message,
+        });
+      }
+    }
+
+    if (successes.length) {
+      setClasses((prev) =>
+        prev.map((cls) =>
+          successes.includes(cls.id)
+            ? { ...cls, school_info: { ...(cls.school_info ?? {}), exam: normalizedExam } }
+            : cls
+        )
+      );
+      await Promise.all(successes.map((id) => refreshClass(id)));
+    }
+
+    if (successes.length && failures.length) {
+      showToast?.(
+        `${normalizedExam}: updated ${successes.length} class${successes.length === 1 ? "" : "es"}, ${failures.length} locked/failed`,
+        "error",
+      );
+    } else if (successes.length) {
+      showToast?.(
+        `${normalizedExam} applied to ${successes.length} class${successes.length === 1 ? "" : "es"}`,
+      );
+    }
+
+    if (failures.length) {
+      throw new Error(failures.map((entry) => `${entry.label}: ${entry.message}`).join(" | "));
+    }
+
+    return { updated: successes.length };
+  }, [classes, refreshClass, showToast]);
+
   const onArchiveClass = useCallback(async () => {
     if (!activeClass) return;
     try {
@@ -869,6 +934,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onChangeExam,
     onUpdateCompositeConfig,
     onUpdateTimetable,
+    onApplyExamMaster,
     hydrateAllClassesWithStudents,
     resetClassesState,
   };
