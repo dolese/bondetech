@@ -4,6 +4,7 @@ const path = require("path");
 const dns = require("node:dns").promises;
 const { initDb, getDb } = require("./db");
 const { getSchoolSettings, saveSchoolSettings } = require("../lib/schoolSettings");
+const { resolveSessionUser, canManageClasses } = require("../lib/auth");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -102,10 +103,13 @@ app.put("/api/stats", async (req, res) => {
     return res.status(405).json({ error: "Method not allowed" });
   }
   try {
+    const user = await resolveSessionUser(getDb(), req);
+    if (!user) return res.status(401).json({ error: "Authentication required" });
+    if (!canManageClasses(user.role)) return res.status(403).json({ error: "Only administrators can update school settings" });
     const saved = await saveSchoolSettings(getDb(), req.body || {});
     res.json(saved);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(err.message === "Authentication required" ? 401 : 500).json({ error: err.message });
   }
 });
 
@@ -164,9 +168,14 @@ app.post("/api/proxy-csv", async (req, res) => {
 
     const response = await fetch(url, {
       headers: { "User-Agent": "BondeTech-CSV-Proxy/1.0" },
-      redirect: "follow",
+      redirect: "manual",
       signal: AbortSignal.timeout(15000),
     });
+
+    // Reject redirects: a redirect could bypass the SSRF hostname check above
+    if (response.type === "opaqueredirect" || response.status === 0 || (response.status >= 300 && response.status < 400)) {
+      return res.status(400).json({ error: "URL redirects are not allowed" });
+    }
 
     if (!response.ok) {
       return res.status(502).json({ error: `Remote URL returned HTTP ${response.status}` });
