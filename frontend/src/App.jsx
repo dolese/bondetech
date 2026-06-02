@@ -15,6 +15,7 @@ import { XLSXImportModal } from "./components/XLSXImportModal";
 import { StudentManagementPage } from "./components/StudentManagementPage";
 import { SmsPage } from "./components/SmsPage";
 import { AiAssistantPage } from "./components/AiAssistantPage";
+import { FormsStreamsPage } from "./components/FormsStreamsPage";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 import { ExamPickerScreen } from "./components/ExamPickerScreen";
@@ -391,6 +392,7 @@ export default function App() {
     ...(canManageStudentsGlobally
       ? [{ key: "student-management", label: t("studentManagement"), requiresClass: false }]
       : []),
+    { key: "forms-streams", label: "Forms & Streams", requiresClass: false },
     ...(canUseSms
       ? [{ key: "sms", label: t("sms", "SMS"), requiresClass: false }]
       : []),
@@ -698,6 +700,7 @@ export default function App() {
     if (page === "parents") return t("parents");
     if (page === "sms") return t("sms", "SMS");
     if (page === "ai-assistant") return t("aiAssistant", "AI Assistant");
+    if (page === "forms-streams") return "Forms & Streams";
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
@@ -947,6 +950,22 @@ export default function App() {
               entries={parentDirectory}
               tone="amber"
               onOpenStudentProfile={handleOpenStudentProfile}
+            />
+          )}
+
+          {page === "forms-streams" && canAccessClassData && (
+            <FormsStreamsPage
+              classes={visibleClasses}
+              canCreateClasses={role === "admin"}
+              onNavigateToClass={(cls) => {
+                setActiveId(cls.id);
+                setPage("students");
+                if (isMobile) setSideOpen(false);
+              }}
+              onCreateClass={(opts) => {
+                addClass(opts);
+                if (isMobile) setSideOpen(false);
+              }}
             />
           )}
 
