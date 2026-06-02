@@ -212,7 +212,7 @@ export function FormsStreamsPage({
     return map;
   }, [yearClasses]);
 
-  const { isMobile } = useViewport();
+  const { isMobile, isXs } = useViewport();
 
   const handleNavigate = (cls) => {
     onNavigateToClass?.(cls);
@@ -238,7 +238,7 @@ export function FormsStreamsPage({
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+            <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
               Forms &amp; Streams
             </h1>
             <p style={{ fontSize: 14, color: "#64748b", margin: "6px 0 0", fontWeight: 600 }}>
@@ -293,14 +293,14 @@ export function FormsStreamsPage({
             background: "linear-gradient(180deg,#ffffff,#f8fbff)",
             boxShadow: "0 14px 40px rgba(15,23,42,0.07)",
             overflow: "hidden",
-            minWidth: 560,
+            minWidth: isMobile ? 440 : 560,
           }}
         >
           {/* Column headers */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: `200px repeat(${displayStreams.length}, 1fr)`,
+              gridTemplateColumns: `${isMobile ? "140px" : "200px"} repeat(${displayStreams.length}, 1fr)`,
               borderBottom: "1px solid rgba(226,232,240,0.92)",
               background: "linear-gradient(180deg,#f8faff,#f1f5fe)",
               padding: "0 16px",
@@ -313,14 +313,14 @@ export function FormsStreamsPage({
               <div
                 key={stream}
                 style={{
-                  padding: "14px 8px",
+                  padding: isMobile ? "10px 4px" : "14px 8px",
                   textAlign: "center",
-                  fontSize: 13,
+                  fontSize: isMobile ? 11 : 13,
                   fontWeight: 900,
                   color: "#334155",
                 }}
               >
-                Stream {stream}
+                {isMobile ? stream : `Stream ${stream}`}
               </div>
             ))}
           </div>
@@ -333,10 +333,10 @@ export function FormsStreamsPage({
                 key={form}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `200px repeat(${displayStreams.length}, 1fr)`,
+                  gridTemplateColumns: `${isMobile ? "140px" : "200px"} repeat(${displayStreams.length}, 1fr)`,
                   borderBottom: formIdx < CLASS_FORMS.length - 1 ? "1px solid rgba(226,232,240,0.7)" : "none",
-                  padding: "12px 16px",
-                  gap: 10,
+                  padding: isMobile ? "8px 10px" : "12px 16px",
+                  gap: isMobile ? 6 : 10,
                   alignItems: "center",
                   background: formIdx % 2 === 0 ? "transparent" : "rgba(248,250,252,0.5)",
                 }}

@@ -47,7 +47,7 @@ function ExamBadge({ exam }) {
   );
 }
 
-function ExamTypeCard({ examValue, label, count, total, isSelected, onClick }) {
+function ExamTypeCard({ examValue, label, count, total, isSelected, onClick, fullWidth }) {
   const meta = getExamMeta(examValue);
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
@@ -65,6 +65,7 @@ function ExamTypeCard({ examValue, label, count, total, isSelected, onClick }) {
         boxShadow: isSelected
           ? `0 10px 28px ${meta.color}22`
           : "0 4px 14px rgba(15,23,42,0.04)",
+        width: fullWidth ? "100%" : undefined,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -263,7 +264,7 @@ function ClassRow({ cls, canManage, baseExamOptions, onChangeExam, onNavigate })
 }
 
 export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, onNavigateToClass }) {
-  const { isMobile } = useViewport();
+  const { isMobile, isXs } = useViewport();
   const [filterForm, setFilterForm] = useState("all");
   const [filterYear, setFilterYear] = useState("all");
   const [filterExam, setFilterExam] = useState("all");
@@ -321,7 +322,7 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
 
         {/* Header */}
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
             Exams
           </h1>
           <p style={{ fontSize: 14, color: "#64748b", margin: "6px 0 0", fontWeight: 600 }}>
@@ -332,21 +333,41 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
         {/* Exam type cards */}
         <div>
           <div style={{ fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 12 }}>
-            Exam Types — click to filter
+            Exam Types — {isMobile ? "tap" : "click"} to filter
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 12 }}>
-            {EXAM_TYPES.map((e) => (
-              <ExamTypeCard
-                key={e.value}
-                examValue={e.value}
-                label={e.label}
-                count={examTypeCounts.get(e.value) || 0}
-                total={classes.length}
-                isSelected={filterExam === e.value}
-                onClick={() => handleExamCardClick(e.value)}
-              />
-            ))}
-          </div>
+          {isMobile ? (
+            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", margin: "0 -12px", padding: "0 12px 8px" }}>
+              <div style={{ display: "flex", gap: 10 }}>
+                {EXAM_TYPES.map((e) => (
+                  <div key={e.value} style={{ minWidth: 148, flexShrink: 0 }}>
+                    <ExamTypeCard
+                      examValue={e.value}
+                      label={e.label}
+                      count={examTypeCounts.get(e.value) || 0}
+                      total={classes.length}
+                      isSelected={filterExam === e.value}
+                      onClick={() => handleExamCardClick(e.value)}
+                      fullWidth
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 12 }}>
+              {EXAM_TYPES.map((e) => (
+                <ExamTypeCard
+                  key={e.value}
+                  examValue={e.value}
+                  label={e.label}
+                  count={examTypeCounts.get(e.value) || 0}
+                  total={classes.length}
+                  isSelected={filterExam === e.value}
+                  onClick={() => handleExamCardClick(e.value)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Table section */}
@@ -354,53 +375,51 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
           {/* Filters */}
           <div
             style={{
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-              alignItems: "center",
               borderRadius: 18,
               border: "1px solid rgba(226,232,240,0.92)",
               background: "#ffffff",
               boxShadow: "0 4px 14px rgba(15,23,42,0.04)",
-              padding: "14px 18px",
+              padding: isMobile ? "12px 14px" : "14px 18px",
             }}
           >
-            <select
-              value={filterForm}
-              onChange={(e) => setFilterForm(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Forms</option>
-              {CLASS_FORMS.map((f) => <option key={f} value={f}>{f}</option>)}
-            </select>
-            <select
-              value={filterYear}
-              onChange={(e) => setFilterYear(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Years</option>
-              {years.map((y) => <option key={y} value={y}>{y}</option>)}
-            </select>
-            <select
-              value={filterExam}
-              onChange={(e) => setFilterExam(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Exam Types</option>
-              {EXAM_TYPES.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
-            </select>
-            {(filterForm !== "all" || filterYear !== "all" || filterExam !== "all") && (
-              <button
-                type="button"
-                onClick={() => { setFilterForm("all"); setFilterYear("all"); setFilterExam("all"); }}
-                style={{ ...selectStyle, cursor: "pointer", color: "#64748b" }}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <select
+                value={filterForm}
+                onChange={(e) => setFilterForm(e.target.value)}
+                style={{ ...selectStyle, flex: isXs ? "1 1 calc(50% - 4px)" : undefined }}
               >
-                Clear
-              </button>
-            )}
-            <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700, marginLeft: "auto" }}>
-              {filtered.length} class{filtered.length !== 1 ? "es" : ""}
-            </span>
+                <option value="all">All Forms</option>
+                {CLASS_FORMS.map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
+              <select
+                value={filterYear}
+                onChange={(e) => setFilterYear(e.target.value)}
+                style={{ ...selectStyle, flex: isXs ? "1 1 calc(50% - 4px)" : undefined }}
+              >
+                <option value="all">All Years</option>
+                {years.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+              <select
+                value={filterExam}
+                onChange={(e) => setFilterExam(e.target.value)}
+                style={{ ...selectStyle, flex: isXs ? "1 1 100%" : undefined }}
+              >
+                <option value="all">All Exam Types</option>
+                {EXAM_TYPES.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
+              </select>
+              {(filterForm !== "all" || filterYear !== "all" || filterExam !== "all") && (
+                <button
+                  type="button"
+                  onClick={() => { setFilterForm("all"); setFilterYear("all"); setFilterExam("all"); }}
+                  style={{ ...selectStyle, cursor: "pointer", color: "#64748b" }}
+                >
+                  Clear
+                </button>
+              )}
+              <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700, marginLeft: "auto" }}>
+                {filtered.length} class{filtered.length !== 1 ? "es" : ""}
+              </span>
+            </div>
           </div>
 
           {/* Table */}

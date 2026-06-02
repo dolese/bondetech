@@ -197,7 +197,7 @@ function SubjectRow({ entry, expanded, onToggle, onNavigate }) {
 }
 
 export function SubjectsPage({ classes = [], onNavigateToClass }) {
-  const { isMobile } = useViewport();
+  const { isMobile, isXs } = useViewport();
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterForm, setFilterForm] = useState("all");
@@ -246,7 +246,7 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
 
         {/* Header */}
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
             Subjects
           </h1>
           <p style={{ fontSize: 14, color: "#64748b", margin: "6px 0 0", fontWeight: 600 }}>
@@ -269,7 +269,7 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
                 border: "1px solid rgba(226,232,240,0.92)",
                 background: "linear-gradient(180deg,#ffffff,#f8fbff)",
                 boxShadow: "0 8px 24px rgba(15,23,42,0.05)",
-                padding: "18px 22px",
+                padding: isMobile ? "14px 16px" : "18px 22px",
               }}
             >
               <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.02em" }}>{value}</div>
@@ -282,15 +282,13 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
         {/* Filters */}
         <div
           style={{
-            display: "flex",
-            gap: 10,
-            flexWrap: "wrap",
-            alignItems: "center",
             borderRadius: 18,
             border: "1px solid rgba(226,232,240,0.92)",
             background: "#ffffff",
             boxShadow: "0 4px 14px rgba(15,23,42,0.04)",
-            padding: "14px 18px",
+            padding: isMobile ? "12px 14px" : "14px 18px",
+            display: "grid",
+            gap: 8,
           }}
         >
           <input
@@ -299,8 +297,6 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
-              flex: 1,
-              minWidth: 160,
               border: "1px solid rgba(226,232,240,0.92)",
               borderRadius: 12,
               padding: "9px 14px",
@@ -309,66 +305,72 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
               color: "#0f172a",
               outline: "none",
               background: "#f8faff",
+              width: "100%",
+              boxSizing: "border-box",
             }}
           />
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            style={{
-              border: "1px solid rgba(226,232,240,0.92)",
-              borderRadius: 12,
-              padding: "9px 14px",
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#475569",
-              background: "#f8faff",
-              cursor: "pointer",
-            }}
-          >
-            <option value="all">All Types</option>
-            <option value="compulsory">Compulsory</option>
-            <option value="optional">Optional</option>
-          </select>
-          <select
-            value={filterForm}
-            onChange={(e) => setFilterForm(e.target.value)}
-            style={{
-              border: "1px solid rgba(226,232,240,0.92)",
-              borderRadius: 12,
-              padding: "9px 14px",
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#475569",
-              background: "#f8faff",
-              cursor: "pointer",
-            }}
-          >
-            <option value="all">All Forms</option>
-            {CLASS_FORMS.map((f) => (
-              <option key={f} value={f}>{f}</option>
-            ))}
-          </select>
-          {(search || filterType !== "all" || filterForm !== "all") && (
-            <button
-              type="button"
-              onClick={() => { setSearch(""); setFilterType("all"); setFilterForm("all"); }}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
               style={{
+                flex: isXs ? "1 1 calc(50% - 4px)" : undefined,
                 border: "1px solid rgba(226,232,240,0.92)",
                 borderRadius: 12,
                 padding: "9px 14px",
-                fontSize: 12,
-                fontWeight: 800,
-                color: "#64748b",
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#475569",
                 background: "#f8faff",
                 cursor: "pointer",
               }}
             >
-              Clear
-            </button>
-          )}
-          <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700, marginLeft: "auto" }}>
-            {filtered.length} of {catalogue.length}
-          </span>
+              <option value="all">All Types</option>
+              <option value="compulsory">Compulsory</option>
+              <option value="optional">Optional</option>
+            </select>
+            <select
+              value={filterForm}
+              onChange={(e) => setFilterForm(e.target.value)}
+              style={{
+                flex: isXs ? "1 1 calc(50% - 4px)" : undefined,
+                border: "1px solid rgba(226,232,240,0.92)",
+                borderRadius: 12,
+                padding: "9px 14px",
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#475569",
+                background: "#f8faff",
+                cursor: "pointer",
+              }}
+            >
+              <option value="all">All Forms</option>
+              {CLASS_FORMS.map((f) => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+            {(search || filterType !== "all" || filterForm !== "all") && (
+              <button
+                type="button"
+                onClick={() => { setSearch(""); setFilterType("all"); setFilterForm("all"); }}
+                style={{
+                  border: "1px solid rgba(226,232,240,0.92)",
+                  borderRadius: 12,
+                  padding: "9px 14px",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: "#64748b",
+                  background: "#f8faff",
+                  cursor: "pointer",
+                }}
+              >
+                Clear
+              </button>
+            )}
+            <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700, marginLeft: "auto" }}>
+              {filtered.length} of {catalogue.length}
+            </span>
+          </div>
         </div>
 
         {/* Table */}
