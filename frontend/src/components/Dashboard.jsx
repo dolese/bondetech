@@ -537,6 +537,7 @@ export function Dashboard({
   onOpenClass,
   onViewProfile,
   onOpenAccount,
+  onOpenHomepageEditor,
   onOpenReports,
   onOpenTimetable,
   onOpenSettings,
@@ -1665,19 +1666,38 @@ export function Dashboard({
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>Announcements</div>
-              <button
-                onClick={onOpenAccount}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  color: "#2563eb",
-                  fontSize: 14,
-                  fontWeight: 900,
-                  cursor: "pointer",
-                }}
-              >
-                View All
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {onOpenHomepageEditor && (
+                  <button
+                    onClick={onOpenHomepageEditor}
+                    style={{
+                      border: "1px solid rgba(22,101,52,0.18)",
+                      background: "#ecfdf5",
+                      color: "#166534",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      borderRadius: 8,
+                      padding: "6px 12px",
+                    }}
+                  >
+                    + Manage
+                  </button>
+                )}
+                <button
+                  onClick={onOpenAccount}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    color: "#2563eb",
+                    fontSize: 14,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                >
+                  View All
+                </button>
+              </div>
             </div>
 
             {overviewError && (
