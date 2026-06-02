@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { CLASS_FORMS } from "../hooks/useClasses";
 import { premiumFontStack } from "../utils/designSystem";
-import { EXAM_TYPES, MONTHS, getMonthlyExamKey } from "../utils/constants";
+import { EXAM_TYPES, getMonthlyExamKey } from "../utils/constants";
 
 const EXAM_META = {
   "March Exam":     { icon: "SE", color: "#0b6b3a", bg: "#e6f9ee", border: "#7dd3a8" },
@@ -110,12 +110,20 @@ function ExamTypeCard({ examValue, label, count, total, isSelected, onClick }) {
   );
 }
 
-function ClassRow({ cls, canManage, allExamOptions, onChangeExam, onNavigate }) {
+function ClassRow({ cls, canManage, baseExamOptions, onChangeExam, onNavigate }) {
   const activeExam = cls.school_info?.exam || "";
   const monthlyExams = Array.isArray(cls.monthly_exams) ? cls.monthly_exams : [];
   const meta = getExamMeta(activeExam);
   const label = [cls.form, cls.stream, cls.year].filter(Boolean).join(" ");
   const [saving, setSaving] = useState(false);
+
+  const examOptions = useMemo(() => {
+    const options = [...baseExamOptions];
+    monthlyExams.forEach((month) => {
+      options.push({ value: getMonthlyExamKey(month), label: `Monthly — ${month}` });
+    });
+    return options;
+  }, [baseExamOptions, monthlyExams]);
 
   const handleChange = async (e) => {
     const next = e.target.value;
@@ -189,7 +197,7 @@ function ClassRow({ cls, canManage, allExamOptions, onChangeExam, onNavigate }) 
               }}
             >
               <option value="" disabled>Select exam</option>
-              {allExamOptions.map((opt) => (
+              {examOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
@@ -272,19 +280,10 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
     return map;
   }, [classes]);
 
-  const allExamOptions = useMemo(() => {
-    const options = EXAM_TYPES.map((e) => ({ value: e.value, label: e.label }));
-    const allMonthlyKeys = new Set(
-      classes.flatMap((cls) =>
-        Array.isArray(cls.monthly_exams) ? cls.monthly_exams.map(getMonthlyExamKey) : []
-      )
-    );
-    allMonthlyKeys.forEach((key) => {
-      const month = key.replace("Monthly - ", "");
-      options.push({ value: key, label: `Monthly — ${month}` });
-    });
-    return options;
-  }, [classes]);
+  const baseExamOptions = useMemo(
+    () => EXAM_TYPES.map((e) => ({ value: e.value, label: e.label })),
+    []
+  );
 
   const filtered = useMemo(() => {
     return classes.filter((cls) => {
@@ -456,7 +455,7 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
                       key={cls.id}
                       cls={cls}
                       canManage={canManage}
-                      allExamOptions={allExamOptions}
+                      baseExamOptions={baseExamOptions}
                       onChangeExam={onChangeClassExam}
                       onNavigate={onNavigateToClass}
                     />
