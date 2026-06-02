@@ -129,7 +129,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     {
       id: "results",
       icon: "results",
-      bg: "#dbeafe",
+      bg: "#dcfce7",
       badge: publishedLabel,
       title: t("checkResults"),
       desc: stats.publishedClasses > 0
@@ -170,7 +170,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     {
       id: "announcements",
       icon: "announcements",
-      bg: "#ede9fe",
+      bg: "#d1fae5",
       badge: formatCount(announcementCount, "live update", "taarifa hai", language),
       title: t("announcements"),
       desc: language === "sw"
@@ -194,7 +194,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     {
       id: "login",
       icon: "login",
-      bg: "#cffafe",
+      bg: "#fef9c3",
       badge: stats.latestYear ? (language === "sw" ? `Mwaka ${stats.latestYear}` : `Year ${stats.latestYear}`) : t("portalAccess"),
       title: t("studentParentLogin"),
       desc: stats.latestYear
@@ -458,7 +458,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     || (language === "sw" ? "Matokeo ya Taaluma Yamefanywa Rahisi" : "Academic Results Made Simple");
   const heroDescription = resolveHeroText(currentHeroSlide, language, "description", "descriptionSw")
     || t("getInstantResults");
-  const navBg = "#0f2d6e";
+  const navBg = "#0a3d2b";
   const isCompactScreen = isMobile || isTablet;
   
   const containerClass = `home-content-wrapper ${isMobile ? 'home-content-wrapper-mobile' : 'home-content-wrapper-desktop'}`;
@@ -468,18 +468,18 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   );
 
   const categories = [
-    { label: language === "sw" ? "Kidato I\nMatokeo" : "Form I\nResults", color: "#2563eb", bg: "#dbeafe", icon: "results" },
-    { label: language === "sw" ? "Kidato II\nMatokeo" : "Form II\nResults", color: "#2563eb", bg: "#dbeafe", icon: "results" },
-    { label: language === "sw" ? "Kidato III\nMatokeo" : "Form III\nResults", color: "#2563eb", bg: "#dbeafe", icon: "results" },
-    { label: language === "sw" ? "Kidato IV\nMatokeo" : "Form IV\nResults", color: "#2563eb", bg: "#dbeafe", icon: "results" },
+    { label: language === "sw" ? "Kidato I\nMatokeo" : "Form I\nResults", color: "#166534", bg: "#dcfce7", icon: "results" },
+    { label: language === "sw" ? "Kidato II\nMatokeo" : "Form II\nResults", color: "#166534", bg: "#dcfce7", icon: "results" },
+    { label: language === "sw" ? "Kidato III\nMatokeo" : "Form III\nResults", color: "#166534", bg: "#dcfce7", icon: "results" },
+    { label: language === "sw" ? "Kidato IV\nMatokeo" : "Form IV\nResults", color: "#166534", bg: "#dcfce7", icon: "results" },
     { label: language === "sw" ? "Mtihani wa\nMuhula" : "Terminal\nExams", color: "#dc2626", bg: "#fee2e2", icon: "exam" },
     { label: language === "sw" ? "Mitihani ya\nKati" : "Midterm\nExams", color: "#dc2626", bg: "#fee2e2", icon: "monthly" },
-    { label: language === "sw" ? "Mitihani ya\nMwisho" : "Annual\nExams", color: "#7c3aed", bg: "#ede9fe", icon: "reports" },
-    { label: language === "sw" ? "Mitihani ya\nMock" : "Mock\nExams", color: "#0891b2", bg: "#cffafe", icon: "timetable" },
+    { label: language === "sw" ? "Mitihani ya\nMwisho" : "Annual\nExams", color: "#047857", bg: "#d1fae5", icon: "reports" },
+    { label: language === "sw" ? "Mitihani ya\nMock" : "Mock\nExams", color: "#d97706", bg: "#fef9c3", icon: "timetable" },
   ];
 
   const features = [
-    { bg: "#dbeafe", label: language === "sw" ? "Ufikiaji\nSalama" : "Secure\nAccess", icon: "secure" },
+    { bg: "#dcfce7", label: language === "sw" ? "Ufikiaji\nSalama" : "Secure\nAccess", icon: "secure" },
     { bg: "#d1fae5", label: language === "sw" ? "Ukaguzi wa\nMatokeo Haraka" : "Fast Results\nChecking", icon: "search" },
     { bg: "#ede9fe", label: language === "sw" ? "Inaendana na\nSimu" : "Mobile\nResponsive", icon: "mobile" },
     { bg: "#fef3c7", label: language === "sw" ? "Upakuaji Rahisi\nwa Ripoti" : "Easy Report\nDownload", icon: "download" },
@@ -495,7 +495,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             <SchoolCrest size={isMobile ? 36 : 44} />
             <div>
               <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 800, color: navBg, letterSpacing: 0.3, lineHeight: 1.2 }}>BONDE SECONDARY SCHOOL</div>
-              <div style={{ fontSize: isMobile ? 10 : 10, fontWeight: 700, color: "#1ea4b8", letterSpacing: 1, textTransform: "uppercase" }}>{t("resultSystem")}</div>
+              <div style={{ fontSize: isMobile ? 10 : 10, fontWeight: 700, color: "#d97706", letterSpacing: 1, textTransform: "uppercase" }}>{t("resultSystem")}</div>
             </div>
           </div>
 
@@ -520,7 +520,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             {isDesktop ? (
               <button
                 onClick={onOpenLogin}
-                style={{ background: navBg, color: "#fff", border: "none", borderRadius: 10, padding: "9px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(15,45,110,0.2)" }}
+                style={{ background: navBg, color: "#fff", border: "none", borderRadius: 10, padding: "9px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(10,61,43,0.22)" }}
               >
                 {t("loginButton")}
               </button>
@@ -545,7 +545,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               style={{
                 position: "fixed",
                 inset: `${isMobile ? 60 : 68}px 0 0`,
-                background: "rgba(7, 18, 40, 0.18)",
+                background: "rgba(5, 46, 22, 0.18)",
                 backdropFilter: "blur(2px)",
                 zIndex: 101,
               }}
@@ -688,15 +688,15 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
           <div className="home-hero-panel" style={{ borderRadius: 24, padding: isMobile ? "18px 16px" : "22px 20px", width: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{t("latestExam")}: {latestExamLabel}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#0a3d2b" }}>{t("latestExam")}: {latestExamLabel}</div>
               <span style={{ fontSize: isMobile ? 12 : 11, color: "#64748b" }}>{stats.latestYear || t("currentYear")}</span>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-              <div style={{ background: "#f8faff", borderRadius: 12, padding: "12px 14px" }}>
+              <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "12px 14px" }}>
                 <div style={{ fontSize: isMobile ? 12 : 11, color: "#64748b", marginBottom: 4 }}>{t("totalStudents")}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: "#0f2d6e" }}>{Number(stats.totalStudents || 0).toLocaleString()}</span>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: "#0a3d2b" }}>{Number(stats.totalStudents || 0).toLocaleString()}</span>
                 </div>
               </div>
               <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "12px 14px" }}>
@@ -718,9 +718,9 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                 <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>{stats.publishedClasses || 0}</div>
                 <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>{formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)}</div>
               </div>
-              <div style={{ background: "#f5f3ff", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: isMobile ? 11 : 10, color: "#5b21b6", fontWeight: 600, marginBottom: 3 }}>{t("averageClassSizeLabel")}</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>{stats.averageClassSize || 0}</div>
+              <div style={{ background: "#ecfdf5", borderRadius: 12, padding: "10px 12px" }}>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: "#065f46", fontWeight: 600, marginBottom: 3 }}>{t("averageClassSizeLabel")}</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#0a3d2b" }}>{stats.averageClassSize || 0}</div>
                 <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>{formatCount(stats.monthlyExamCount, "monthly exam", "mitihani ya kila mwezi", language)}</div>
               </div>
             </div>
@@ -789,7 +789,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
             {searchResults && searchResults.length > 1 && (
               <div style={{ marginTop: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#0f2d6e", marginBottom: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0a3d2b", marginBottom: 10 }}>
                   {language === "sw"
                     ? `${searchResults.length} ${t("studentsFoundSelect")}`
                     : `${searchResults.length} student${searchResults.length !== 1 ? "s" : ""} found - select to view results:`}
@@ -805,18 +805,18 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                       justifyContent: "space-between",
                       padding: "12px 14px",
                       borderRadius: 10,
-                      border: "1.5px solid #e8edf5",
+                      border: "1.5px solid #c8e6d0",
                       marginBottom: 8,
                       cursor: "pointer",
-                      background: "#f8faff",
+                      background: "#f0fdf4",
                       transition: "background 0.15s",
                       textAlign: "left",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#eef2ff";
+                      e.currentTarget.style.background = "#dcfce7";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "#f8faff";
+                      e.currentTarget.style.background = "#f0fdf4";
                     }}
                   >
                     <div>
@@ -825,7 +825,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                         {result.indexNo} | {result.form} | {result.year}
                       </div>
                     </div>
-                    <span style={{ fontSize: 14, color: "#2563eb", fontWeight: 700 }}>{t("view")}</span>
+                    <span style={{ fontSize: 14, color: "#166534", fontWeight: 700 }}>{t("view")}</span>
                   </button>
                 ))}
               </div>
@@ -903,12 +903,12 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#173b74",
+                    color: "#14532d",
                   }}
                 >
                   <HomeIcon name={stat.icon} label={stat.label} size={isMobile ? 16 : 18} />
                 </div>
-                <div style={{ fontSize: isMobile ? 13 : 18, fontWeight: 800, color: "#0f2d6e" }}>{stat.value}</div>
+                <div style={{ fontSize: isMobile ? 13 : 18, fontWeight: 800, color: "#0a3d2b" }}>{stat.value}</div>
                 <div style={{ fontSize: isMobile ? 10 : 11, color: "#64748b", marginTop: 3, lineHeight: isMobile ? 1.35 : 1.45 }}>{stat.label}</div>
                 {stat.description && (
                   <div style={{ fontSize: isMobile ? 9 : 10, color: "#94a3b8", marginTop: isMobile ? 4 : 6, lineHeight: 1.45 }}>
@@ -1017,7 +1017,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               <SchoolCrest size={44} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", letterSpacing: 0.3 }}>BONDE SECONDARY SCHOOL</div>
-                <div style={{ fontSize: isMobile ? 11 : 10, color: "#93c5fd" }}>{t("resultSystem")}</div>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: "#86efac" }}>{t("resultSystem")}</div>
               </div>
             </div>
             <p style={{ fontSize: isMobile ? 13 : 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: 260 }}>
@@ -1129,7 +1129,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           >
             <div
               style={{
-                background: "#0f2d6e",
+                background: "#0a3d2b",
                 color: "#fff",
                 padding: "14px 20px",
                 display: "flex",
