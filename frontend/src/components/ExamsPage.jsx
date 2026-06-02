@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { CLASS_FORMS } from "../hooks/useClasses";
 import { premiumFontStack } from "../utils/designSystem";
 import { EXAM_TYPES, getMonthlyExamKey } from "../utils/constants";
+import { useViewport } from "../utils/useViewport";
 
 const EXAM_META = {
   "March Exam":     { icon: "SE", color: "#0b6b3a", bg: "#e6f9ee", border: "#7dd3a8" },
@@ -46,66 +47,113 @@ function ExamBadge({ exam }) {
   );
 }
 
-function ExamTypeCard({ examValue, label, count, total, isSelected, onClick }) {
+function ExamTypeRow({ examValue, label, count, total, isSelected, onClick, compact }) {
   const meta = getExamMeta(examValue);
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  const [hovered, setHovered] = useState(false);
+
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        border: isSelected ? `2px solid ${meta.color}` : "1px solid rgba(226,232,240,0.92)",
-        borderRadius: 20,
-        padding: "16px 18px",
-        background: isSelected ? meta.bg : "#ffffff",
+        display: "flex",
+        alignItems: "center",
+        gap: compact ? 10 : 14,
+        padding: compact ? "9px 14px" : "11px 18px",
+        background: isSelected ? meta.bg : hovered ? "#f8faff" : "transparent",
+        border: "none",
+        borderLeft: `3px solid ${isSelected ? meta.color : "transparent"}`,
         cursor: "pointer",
         textAlign: "left",
-        transition: "all 0.18s ease",
-        boxShadow: isSelected
-          ? `0 10px 28px ${meta.color}22`
-          : "0 4px 14px rgba(15,23,42,0.04)",
+        transition: "background 0.14s, border-color 0.14s",
+        width: "100%",
+        boxSizing: "border-box",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+      {/* Icon badge */}
+      <span
+        style={{
+          width: compact ? 28 : 32,
+          height: compact ? 28 : 32,
+          borderRadius: 9,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: isSelected ? "#fff" : meta.bg,
+          border: `1px solid ${meta.border}`,
+          color: meta.color,
+          fontSize: 10,
+          fontWeight: 900,
+          letterSpacing: 0.4,
+          flexShrink: 0,
+        }}
+      >
+        {meta.icon}
+      </span>
+
+      {/* Name */}
+      <span
+        style={{
+          flex: 1,
+          fontSize: compact ? 12 : 13,
+          fontWeight: isSelected ? 800 : 600,
+          color: isSelected ? meta.color : "#334155",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </span>
+
+      {/* Progress bar — hidden on compact (xs) */}
+      {!compact && (
+        <div style={{ width: 72, height: 4, borderRadius: 99, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
+          <div
+            style={{
+              height: "100%",
+              borderRadius: 99,
+              background: pct > 0 ? meta.color : "transparent",
+              width: `${pct}%`,
+              transition: "width 0.35s ease",
+            }}
+          />
+        </div>
+      )}
+
+      {/* Count */}
+      <span
+        style={{
+          fontSize: 12,
+          fontWeight: 800,
+          color: isSelected ? meta.color : "#475569",
+          minWidth: compact ? 36 : 44,
+          textAlign: "right",
+          flexShrink: 0,
+        }}
+      >
+        {count}
+        <span style={{ color: "#cbd5e1", fontWeight: 600, fontSize: 11 }}>/{total}</span>
+      </span>
+
+      {/* Percentage — hidden on compact */}
+      {!compact && (
         <span
           style={{
-            width: 38,
-            height: 38,
-            borderRadius: 12,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#fff",
-            border: `1px solid ${meta.border}`,
-            color: meta.color,
             fontSize: 11,
-            fontWeight: 900,
-            letterSpacing: 0.4,
+            fontWeight: 700,
+            color: count > 0 ? meta.color : "#cbd5e1",
+            minWidth: 34,
+            textAlign: "right",
             flexShrink: 0,
           }}
         >
-          {meta.icon}
+          {pct}%
         </span>
-        <span style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>{label}</span>
-      </div>
-      <div style={{ fontSize: 24, fontWeight: 900, color: meta.color, letterSpacing: "-0.02em" }}>
-        {count}
-        <span style={{ fontSize: 13, color: "#94a3b8", fontWeight: 700, marginLeft: 4 }}>/ {total}</span>
-      </div>
-      <div style={{ marginTop: 8, height: 4, borderRadius: 99, background: "rgba(0,0,0,0.06)" }}>
-        <div
-          style={{
-            height: "100%",
-            borderRadius: 99,
-            background: meta.color,
-            width: `${pct}%`,
-            transition: "width 0.3s ease",
-          }}
-        />
-      </div>
-      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginTop: 6 }}>
-        {count === 0 ? "No classes" : `${pct}% of classes`}
-      </div>
+      )}
     </button>
   );
 }
@@ -262,6 +310,7 @@ function ClassRow({ cls, canManage, baseExamOptions, onChangeExam, onNavigate })
 }
 
 export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, onNavigateToClass }) {
+  const { isMobile, isXs } = useViewport();
   const [filterForm, setFilterForm] = useState("all");
   const [filterYear, setFilterYear] = useState("all");
   const [filterExam, setFilterExam] = useState("all");
@@ -309,17 +358,17 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
       style={{
         flex: 1,
         overflowY: "auto",
-        padding: "28px 28px 40px",
+        padding: isMobile ? "14px 12px 28px" : "28px 28px 40px",
         fontFamily: premiumFontStack,
         background: "#f1f5fb",
         minHeight: 0,
       }}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: 24 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: isMobile ? 16 : 24 }}>
 
         {/* Header */}
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
             Exams
           </h1>
           <p style={{ fontSize: 14, color: "#64748b", margin: "6px 0 0", fontWeight: 600 }}>
@@ -327,24 +376,60 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
           </p>
         </div>
 
-        {/* Exam type cards */}
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 12 }}>
-            Exam Types — click to filter
+        {/* Exam type filter panel */}
+        <div
+          style={{
+            borderRadius: 20,
+            border: "1px solid rgba(226,232,240,0.92)",
+            background: "#ffffff",
+            boxShadow: "0 8px 28px rgba(15,23,42,0.05)",
+            overflow: "hidden",
+          }}
+        >
+          {/* Panel header */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: isMobile ? "11px 14px 10px" : "13px 18px 12px",
+              borderBottom: "1px solid rgba(226,232,240,0.7)",
+              background: "linear-gradient(180deg,#f8faff,#f1f5fe)",
+            }}
+          >
+            <span style={{ fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1.4, textTransform: "uppercase" }}>
+              Exam Types
+            </span>
+            <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>
+              {filterExam === "all" ? "tap a row to filter" : (
+                <button
+                  type="button"
+                  onClick={() => setFilterExam("all")}
+                  style={{ border: "none", background: "none", padding: 0, cursor: "pointer", fontSize: 11, color: "#2563eb", fontWeight: 700 }}
+                >
+                  ✕ clear filter
+                </button>
+              )}
+            </span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 12 }}>
-            {EXAM_TYPES.map((e) => (
-              <ExamTypeCard
-                key={e.value}
+
+          {/* Rows */}
+          {EXAM_TYPES.map((e, idx) => (
+            <div
+              key={e.value}
+              style={{ borderBottom: idx < EXAM_TYPES.length - 1 ? "1px solid rgba(226,232,240,0.45)" : "none" }}
+            >
+              <ExamTypeRow
                 examValue={e.value}
                 label={e.label}
                 count={examTypeCounts.get(e.value) || 0}
                 total={classes.length}
                 isSelected={filterExam === e.value}
                 onClick={() => handleExamCardClick(e.value)}
+                compact={isXs}
               />
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
         {/* Table section */}
@@ -352,53 +437,43 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
           {/* Filters */}
           <div
             style={{
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-              alignItems: "center",
               borderRadius: 18,
               border: "1px solid rgba(226,232,240,0.92)",
               background: "#ffffff",
               boxShadow: "0 4px 14px rgba(15,23,42,0.04)",
-              padding: "14px 18px",
+              padding: isMobile ? "12px 14px" : "14px 18px",
             }}
           >
-            <select
-              value={filterForm}
-              onChange={(e) => setFilterForm(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Forms</option>
-              {CLASS_FORMS.map((f) => <option key={f} value={f}>{f}</option>)}
-            </select>
-            <select
-              value={filterYear}
-              onChange={(e) => setFilterYear(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Years</option>
-              {years.map((y) => <option key={y} value={y}>{y}</option>)}
-            </select>
-            <select
-              value={filterExam}
-              onChange={(e) => setFilterExam(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Exam Types</option>
-              {EXAM_TYPES.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
-            </select>
-            {(filterForm !== "all" || filterYear !== "all" || filterExam !== "all") && (
-              <button
-                type="button"
-                onClick={() => { setFilterForm("all"); setFilterYear("all"); setFilterExam("all"); }}
-                style={{ ...selectStyle, cursor: "pointer", color: "#64748b" }}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <select
+                value={filterForm}
+                onChange={(e) => setFilterForm(e.target.value)}
+                style={{ ...selectStyle, flex: isXs ? "1 1 calc(50% - 4px)" : undefined }}
               >
-                Clear
-              </button>
-            )}
-            <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700, marginLeft: "auto" }}>
-              {filtered.length} class{filtered.length !== 1 ? "es" : ""}
-            </span>
+                <option value="all">All Forms</option>
+                {CLASS_FORMS.map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
+              <select
+                value={filterYear}
+                onChange={(e) => setFilterYear(e.target.value)}
+                style={{ ...selectStyle, flex: isXs ? "1 1 calc(50% - 4px)" : undefined }}
+              >
+                <option value="all">All Years</option>
+                {years.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+              {(filterForm !== "all" || filterYear !== "all") && (
+                <button
+                  type="button"
+                  onClick={() => { setFilterForm("all"); setFilterYear("all"); }}
+                  style={{ ...selectStyle, cursor: "pointer", color: "#64748b" }}
+                >
+                  Clear
+                </button>
+              )}
+              <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700, marginLeft: "auto" }}>
+                {filtered.length} class{filtered.length !== 1 ? "es" : ""}
+              </span>
+            </div>
           </div>
 
           {/* Table */}
@@ -418,6 +493,7 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
               {classes.length === 0 ? "No classes found." : "No classes match the current filters."}
             </div>
           ) : (
+            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
             <div
               style={{
                 borderRadius: 20,
@@ -425,6 +501,7 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
                 background: "#ffffff",
                 boxShadow: "0 14px 40px rgba(15,23,42,0.07)",
                 overflow: "hidden",
+                minWidth: 560,
               }}
             >
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -463,6 +540,7 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
                 </tbody>
               </table>
             </div>
+            </div>{/* end scroll wrapper */}
           )}
         </div>
 
