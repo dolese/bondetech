@@ -125,10 +125,8 @@ function renderMarkdown(text) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Code block fence
     if (line.trim().startsWith("```")) {
       if (codeBlock !== null) {
-        // Close code block
         elements.push(
           <pre key={`code-${elements.length}`} style={mdStyles.pre}>
             <code style={mdStyles.code}>{codeBlock}</code>
@@ -147,28 +145,24 @@ function renderMarkdown(text) {
       continue;
     }
 
-    // List items
     if (/^[\s]*[-*•]\s/.test(line)) {
       listItems.push(line.replace(/^[\s]*[-*•]\s/, ""));
       continue;
     }
-    // Numbered list
     if (/^[\s]*\d+[.)]\s/.test(line)) {
       listItems.push(line.replace(/^[\s]*\d+[.)]\s/, ""));
       continue;
     }
     flushList();
 
-    // Table row
     if (line.includes("|") && line.trim().startsWith("|")) {
-      // Collect all table rows
       const tableRows = [line];
       while (i + 1 < lines.length && lines[i + 1].includes("|") && lines[i + 1].trim().startsWith("|")) {
         i++;
         tableRows.push(lines[i]);
       }
       const parsedRows = tableRows
-        .filter((r) => !/^[\s|:-]+$/.test(r)) // filter separator rows
+        .filter((r) => !/^[\s|:-]+$/.test(r))
         .map((r) =>
           r.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map((c) => c.trim())
         );
@@ -201,13 +195,11 @@ function renderMarkdown(text) {
       continue;
     }
 
-    // Empty line → spacer
     if (!line.trim()) {
-      elements.push(<div key={`sp-${elements.length}`} style={{ height: 8 }} />);
+      elements.push(<div key={`sp-${elements.length}`} style={{ height: 6 }} />);
       continue;
     }
 
-    // Normal paragraph
     elements.push(
       <p key={`p-${elements.length}`} style={mdStyles.p}>
         {renderInline(line)}
@@ -217,7 +209,6 @@ function renderMarkdown(text) {
 
   flushList();
 
-  // Close unclosed code block
   if (codeBlock !== null) {
     elements.push(
       <pre key={`code-${elements.length}`} style={mdStyles.pre}>
@@ -230,7 +221,6 @@ function renderMarkdown(text) {
 }
 
 function renderInline(text) {
-  // Process bold, italic, inline code
   const parts = [];
   const regex = /(\*\*(.+?)\*\*)|(\*(.+?)\*)|(`(.+?)`)/g;
   let lastIndex = 0;
@@ -242,7 +232,7 @@ function renderInline(text) {
       parts.push(text.slice(lastIndex, match.index));
     }
     if (match[2]) {
-      parts.push(<strong key={key++} style={{ fontWeight: 800 }}>{match[2]}</strong>);
+      parts.push(<strong key={key++} style={{ fontWeight: 700 }}>{match[2]}</strong>);
     } else if (match[4]) {
       parts.push(<em key={key++}>{match[4]}</em>);
     } else if (match[6]) {
@@ -259,44 +249,46 @@ function renderInline(text) {
 }
 
 const mdStyles = {
-  p: { margin: "0 0 4px", lineHeight: 1.72, fontSize: 15 },
-  ul: { margin: "4px 0 8px", paddingLeft: 22, lineHeight: 1.72 },
-  li: { margin: "2px 0", fontSize: 15 },
+  p: { margin: "0 0 4px", lineHeight: 1.75, fontSize: 15, color: "#18181b" },
+  ul: { margin: "4px 0 6px", paddingLeft: 20, lineHeight: 1.75 },
+  li: { margin: "3px 0", fontSize: 15 },
   pre: {
-    margin: "8px 0",
+    margin: "10px 0",
     padding: "14px 16px",
-    borderRadius: 14,
-    background: "rgba(15,23,42,0.06)",
-    border: "1px solid rgba(226,232,240,0.7)",
+    borderRadius: 10,
+    background: "#f4f4f5",
+    border: "1px solid #e4e4e7",
     overflowX: "auto",
     fontSize: 13,
-    lineHeight: 1.55,
+    lineHeight: 1.6,
   },
-  code: { fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace", fontSize: 13 },
+  code: { fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace", fontSize: 13, color: "#18181b" },
   inlineCode: {
     fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace",
     fontSize: 13,
-    background: "rgba(15,23,42,0.07)",
+    background: "#f4f4f5",
     padding: "2px 6px",
-    borderRadius: 6,
-    border: "1px solid rgba(226,232,240,0.5)",
+    borderRadius: 5,
+    border: "1px solid #e4e4e7",
+    color: "#18181b",
   },
-  tableWrap: { overflowX: "auto", margin: "8px 0" },
-  table: { width: "100%", borderCollapse: "collapse", fontSize: 13 },
+  tableWrap: { overflowX: "auto", margin: "10px 0" },
+  table: { width: "100%", borderCollapse: "collapse", fontSize: 14 },
   th: {
     textAlign: "left",
-    padding: "8px 12px",
-    borderBottom: "2px solid rgba(226,232,240,0.9)",
-    fontWeight: 800,
+    padding: "9px 13px",
+    borderBottom: "2px solid #e4e4e7",
+    fontWeight: 700,
     fontSize: 12,
-    letterSpacing: "0.03em",
-    color: "#475569",
-    background: "rgba(248,250,252,0.8)",
+    letterSpacing: "0.02em",
+    color: "#71717a",
+    background: "#fafafa",
   },
   td: {
-    padding: "7px 12px",
-    borderBottom: "1px solid rgba(226,232,240,0.6)",
-    color: "#1e293b",
+    padding: "8px 13px",
+    borderBottom: "1px solid #f4f4f5",
+    color: "#18181b",
+    fontSize: 14,
   },
 };
 
@@ -313,58 +305,36 @@ function injectKeyframes() {
   style.id = KEYFRAMES_ID;
   style.textContent = `
     @keyframes aiBounce {
-      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-      40% { transform: translateY(-7px); opacity: 1; }
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+      40% { transform: translateY(-5px); opacity: 1; }
     }
     @keyframes aiSlideIn {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    @keyframes aiPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.25); }
-      50% { box-shadow: 0 0 0 8px rgba(59,130,246,0); }
-    }
     @keyframes aiFabIn {
-      from { opacity: 0; transform: translateY(10px) scale(0.8); }
+      from { opacity: 0; transform: translateY(8px) scale(0.9); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .ai-msg-enter { animation: aiSlideIn 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+    .ai-msg-enter { animation: aiSlideIn 0.28s cubic-bezier(0.16,1,0.3,1) both; }
     .ai-bounce-dot { animation: aiBounce 1.4s infinite ease-in-out both; }
-    .ai-badge-pulse { animation: aiPulse 2s infinite; }
-    .ai-fab-enter { animation: aiFabIn 0.25s ease-out both; }
-    .ai-textarea::placeholder { color: #94a3b8; }
+    .ai-fab-enter { animation: aiFabIn 0.22s ease-out both; }
+    .ai-textarea::placeholder { color: #a1a1aa; }
     .ai-textarea:focus { outline: none; }
-    .ai-suggestion-btn {
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    .ai-suggestion-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(29,78,216,0.12) !important;
-      border-color: rgba(59,130,246,0.4) !important;
-      background: rgba(239,246,255,0.95) !important;
-    }
-    .ai-send-btn { transition: all 0.2s ease; }
-    .ai-send-btn:not(:disabled):hover {
-      transform: scale(1.06);
-      box-shadow: 0 8px 20px rgba(5,5,5,0.25);
-    }
-    .ai-clear-btn { transition: all 0.15s ease; }
-    .ai-clear-btn:hover {
-      background: rgba(248,113,113,0.12) !important;
-      color: #dc2626 !important;
-    }
-    .ai-plus-btn { transition: all 0.2s ease; }
-    .ai-plus-btn:hover {
-      transform: scale(1.08);
-      background: rgba(239,246,255,0.9) !important;
-      border-color: rgba(59,130,246,0.3) !important;
-    }
-    .ai-scroll-fab { transition: all 0.2s ease; }
-    .ai-scroll-fab:hover {
-      transform: scale(1.1);
-      box-shadow: 0 8px 24px rgba(15,23,42,0.18) !important;
-    }
+    .ai-send-btn { transition: opacity 0.15s, transform 0.15s; }
+    .ai-send-btn:not(:disabled):hover { opacity: 0.88; transform: scale(1.04); }
+    .ai-clear-btn { transition: background 0.15s, color 0.15s; }
+    .ai-clear-btn:hover { background: #fef2f2 !important; color: #dc2626 !important; border-color: #fca5a5 !important; }
+    .ai-plus-btn { transition: background 0.15s, transform 0.15s; }
+    .ai-plus-btn:hover { background: #f4f4f5 !important; transform: scale(1.06); }
+    .ai-scroll-fab { transition: opacity 0.15s, transform 0.15s; }
+    .ai-scroll-fab:hover { opacity: 0.8; transform: scale(1.08); }
+    .ai-suggestion-btn { transition: background 0.15s, border-color 0.15s; }
+    .ai-suggestion-btn:hover { background: #f4f4f5 !important; border-color: #a1a1aa !important; }
+    .ai-copy-btn { transition: background 0.12s, color 0.12s; opacity: 0; }
+    .ai-msg-row:hover .ai-copy-btn { opacity: 1; }
+    .ai-followup-btn { transition: background 0.15s, border-color 0.15s; }
+    .ai-followup-btn:hover { background: #f4f4f5 !important; border-color: #a1a1aa !important; }
   `;
   document.head.appendChild(style);
 }
@@ -373,133 +343,55 @@ function injectKeyframes() {
    Sub-components
    ───────────────────────────────────────────── */
 
-function AssistantBadge({ animate = false }) {
+function AiAvatar({ animate = false }) {
   return (
     <div
       aria-hidden="true"
-      className={animate ? "ai-badge-pulse" : ""}
       style={{
-        width: 38,
-        height: 38,
-        borderRadius: 13,
+        width: 30,
+        height: 30,
+        borderRadius: "50%",
+        flexShrink: 0,
         display: "grid",
         placeItems: "center",
-        background:
-          "radial-gradient(circle at top left, rgba(59,130,246,0.3), transparent 50%), linear-gradient(135deg, #eff6ff, #ffffff)",
-        border: "1px solid rgba(191,219,254,0.9)",
-        boxShadow: "0 8px 20px rgba(37,99,235,0.12)",
-        color: "#1d4ed8",
-        flexShrink: 0,
+        background: "linear-gradient(135deg, #f3e8ff, #ede9fe)",
+        color: "#7c3aed",
+        marginTop: 2,
       }}
     >
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 3.8 14.4 8l4.7.8-3.3 3.3.6 4.7L12 14.7 7.6 16.8l.6-4.7-3.3-3.3 4.7-.8Z" />
-        <path d="M12 8.8v6.2" />
-        <path d="M8.9 11.9h6.2" />
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3l2.09 6.26L20 11l-5.91 1.74L12 19l-2.09-6.26L4 11l5.91-1.74Z" />
       </svg>
     </div>
   );
 }
 
-function UserBadge() {
+function TypingIndicator() {
   return (
-    <div
-      aria-hidden="true"
-      style={{
-        width: 38,
-        height: 38,
-        borderRadius: 13,
-        display: "grid",
-        placeItems: "center",
-        background: "linear-gradient(135deg, #1d4ed8, #0f8b8d)",
-        boxShadow: "0 8px 20px rgba(29,78,216,0.18)",
-        color: "#ffffff",
-        flexShrink: 0,
-        fontSize: 12,
-        fontWeight: 900,
-        letterSpacing: "0.08em",
-      }}
-    >
-      YOU
-    </div>
-  );
-}
-
-function TypingIndicator({ isMobile }) {
-  const thinkingPhrases = ["Thinking", "Analyzing data", "Searching records"];
-  const [phraseIndex, setPhraseIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setPhraseIndex((i) => (i + 1) % thinkingPhrases.length);
-    }, 2200);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="ai-msg-enter" style={{
-      display: "grid",
-      gridTemplateColumns: isMobile ? "38px minmax(0, 1fr)" : "38px minmax(0, 1fr)",
-      gap: 14,
-      alignItems: "start",
-    }}>
-      <AssistantBadge animate />
+    <div className="ai-msg-enter ai-msg-row" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+      <AiAvatar animate />
       <div style={{
-        borderRadius: 20,
-        padding: "16px 20px",
-        background: "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,248,255,0.92))",
-        border: "1px solid rgba(214,226,245,0.8)",
-        boxShadow: "0 6px 18px rgba(15,23,42,0.04)",
+        background: "#f4f4f5",
+        borderRadius: "4px 18px 18px 18px",
+        padding: "14px 18px",
+        display: "flex",
+        alignItems: "center",
+        gap: 5,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ display: "flex", gap: 5 }}>
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="ai-bounce-dot"
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: "linear-gradient(135deg, #3b82f6, #06b6d4)",
-                  animationDelay: `${i * 0.16}s`,
-                }}
-              />
-            ))}
-          </div>
-          <span style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: "#64748b",
-            letterSpacing: "0.01em",
-          }}>
-            {thinkingPhrases[phraseIndex]}…
-          </span>
-        </div>
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="ai-bounce-dot"
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              background: "#a1a1aa",
+              animationDelay: `${i * 0.18}s`,
+            }}
+          />
+        ))}
       </div>
-    </div>
-  );
-}
-
-function ContextChip({ label, value }) {
-  return (
-    <div style={{
-      display: "flex",
-      gap: 7,
-      alignItems: "center",
-      minWidth: 0,
-      padding: "7px 12px",
-      borderRadius: 999,
-      background: "rgba(248,250,252,0.7)",
-      border: "1px solid rgba(226,232,240,0.85)",
-      backdropFilter: "blur(8px)",
-    }}>
-      <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#94a3b8", whiteSpace: "nowrap", textTransform: "uppercase" }}>
-        {label}
-      </span>
-      <span style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        {value}
-      </span>
     </div>
   );
 }
@@ -512,25 +404,20 @@ function SuggestionCard({ text, onClick, disabled }) {
       onClick={onClick}
       disabled={disabled}
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
         padding: "12px 16px",
-        borderRadius: 16,
-        border: "1px solid rgba(214,226,245,0.85)",
-        background: "rgba(255,255,255,0.82)",
-        backdropFilter: "blur(8px)",
-        boxShadow: "0 4px 12px rgba(15,23,42,0.04)",
-        fontSize: 13,
-        fontWeight: 700,
-        color: "#334155",
+        borderRadius: 12,
+        border: "1px solid #e4e4e7",
+        background: "#ffffff",
+        fontSize: 14,
+        fontWeight: 500,
+        color: "#18181b",
         textAlign: "left",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.5 : 1,
-        lineHeight: 1.4,
+        lineHeight: 1.45,
       }}
     >
-      <span>{text}</span>
+      {text}
     </button>
   );
 }
@@ -564,7 +451,6 @@ export function AiAssistantPage({
   const textareaRef = useRef(null);
   const fabTimeoutRef = useRef(null);
 
-  // Inject CSS keyframes once
   useEffect(() => { injectKeyframes(); }, []);
   useEffect(() => () => {
     if (fabTimeoutRef.current) clearTimeout(fabTimeoutRef.current);
@@ -573,14 +459,12 @@ export function AiAssistantPage({
     setResponseLanguage(getPreferredLanguageText(language));
   }, [language]);
 
-  // Sync selected class from parent
   useEffect(() => {
     if (!selectedClassId && activeClass?.id) {
       setSelectedClassId(activeClass.id);
     }
   }, [activeClass, selectedClassId]);
 
-  // Auto-scroll to bottom
   const scrollToBottom = useCallback((smooth = true) => {
     const node = listRef.current;
     if (!node) return;
@@ -591,7 +475,6 @@ export function AiAssistantPage({
     scrollToBottom(true);
   }, [messages, isSending, scrollToBottom]);
 
-  // Track scroll position for FAB
   useEffect(() => {
     const node = listRef.current;
     if (!node) return;
@@ -603,7 +486,6 @@ export function AiAssistantPage({
     return () => node.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Class selector
   const classOptions = useMemo(
     () =>
       (classes || [])
@@ -618,6 +500,7 @@ export function AiAssistantPage({
     }
     return activeClass || null;
   }, [activeClass, classOptions, selectedClassId]);
+
   const conversationStorageKey = useMemo(
     () => buildConversationStorageKey(selectedClassId, activeExam),
     [selectedClassId, activeExam]
@@ -637,10 +520,8 @@ export function AiAssistantPage({
     [latestAssistantMessage?.content, selectedClass]
   );
 
-  // Determine if this is a fresh conversation (only welcome msg)
   const isFreshConversation = messages.length <= 1 && messages[0]?.role === "assistant";
 
-  // Auto-resize textarea
   const autoResize = useCallback(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -650,7 +531,6 @@ export function AiAssistantPage({
 
   useEffect(() => { autoResize(); }, [draft, autoResize]);
 
-  // Restore conversation for current class/exam context
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(conversationStorageKey);
@@ -681,7 +561,6 @@ export function AiAssistantPage({
     sessionStorage.setItem(conversationStorageKey, JSON.stringify(messages));
   }, [conversationStorageKey, messages]);
 
-  // Send message
   async function sendMessage(content) {
     const text = String(content || "").trim();
     if (!text || isSending) return;
@@ -696,7 +575,6 @@ export function AiAssistantPage({
     setError("");
     setIsSending(true);
 
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -728,7 +606,6 @@ export function AiAssistantPage({
     }
   }
 
-  // Keyboard handler
   function handleKeyDown(e) {
     if (e.key === "Enter" && !e.shiftKey && !isMobile) {
       e.preventDefault();
@@ -736,7 +613,6 @@ export function AiAssistantPage({
     }
   }
 
-  // Clear conversation
   function clearConversation() {
     sessionStorage.removeItem(conversationStorageKey);
     setMessages(buildInitialMessages(selectedClass));
@@ -753,7 +629,7 @@ export function AiAssistantPage({
       }
       setCopiedIndex(index);
       if (fabTimeoutRef.current) clearTimeout(fabTimeoutRef.current);
-      fabTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 1200);
+      fabTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 1400);
     } catch (_) {
       setError("Unable to copy text from this browser.");
     }
@@ -775,8 +651,8 @@ export function AiAssistantPage({
     }
   }
 
-  const chatMaxWidth = isMobile ? "100%" : isTablet ? "100%" : 1200;
-  const msgMaxWidth = 720;
+  const chatMaxWidth = isMobile ? "100%" : isTablet ? "100%" : 900;
+  const msgMaxWidth = 700;
 
   return (
     <div
@@ -799,57 +675,53 @@ export function AiAssistantPage({
           maxWidth: chatMaxWidth,
           width: "100%",
           margin: isMobile ? 0 : "0 auto",
-          borderRadius: isMobile ? 0 : 28,
-          border: isMobile ? "none" : "1px solid rgba(214,226,245,0.8)",
-          background: "linear-gradient(180deg, rgba(255,255,255,0.97), rgba(248,250,252,0.95))",
-          boxShadow: isMobile ? "none" : "0 20px 50px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.96)",
+          borderRadius: isMobile ? 0 : 20,
+          border: isMobile ? "none" : "1px solid #e4e4e7",
+          background: "#ffffff",
+          boxShadow: isMobile ? "none" : "0 4px 24px rgba(0,0,0,0.06)",
           overflow: "hidden",
         }}
       >
         {/* ── HEADER ── */}
         <header
           style={{
-            padding: isMobile ? "14px 16px 10px" : "16px 24px 12px",
-            borderBottom: "1px solid rgba(226,232,240,0.8)",
-            background: "rgba(255,255,255,0.6)",
-            backdropFilter: "blur(12px)",
+            padding: isMobile ? "12px 16px 10px" : "14px 20px 12px",
+            borderBottom: "1px solid #f4f4f5",
+            background: "#ffffff",
             flexShrink: 0,
           }}
         >
           <div style={{
             display: "flex",
             justifyContent: "space-between",
-            gap: 12,
+            gap: 10,
             flexWrap: "wrap",
-            alignItems: isMobile ? "start" : "center",
+            alignItems: "center",
           }}>
             {/* Left: Title */}
-            <div style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0, flex: "1 1 auto" }}>
-              <AssistantBadge />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-                  <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 21, lineHeight: 1.15, color: "#0f172a", fontWeight: 900 }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0 }}>
+              <AiAvatar />
+              <div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 7, alignItems: "center" }}>
+                  <h1 style={{ margin: 0, fontSize: isMobile ? 16 : 18, lineHeight: 1.2, color: "#18181b", fontWeight: 700 }}>
                     Academic Assistant
                   </h1>
                   <span style={pillStyle({ tone: "blue" })}>AI</span>
-                  <span style={pillStyle({ tone: actionMode ? "green" : "slate" })}>{actionMode ? "Action mode" : "Read-only"}</span>
+                  {actionMode && <span style={pillStyle({ tone: "green" })}>Action mode</span>}
                 </div>
-                <p style={{ margin: "2px 0 0", color: "#64748b", fontSize: 13, fontWeight: 500 }}>
-                  Results, student lookups, and guardian drafting
-                </p>
               </div>
             </div>
 
-            {/* Right: Class selector + Clear */}
-            <div style={{ display: "flex", gap: 8, alignItems: "end", flexWrap: "wrap", flexShrink: 0 }}>
-              <label style={{ display: "grid", gap: 4, minWidth: isMobile ? 0 : 200, maxWidth: 260, flex: "1 1 200px" }}>
-                <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
-                  Class Context
+            {/* Right: Controls */}
+            <div style={{ display: "flex", gap: 7, alignItems: "center", flexWrap: "wrap", flexShrink: 0 }}>
+              <label style={{ display: "grid", gap: 3, minWidth: isMobile ? 0 : 180, flex: "1 1 160px" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#a1a1aa", textTransform: "uppercase" }}>
+                  Class
                 </span>
                 <select
                   value={selectedClassId}
                   onChange={(event) => setSelectedClassId(event.target.value)}
-                  style={{ ...fieldStyle(), paddingRight: 36, fontSize: 13 }}
+                  style={{ ...fieldStyle(), paddingRight: 32, fontSize: 13 }}
                 >
                   <option value="">No fixed class</option>
                   {classOptions.map((classRecord) => (
@@ -859,44 +731,46 @@ export function AiAssistantPage({
                   ))}
                 </select>
               </label>
-              <label style={{ display: "grid", gap: 4, minWidth: 110 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
+
+              <label style={{ display: "grid", gap: 3, minWidth: 100 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#a1a1aa", textTransform: "uppercase" }}>
                   Language
                 </span>
                 <select
                   value={responseLanguage}
                   onChange={(event) => setResponseLanguage(event.target.value === "sw" ? "sw" : "en")}
-                  style={{ ...fieldStyle(), paddingRight: 26, fontSize: 13 }}
+                  style={{ ...fieldStyle(), paddingRight: 24, fontSize: 13 }}
                 >
                   <option value="en">{t("english", "English")}</option>
                   <option value="sw">{t("swahili", "Swahili")}</option>
                 </select>
               </label>
+
               {actionMode && (
-                <label style={{ display: "grid", gap: 4, minWidth: 120 }}>
-                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
+                <label style={{ display: "grid", gap: 3, minWidth: 110 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#a1a1aa", textTransform: "uppercase" }}>
                     Tone
                   </span>
                   <select
                     value={guardianTone}
                     onChange={(event) => setGuardianTone(ACTION_TONES.includes(event.target.value) ? event.target.value : "formal")}
-                    style={{ ...fieldStyle(), paddingRight: 26, fontSize: 13 }}
+                    style={{ ...fieldStyle(), paddingRight: 24, fontSize: 13 }}
                   >
                     {ACTION_TONES.map((toneValue) => (
-                      <option key={toneValue} value={toneValue}>
-                        {toneValue}
-                      </option>
+                      <option key={toneValue} value={toneValue}>{toneValue}</option>
                     ))}
                   </select>
                 </label>
               )}
-              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 8px 10px 2px" }}>
+
+              <label style={{ display: "flex", alignItems: "center", gap: 5, cursor: "pointer", userSelect: "none" }}>
                 <input
                   type="checkbox"
                   checked={actionMode}
                   onChange={(event) => setActionMode(event.target.checked)}
+                  style={{ accentColor: "#7c3aed" }}
                 />
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Action mode</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#52525b", whiteSpace: "nowrap" }}>Action mode</span>
               </label>
 
               {messages.length > 1 && (
@@ -908,19 +782,19 @@ export function AiAssistantPage({
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 6,
-                    padding: "9px 14px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(226,232,240,0.85)",
-                    background: "rgba(255,255,255,0.8)",
-                    color: "#64748b",
+                    gap: 5,
+                    padding: "7px 12px",
+                    borderRadius: 8,
+                    border: "1px solid #e4e4e7",
+                    background: "#ffffff",
+                    color: "#71717a",
                     fontSize: 12,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: "pointer",
                     whiteSpace: "nowrap",
                   }}
                 >
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
                     <path d="M3 6h18" /><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
                   </svg>
@@ -929,19 +803,18 @@ export function AiAssistantPage({
               )}
             </div>
           </div>
-
         </header>
 
         {/* ── QUICK ACTIONS (toggled) ── */}
         {showQuickActions && !isFreshConversation && (
           <div
             style={{
-              padding: isMobile ? "10px 16px" : "10px 24px",
-              borderBottom: "1px solid rgba(226,232,240,0.7)",
+              padding: isMobile ? "10px 16px" : "10px 20px",
+              borderBottom: "1px solid #f4f4f5",
               display: "flex",
               flexWrap: "wrap",
-              gap: 7,
-              background: "rgba(248,250,252,0.5)",
+              gap: 6,
+              background: "#fafafa",
               flexShrink: 0,
             }}
           >
@@ -957,13 +830,12 @@ export function AiAssistantPage({
                 disabled={isSending}
                 style={{
                   borderRadius: 999,
-                  fontWeight: 700,
-                  padding: isMobile ? "8px 13px" : "9px 14px",
-                  fontSize: 12,
-                  background: "rgba(255,255,255,0.82)",
-                  border: "1px solid rgba(214,226,245,0.85)",
-                  boxShadow: "0 2px 6px rgba(15,23,42,0.03)",
-                  color: "#334155",
+                  fontWeight: 500,
+                  padding: "7px 13px",
+                  fontSize: 13,
+                  background: "#ffffff",
+                  border: "1px solid #e4e4e7",
+                  color: "#18181b",
                   cursor: isSending ? "not-allowed" : "pointer",
                   opacity: isSending ? 0.5 : 1,
                 }}
@@ -982,144 +854,171 @@ export function AiAssistantPage({
             minHeight: 0,
             overflowY: "auto",
             overflowX: "hidden",
-            padding: isMobile ? "20px 16px 20px" : "24px 24px 24px",
+            padding: isMobile ? "20px 16px" : "28px 28px 20px",
             display: "flex",
             flexDirection: "column",
-            gap: isMobile ? 16 : 22,
+            gap: isMobile ? 18 : 24,
             WebkitOverflowScrolling: "touch",
-            background: "linear-gradient(180deg, rgba(255,255,255,0), rgba(248,250,252,0.4) 100%)",
+            background: "#ffffff",
             position: "relative",
           }}
         >
           {messages.map((message, index) => {
             const isAssistant = message.role === "assistant";
+
+            if (isAssistant) {
+              return (
+                <div
+                  key={`${message.role}-${index}`}
+                  className="ai-msg-enter ai-msg-row"
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 12,
+                    maxWidth: msgMaxWidth,
+                    alignSelf: "flex-start",
+                    width: "100%",
+                    animationDelay: `${Math.min(index * 0.04, 0.25)}s`,
+                  }}
+                >
+                  <AiAvatar />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Message bubble */}
+                    <div
+                      style={{
+                        background: "#f4f4f5",
+                        borderRadius: "4px 18px 18px 18px",
+                        padding: "14px 18px",
+                        color: "#18181b",
+                      }}
+                    >
+                      <div style={{ fontSize: 15, lineHeight: 1.75 }}>
+                        {renderMarkdown(message.content)}
+                      </div>
+
+                      {message?.meta?.confidence && (
+                        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #e4e4e7", fontSize: 12, color: "#71717a", display: "grid", gap: 3 }}>
+                          <div>
+                            Confidence: <strong style={{ color: "#52525b" }}>{String(message.meta.confidence.level || "low").toUpperCase()}</strong>
+                          </div>
+                          {Array.isArray(message.meta.confidence.reasons) && message.meta.confidence.reasons.length > 0 && (
+                            <div>{message.meta.confidence.reasons.join(" · ")}</div>
+                          )}
+                          {message?.meta?.citations && (
+                            <div>
+                              Data: {message.meta.citations.classLabel || "Flexible"} · {message.meta.citations.examType || "Default"} · {Number(message.meta.citations.studentCount || 0)} students
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {actionMode && message?.meta?.actionDraft?.queue?.length > 0 && (
+                        <div style={{ marginTop: 12 }}>
+                          <button
+                            type="button"
+                            onClick={() => onApproveAction?.(message.meta.actionDraft)}
+                            style={{
+                              border: "1px solid #bbf7d0",
+                              background: "#f0fdf4",
+                              color: "#166534",
+                              borderRadius: 8,
+                              padding: "7px 14px",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Approve and open SMS queue ({message.meta.actionDraft.queue.length})
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Below-bubble actions */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5, paddingLeft: 2 }}>
+                      <button
+                        type="button"
+                        className="ai-copy-btn"
+                        onClick={() => copyMessage(message.content, index)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          padding: "4px 8px",
+                          borderRadius: 6,
+                          border: "1px solid #e4e4e7",
+                          background: "#ffffff",
+                          color: "#71717a",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                        aria-label="Copy message"
+                      >
+                        {copiedIndex === index ? (
+                          <>
+                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M20 6 9 17l-5-5" />
+                            </svg>
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect width="14" height="14" x="8" y="8" rx="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                            </svg>
+                            Copy
+                          </>
+                        )}
+                      </button>
+                      {message.time && (
+                        <span style={{ fontSize: 11, color: "#a1a1aa" }}>{formatTime(message.time)}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // User message
             return (
               <div
                 key={`${message.role}-${index}`}
                 className="ai-msg-enter"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: isAssistant
-                    ? "38px minmax(0, 1fr)"
-                    : "minmax(0, 1fr) 38px",
-                  justifyContent: isAssistant ? "start" : "end",
-                  alignItems: "start",
-                  gap: 12,
+                  display: "flex",
+                  justifyContent: "flex-end",
                   maxWidth: msgMaxWidth,
-                  alignSelf: isAssistant ? "flex-start" : "flex-end",
+                  alignSelf: "flex-end",
                   width: "100%",
-                  animationDelay: `${Math.min(index * 0.05, 0.3)}s`,
+                  animationDelay: `${Math.min(index * 0.04, 0.25)}s`,
                 }}
               >
-                {isAssistant && <AssistantBadge />}
                 <div
                   style={{
-                    borderRadius: isAssistant ? 20 : 20,
-                    padding: "14px 18px",
-                    background: isAssistant
-                      ? "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,248,255,0.92))"
-                      : "linear-gradient(135deg, rgba(29,78,216,0.96), rgba(14,116,144,0.92))",
-                    color: isAssistant ? "#0f172a" : "#ffffff",
-                    boxShadow: isAssistant
-                      ? "0 4px 16px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.9)"
-                      : "0 8px 24px rgba(29,78,216,0.16)",
-                    border: isAssistant ? "1px solid rgba(214,226,245,0.75)" : "none",
-                    position: "relative",
+                    maxWidth: isMobile ? "88%" : "78%",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    gap: 5,
                   }}
                 >
-                  {/* Role label + timestamp */}
-                  <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 8,
-                    marginBottom: 8,
-                  }}>
-                    <div style={{
-                      fontSize: 10,
-                      fontWeight: 900,
-                      letterSpacing: "0.08em",
-                      color: isAssistant ? "#94a3b8" : "rgba(255,255,255,0.6)",
-                      textTransform: "uppercase",
-                    }}>
-                      {isAssistant ? "ACADEMIC ASSISTANT" : "YOU"}
+                  <div
+                    style={{
+                      background: "#18181b",
+                      borderRadius: "18px 4px 18px 18px",
+                      padding: "12px 18px",
+                      color: "#ffffff",
+                    }}
+                  >
+                    <div style={{ fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                      {message.content}
                     </div>
-                    {message.time && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        {isAssistant && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => copyMessage(message.content, index)}
-                              style={{
-                                border: "1px solid rgba(203,213,225,0.7)",
-                                background: "rgba(255,255,255,0.8)",
-                                borderRadius: 999,
-                                padding: "2px 8px",
-                                fontSize: 10,
-                                fontWeight: 700,
-                                color: "#64748b",
-                                cursor: "pointer",
-                              }}
-                              aria-label="Copy assistant message"
-                            >
-                              {copiedIndex === index ? "Copied" : "Copy"}
-                            </button>
-                            </>
-                        )}
-                        <div style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          color: isAssistant ? "#cbd5e1" : "rgba(255,255,255,0.45)",
-                        }}>
-                          {formatTime(message.time)}
-                        </div>
-                      </div>
-                    )}
                   </div>
-                  {/* Content */}
-                  <div style={{ fontSize: 15, lineHeight: 1.72, color: isAssistant ? "#0f172a" : "#ffffff" }}>
-                    {isAssistant ? renderMarkdown(message.content) : (
-                      <div style={{ whiteSpace: "pre-wrap" }}>{message.content}</div>
-                    )}
-                  </div>
-                  {isAssistant && message?.meta?.confidence && (
-                    <div style={{ marginTop: 10, fontSize: 11, color: "#64748b", display: "grid", gap: 4 }}>
-                      <div>
-                        Confidence: <strong>{String(message.meta.confidence.level || "low").toUpperCase()}</strong>
-                      </div>
-                      {Array.isArray(message.meta.confidence.reasons) && message.meta.confidence.reasons.length > 0 && (
-                        <div style={{ color: "#94a3b8" }}>{message.meta.confidence.reasons.join(" • ")}</div>
-                      )}
-                      {message?.meta?.citations && (
-                        <div style={{ color: "#94a3b8" }}>
-                          Data used: {message.meta.citations.classLabel || "Flexible class"} · {message.meta.citations.examType || "Default exam"} · {Number(message.meta.citations.studentCount || 0)} students
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {isAssistant && actionMode && message?.meta?.actionDraft?.queue?.length > 0 && (
-                    <div style={{ marginTop: 10 }}>
-                      <button
-                        type="button"
-                        onClick={() => onApproveAction?.(message.meta.actionDraft)}
-                        style={{
-                          border: "1px solid rgba(34,197,94,0.45)",
-                          background: "rgba(240,253,244,0.9)",
-                          color: "#166534",
-                          borderRadius: 999,
-                          padding: "6px 12px",
-                          fontSize: 11,
-                          fontWeight: 800,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Approve and open SMS queue ({message.meta.actionDraft.queue.length})
-                      </button>
-                    </div>
+                  {message.time && (
+                    <span style={{ fontSize: 11, color: "#a1a1aa", paddingRight: 2 }}>{formatTime(message.time)}</span>
                   )}
                 </div>
-                {!isAssistant && <UserBadge />}
               </div>
             );
           })}
@@ -1132,43 +1031,48 @@ export function AiAssistantPage({
                 maxWidth: msgMaxWidth,
                 alignSelf: "flex-start",
                 width: "100%",
-                animationDelay: "0.15s",
+                animationDelay: "0.12s",
               }}
             >
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                gap: 10,
-                marginTop: 4,
-              }}>
-                {suggestions.map((s) => (
-                  <SuggestionCard
-                    key={s.text}
-                    icon={s.icon}
-                    text={s.text}
-                    onClick={() => sendMessage(s.text)}
-                    disabled={isSending}
-                  />
-                ))}
+              <div style={{ paddingLeft: 42 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#a1a1aa", marginBottom: 10, letterSpacing: "0.03em", textTransform: "uppercase" }}>
+                  Suggestions
+                </div>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                  gap: 8,
+                }}>
+                  {suggestions.map((s) => (
+                    <SuggestionCard
+                      key={s.text}
+                      text={s.text}
+                      onClick={() => sendMessage(s.text)}
+                      disabled={isSending}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           )}
+
+          {/* ── FOLLOW-UP PROMPTS ── */}
           {!isFreshConversation && followupPrompts.length > 0 && !isSending && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxWidth: msgMaxWidth }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 7, maxWidth: msgMaxWidth, paddingLeft: 42 }}>
               {followupPrompts.map((prompt) => (
                 <button
                   key={prompt}
                   type="button"
                   onClick={() => sendMessage(prompt)}
-                  className="ai-suggestion-btn"
+                  className="ai-followup-btn"
                   style={{
                     borderRadius: 999,
-                    border: "1px solid rgba(191,219,254,0.8)",
-                    background: "rgba(239,246,255,0.88)",
-                    color: "#1e40af",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    padding: "8px 12px",
+                    border: "1px solid #e4e4e7",
+                    background: "#ffffff",
+                    color: "#52525b",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    padding: "7px 13px",
                     cursor: "pointer",
                   }}
                 >
@@ -1179,7 +1083,7 @@ export function AiAssistantPage({
           )}
 
           {/* ── TYPING INDICATOR ── */}
-          {isSending && <TypingIndicator isMobile={isMobile} />}
+          {isSending && <TypingIndicator />}
 
           {/* ── SCROLL TO BOTTOM FAB ── */}
           {showScrollFab && (
@@ -1191,24 +1095,22 @@ export function AiAssistantPage({
                 position: "sticky",
                 bottom: 8,
                 alignSelf: "center",
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 borderRadius: "50%",
-                border: "1px solid rgba(226,232,240,0.9)",
-                background: "rgba(255,255,255,0.95)",
-                backdropFilter: "blur(8px)",
-                boxShadow: "0 6px 18px rgba(15,23,42,0.12)",
+                border: "1px solid #e4e4e7",
+                background: "#ffffff",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
                 display: "grid",
                 placeItems: "center",
                 cursor: "pointer",
-                color: "#475569",
+                color: "#71717a",
                 zIndex: 5,
               }}
               aria-label="Scroll to bottom"
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14" />
-                <path d="m19 12-7 7-7-7" />
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14" /><path d="m19 12-7 7-7-7" />
               </svg>
             </button>
           )}
@@ -1217,10 +1119,9 @@ export function AiAssistantPage({
         {/* ── INPUT BAR ── */}
         <div
           style={{
-            padding: isMobile ? "10px 12px calc(env(safe-area-inset-bottom, 0px) + 12px)" : "12px 24px 16px",
-            borderTop: "1px solid rgba(226,232,240,0.8)",
-            background: "rgba(255,255,255,0.9)",
-            backdropFilter: "blur(12px)",
+            padding: isMobile ? "10px 12px calc(env(safe-area-inset-bottom, 0px) + 10px)" : "12px 20px 16px",
+            borderTop: "1px solid #f4f4f5",
+            background: "#ffffff",
             flexShrink: 0,
           }}
         >
@@ -1228,22 +1129,21 @@ export function AiAssistantPage({
           {error && (
             <div
               style={{
-                padding: "10px 14px",
-                borderRadius: 14,
-                border: "1px solid rgba(248,113,113,0.22)",
-                background: "rgba(254,242,242,0.92)",
+                padding: "9px 14px",
+                borderRadius: 10,
+                border: "1px solid #fca5a5",
+                background: "#fef2f2",
                 color: "#b91c1c",
                 fontSize: 13,
-                fontWeight: 700,
+                fontWeight: 600,
                 marginBottom: 10,
                 display: "flex",
                 alignItems: "center",
-                gap: 8,
+                gap: 7,
               }}
             >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 8v4" /><path d="M12 16h.01" />
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10" /><path d="M12 8v4" /><path d="M12 16h.01" />
               </svg>
               {error}
             </div>
@@ -1258,11 +1158,11 @@ export function AiAssistantPage({
               display: "flex",
               gap: 8,
               alignItems: "flex-end",
-              borderRadius: 22,
-              border: "1px solid rgba(214,226,245,0.88)",
-              background: "rgba(255,255,255,0.95)",
-              boxShadow: "0 8px 24px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.96)",
-              padding: isXs ? 7 : 9,
+              borderRadius: 16,
+              border: "1.5px solid #e4e4e7",
+              background: "#ffffff",
+              padding: isXs ? 6 : 8,
+              transition: "border-color 0.15s",
             }}
           >
             {/* Quick-action toggle */}
@@ -1271,27 +1171,23 @@ export function AiAssistantPage({
               className="ai-plus-btn"
               onClick={() => setShowQuickActions((current) => !current)}
               style={{
-                width: isMobile ? 44 : 48,
-                height: isMobile ? 44 : 48,
+                width: isMobile ? 38 : 40,
+                height: isMobile ? 38 : 40,
                 borderRadius: "50%",
-                border: "1px solid rgba(226,232,240,0.8)",
-                background: showQuickActions
-                  ? "rgba(239,246,255,0.9)"
-                  : "linear-gradient(180deg, #ffffff, #f8fafc)",
-                boxShadow: "0 4px 12px rgba(15,23,42,0.06)",
+                border: "1px solid #e4e4e7",
+                background: showQuickActions ? "#f4f4f5" : "#ffffff",
                 display: "grid",
                 placeItems: "center",
                 cursor: "pointer",
-                color: showQuickActions ? "#2563eb" : "#475569",
+                color: showQuickActions ? "#7c3aed" : "#71717a",
                 flexShrink: 0,
                 transform: showQuickActions ? "rotate(45deg)" : "none",
-                transition: "transform 0.25s ease, color 0.2s, background 0.2s",
+                transition: "transform 0.2s ease, color 0.15s, background 0.15s",
               }}
               aria-label="Toggle quick prompts"
             >
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                <path d="M12 5v14" />
-                <path d="M5 12h14" />
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M12 5v14" /><path d="M5 12h14" />
               </svg>
             </button>
 
@@ -1304,7 +1200,7 @@ export function AiAssistantPage({
               onKeyDown={handleKeyDown}
               placeholder={isMobile
                 ? "Ask about a class or student…"
-                : "Ask about a class, student Admission Number, results, or SMS drafting…"
+                : "Ask about a class, student, results, or SMS drafting…"
               }
               rows={1}
               enterKeyHint="send"
@@ -1314,14 +1210,14 @@ export function AiAssistantPage({
                 border: "none",
                 outline: "none",
                 resize: "none",
-                minHeight: isMobile ? 28 : 32,
+                minHeight: isMobile ? 26 : 28,
                 maxHeight: 140,
                 fontFamily: "inherit",
-                fontSize: isMobile ? 16 : 16,
-                lineHeight: 1.5,
-                color: "#0f172a",
+                fontSize: isMobile ? 16 : 15,
+                lineHeight: 1.55,
+                color: "#18181b",
                 background: "transparent",
-                padding: "10px 6px",
+                padding: "9px 4px",
                 overflowY: "auto",
               }}
             />
@@ -1332,25 +1228,22 @@ export function AiAssistantPage({
               className="ai-send-btn"
               disabled={isSending || !draft.trim()}
               style={{
-                width: isMobile ? 44 : 48,
-                height: isMobile ? 44 : 48,
+                width: isMobile ? 38 : 40,
+                height: isMobile ? 38 : 40,
                 borderRadius: "50%",
                 border: "none",
-                background: draft.trim() && !isSending
-                  ? "linear-gradient(135deg, #1d4ed8, #0e7490)"
-                  : "#cbd5e1",
+                background: draft.trim() && !isSending ? "#18181b" : "#e4e4e7",
                 color: "#ffffff",
                 display: "grid",
                 placeItems: "center",
                 cursor: isSending || !draft.trim() ? "not-allowed" : "pointer",
                 flexShrink: 0,
-                transition: "background 0.25s ease",
+                transition: "background 0.2s ease",
               }}
               aria-label="Send message"
             >
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 19V5" />
-                <path d="m5 12 7-7 7 7" />
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19V5" /><path d="m5 12 7-7 7 7" />
               </svg>
             </button>
           </form>
@@ -1361,21 +1254,21 @@ export function AiAssistantPage({
             alignItems: "center",
             justifyContent: "flex-end",
             fontSize: 11,
-            color: "#94a3b8",
-            fontWeight: 600,
-            padding: "6px 8px 0",
-            gap: 10,
+            color: "#a1a1aa",
+            fontWeight: 500,
+            padding: "5px 4px 0",
+            gap: 8,
           }}>
             {draft.length > MAX_DRAFT_CHARS / 2 && (
-              <span style={{ color: draft.length >= MAX_DRAFT_CHARS ? "#ef4444" : "#cbd5e1" }}>
+              <span style={{ color: draft.length >= MAX_DRAFT_CHARS ? "#ef4444" : "#d4d4d8" }}>
                 {draft.length}/{MAX_DRAFT_CHARS}
               </span>
             )}
             {!isMobile && (
-              <span style={{ color: "#cbd5e1" }}>
-                <kbd style={{ padding: "2px 6px", borderRadius: 5, border: "1px solid rgba(226,232,240,0.8)", background: "rgba(248,250,252,0.9)", fontSize: 10, fontWeight: 700, color: "#94a3b8" }}>Enter</kbd>
+              <span style={{ color: "#d4d4d8" }}>
+                <kbd style={{ padding: "1px 5px", borderRadius: 4, border: "1px solid #e4e4e7", background: "#fafafa", fontSize: 10, color: "#a1a1aa" }}>Enter</kbd>
                 {" to send · "}
-                <kbd style={{ padding: "2px 6px", borderRadius: 5, border: "1px solid rgba(226,232,240,0.8)", background: "rgba(248,250,252,0.9)", fontSize: 10, fontWeight: 700, color: "#94a3b8" }}>Shift+Enter</kbd>
+                <kbd style={{ padding: "1px 5px", borderRadius: 4, border: "1px solid #e4e4e7", background: "#fafafa", fontSize: 10, color: "#a1a1aa" }}>Shift+Enter</kbd>
                 {" for new line"}
               </span>
             )}
