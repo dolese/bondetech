@@ -26,7 +26,7 @@ function buildInitialMessages(activeClass) {
   return [
     {
       role: "assistant",
-      content: `👋 Welcome! I can summarize **${classLabel}**, find incomplete or failed students, search by Admission Number, and draft guardian SMS text.\n\nI am **read-only** — I won't modify any data.`,
+      content: `I can summarize **${classLabel}**, find incomplete or failed students, search by Admission Number, and draft guardian SMS text.\n\nI am **read-only** — I do not modify any data.`,
       time: new Date(),
     },
   ];
@@ -39,18 +39,18 @@ function getPreferredLanguageText(lang = "en") {
 function buildSuggestionPrompts(classRecord) {
   if (!classRecord) {
     return [
-      { icon: "📋", text: "List the classes I can access." },
-      { icon: "💡", text: "Explain what you can help with." },
-      { icon: "🔍", text: "How should I search for a student by Admission Number?" },
+      { text: "List the classes I can access." },
+      { text: "Explain what you can help with." },
+      { text: "How should I search for a student by Admission Number?" },
     ];
   }
 
   const label = getClassLabel(classRecord);
   return [
-    { icon: "📊", text: `Summarize ${label}.` },
-    { icon: "❌", text: `Who failed in ${label}?` },
-    { icon: "⚠️", text: `Which students are incomplete in ${label}?` },
-    { icon: "📱", text: `Draft guardian SMS for failed students in ${label}.` },
+    { text: `Summarize ${label}.` },
+    { text: `Who failed in ${label}?` },
+    { text: `Which students are incomplete in ${label}?` },
+    { text: `Draft guardian SMS for failed students in ${label}.` },
   ];
 }
 
@@ -58,15 +58,15 @@ function buildSavedTemplates(role, classRecord) {
   const label = classRecord ? getClassLabel(classRecord) : "the active class";
   if (role === "admin" || role === "academic") {
     return [
-      { icon: "⚠️", text: `Find at-risk students in ${label}.` },
-      { icon: "📈", text: `Compare trends for ${label} between this exam and the previous exam.` },
-      { icon: "📞", text: `Build guardian contact queue for at-risk students in ${label}.` },
+      { text: `Find at-risk students in ${label}.` },
+      { text: `Compare trends for ${label} between this exam and the previous exam.` },
+      { text: `Build guardian contact queue for at-risk students in ${label}.` },
     ];
   }
   return [
-    { icon: "📊", text: `Summarize ${label}.` },
-    { icon: "🔎", text: `Show incomplete students in ${label}.` },
-    { icon: "🧭", text: `What follow-up should I prioritize for ${label}?` },
+    { text: `Summarize ${label}.` },
+    { text: `Show incomplete students in ${label}.` },
+    { text: `What follow-up should I prioritize for ${label}?` },
   ];
 }
 
@@ -504,7 +504,7 @@ function ContextChip({ label, value }) {
   );
 }
 
-function SuggestionCard({ icon, text, onClick, disabled }) {
+function SuggestionCard({ text, onClick, disabled }) {
   return (
     <button
       type="button"
@@ -530,7 +530,6 @@ function SuggestionCard({ icon, text, onClick, disabled }) {
         lineHeight: 1.4,
       }}
     >
-      <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
       <span>{text}</span>
     </button>
   );
@@ -873,22 +872,24 @@ export function AiAssistantPage({
                   <option value="sw">{t("swahili", "Swahili")}</option>
                 </select>
               </label>
-              <label style={{ display: "grid", gap: 4, minWidth: 120 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
-                  Tone
-                </span>
-                <select
-                  value={guardianTone}
-                  onChange={(event) => setGuardianTone(ACTION_TONES.includes(event.target.value) ? event.target.value : "formal")}
-                  style={{ ...fieldStyle(), paddingRight: 26, fontSize: 13 }}
-                >
-                  {ACTION_TONES.map((toneValue) => (
-                    <option key={toneValue} value={toneValue}>
-                      {toneValue}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {actionMode && (
+                <label style={{ display: "grid", gap: 4, minWidth: 120 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
+                    Tone
+                  </span>
+                  <select
+                    value={guardianTone}
+                    onChange={(event) => setGuardianTone(ACTION_TONES.includes(event.target.value) ? event.target.value : "formal")}
+                    style={{ ...fieldStyle(), paddingRight: 26, fontSize: 13 }}
+                  >
+                    {ACTION_TONES.map((toneValue) => (
+                      <option key={toneValue} value={toneValue}>
+                        {toneValue}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 8px 10px 2px" }}>
                 <input
                   type="checkbox"
@@ -929,15 +930,6 @@ export function AiAssistantPage({
             </div>
           </div>
 
-          {/* Context chips */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-            <ContextChip label="Class" value={selectedClass ? getClassLabel(selectedClass) : "Flexible"} />
-            <ContextChip label="Exam" value={activeExam || "Default"} />
-            <ContextChip label="Identity" value="Admission No." />
-            {currentUser?.role && (
-              <ContextChip label="Role" value={String(currentUser.role).toUpperCase()} />
-            )}
-          </div>
         </header>
 
         {/* ── QUICK ACTIONS (toggled) ── */}
@@ -974,12 +966,8 @@ export function AiAssistantPage({
                   color: "#334155",
                   cursor: isSending ? "not-allowed" : "pointer",
                   opacity: isSending ? 0.5 : 1,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
                 }}
               >
-                <span style={{ fontSize: 14 }}>{s.icon}</span>
                 {s.text}
               </button>
             ))}
@@ -1077,24 +1065,7 @@ export function AiAssistantPage({
                             >
                               {copiedIndex === index ? "Copied" : "Copy"}
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => exportMessage(message.content, index)}
-                              style={{
-                                border: "1px solid rgba(203,213,225,0.7)",
-                                background: "rgba(255,255,255,0.8)",
-                                borderRadius: 999,
-                                padding: "2px 8px",
-                                fontSize: 10,
-                                fontWeight: 700,
-                                color: "#64748b",
-                                cursor: "pointer",
-                              }}
-                              aria-label="Export assistant message"
-                            >
-                              Export
-                            </button>
-                          </>
+                            </>
                         )}
                         <div style={{
                           fontSize: 10,
@@ -1171,31 +1142,6 @@ export function AiAssistantPage({
                 marginTop: 4,
               }}>
                 {suggestions.map((s) => (
-                  <SuggestionCard
-                    key={s.text}
-                    icon={s.icon}
-                    text={s.text}
-                    onClick={() => sendMessage(s.text)}
-                    disabled={isSending}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-          {isFreshConversation && (
-            <div
-              className="ai-msg-enter"
-              style={{
-                maxWidth: msgMaxWidth,
-                alignSelf: "flex-start",
-                width: "100%",
-              }}
-            >
-              <div style={{ marginTop: 2, marginBottom: 6, fontSize: 11, fontWeight: 800, color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Saved templates
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
-                {savedTemplates.map((s) => (
                   <SuggestionCard
                     key={s.text}
                     icon={s.icon}
@@ -1413,42 +1359,26 @@ export function AiAssistantPage({
           <div style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             fontSize: 11,
             color: "#94a3b8",
             fontWeight: 600,
             padding: "6px 8px 0",
+            gap: 10,
           }}>
-            <span>Admission Number is preferred for specific students</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {draft.length > MAX_DRAFT_CHARS / 2 && (
               <span style={{ color: draft.length >= MAX_DRAFT_CHARS ? "#ef4444" : "#cbd5e1" }}>
                 {draft.length}/{MAX_DRAFT_CHARS}
               </span>
-              {!isMobile && (
-                <span style={{ color: "#cbd5e1" }}>
-                <kbd style={{
-                  padding: "2px 6px",
-                  borderRadius: 5,
-                  border: "1px solid rgba(226,232,240,0.8)",
-                  background: "rgba(248,250,252,0.9)",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: "#94a3b8",
-                }}>Enter</kbd>
+            )}
+            {!isMobile && (
+              <span style={{ color: "#cbd5e1" }}>
+                <kbd style={{ padding: "2px 6px", borderRadius: 5, border: "1px solid rgba(226,232,240,0.8)", background: "rgba(248,250,252,0.9)", fontSize: 10, fontWeight: 700, color: "#94a3b8" }}>Enter</kbd>
                 {" to send · "}
-                <kbd style={{
-                  padding: "2px 6px",
-                  borderRadius: 5,
-                  border: "1px solid rgba(226,232,240,0.8)",
-                  background: "rgba(248,250,252,0.9)",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: "#94a3b8",
-                }}>Shift+Enter</kbd>
+                <kbd style={{ padding: "2px 6px", borderRadius: 5, border: "1px solid rgba(226,232,240,0.8)", background: "rgba(248,250,252,0.9)", fontSize: 10, fontWeight: 700, color: "#94a3b8" }}>Shift+Enter</kbd>
                 {" for new line"}
-                </span>
-              )}
-            </span>
+              </span>
+            )}
           </div>
         </div>
       </section>

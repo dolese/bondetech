@@ -294,6 +294,7 @@ export function AccountPage({
   classes = [],
   authLogs = [],
   canManageUsers = false,
+  initialTab = "profile",
   onLoadUsers,
   onLoadAuthLogs,
   onLoadHomepageContent,
@@ -328,7 +329,7 @@ export function AccountPage({
   const { isXs, isMobile, isTablet } = useViewport();
   const singleColumn = isMobile;
   const stackedColumns = isMobile || isTablet;
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [form, setForm] = useState({
     username: "",
     displayName: "",

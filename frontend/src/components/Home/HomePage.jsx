@@ -528,11 +528,19 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               <button
                 onClick={() => setMobileMenuOpen((value) => !value)}
                 className="home-mobile-toggle"
-                style={{ cursor: "pointer", fontSize: 18, padding: 0 }}
+                style={{ cursor: "pointer", padding: 0 }}
                 aria-label={t("menu")}
                 aria-expanded={mobileMenuOpen}
               >
-                {mobileMenuOpen ? "x" : "="}
+                {mobileMenuOpen ? (
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
               </button>
             )}
           </div>
@@ -545,9 +553,10 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               style={{
                 position: "fixed",
                 inset: `${isMobile ? 60 : 68}px 0 0`,
-                background: "rgba(5, 46, 22, 0.18)",
-                backdropFilter: "blur(2px)",
+                background: "rgba(5, 46, 22, 0.22)",
+                backdropFilter: "blur(3px)",
                 zIndex: 101,
+                animation: "fadeInOverlay 0.18s ease forwards",
               }}
             />
             <div
@@ -559,7 +568,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                 zIndex: 102,
               }}
             >
-              <div className="landing-mobile-menu">
+              <div className="landing-mobile-menu landing-mobile-menu-enter">
                 {[
                   { label: t("home"), meta: t("start"), action: scrollToTop },
                   { label: t("results"), meta: t("portal"), action: scrollToSearch },

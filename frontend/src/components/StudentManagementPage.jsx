@@ -522,6 +522,12 @@ export function StudentManagementPage({
       setPromotionError("Source class and target class must be different.");
       return;
     }
+    const srcLabel = allClassOptions.find((c) => c.id === promotionForm.sourceClassId)?.label || "source class";
+    const tgtLabel = allClassOptions.find((c) => c.id === promotionForm.targetClassId)?.label || "target class";
+    const confirmed = window.confirm(
+      `Promote all students from "${srcLabel}" into "${tgtLabel}"?\n\nThis will roll over all active students and generate new CNOs in the target class. This cannot be undone.`
+    );
+    if (!confirmed) return;
     setPromotionError("");
     setPromotionSaving(true);
     try {
@@ -588,7 +594,7 @@ export function StudentManagementPage({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))",
+            gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(5, minmax(0, 1fr))",
             gap: 12,
           }}
         >
@@ -708,6 +714,19 @@ export function StudentManagementPage({
             <div style={pillStyle({ tone: classFilter || formFilter || yearFilter || lifecycleFilter ? "teal" : "slate" })}>
               {filteredStudents.length} visible
             </div>
+            {(query || classFilter || formFilter || yearFilter || lifecycleFilter) && (
+              <button
+                type="button"
+                onClick={() => { setQuery(""); setYearFilter(""); setFormFilter(""); setClassFilter(""); setLifecycleFilter(""); }}
+                style={{
+                  ...pillStyle({ tone: "slate" }),
+                  cursor: "pointer",
+                  border: "1px solid rgba(203,213,225,0.8)",
+                }}
+              >
+                Clear filters
+              </button>
+            )}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[
                 ["grouped", "Grouped"],
@@ -790,10 +809,10 @@ export function StudentManagementPage({
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
             }}
           >
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1180 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1020 }}>
             <thead>
               <tr>
-                {["Admission No", "CNO", "Student", "Sex", "Lifecycle", "Status", "Class", "Guardian", "Phone", "Actions"].map((label) => (
+                {["Admission No", "CNO", "Student", "Sex", "Lifecycle", "Class", "Guardian", "Phone", "Actions"].map((label) => (
                   <th
                     key={label}
                     style={{
@@ -833,11 +852,6 @@ export function StudentManagementPage({
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
                     <span style={pillStyle({ tone: getEnrollmentTone(student.enrollmentStatus) })}>
                       {getEnrollmentLabel(student.enrollmentStatus)}
-                    </span>
-                  </td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
-                    <span style={pillStyle({ tone: student.status === "present" ? "teal" : student.status === "absent" ? "amber" : "red" })}>
-                      {student.status || "-"}
                     </span>
                   </td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.classLabel}</td>

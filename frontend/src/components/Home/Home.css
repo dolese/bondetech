@@ -455,6 +455,26 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.86);
 }
 
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes mobileMenuEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.landing-mobile-menu-enter {
+  animation: mobileMenuEnter 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 @media (max-width: 720px) {
   .home-hero-metrics {
     grid-template-columns: 1fr;
