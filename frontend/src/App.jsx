@@ -32,7 +32,7 @@ import { useSession } from "./hooks/useSession";
 import { CLASS_FORMS, CLASS_STREAMS, useClasses } from "./hooks/useClasses";
 import { API } from "./api";
 import { useI18n } from "./i18n";
-import { DEFAULT_SCHOOL } from "./utils/constants";
+import { DEFAULT_EXAM_TYPE, DEFAULT_SCHOOL } from "./utils/constants";
 import { mergeClassSchoolInfo, normalizeSchoolSettings } from "./utils/schoolSettings";
 import { premiumFontStack } from "./utils/designSystem";
 
