@@ -31,7 +31,7 @@ export function AnnouncementRow({ title, desc, date, tone, compact = false }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#173b74",
+          color: "#14532d",
           flexShrink: 0,
         }}
       >
@@ -61,12 +61,12 @@ export function AnnouncementRow({ title, desc, date, tone, compact = false }) {
             width: 32,
             height: 32,
             borderRadius: 999,
-            background: "rgba(23,59,116,0.08)",
+            background: "rgba(20,83,45,0.08)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: 14,
-            color: "#173b74",
+            color: "#14532d",
             flexShrink: 0,
           }}
         >

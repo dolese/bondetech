@@ -21,9 +21,9 @@ export function CategoryChip({ label, color, bg, icon, onClick, compact = false 
       }}
       style={{
         background: hovered
-          ? "linear-gradient(135deg, rgba(255,255,255,0.98), rgba(238,244,253,0.96))"
+          ? "linear-gradient(135deg, rgba(255,255,255,0.98), rgba(220,252,231,0.96))"
           : undefined,
-        borderColor: hovered ? "rgba(31, 61, 118, 0.22)" : undefined,
+        borderColor: hovered ? "rgba(22, 101, 52, 0.22)" : undefined,
         transform: hovered ? "translateY(-2px)" : "translateY(0)",
       }}
     >
@@ -38,12 +38,12 @@ export function CategoryChip({ label, color, bg, icon, onClick, compact = false 
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: hovered ? "#173b74" : "#6a7f97",
+          color: hovered ? "#14532d" : "#6a7f97",
         }}
       >
-        <HomeIcon name={icon} label={label} size={compact ? 16 : 18} color={hovered ? "#173b74" : "#6a7f97"} />
+        <HomeIcon name={icon} label={label} size={compact ? 16 : 18} color={hovered ? "#14532d" : "#6a7f97"} />
       </div>
-      <div style={{ fontSize: compact ? 9 : 10, fontWeight: 800, color: hovered ? "#173b74" : "#475569", textAlign: "center", lineHeight: compact ? 1.25 : 1.35 }}>{label}</div>
+      <div style={{ fontSize: compact ? 9 : 10, fontWeight: 800, color: hovered ? "#14532d" : "#475569", textAlign: "center", lineHeight: compact ? 1.25 : 1.35 }}>{label}</div>
     </div>
   );
 }
@@ -62,7 +62,7 @@ export function FeatureChip({ bg, label, icon, compact = false }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#173b74",
+          color: "#14532d",
         }}
       >
         <HomeIcon name={icon} label={label} size={compact ? 18 : 22} />
