@@ -540,7 +540,7 @@ export function ExamsPage({ classes = [], canManage = false, onChangeClassExam, 
                 </tbody>
               </table>
             </div>
-            </div>{/* end scroll wrapper */}
+            </div>
           )}
         </div>
 

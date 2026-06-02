@@ -443,7 +443,7 @@ export function SubjectsPage({ classes = [], onNavigateToClass }) {
               </tbody>
             </table>
           </div>
-          </div>{/* end scroll wrapper */}
+          </div>
         )}
 
         <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, fontWeight: 600 }}>
