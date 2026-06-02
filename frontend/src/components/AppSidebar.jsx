@@ -137,6 +137,17 @@ function navIcon(key) {
           <path d="M9 15h4" />
         </SvgIcon>
       );
+    case "exams":
+      return (
+        <SvgIcon>
+          <rect x="4.5" y="5" width="15" height="14" rx="2.5" />
+          <path d="M8 3.8v3" />
+          <path d="M16 3.8v3" />
+          <path d="M4.5 9.2h15" />
+          <path d="M8 13h2" />
+          <path d="M13 13l1.5 1.5L17 11" />
+        </SvgIcon>
+      );
     case "ai-assistant":
       return (
         <SvgIcon>
@@ -192,7 +203,7 @@ function buildNavSections(navItems, accountLabel, accountSubtitle, t) {
   const sectionOrder = [
     {
       title: t("academicsSection"),
-      items: ["students", "student-management", "forms-streams", "subjects", "teachers", "results", "timetable"],
+      items: ["students", "student-management", "forms-streams", "subjects", "exams", "teachers", "results", "timetable"],
     },
     {
       title: t("communicationSection"),
