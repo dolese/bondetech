@@ -1,5 +1,6 @@
 const { getDb } = require("../../lib/firebaseAdmin");
 const { sendJson } = require("../../lib/http");
+const { resolveSessionUser } = require("../../lib/auth");
 const { getStudentProfileByIdentifier } = require("../../lib/studentDirectory");
 
 module.exports = async (req, res) => {
@@ -7,9 +8,13 @@ module.exports = async (req, res) => {
     return sendJson(res, 405, { error: "Method not allowed" });
   }
   try {
+    let user = null;
+    try { user = await resolveSessionUser(getDb(), req); } catch { /* unauthenticated */ }
+    const publishedOnly = !user;
     const profile = await getStudentProfileByIdentifier(getDb(), {
       indexNo: req.query.indexNo || "",
       admissionNo: req.query.admissionNo || "",
+      publishedOnly,
     });
     return sendJson(res, 200, profile);
   } catch (err) {
