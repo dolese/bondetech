@@ -790,7 +790,7 @@ export default function App() {
           styles={S}
           onToggleSidebar={() => setSideOpen((prev) => !prev)}
           onOpenSidebar={() => setSideOpen(true)}
-          onOpenAccount={() => setPage("account")}
+          onOpenAccount={() => { setAccountInitialTab("profile"); setPage("account"); }}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           onOpenUserGuide={() => setShowUserGuide(true)}
           onLogout={handleLogout}
@@ -825,7 +825,7 @@ export default function App() {
                   handleOpenStudentProfile(studentRef);
                 }}
                 onOpenAccount={() => { setAccountInitialTab("profile"); setPage("account"); }}
-                onOpenHomepageEditor={() => { setAccountInitialTab("homepage"); setPage("account"); }}
+                onOpenHomepageEditor={canManageUsers ? () => { setAccountInitialTab("homepage"); setPage("account"); } : undefined}
                 onOpenReports={() => {
                   if (activeClass) {
                     setPage("reports");
@@ -844,6 +844,7 @@ export default function App() {
                 }}
                 onOpenSettings={() => {
                   if (!canViewSettings) {
+                    setAccountInitialTab("profile");
                     setPage("account");
                     return;
                   }
