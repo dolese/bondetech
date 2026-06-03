@@ -50,7 +50,8 @@ export const getGradeDescription = (grade) => {
 
 // Compute student performance.
 // When student.partnerScores is defined (composite exam mode), each subject score is
-// averaged with the corresponding partner (midterm) score: (current + partner) / 2.
+// always averaged over two sittings: (current + partner) / 2.
+// If one sitting is missing, it counts as 0 for the composite calculation.
 // grade.raw always holds the current exam's raw value; grade.partnerRaw holds the partner's.
 export const computeStudent = (student, subjects = []) => {
   const rawPartner = student.partnerScores; // undefined when not in composite mode
@@ -73,12 +74,11 @@ export const computeStudent = (student, subjects = []) => {
       const partnerScore = Number.isFinite(pNum) ? pNum : null;
       partnerRaw = pIsAbsent ? "ABS" : partnerScore;
 
-      if (currentScore !== null && partnerScore !== null) {
-        // Both sittings present: take the average
-        effectiveScore = (currentScore + partnerScore) / 2;
+      if (currentScore !== null || partnerScore !== null) {
+        // Composite mode always averages over two sittings.
+        effectiveScore = ((currentScore ?? 0) + (partnerScore ?? 0)) / 2;
       } else {
-        // Only one sitting available: use whichever is present
-        effectiveScore = currentScore ?? partnerScore;
+        effectiveScore = null;
       }
     } else {
       effectiveScore = currentScore;

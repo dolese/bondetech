@@ -10,6 +10,12 @@ function formatScoreDisplay(rawValue, fallback = "-") {
   return fallback;
 }
 
+function formatCompositePaperDisplay(rawValue) {
+  if (rawValue === "ABS") return "-";
+  if (rawValue !== null && rawValue !== undefined && rawValue !== "") return rawValue;
+  return "-";
+}
+
 function formatNumeric(value, digits = 1) {
   if (value === null || value === undefined || value === "") return "-";
   const number = Number(value);
@@ -631,12 +637,6 @@ export function ReportCardPrint({
       <div style={styles.bodyGrid}>
         <div>
           <div style={styles.sectionHeading}>A. Maendeleo ya Kitaaluma</div>
-          {isComposite && (
-            <div style={{ fontSize: isCompact ? 10 : 11, color: "#7a5800", fontWeight: 700, marginBottom: 6 }}>
-              Matokeo ya Mchanganyiko: ({compositeEntry.partnerExam} + {schoolInfo.exam}) / 2
-            </div>
-          )}
-
           <table style={styles.table}>
             <thead>
               <tr>
@@ -657,15 +657,19 @@ export function ReportCardPrint({
               {subjects.map((subject, index) => {
                 const grade = grades[index];
                 const combinedDisplay =
-                  grade?.raw === "ABS" ? "ABS" : grade?.score != null ? formatNumeric(grade.score, 1) : "-";
-                const currentDisplay = formatScoreDisplay(grade?.raw);
-                const partnerDisplay = formatScoreDisplay(grade?.partnerRaw);
+                  grade?.score != null ? formatNumeric(grade.score, 1) : "-";
+                const currentDisplay = isComposite
+                  ? formatCompositePaperDisplay(grade?.raw)
+                  : formatScoreDisplay(grade?.raw);
+                const partnerDisplay = isComposite
+                  ? formatCompositePaperDisplay(grade?.partnerRaw)
+                  : formatScoreDisplay(grade?.partnerRaw);
                 const pointsDisplay = grade?.grade ? getGradePoints(grade.grade) : "-";
                 const currentNumeric = toNumericScore(grade?.raw);
                 const partnerNumeric = toNumericScore(grade?.partnerRaw);
                 const totalDisplay =
-                  currentNumeric !== null && partnerNumeric !== null
-                    ? formatNumeric(currentNumeric + partnerNumeric, 0)
+                  currentNumeric !== null || partnerNumeric !== null
+                    ? formatNumeric((currentNumeric ?? 0) + (partnerNumeric ?? 0), 0)
                     : "-";
 
                 return (
