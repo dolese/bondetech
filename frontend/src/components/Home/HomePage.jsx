@@ -9,7 +9,6 @@ import { LanguageToggle } from "../LanguageToggle";
 import { HeroSlider } from "./HeroSlider";
 import { QuickCard } from "./QuickCard";
 import { AnnouncementRow } from "./AnnouncementRow";
-import { CategoryChip, FeatureChip } from "./Chips";
 import { MiniBarChart } from "./MiniBarChart";
 import { HomeIcon } from "./HomeIcons";
 import "./Home.css";
@@ -422,15 +421,6 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     }
   }, [language, searchAdmission, searchForm, searchYear, t]);
 
-  const handleCategoryClick = (label) => {
-    const normalized = label.replace(/\n/g, " ");
-    const match = normalized.match(/Form\s+(I{1,3}V?|IV)/);
-    if (match) {
-      setSearchForm(`Form ${match[1]}`);
-    }
-    scrollToSearch();
-  };
-
   const currentYear = new Date().getFullYear();
   const stats = homepageData?.stats || fallbackOverview.stats;
   const announcements = Array.isArray(homepageData?.announcements) && homepageData.announcements.length > 0
@@ -467,24 +457,81 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     schoolSettings.headmasterPhones
   );
 
-  const categories = [
-    { label: language === "sw" ? "Kidato I\nMatokeo" : "Form I\nResults", color: "#166534", bg: "#dcfce7", icon: "results" },
-    { label: language === "sw" ? "Kidato II\nMatokeo" : "Form II\nResults", color: "#166534", bg: "#dcfce7", icon: "results" },
-    { label: language === "sw" ? "Kidato III\nMatokeo" : "Form III\nResults", color: "#166534", bg: "#dcfce7", icon: "results" },
-    { label: language === "sw" ? "Kidato IV\nMatokeo" : "Form IV\nResults", color: "#166534", bg: "#dcfce7", icon: "results" },
-    { label: language === "sw" ? "Mtihani wa\nMuhula" : "Terminal\nExams", color: "#dc2626", bg: "#fee2e2", icon: "exam" },
-    { label: language === "sw" ? "Mitihani ya\nKati" : "Midterm\nExams", color: "#dc2626", bg: "#fee2e2", icon: "monthly" },
-    { label: language === "sw" ? "Mitihani ya\nMwisho" : "Annual\nExams", color: "#047857", bg: "#d1fae5", icon: "reports" },
-    { label: language === "sw" ? "Mitihani ya\nMock" : "Mock\nExams", color: "#d97706", bg: "#fef9c3", icon: "timetable" },
+  const schoolOverviewCards = [
+    {
+      key: "identity",
+      icon: "secure",
+      title: language === "sw" ? "Utambulisho wa Shule" : "School Identity",
+      value: language === "sw" ? "Better future starts here" : "Better future starts here",
+      description:
+        language === "sw"
+          ? "Kauli mbiu ya Bonde inaelekeza nidhamu, uongozi, na mafanikio ya kitaaluma."
+          : "Bonde's motto anchors discipline, leadership, and academic growth.",
+    },
+    {
+      key: "coverage",
+      icon: "classes",
+      title: language === "sw" ? "Uenezi wa Mfumo" : "Portal Coverage",
+      value:
+        language === "sw"
+          ? `${stats.totalClasses || 0} madarasa`
+          : `${stats.totalClasses || 0} active classes`,
+      description:
+        language === "sw"
+          ? `${stats.activeForms || 0} vidato vinafuatiliwa kwa matokeo, taarifa, na ripoti.`
+          : `${stats.activeForms || 0} forms are tracked for results, notices, and reports.`,
+    },
+    {
+      key: "access",
+      icon: "announcements",
+      title: language === "sw" ? "Mawasiliano ya Umma" : "Public Access",
+      value:
+        stats.publishedClasses > 0
+          ? language === "sw"
+            ? `${stats.publishedStudents || 0} wanafunzi wanaotafutika`
+            : `${stats.publishedStudents || 0} searchable students`
+          : language === "sw"
+          ? "Taarifa za shule"
+          : "School notices live",
+      description:
+        stats.publishedClasses > 0
+          ? language === "sw"
+            ? `Matokeo ya madarasa ${stats.publishedClasses} yamefunguliwa kwa utafutaji wa umma.`
+            : `Results for ${stats.publishedClasses} classes are open for public search.`
+          : language === "sw"
+          ? "Tovuti iko tayari kupokea matokeo pindi uchapishaji unapofanyika."
+          : "The portal is ready to expose results once publishing is completed.",
+    },
   ];
 
-  const features = [
-    { bg: "#dcfce7", label: language === "sw" ? "Ufikiaji\nSalama" : "Secure\nAccess", icon: "secure" },
-    { bg: "#d1fae5", label: language === "sw" ? "Ukaguzi wa\nMatokeo Haraka" : "Fast Results\nChecking", icon: "search" },
-    { bg: "#ede9fe", label: language === "sw" ? "Inaendana na\nSimu" : "Mobile\nResponsive", icon: "mobile" },
-    { bg: "#fef3c7", label: language === "sw" ? "Upakuaji Rahisi\nwa Ripoti" : "Easy Report\nDownload", icon: "download" },
-    { bg: "#d1fae5", label: language === "sw" ? "Ufuatiliaji wa\nUtendaji" : "Performance\nTracking", icon: "performance" },
-    { bg: "#fee2e2", label: language === "sw" ? "Taarifa Mahali\nPamoja" : "Notices in\nOne Place", icon: "announcements" },
+  const supportActions = [
+    {
+      key: "results",
+      title: t("checkResults"),
+      description:
+        language === "sw"
+          ? "Tafuta kwa namba ya kujiunga au jina la mwanafunzi kuona matokeo rasmi."
+          : "Search by admission number or student name to access official results.",
+      action: scrollToSearch,
+    },
+    {
+      key: "school",
+      title: t("aboutUs"),
+      description:
+        language === "sw"
+          ? "Soma zaidi kuhusu shule, maadili yake, na huduma za wanafunzi."
+          : "Learn more about the school, its values, and student services.",
+      action: onOpenSchool || scrollToFooter,
+    },
+    {
+      key: "contact",
+      title: t("contactUs"),
+      description:
+        language === "sw"
+          ? "Pata namba za ofisi na mawasiliano rasmi ya shule."
+          : "Get the school office numbers and official contact channels.",
+      action: scrollToFooter,
+    },
   ];
 
   return (
@@ -652,8 +699,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             <div className="home-hero-metrics" style={{ maxWidth: 620 }}>
               {[
                 { label: t("totalStudents"), value: Number(stats.totalStudents || 0).toLocaleString() },
-                { label: t("publishedClasses"), value: String(stats.publishedClasses || 0) },
-                { label: t("activeForms"), value: String(stats.activeForms || 0) },
+                { label: t("activeClasses"), value: String(stats.totalClasses || 0) },
+                { label: t("latestExam"), value: stats.latestYear || t("currentYear") },
               ].map((metric) => (
                 <div key={metric.label} className="home-hero-metric">
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -674,9 +721,9 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                         name={
                           metric.label === t("totalStudents")
                             ? "students"
-                            : metric.label === t("publishedClasses")
-                              ? "published"
-                              : "forms"
+                            : metric.label === t("activeClasses")
+                              ? "classes"
+                              : "exam"
                         }
                         label={metric.label}
                         size={16}
@@ -722,16 +769,61 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div style={{ background: "#fffbeb", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: isMobile ? 11 : 10, color: "#92400e", fontWeight: 600, marginBottom: 3 }}>{t("publishedClassesLabel")}</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>{stats.publishedClasses || 0}</div>
-                <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>{formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)}</div>
+              <div style={{ background: stats.publishedClasses > 0 ? "#fffbeb" : "#eefbf3", borderRadius: 12, padding: "10px 12px" }}>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: stats.publishedClasses > 0 ? "#92400e" : "#166534", fontWeight: 600, marginBottom: 3 }}>
+                  {stats.publishedClasses > 0 ? t("publishedClassesLabel") : t("activeForms")}
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>
+                  {stats.publishedClasses > 0 ? stats.publishedClasses || 0 : stats.activeForms || 0}
+                </div>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>
+                  {stats.publishedClasses > 0
+                    ? formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)
+                    : formatCount(stats.totalStudents, "indexed student", "wanafunzi waliopo", language)}
+                </div>
               </div>
               <div style={{ background: "#ecfdf5", borderRadius: 12, padding: "10px 12px" }}>
                 <div style={{ fontSize: isMobile ? 11 : 10, color: "#065f46", fontWeight: 600, marginBottom: 3 }}>{t("averageClassSizeLabel")}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: "#0a3d2b" }}>{stats.averageClassSize || 0}</div>
                 <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>{formatCount(stats.monthlyExamCount, "monthly exam", "mitihani ya kila mwezi", language)}</div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: isMobile ? "28px 0 18px" : "44px 0 20px" }}>
+        <div className={containerClass}>
+          <div
+            className="home-overview-shell glass-panel"
+            style={{
+              borderRadius: 28,
+              padding: isMobile ? "22px 18px" : "28px 28px",
+            }}
+          >
+            <div>
+              <div className="home-section-kicker">{language === "sw" ? "Shule Yetu" : "Our School"}</div>
+              <div className="home-section-title">
+                {language === "sw" ? "Mfumo wa matokeo umejengwa juu ya utambulisho wa Bonde." : "The results portal now reflects Bonde's real identity."}
+              </div>
+              <div className="home-section-copy" style={{ maxWidth: 620, marginTop: 10 }}>
+                {language === "sw"
+                  ? "Bonde Secondary School ni taasisi ya umma inayolenga nidhamu, utendaji wa kitaaluma, na mawasiliano ya wazi kati ya shule, wanafunzi, na wazazi. Ukurasa huu unapaswa kueleza shule, sio kutumika kama bango la mfumo pekee."
+                  : "Bonde Secondary School is a public institution focused on discipline, academic performance, and clear communication between the school, students, and guardians. The homepage should explain the school, not just advertise the portal."}
+              </div>
+            </div>
+
+            <div className="home-overview-grid" style={{ marginTop: isMobile ? 18 : 24 }}>
+              {schoolOverviewCards.map((card) => (
+                <div key={card.key} className="home-overview-card glass-card">
+                  <div className="home-overview-icon">
+                    <HomeIcon name={card.icon} label={card.title} size={18} />
+                  </div>
+                  <div className="home-overview-title">{card.title}</div>
+                  <div className="home-overview-value">{card.value}</div>
+                  <div className="home-overview-copy">{card.description}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -873,140 +965,111 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         </div>
       </section>
 
-      <section style={{ padding: isMobile ? "8px 0 28px" : "8px 0 34px" }}>
-        <div className={containerClass}>
-          <div className="home-section-header">
-            <div>
-              <div className="home-section-kicker">{t("performanceSnapshot")}</div>
-              <div className="home-section-title">{t("portalHighlights")}</div>
-            </div>
-          </div>
-          <div
-            className="glass-panel"
-            style={{
-              borderRadius: 22,
-              overflow: "hidden",
-            }}
-          >
-            <div className="home-highlight-grid">
-            {performanceStats.map((stat, index) => (
-              <div
-                key={stat.key || `${stat.label}-${index}`}
-                className="home-highlight-cell"
-                style={{
-                  borderBottom:
-                    isCompactScreen && index < performanceStats.length - 2
-                      ? "1px solid rgba(241, 245, 249, 0.9)"
-                      : undefined,
-                }}
-              >
-                <div
-                  style={{
-                    width: isMobile ? 36 : 42,
-                    height: isMobile ? 36 : 42,
-                    borderRadius: isMobile ? 12 : 14,
-                    margin: "0 auto 10px",
-                    background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,244,251,0.96))",
-                    border: "1px solid rgba(214, 224, 237, 0.9)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#14532d",
-                  }}
-                >
-                  <HomeIcon name={stat.icon} label={stat.label} size={isMobile ? 16 : 18} />
-                </div>
-                <div style={{ fontSize: isMobile ? 13 : 18, fontWeight: 800, color: "#0a3d2b" }}>{stat.value}</div>
-                <div style={{ fontSize: isMobile ? 10 : 11, color: "#64748b", marginTop: 3, lineHeight: isMobile ? 1.35 : 1.45 }}>{stat.label}</div>
-                {stat.description && (
-                  <div style={{ fontSize: isMobile ? 9 : 10, color: "#94a3b8", marginTop: isMobile ? 4 : 6, lineHeight: 1.45 }}>
-                    {stat.description}
-                  </div>
-                )}
-              </div>
-            ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section ref={announcementsSectionRef} style={{ padding: isMobile ? "8px 0 28px" : "8px 0 34px" }}>
         <div className={containerClass}>
-          <div className="home-section-header">
+          <div className="home-signal-grid">
             <div>
-              <div className="home-section-kicker">{t("updates")}</div>
-              <div className="home-section-title">{t("recentAnnouncements")}</div>
-            </div>
-            <button
-              type="button"
-              onClick={scrollToAnnouncements}
-              className="home-link-inline"
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-            >
-              {t("viewAll")}
-            </button>
-          </div>
-          <div className="glass-panel" style={{ borderRadius: 22, overflow: "hidden" }}>
-            {announcements.map((announcement) => (
-              <AnnouncementRow
-                key={announcement.id}
-                title={announcement.title}
-                desc={announcement.description}
-                date={formatDateLabel(announcement.date, language, t)}
-                tone={announcement.tone}
-                compact={isMobile}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section style={{ padding: isMobile ? "8px 0 28px" : "8px 0 34px" }}>
-        <div className={containerClass}>
-          <div className="home-section-header">
-            <div>
-              <div className="home-section-kicker">{t("explore")}</div>
-              <div className="home-section-title">{t("resultsCategories")}</div>
-            </div>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: isXs ? "repeat(2, minmax(0, 1fr))" : isCompactScreen ? "repeat(4, minmax(0, 1fr))" : "repeat(8, minmax(0, 1fr))", gap: 10 }}>
-            {categories.map((category) => (
-              <CategoryChip key={category.label} {...category} compact={isMobile} onClick={() => handleCategoryClick(category.label)} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section style={{ padding: isMobile ? "8px 0 32px" : "8px 0 42px" }}>
-        <div className={containerClass}>
-          <div className="home-section-header">
-            <div>
-              <div className="home-section-kicker">{t("whyBondePortal")}</div>
-              <div className="home-section-title">{t("whyUseSystem")}</div>
-            </div>
-          </div>
-          <div
-            className="glass-panel"
-            style={{
-              borderRadius: 22,
-              display: "grid",
-              gridTemplateColumns: isXs ? "1fr 1fr" : isMobile ? "repeat(2, 1fr)" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
-              gap: 0,
-              overflow: "hidden",
-            }}
-          >
-            {features.map((feature, index) => (
+              <div className="home-section-header">
+                <div>
+                  <div className="home-section-kicker">{t("performanceSnapshot")}</div>
+                  <div className="home-section-title">{t("portalHighlights")}</div>
+                </div>
+              </div>
               <div
-                key={feature.label}
+                className="glass-panel"
                 style={{
-                  borderRight: index < features.length - 1 ? "1px solid #f1f5f9" : "none",
-                  borderBottom: (isMobile || isTablet) && index < (isXs ? 4 : isMobile ? 4 : 3) ? "1px solid #f1f5f9" : "none",
+                  borderRadius: 22,
+                  overflow: "hidden",
                 }}
               >
-                <FeatureChip {...feature} compact={isMobile} />
+                <div className="home-highlight-grid">
+                  {performanceStats.map((stat, index) => (
+                    <div
+                      key={stat.key || `${stat.label}-${index}`}
+                      className="home-highlight-cell"
+                      style={{
+                        borderBottom:
+                          isCompactScreen && index < performanceStats.length - 2
+                            ? "1px solid rgba(241, 245, 249, 0.9)"
+                            : undefined,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: isMobile ? 36 : 42,
+                          height: isMobile ? 36 : 42,
+                          borderRadius: isMobile ? 12 : 14,
+                          margin: "0 auto 10px",
+                          background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,244,251,0.96))",
+                          border: "1px solid rgba(214, 224, 237, 0.9)",
+                          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#14532d",
+                        }}
+                      >
+                        <HomeIcon name={stat.icon} label={stat.label} size={isMobile ? 16 : 18} />
+                      </div>
+                      <div style={{ fontSize: isMobile ? 13 : 18, fontWeight: 800, color: "#0a3d2b" }}>{stat.value}</div>
+                      <div style={{ fontSize: isMobile ? 10 : 11, color: "#64748b", marginTop: 3, lineHeight: isMobile ? 1.35 : 1.45 }}>{stat.label}</div>
+                      {stat.description && (
+                        <div style={{ fontSize: isMobile ? 9 : 10, color: "#94a3b8", marginTop: isMobile ? 4 : 6, lineHeight: 1.45 }}>
+                          {stat.description}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+            </div>
+
+            <div>
+              <div className="home-section-header">
+                <div>
+                  <div className="home-section-kicker">{t("updates")}</div>
+                  <div className="home-section-title">{t("recentAnnouncements")}</div>
+                </div>
+              </div>
+              <div className="glass-panel" style={{ borderRadius: 22, overflow: "hidden" }}>
+                {announcements.map((announcement) => (
+                  <AnnouncementRow
+                    key={announcement.id}
+                    title={announcement.title}
+                    desc={announcement.description}
+                    date={formatDateLabel(announcement.date, language, t)}
+                    tone={announcement.tone}
+                    compact={isMobile}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: isMobile ? "8px 0 32px" : "12px 0 44px" }}>
+        <div className={containerClass}>
+          <div className="home-support-band glass-panel">
+            <div>
+              <div className="home-section-kicker">{language === "sw" ? "Mwongozo wa Wageni" : "Visitor Support"}</div>
+              <div className="home-section-title">
+                {language === "sw" ? "Tunza hatua muhimu za mgeni wa tovuti mahali pamoja." : "Keep the most important visitor actions in one place."}
+              </div>
+              <div className="home-section-copy" style={{ marginTop: 8 }}>
+                {language === "sw"
+                  ? "Badala ya kuonyesha kadi nyingi zisizo na kipaumbele, ukurasa wa mwanzo unapaswa kuelekeza wageni moja kwa moja kwenye matokeo, taarifa, na mawasiliano."
+                  : "Instead of showing too many low-priority cards, the homepage should guide visitors directly to results, notices, and school contacts."}
+              </div>
+            </div>
+            <div className="home-support-actions">
+              {supportActions.map((item) => (
+                <button key={item.key} type="button" className="home-support-action" onClick={item.action}>
+                  <div className="home-support-action-title">{item.title}</div>
+                  <div className="home-support-action-copy">{item.description}</div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
