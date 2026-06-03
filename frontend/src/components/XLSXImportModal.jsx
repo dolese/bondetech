@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { validateStudent } from "../utils/validation";
 import { useViewport } from "../utils/useViewport";
 import { API } from "../api";
+import { findImportedSubjectColumn } from "../utils/subjectImport";
 
 /**
  * Parse a minimal XLSX file (as produced by the app's own XLSX export) into
@@ -172,8 +173,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     }
 
     // Map header names (case-insensitive) to roles
-    const norm = (s) => String(s ?? "").trim().toLowerCase();
-    const hNorm = headers.map(norm);
+    const hNorm = headers.map((s) => String(s ?? "").trim().toLowerCase());
 
     // Recognised exact and prefix/suffix patterns for each identity column.
     const admissionIdx = hNorm.findIndex((h) => h === "admission_no" || h === "admissionno");
@@ -186,10 +186,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     const DATA_ROW_OFFSET = 2;
 
     // Map each class subject to a column index
-    const subjectCols = subjects.map((subj) => {
-      const idx = hNorm.findIndex(h => h === norm(subj));
-      return idx;
-    });
+    const subjectCols = subjects.map((subj) => findImportedSubjectColumn(headers, subj));
 
     const unmappedSubjects = subjects.filter((_, i) => subjectCols[i] === -1);
     if (unmappedSubjects.length > 0) {
@@ -289,15 +286,14 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
         throw new Error("The online XLSX file is empty or has no data rows.");
       }
 
-      const norm = (s) => String(s ?? "").trim().toLowerCase();
-      const hNorm = headers.map(norm);
+      const hNorm = headers.map((s) => String(s ?? "").trim().toLowerCase());
       const admissionIdx = hNorm.findIndex((h) => h === "admission_no" || h === "admissionno");
       const cnoIdx = hNorm.findIndex((h) => ["cno", "index_no", "indexno", "candidate_no", "candidateno"].includes(h));
       const nameIdx = hNorm.findIndex((h) => h === "name" || h === "student_name" || h === "studentname");
       const sexIdx = hNorm.findIndex((h) => h === "sex" || h === "gender");
       const statusIdx = hNorm.findIndex((h) => h === "status");
       const DATA_ROW_OFFSET = 2;
-      const subjectCols = subjects.map((subj) => hNorm.findIndex((h) => h === norm(subj)));
+      const subjectCols = subjects.map((subj) => findImportedSubjectColumn(headers, subj));
       const unmappedSubjects = subjects.filter((_, i) => subjectCols[i] === -1);
       if (unmappedSubjects.length > 0) {
         setWarnings([`Some subjects were not found in the XLSX and will be blank: ${unmappedSubjects.join(", ")}`]);

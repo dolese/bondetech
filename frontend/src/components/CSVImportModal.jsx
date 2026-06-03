@@ -3,6 +3,7 @@ import Papa from "papaparse";
 import { validateStudent } from "../utils/validation";
 import { useViewport } from "../utils/useViewport";
 import { API } from "../api";
+import { findImportedSubjectColumn } from "../utils/subjectImport";
 
 export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
   const [csvText, setCsvText] = useState("");
@@ -42,7 +43,6 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
     const lines = (parsed.data ?? []).filter(row => row && row.length);
     if (lines.length === 0) return;
 
-    const normalizedSubjects = subjects.map(s => s.toLowerCase());
     const headerGuess = lines[0].map(p => String(p ?? "").trim().toLowerCase());
     const hasHeader = headerGuess.some(h => h.includes("index") || h.includes("admission") || h.includes("candidate") || h === "cno" || h.includes("name") || h.includes("sex"));
 
@@ -58,7 +58,7 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
         else if (h === "name" || h.includes("student")) colMap.name = idx;
         else if (h === "sex" || h === "gender") colMap.sex = idx;
         else {
-          const subjectIdx = normalizedSubjects.indexOf(h);
+          const subjectIdx = subjects.findIndex((subject) => findImportedSubjectColumn([h], subject) === 0);
           if (subjectIdx >= 0) scoreCols[subjectIdx] = idx;
           const scoreMatch = h.match(/^score\s*(\d+)$/);
           if (scoreMatch) {

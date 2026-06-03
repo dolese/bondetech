@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { validateStudent } from "../utils/validation";
 import { useViewport } from "../utils/useViewport";
+import { findImportedSubjectColumn } from "../utils/subjectImport";
 
 export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
   const [jsonText, setJsonText] = useState("");
@@ -18,9 +19,7 @@ export function JSONImportModal({ classId, subjects = [], onImport, onClose }) {
       return subjects.map((_, i) => rawScores[i] ?? "");
     }
     return subjects.map((subj) => {
-      const srcIdx = importedSubjects.findIndex(
-        (s) => String(s).trim().toLowerCase() === String(subj).trim().toLowerCase()
-      );
+      const srcIdx = findImportedSubjectColumn(importedSubjects, subj);
       if (srcIdx >= 0 && srcIdx < rawScores.length) {
         const v = rawScores[srcIdx];
         return v === null || v === undefined ? "" : v;
