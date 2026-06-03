@@ -112,6 +112,10 @@ function findClassById(classes = [], classId = "") {
   return classes.find((cls) => cls.id === classId) || null;
 }
 
+function makeStudentKey(student = {}) {
+  return `${student.classId || ""}:${student.id || ""}`;
+}
+
 export function StudentManagementPage({
   classes = [],
   canDeleteStudents = false,
@@ -128,6 +132,7 @@ export function StudentManagementPage({
   const [classFilter, setClassFilter] = useState("");
   const [lifecycleFilter, setLifecycleFilter] = useState("");
   const [viewMode, setViewMode] = useState("grouped");
+  const [selectedStudentKey, setSelectedStudentKey] = useState("");
   const [modalMode, setModalMode] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(makeEmptyForm());
@@ -317,6 +322,24 @@ export function StudentManagementPage({
     }),
     [students],
   );
+
+  const selectedStudent = useMemo(
+    () => students.find((student) => makeStudentKey(student) === selectedStudentKey) || null,
+    [selectedStudentKey, students]
+  );
+
+  React.useEffect(() => {
+    if (!selectedStudentKey) return;
+    if (!students.some((student) => makeStudentKey(student) === selectedStudentKey)) {
+      setSelectedStudentKey("");
+    }
+  }, [selectedStudentKey, students]);
+
+  React.useEffect(() => {
+    if (!selectedStudent && filteredStudents.length) {
+      setSelectedStudentKey(makeStudentKey(filteredStudents[0]));
+    }
+  }, [filteredStudents, selectedStudent]);
 
   const openAddModal = () => {
     const scopedClasses = classes
@@ -513,6 +536,12 @@ export function StudentManagementPage({
 
   const fieldGridColumns = isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))";
 
+  const openProfileForStudent = (student) =>
+    onOpenStudentProfile?.({
+      admissionNo: student.admissionNo || student.admission_no || "",
+      indexNo: student.index_no || student.indexNo || "",
+    });
+
   const handlePromotion = async () => {
     if (!promotionForm.sourceClassId || !promotionForm.targetClassId) {
       setPromotionError("Select both the source class and the target class.");
@@ -576,7 +605,7 @@ export function StudentManagementPage({
           <div>
             <div style={{ display: "inline-flex", ...pillStyle({ tone: "blue" }) }}>School-wide records</div>
             <div style={{ fontSize: isMobile ? 30 : 34, fontWeight: 900, color: "#0f172a", lineHeight: 1.05, marginTop: 10 }}>
-              Student Management
+              Student Records
             </div>
             <div style={{ fontSize: 14, color: "#64748b", marginTop: 6, maxWidth: 720 }}>
               Manage student records across the school without changing the current class-based Student Entry workflow.
@@ -704,12 +733,12 @@ export function StudentManagementPage({
             flexWrap: "wrap",
           }}
         >
-          <div style={{ display: "grid", gap: 4 }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a" }}>Directory</div>
-            <div style={{ fontSize: 13, color: "#64748b" }}>
-              Search, filter, and maintain full student records from one place.
-            </div>
+        <div style={{ display: "grid", gap: 4 }}>
+          <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a" }}>Directory</div>
+          <div style={{ fontSize: 13, color: "#64748b" }}>
+              Search, filter, and maintain full student records from one place. Use the directory to find a learner, then continue from the focused student panel or full profile.
           </div>
+        </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <div style={pillStyle({ tone: classFilter || formFilter || yearFilter || lifecycleFilter ? "teal" : "slate" })}>
               {filteredStudents.length} visible
@@ -799,6 +828,84 @@ export function StudentManagementPage({
           </select>
         </div>
 
+        {selectedStudent ? (
+          <div
+            style={{
+              ...softCardStyle({ padding: isMobile ? 14 : 18, radius: 22 }),
+              display: "grid",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ display: "grid", gap: 4 }}>
+                <div style={{ display: "inline-flex", ...pillStyle({ tone: "teal" }) }}>Student Focus</div>
+                <div style={{ fontSize: isMobile ? 22 : 24, fontWeight: 900, color: "#0f172a" }}>
+                  {selectedStudent.name || "Unnamed Student"}
+                </div>
+                <div style={{ fontSize: 13, color: "#64748b" }}>
+                  {selectedStudent.classLabel} • {selectedStudent.sex || "-"} •{" "}
+                  {selectedStudent.admissionNo || selectedStudent.admission_no || "No admission number"}
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => openProfileForStudent(selectedStudent)}
+                  disabled={
+                    !(
+                      selectedStudent.admissionNo ||
+                      selectedStudent.admission_no ||
+                      selectedStudent.index_no ||
+                      selectedStudent.indexNo
+                    )
+                  }
+                  style={primaryButtonStyle({ compact: true })}
+                >
+                  Open Profile
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openEditModal(selectedStudent)}
+                  style={secondaryButtonStyle({ compact: true })}
+                >
+                  Edit Record
+                </button>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(0, 1fr))",
+                gap: 10,
+              }}
+            >
+              {[
+                ["Lifecycle", getEnrollmentLabel(selectedStudent.enrollmentStatus), getEnrollmentTone(selectedStudent.enrollmentStatus)],
+                ["CNO", selectedStudent.index_no || selectedStudent.indexNo || "-", "slate"],
+                ["Guardian", selectedStudent.parentName || "Missing", selectedStudent.parentName ? "blue" : "amber"],
+                ["Phone", selectedStudent.parentPhone || "Missing", selectedStudent.parentPhone ? "blue" : "amber"],
+              ].map(([label, value, tone]) => (
+                <div key={label} style={{ ...softCardStyle({ padding: 12, radius: 18 }), display: "grid", gap: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.6 }}>
+                    {label}
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: "#0f172a" }}>{value}</div>
+                  <div style={pillStyle({ tone })}>{label === "Lifecycle" ? value : "Record detail"}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         {viewMode === "table" ? (
           <div
             style={{
@@ -835,7 +942,17 @@ export function StudentManagementPage({
             </thead>
             <tbody>
               {filteredStudents.map((student) => (
-                <tr key={`${student.classId}-${student.id}`} style={{ background: "rgba(255,255,255,0.52)" }}>
+                <tr
+                  key={`${student.classId}-${student.id}`}
+                  onClick={() => setSelectedStudentKey(makeStudentKey(student))}
+                  style={{
+                    background:
+                      makeStudentKey(student) === selectedStudentKey
+                        ? "rgba(219,234,254,0.58)"
+                        : "rgba(255,255,255,0.52)",
+                    cursor: "pointer",
+                  }}
+                >
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
                     {student.admissionNo || student.admission_no || "-"}
                   </td>
@@ -858,15 +975,10 @@ export function StudentManagementPage({
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.parentName || "-"}</td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.parentPhone || "-"}</td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} onClick={(event) => event.stopPropagation()}>
                       <button
                         type="button"
-                        onClick={() =>
-                          onOpenStudentProfile?.({
-                            admissionNo: student.admissionNo || student.admission_no || "",
-                            indexNo: student.index_no || student.indexNo || "",
-                          })
-                        }
+                        onClick={() => openProfileForStudent(student)}
                         disabled={!(student.admissionNo || student.admission_no || student.index_no || student.indexNo)}
                         title={
                           student.admissionNo || student.admission_no || student.index_no || student.indexNo
@@ -874,7 +986,7 @@ export function StudentManagementPage({
                             : "Student has no admission number or CNO yet"
                         }
                         style={{
-                          ...secondaryButtonStyle({ compact: true }),
+                          ...primaryButtonStyle({ compact: true }),
                           opacity:
                             student.admissionNo || student.admission_no || student.index_no || student.indexNo ? 1 : 0.55,
                           cursor:
@@ -889,8 +1001,7 @@ export function StudentManagementPage({
                         type="button"
                         onClick={() => openEditModal(student)}
                         style={{
-                          ...pillStyle({ tone: "blue" }),
-                          cursor: "pointer",
+                          ...secondaryButtonStyle({ compact: true }),
                         }}
                       >
                         Edit
@@ -966,13 +1077,25 @@ export function StudentManagementPage({
                             {classEntry.students.map((student) => (
                               <div
                                 key={`${classEntry.classId}-${student.id}`}
+                                onClick={() => setSelectedStudentKey(makeStudentKey(student))}
                                 style={{
                                   borderRadius: 16,
-                                  border: "1px solid rgba(214,226,245,0.92)",
-                                  background: "rgba(255,255,255,0.88)",
+                                  border:
+                                    makeStudentKey(student) === selectedStudentKey
+                                      ? "1px solid rgba(59,130,246,0.9)"
+                                      : "1px solid rgba(214,226,245,0.92)",
+                                  background:
+                                    makeStudentKey(student) === selectedStudentKey
+                                      ? "rgba(239,246,255,0.96)"
+                                      : "rgba(255,255,255,0.88)",
                                   padding: "12px 12px 10px",
                                   display: "grid",
                                   gap: 8,
+                                  cursor: "pointer",
+                                  boxShadow:
+                                    makeStudentKey(student) === selectedStudentKey
+                                      ? "0 10px 24px rgba(37,99,235,0.10)"
+                                      : "none",
                                 }}
                               >
                                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
@@ -995,18 +1118,13 @@ export function StudentManagementPage({
                                   <div>Guardian: {student.parentName || "-"}</div>
                                   <div>Phone: {student.parentPhone || "-"}</div>
                                 </div>
-                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} onClick={(event) => event.stopPropagation()}>
                                   <button
                                     type="button"
-                                    onClick={() =>
-                                      onOpenStudentProfile?.({
-                                        admissionNo: student.admissionNo || student.admission_no || "",
-                                        indexNo: student.index_no || student.indexNo || "",
-                                      })
-                                    }
+                                    onClick={() => openProfileForStudent(student)}
                                     disabled={!(student.admissionNo || student.admission_no || student.index_no || student.indexNo)}
                                     style={{
-                                      ...secondaryButtonStyle({ compact: true }),
+                                      ...primaryButtonStyle({ compact: true }),
                                       opacity:
                                         student.admissionNo || student.admission_no || student.index_no || student.indexNo ? 1 : 0.55,
                                       cursor:
@@ -1017,7 +1135,7 @@ export function StudentManagementPage({
                                   >
                                     Profile
                                   </button>
-                                  <button type="button" onClick={() => openEditModal(student)} style={{ ...pillStyle({ tone: "blue" }), cursor: "pointer" }}>
+                                  <button type="button" onClick={() => openEditModal(student)} style={secondaryButtonStyle({ compact: true })}>
                                     Edit
                                   </button>
                                   {canDeleteStudents ? (

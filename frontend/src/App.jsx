@@ -350,7 +350,7 @@ export default function App() {
   }, []);
 
   const classNavItems = [
-    { key: "students", icon: "S", label: t("students"), requiresClass: true },
+    { key: "students", icon: "S", label: "Marks Entry", requiresClass: true },
     { key: "results", icon: "R", label: t("results"), requiresClass: true },
     { key: "timetable", icon: "T", label: t("timetable", "Timetable"), requiresClass: true },
     { key: "reports", icon: "P", label: t("reports"), requiresClass: true },
@@ -392,7 +392,7 @@ export default function App() {
   const navItems = [
     ...classNavItems.filter((item) => canViewSettings || item.key !== "settings"),
     ...(canManageStudentsGlobally
-      ? [{ key: "student-management", label: t("studentManagement"), requiresClass: false }]
+      ? [{ key: "student-management", label: "Student Records", requiresClass: false }]
       : []),
     { key: "forms-streams", label: "Forms & Streams", requiresClass: false },
     { key: "subjects", label: "Subjects", requiresClass: false },
