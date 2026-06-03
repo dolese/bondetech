@@ -224,13 +224,25 @@ export function EntryPanel({
     setBulkScores(next);
   }, [bulkMode, computed, subjects]);
 
+  const currentExamExportValue = (grade) => {
+    if (!grade) return "";
+    if (grade.raw === "ABS") return "ABS";
+    if (grade.raw != null) return grade.raw;
+    if (grade.score != null) return grade.score;
+    return "";
+  };
+
   const filtered = (computed ?? [])
-    .filter(s =>
-      search === "" ||
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.index_no.toString().includes(search) ||
-      String(s.admissionNo || s.admission_no || "").toLowerCase().includes(search.toLowerCase())
-    )
+    .filter((s) => {
+      const query = String(search || "").trim().toLowerCase();
+      if (!query) return true;
+      return (
+        String(s.name || "").toLowerCase().includes(query) ||
+        String(s.index_no || "").toLowerCase().includes(query) ||
+        String(s.admissionNo || s.admission_no || "").toLowerCase().includes(query) ||
+        String(s.status || "").toLowerCase().includes(query)
+      );
+    })
     .sort((a, b) => {
       let aVal = sortBy === "index" ? a.index_no : a[sortBy];
       let bVal = sortBy === "index" ? b.index_no : b[sortBy];
@@ -365,7 +377,7 @@ export function EntryPanel({
   const exportCsv = () => {
     const header = ["index_no", "name", "sex", ...subjects].map(csvEscape).join(",");
     const rows = (computed ?? []).map((s) => {
-      const scores = subjects.map((_, si) => s.grades?.[si]?.score ?? "");
+      const scores = subjects.map((_, si) => currentExamExportValue(s.grades?.[si]));
       return [
         s.index_no ?? "",
         s.name ?? "",
@@ -405,8 +417,11 @@ export function EntryPanel({
     ];
     const rows = (computed ?? []).map((s) => {
       const scores = subjects.map((_, si) => {
-        const v = s.grades?.[si]?.score;
-        return (v !== null && v !== undefined) ? Number(v) : "";
+        const value = currentExamExportValue(s.grades?.[si]);
+        if (value === "" || value == null) return "";
+        if (value === "ABS") return "ABS";
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? numeric : value;
       });
       return [
         s.index_no ?? "",
@@ -579,6 +594,13 @@ export function EntryPanel({
     },
     tableScroller: {
       overflowX: "auto",
+      overflowY: "visible",
+      minWidth: 0,
+      borderRadius: 6,
+      border: "1px solid #d6e0f5",
+    },
+    bulkTableScroller: {
+      overflowX: "auto",
       overflowY: "auto",
       maxHeight: "60vh",
       minWidth: 0,
@@ -597,9 +619,11 @@ export function EntryPanel({
       gap: 12,
       flexWrap: "wrap",
       alignItems: compactLayout ? "stretch" : "center",
-      background: "#f4f7ff",
-      padding: compactLayout ? 8 : 10,
-      borderRadius: 8,
+      background: "#ffffff",
+      border: "1px solid #d8e4fb",
+      boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+      padding: compactLayout ? 10 : 12,
+      borderRadius: 12,
     },
     tlbGroup: {
       display: "flex",
@@ -780,9 +804,9 @@ export function EntryPanel({
       gap: 6,
       padding: "7px 10px",
       borderRadius: 999,
-      background: "#fff8e6",
-      border: "1px solid #f2d48f",
-      color: "#7a5a00",
+      background: "#eef4ff",
+      border: "1px solid #d6e0f5",
+      color: "#26437a",
       fontSize: 11,
       fontWeight: 800,
       flexShrink: 0,
@@ -811,8 +835,9 @@ export function EntryPanel({
       color: "#fff",
       border: "none",
       borderRadius: 999,
-      padding: "2px 6px",
+      padding: "3px 8px",
       fontSize: 9,
+      fontWeight: 800,
       cursor: "pointer",
     },
     subjectInput: {
@@ -823,7 +848,7 @@ export function EntryPanel({
       minWidth: 160,
     },
     subjectAddBtn: {
-      padding: "6px 10px",
+      padding: "6px 12px",
       height: 30,
       borderRadius: 6,
       border: "none",
@@ -862,7 +887,15 @@ export function EntryPanel({
 
   return (
     <div style={styles.panel}>
-      <div>
+      <div
+        style={{
+          background: "#ffffff",
+          border: "1px solid #d8e4fb",
+          borderRadius: 16,
+          padding: isMobile ? 12 : 16,
+          boxShadow: "0 12px 28px rgba(15, 23, 42, 0.05)",
+        }}
+      >
         <div
           style={{
             display: "grid",
@@ -873,11 +906,15 @@ export function EntryPanel({
           }}
         >
           <div style={{ minWidth: 0 }}>
-            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800 }}>
-              📝 Student Entry
-            </h3>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800, display: "none" }}>Marks Entry</h3>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "#64748b" }}>
+              Class Workspace
+            </div>
+            <div style={{ marginTop: 4, fontSize: isMobile ? 18 : 20, fontWeight: 900, color: "#102a43" }}>
+              Marks Entry
+            </div>
             <div style={{ fontSize: 11, color: "#667", marginTop: 4 }}>
-              Add, edit, and score students for this class.
+              Enter marks, manage the class roster, and handle imports for this class.
             </div>
           </div>
 
@@ -891,10 +928,11 @@ export function EntryPanel({
             }}
           >
             <div
-              style={styles.infoBadge}
+              style={{ ...styles.infoBadge, fontSize: 0 }}
               title="Safe import updates existing students by CNO and adds only new rows. Existing CNO values remain unchanged unless an administrator uses the reorder action."
             >
-              Safe Import ⓘ
+              <span style={{ fontSize: 11 }}>Safe Import</span>
+              Safe Import
             </div>
             <button
               onClick={() => setBulkMode(!bulkMode)}
@@ -912,7 +950,7 @@ export function EntryPanel({
                 flex: compactLayout ? 1 : "0 0 auto",
               }}
             >
-              {bulkMode ? "✕ Bulk Mode" : "🧮 Bulk Scores"}
+              {bulkMode ? "Exit Bulk Mode" : "Bulk Scores"}
             </button>
             <button
               onClick={() => setAddingNew(!addingNew)}
@@ -930,7 +968,7 @@ export function EntryPanel({
                 flex: compactLayout ? 1 : "0 0 auto",
               }}
             >
-              ➕ New
+              Add Student
             </button>
             {onReorderStudentCnos && (
               <div style={styles.dropdownWrap}>
@@ -940,7 +978,7 @@ export function EntryPanel({
                   style={{ ...styles.actionBtn, background: "#9a3412" }}
                   title="Advanced student actions"
                 >
-                  Advanced ▾
+                  Advanced
                 </button>
                 {showAdvancedMenu && (
                   <div style={styles.dropdownMenu}>
@@ -962,7 +1000,7 @@ export function EntryPanel({
                             : "pointer",
                       }}
                     >
-                      {reorderingCnos ? "Reordering CNO..." : "Reorder Female → Male CNO"}
+                      {reorderingCnos ? "Reordering CNO..." : "Reorder Female to Male CNO"}
                     </button>
                   </div>
                 )}
@@ -1015,10 +1053,10 @@ export function EntryPanel({
             color: "#7a5800",
             fontWeight: 700,
           }}>
-            <span>🔗</span>
+            <span>Composite</span>
             <span>
-              <strong>Composite Mode — {compositeEntry.label} ÷ 2</strong>
-              {" "}— Grades use the average of <em>{compositeEntry.partnerExam}</em> and <em>{effectiveExam}</em>.
+              <strong>Composite Mode - {compositeEntry.label} / 2</strong>
+              {" "}- Grades use the average of <em>{compositeEntry.partnerExam}</em> and <em>{effectiveExam}</em>.
               Score columns show the current exam's entry; totals reflect the combined average.
             </span>
           </div>
@@ -1087,7 +1125,7 @@ export function EntryPanel({
           <div style={{ ...styles.tlbGroup, flex: "1 1 100%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#003366", whiteSpace: "nowrap" }}>
-                📋 Exam:
+                Exam:
               </span>
               <select
                 value={effectiveExam}
@@ -1122,7 +1160,7 @@ export function EntryPanel({
                 style={{ ...styles.actionBtn, background: "#0077aa" }}
                 title="Import student data"
               >
-                Import ▾
+                Import
               </button>
               {showImportMenu && (
                 <div style={styles.dropdownMenu}>
@@ -1150,7 +1188,7 @@ export function EntryPanel({
                 style={{ ...styles.actionBtn, background: "#1a7336" }}
                 title="Export student data"
               >
-                Export ▾
+                Export
               </button>
               {showExportMenu && (
                 <div style={styles.dropdownMenu}>
@@ -1171,7 +1209,7 @@ export function EntryPanel({
             </div>
             <input
               type="text"
-              placeholder="🔍 Search name, CNO, or status"
+              placeholder="Search name, CNO, admission number, or status"
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{
@@ -1213,129 +1251,175 @@ export function EntryPanel({
                 flexShrink: 0,
               }}
             >
-              {sortAsc ? "⬆" : "⬇"}
+              {sortAsc ? "Asc" : "Desc"}
             </button>
           </div>
         </div>
-      </div>
-
-      {!hideSettings && (
-      <div style={styles.schoolPanel}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Global School Settings</div>
-        <div style={{ fontSize: 10, color: "#667", lineHeight: 1.6 }}>
-          School identity, logos, contacts, and export branding are now managed from the main Settings page so they stay consistent across all classes.
-        </div>
-      </div>
-      )}
-
-      {!hideSettings && (
-      <div style={styles.metaPanel}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Class Year & Form</div>
-            <div style={{ fontSize: 10, color: "#667" }}>
-              Used to group results by academic year.
-            </div>
-          </div>
-        </div>
-        <div style={styles.subjectRow}>
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="Year"
-            value={classYear}
-            onChange={e => setClassYear(e.target.value)}
-            style={styles.metaInput}
-          />
-          <select
-            value={classForm}
-            onChange={e => setClassForm(e.target.value)}
-            style={styles.metaSelect}
-          >
-            <option value="Form I">Form I</option>
-            <option value="Form II">Form II</option>
-            <option value="Form III">Form III</option>
-            <option value="Form IV">Form IV</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Stream"
-            value={classStream}
-            onChange={e => setClassStream(String(e.target.value || "").toUpperCase())}
-            style={styles.metaInput}
-          />
-          <button
-            style={styles.metaBtn}
-            onClick={handleUpdateMeta}
-            disabled={updatingMeta}
-          >
-            Save
-          </button>
-          {metaError && (
-            <div style={{ fontSize: 10, color: "#8b2500", fontWeight: 700 }}>
-              {metaError}
-            </div>
-          )}
-        </div>
-      </div>
-      )}
-
-      {!hideSettings && (
-      <div style={styles.subjectPanel}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Subjects</div>
-            <div style={{ fontSize: 10, color: "#667" }}>
-              Add or remove subjects for this class. Scores are remapped automatically.
-            </div>
-          </div>
-          <div style={{ fontSize: 10, color: "#667" }}>{subjects.length} subjects</div>
-        </div>
-        <div style={styles.subjectRow}>
-          {subjects.length === 0 && (
-            <div style={{ fontSize: 10, color: "#999" }}>No subjects yet.</div>
-          )}
-          {subjects.map((subj) => (
-            <span key={subj} style={styles.subjectChip}>
-              {subj}
-              <button
-                style={styles.subjectRemove}
-                onClick={() => handleRemoveSubject(subj)}
-                disabled={updatingSubjects}
-                title={`Remove ${subj}`}
-              >
-                ✕
-              </button>
-            </span>
-          ))}
-        </div>
-        <div style={styles.subjectRow}>
-          <input
-            type="text"
-            placeholder="Add subject"
-            value={subjectInput}
-            onChange={e => setSubjectInput(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === "Enter") handleAddSubject();
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+            marginTop: 10,
+          }}
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "6px 10px",
+              borderRadius: 999,
+              background: "#eef4ff",
+              border: "1px solid #d6e0f5",
+              color: "#26437a",
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: 0.2,
             }}
-            style={styles.subjectInput}
-          />
-          <button
-            style={styles.subjectAddBtn}
-            onClick={handleAddSubject}
-            disabled={updatingSubjects || !subjectInput.trim()}
           >
-            ➕ Add
-          </button>
-          {subjectError && (
-            <div style={{ fontSize: 10, color: "#8b2500", fontWeight: 700 }}>
-              {subjectError}
-            </div>
-          )}
+            Working in: {effectiveExam}
+          </span>
+          <span style={{ fontSize: 11, color: "#607086", lineHeight: 1.5 }}>
+            Imports, exports, and saved marks apply to the current exam entry shown here.
+          </span>
         </div>
       </div>
-      )}
 
+      {!hideSettings && (
+        <div
+          style={{
+            display: "grid",
+            gap: 12,
+            marginTop: 2,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              color: "#64748b",
+              textTransform: "uppercase",
+              letterSpacing: 0.8,
+            }}
+          >
+            Class Setup
+          </div>
+
+          <div style={styles.schoolPanel}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>
+              Global School Settings
+            </div>
+            <div style={{ fontSize: 10, color: "#667", lineHeight: 1.6 }}>
+              School identity, logos, contacts, and export branding are now managed from the main Settings page so they stay consistent across all classes.
+            </div>
+          </div>
+
+          <div style={styles.metaPanel}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Class Year & Form</div>
+                <div style={{ fontSize: 10, color: "#667" }}>
+                  Used to group results by academic year.
+                </div>
+              </div>
+            </div>
+            <div style={styles.subjectRow}>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Year"
+                value={classYear}
+                onChange={e => setClassYear(e.target.value)}
+                style={styles.metaInput}
+              />
+              <select
+                value={classForm}
+                onChange={e => setClassForm(e.target.value)}
+                style={styles.metaSelect}
+              >
+                <option value="Form I">Form I</option>
+                <option value="Form II">Form II</option>
+                <option value="Form III">Form III</option>
+                <option value="Form IV">Form IV</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Stream"
+                value={classStream}
+                onChange={e => setClassStream(String(e.target.value || "").toUpperCase())}
+                style={styles.metaInput}
+              />
+              <button
+                style={styles.metaBtn}
+                onClick={handleUpdateMeta}
+                disabled={updatingMeta}
+              >
+                Save
+              </button>
+              {metaError && (
+                <div style={{ fontSize: 10, color: "#8b2500", fontWeight: 700 }}>
+                  {metaError}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div style={styles.subjectPanel}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Subjects</div>
+                <div style={{ fontSize: 10, color: "#667" }}>
+                  Add or remove subjects for this class. Scores are remapped automatically.
+                </div>
+              </div>
+              <div style={{ fontSize: 10, color: "#667" }}>{subjects.length} subjects</div>
+            </div>
+            <div style={styles.subjectRow}>
+              {subjects.length === 0 && (
+                <div style={{ fontSize: 10, color: "#999" }}>No subjects yet.</div>
+              )}
+              {subjects.map((subj) => (
+                <span key={subj} style={styles.subjectChip}>
+                  {subj}
+                  <button
+                    style={styles.subjectRemove}
+                    onClick={() => handleRemoveSubject(subj)}
+                    disabled={updatingSubjects}
+                    title={"Remove " + subj}
+                  >
+                    Remove
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div style={styles.subjectRow}>
+              <input
+                type="text"
+                placeholder="Add subject"
+                value={subjectInput}
+                onChange={e => setSubjectInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") handleAddSubject();
+                }}
+                style={styles.subjectInput}
+              />
+              <button
+                style={styles.subjectAddBtn}
+                onClick={handleAddSubject}
+                disabled={updatingSubjects || !subjectInput.trim()}
+              >
+                Add Subject
+              </button>
+              {subjectError && (
+                <div style={{ fontSize: 10, color: "#8b2500", fontWeight: 700 }}>
+                  {subjectError}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       {addingNew && (
         <div
           style={{
@@ -1580,7 +1664,7 @@ export function EntryPanel({
             </div>
           </div>
 
-          <div style={styles.tableScroller} tabIndex={0} role="region" aria-label="Bulk scoring table">
+          <div style={styles.bulkTableScroller} tabIndex={0} role="region" aria-label="Bulk scoring table">
           <table style={styles.bulkTable}>
               <thead>
                 <tr style={styles.stickyTh}>
@@ -1730,13 +1814,13 @@ export function EntryPanel({
                       disabled={editingLocked}
                       style={{ padding: "7px 18px", background: editingLocked ? "#94a3b8" : "#0b6b3a", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: editingLocked ? "not-allowed" : "pointer" }}
                     >
-                      ✓ Save
+                      Save
                     </button>
                     <button
                       onClick={() => { setEditId(null); setEditData(null); setErrors({}); }}
                       style={{ padding: "7px 18px", background: "#888", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: "pointer" }}
                     >
-                      ✕ Cancel
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -1771,19 +1855,19 @@ export function EntryPanel({
                       disabled={editingLocked}
                       style={{ padding: "4px 8px", background: editingLocked ? "#94a3b8" : "#0077aa", color: "#fff", border: "none", borderRadius: 5, cursor: editingLocked ? "not-allowed" : "pointer", fontSize: 11, fontWeight: 700 }}
                       title="Edit student"
-                    >✎</button>
+                    >Edit</button>
                     <button
                       onClick={() => onShowModal("report-card-export", s.id)}
                       style={{ padding: "4px 8px", background: "#003366", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
                       title="Export report card"
-                    >📥</button>
+                    >Report</button>
                     {canDeleteStudents && (
                       <button
                         onClick={() => { if (!editingLocked && window.confirm(`Delete ${s.name || "this student"}?`)) onDeleteStudent(s.id); }}
                         disabled={editingLocked}
                         style={{ padding: "4px 8px", background: editingLocked ? "#94a3b8" : "#8b2500", color: "#fff", border: "none", borderRadius: 5, cursor: editingLocked ? "not-allowed" : "pointer", fontSize: 11, fontWeight: 700 }}
                         title="Delete student"
-                      >🗑</button>
+                      >Delete</button>
                     )}
                   </div>
                 </div>
@@ -2186,7 +2270,7 @@ export function EntryPanel({
                             fontWeight: 700,
                           }}
                         >
-                          ✓
+                          Save
                         </button>
                         <button
                           onClick={() => {
@@ -2205,7 +2289,7 @@ export function EntryPanel({
                             fontWeight: 700,
                           }}
                         >
-                          ✕
+                          Cancel
                         </button>
                       </div>
                     ) : (
