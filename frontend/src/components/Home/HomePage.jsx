@@ -246,7 +246,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   const [homepageStatus, setHomepageStatus] = useState("loading");
   const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const { isXs, isMobile, isTablet, isDesktop } = useViewport();
+  const { isXs, isMobile, isTablet, isDesktop, isShort } = useViewport();
   const searchSectionRef = useRef(null);
   const announcementsSectionRef = useRef(null);
   const footerRef = useRef(null);
@@ -450,6 +450,10 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     || t("getInstantResults");
   const navBg = "#0a3d2b";
   const isCompactScreen = isMobile || isTablet;
+  const shortExamLabel = stats.latestExamLabel
+    ? String(stats.latestExamLabel).replace(/\s+20\d{2}$/, "").trim()
+    : t("noExamYet");
+  const compactHero = isMobile;
   
   const containerClass = `home-content-wrapper ${isMobile ? 'home-content-wrapper-mobile' : 'home-content-wrapper-desktop'}`;
   const headmasterPhonesDisplay = formatContactPhones(
@@ -656,7 +660,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       <section
         className="home-hero-shell"
         style={{
-          padding: isMobile ? "32px 0 36px" : "56px 0 64px",
+          padding: isMobile ? (isShort ? "18px 0 20px" : "20px 0 24px") : "56px 0 64px",
           position: "relative",
         }}
       >
@@ -667,48 +671,51 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         <div
           className={containerClass}
           style={{
-            display: isDesktop ? "grid" : "flex",
-            gridTemplateColumns: isDesktop ? "1fr 340px" : undefined,
-            flexDirection: isDesktop ? undefined : "column",
-            gap: isMobile ? 28 : 40,
-            alignItems: "center",
+            display: "grid",
+            gridTemplateColumns: isDesktop
+              ? "minmax(0, 1fr) 340px"
+              : isMobile
+              ? "minmax(0, 1fr) minmax(148px, 39vw)"
+              : "1fr",
+            gap: isMobile ? 14 : 40,
+            alignItems: compactHero ? "start" : "center",
             position: "relative",
             zIndex: 2,
           }}
         >
-          <div style={{ color: "#fff" }}>
-            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: "5px 14px", fontSize: isMobile ? 12 : 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 18 }}>
+          <div style={{ color: "#fff", minWidth: 0 }}>
+            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: compactHero ? "5px 12px" : "5px 14px", fontSize: isMobile ? 11 : 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: compactHero ? 12 : 18 }}>
               {heroBadge}
             </div>
-            <h1 className="home-serif-title" style={{ fontSize: isMobile ? 30 : 48, fontWeight: 700, lineHeight: 1.08, margin: "0 0 16px", letterSpacing: -0.8, maxWidth: 620 }}>
+            <h1 className="home-serif-title" style={{ fontSize: isMobile ? (isXs ? 24 : 28) : 48, fontWeight: 700, lineHeight: compactHero ? 1.02 : 1.08, margin: compactHero ? "0 0 10px" : "0 0 16px", letterSpacing: -0.8, maxWidth: compactHero ? 360 : 620 }}>
               {heroTitle}
             </h1>
-            <p style={{ fontSize: isMobile ? 13 : 15, color: "rgba(255,255,255,0.82)", lineHeight: 1.8, marginBottom: 28, maxWidth: 500 }}>
+            <p style={{ fontSize: isMobile ? 12 : 15, color: "rgba(255,255,255,0.82)", lineHeight: compactHero ? 1.55 : 1.8, marginBottom: compactHero ? 16 : 28, maxWidth: compactHero ? 320 : 500 }}>
               {heroDescription}
             </p>
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
-              <button className="landing-btn-solid" onClick={() => runHeroAction(currentHeroSlide.primaryAction)}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: compactHero ? 10 : 12, marginBottom: compactHero ? 14 : 24 }}>
+              <button className="landing-btn-solid" onClick={() => runHeroAction(currentHeroSlide.primaryAction)} style={compactHero ? { padding: "11px 18px", fontSize: 12 } : undefined}>
                 {getHeroActionLabel(currentHeroSlide.primaryAction)}
               </button>
-              <button className="landing-btn-outline" onClick={() => runHeroAction(currentHeroSlide.secondaryAction)}>
+              <button className="landing-btn-outline" onClick={() => runHeroAction(currentHeroSlide.secondaryAction)} style={compactHero ? { padding: "10px 16px", fontSize: 12 } : undefined}>
                 {getHeroActionLabel(currentHeroSlide.secondaryAction)}
               </button>
             </div>
 
-            <div className="home-hero-metrics" style={{ maxWidth: 620 }}>
+            <div className="home-hero-metrics" style={{ maxWidth: compactHero ? "100%" : 620 }}>
               {[
                 { label: t("totalStudents"), value: Number(stats.totalStudents || 0).toLocaleString() },
                 { label: t("activeClasses"), value: String(stats.totalClasses || 0) },
-                { label: t("latestExam"), value: stats.latestYear || t("currentYear") },
+                { label: t("latestExam"), value: shortExamLabel },
               ].map((metric) => (
                 <div key={metric.label} className="home-hero-metric">
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: compactHero ? 6 : 8 }}>
                     <div
                       style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 12,
+                        width: compactHero ? 24 : 34,
+                        height: compactHero ? 24 : 34,
+                        borderRadius: compactHero ? 8 : 12,
                         background: "rgba(255,255,255,0.10)",
                         border: "1px solid rgba(255,255,255,0.12)",
                         display: "flex",
@@ -726,15 +733,15 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                               : "exam"
                         }
                         label={metric.label}
-                        size={16}
+                        size={compactHero ? 12 : 16}
                         color="#ffffff"
                       />
                     </div>
-                    <div style={{ fontSize: isMobile ? 12 : 11, fontWeight: 700, color: "rgba(255,255,255,0.74)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    <div style={{ fontSize: compactHero ? 9 : isMobile ? 12 : 11, fontWeight: 700, color: "rgba(255,255,255,0.74)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                       {metric.label}
                     </div>
                   </div>
-                  <div style={{ fontSize: isMobile ? 23 : 28, fontWeight: 800, color: "#fff", marginTop: 6 }}>
+                  <div style={{ fontSize: compactHero ? 18 : isMobile ? 23 : 28, fontWeight: 800, color: "#fff", marginTop: compactHero ? 4 : 6, lineHeight: compactHero ? 1.08 : 1.15 }}>
                     {metric.value}
                   </div>
                 </div>
@@ -742,52 +749,70 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             </div>
           </div>
 
-          <div className="home-hero-panel" style={{ borderRadius: 24, padding: isMobile ? "18px 16px" : "22px 20px", width: "100%" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#0a3d2b" }}>{t("latestExam")}: {latestExamLabel}</div>
-              <span style={{ fontSize: isMobile ? 12 : 11, color: "#64748b" }}>{stats.latestYear || t("currentYear")}</span>
+          <div className="home-hero-panel" style={{ borderRadius: compactHero ? 20 : 24, padding: compactHero ? "12px 12px" : "22px 20px", width: "100%", alignSelf: "start" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: compactHero ? 10 : 16, gap: 8 }}>
+              <div style={{ fontSize: compactHero ? 10 : 13, fontWeight: 700, color: "#0a3d2b", lineHeight: 1.3 }}>{latestExamLabel}</div>
+              <span style={{ fontSize: compactHero ? 10 : isMobile ? 12 : 11, color: "#64748b", flexShrink: 0 }}>{stats.latestYear || t("currentYear")}</span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-              <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ fontSize: isMobile ? 12 : 11, color: "#64748b", marginBottom: 4 }}>{t("totalStudents")}</div>
+            <div style={{ display: "grid", gridTemplateColumns: compactHero ? "1fr" : "1fr 1fr", gap: compactHero ? 8 : 12, marginBottom: compactHero ? 10 : 16 }}>
+              <div style={{ background: "#f0fdf4", borderRadius: 12, padding: compactHero ? "10px 10px" : "12px 14px" }}>
+                <div style={{ fontSize: compactHero ? 10 : isMobile ? 12 : 11, color: "#64748b", marginBottom: 4 }}>{t("totalStudents")}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: "#0a3d2b" }}>{Number(stats.totalStudents || 0).toLocaleString()}</span>
+                  <span style={{ fontSize: compactHero ? 18 : 22, fontWeight: 800, color: "#0a3d2b" }}>{Number(stats.totalStudents || 0).toLocaleString()}</span>
                 </div>
               </div>
-              <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ fontSize: isMobile ? 12 : 11, color: "#64748b", marginBottom: 4 }}>{t("activeClasses")}</div>
+              <div style={{ background: "#f0fdf4", borderRadius: 12, padding: compactHero ? "10px 10px" : "12px 14px" }}>
+                <div style={{ fontSize: compactHero ? 10 : isMobile ? 12 : 11, color: "#64748b", marginBottom: 4 }}>{t("activeClasses")}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: "#059669" }}>{stats.totalClasses || 0}</span>
+                  <span style={{ fontSize: compactHero ? 18 : 22, fontWeight: 800, color: "#059669" }}>{stats.totalClasses || 0}</span>
                 </div>
               </div>
             </div>
 
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: isMobile ? 12 : 11, fontWeight: 700, color: "#475569", marginBottom: 10 }}>{t("studentsByForm")}</div>
-              <MiniBarChart bars={chartBars} />
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div style={{ background: stats.publishedClasses > 0 ? "#fffbeb" : "#eefbf3", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: isMobile ? 11 : 10, color: stats.publishedClasses > 0 ? "#92400e" : "#166534", fontWeight: 600, marginBottom: 3 }}>
+            {compactHero ? (
+              <div style={{ background: "#eefbf3", borderRadius: 12, padding: "10px 10px" }}>
+                <div style={{ fontSize: 10, color: "#166534", fontWeight: 700, marginBottom: 3 }}>
                   {stats.publishedClasses > 0 ? t("publishedClassesLabel") : t("activeForms")}
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#1a2040" }}>
                   {stats.publishedClasses > 0 ? stats.publishedClasses || 0 : stats.activeForms || 0}
                 </div>
-                <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>
+                <div style={{ fontSize: 9, color: "#64748b", lineHeight: 1.4 }}>
                   {stats.publishedClasses > 0
                     ? formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)
                     : formatCount(stats.totalStudents, "indexed student", "wanafunzi waliopo", language)}
                 </div>
               </div>
-              <div style={{ background: "#ecfdf5", borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ fontSize: isMobile ? 11 : 10, color: "#065f46", fontWeight: 600, marginBottom: 3 }}>{t("averageClassSizeLabel")}</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#0a3d2b" }}>{stats.averageClassSize || 0}</div>
-                <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>{formatCount(stats.monthlyExamCount, "monthly exam", "mitihani ya kila mwezi", language)}</div>
-              </div>
-            </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: isMobile ? 12 : 11, fontWeight: 700, color: "#475569", marginBottom: 10 }}>{t("studentsByForm")}</div>
+                  <MiniBarChart bars={chartBars} />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div style={{ background: stats.publishedClasses > 0 ? "#fffbeb" : "#eefbf3", borderRadius: 12, padding: "10px 12px" }}>
+                    <div style={{ fontSize: isMobile ? 11 : 10, color: stats.publishedClasses > 0 ? "#92400e" : "#166534", fontWeight: 600, marginBottom: 3 }}>
+                      {stats.publishedClasses > 0 ? t("publishedClassesLabel") : t("activeForms")}
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>
+                      {stats.publishedClasses > 0 ? stats.publishedClasses || 0 : stats.activeForms || 0}
+                    </div>
+                    <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>
+                      {stats.publishedClasses > 0
+                        ? formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)
+                        : formatCount(stats.totalStudents, "indexed student", "wanafunzi waliopo", language)}
+                    </div>
+                  </div>
+                  <div style={{ background: "#ecfdf5", borderRadius: 12, padding: "10px 12px" }}>
+                    <div style={{ fontSize: isMobile ? 11 : 10, color: "#065f46", fontWeight: 600, marginBottom: 3 }}>{t("averageClassSizeLabel")}</div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: "#0a3d2b" }}>{stats.averageClassSize || 0}</div>
+                    <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>{formatCount(stats.monthlyExamCount, "monthly exam", "mitihani ya kila mwezi", language)}</div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
