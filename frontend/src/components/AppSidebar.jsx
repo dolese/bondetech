@@ -203,15 +203,15 @@ function buildNavSections(navItems, accountLabel, accountSubtitle, t) {
   const sectionOrder = [
     {
       title: t("academicsSection"),
-      items: ["students", "student-management", "forms-streams", "subjects", "exams", "teachers", "results", "timetable"],
+      items: ["students", "student-management", "forms-streams", "subjects", "exams", "teachers", "timetable"],
+    },
+    {
+      title: t("resultsSection", "Results"),
+      items: ["results", "reports"],
     },
     {
       title: t("communicationSection"),
       items: ["parents", "sms", "ai-assistant"],
-    },
-    {
-      title: t("reportsSection"),
-      items: ["reports"],
     },
     {
       title: t("systemSection"),

@@ -351,9 +351,9 @@ export default function App() {
 
   const classNavItems = [
     { key: "students", icon: "S", label: "Marks Entry", requiresClass: true },
-    { key: "results", icon: "R", label: t("results"), requiresClass: true },
+    { key: "results", icon: "R", label: t("resultSheets", "Result Sheets"), requiresClass: true },
     { key: "timetable", icon: "T", label: t("timetable", "Timetable"), requiresClass: true },
-    { key: "reports", icon: "P", label: t("reports"), requiresClass: true },
+    { key: "reports", icon: "P", label: t("reportCards", "Report Cards"), requiresClass: true },
     { key: "settings", icon: "C", label: t("settings"), requiresClass: true },
   ];
 

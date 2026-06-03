@@ -831,7 +831,7 @@ export function ReportsPage({
         >
           <div>
             <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex", marginBottom: 8 }}>
-              Class Reports
+              {t("reportCards", "Report Cards")}
             </div>
             <h3
               style={{
@@ -841,7 +841,7 @@ export function ReportsPage({
                 color: "#102a43",
               }}
             >
-              {t("reportsCenterTitle", "Report Center")}
+              {t("reportsCenterTitle", "Report Card Center")}
             </h3>
             <div style={{ fontSize: 13, color: "#607086", lineHeight: 1.7 }}>
               {schoolInfo.name} | {getClassLabel(classData)} |{" "}

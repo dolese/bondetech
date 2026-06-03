@@ -59,7 +59,7 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
 
   const tabs = [
     { key: "analysis", label: t("resultsTabAnalysis", "Analysis"), icon: <ChartIcon /> },
-    { key: "sheet", label: t("resultsTabSheet", "Sheet"), icon: <SheetIcon /> },
+    { key: "sheet", label: t("resultsTabSheet", "Result Sheet"), icon: <SheetIcon /> },
   ];
 
   return (
@@ -93,9 +93,9 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
             flexWrap: "wrap",
           }}
         >
-          <div>
+            <div>
             <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>
-              Results Workspace
+              {t("resultSheets", "Result Sheets")}
             </div>
             <div
               style={{
@@ -108,7 +108,7 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
               {classData.form} {classData.year}
             </div>
             <div style={{ marginTop: 4, fontSize: 13, color: "#607086" }}>
-              View analysis and the official result sheet from one class workspace.
+              View class analysis and official result sheets from one class workspace.
             </div>
           </div>
           <div
