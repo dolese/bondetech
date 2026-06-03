@@ -4,6 +4,27 @@
 
 import { GRADE_POINTS } from "./constants";
 
+function normalizeSubjectKey(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+function isCompositeExcludedSubject(subjectName, excludedSubjects) {
+  const subjectKey = normalizeSubjectKey(subjectName);
+  if (!subjectKey) return false;
+  return excludedSubjects.some((entry) => {
+    const excludedKey = normalizeSubjectKey(entry);
+    return (
+      excludedKey &&
+      (subjectKey === excludedKey ||
+        subjectKey.startsWith(excludedKey) ||
+        excludedKey.startsWith(subjectKey))
+    );
+  });
+}
+
 // Convert raw score to grade letter
 export const getGrade = (score) => {
   if (score === "" || score === null || score === undefined) {
@@ -55,8 +76,13 @@ export const getGradeDescription = (grade) => {
 // grade.raw always holds the current exam's raw value; grade.partnerRaw holds the partner's.
 export const computeStudent = (student, subjects = []) => {
   const rawPartner = student.partnerScores; // undefined when not in composite mode
+  const excludedCompositeSubjects = Array.isArray(student.compositeExcludedSubjects)
+    ? student.compositeExcludedSubjects
+    : [];
 
   const grades = (student.scores || []).map((sc, i) => {
+    const subjectName = String(subjects[i] ?? `Subject ${i + 1}`).trim();
+    const compositeExcluded = isCompositeExcludedSubject(subjectName, excludedCompositeSubjects);
     const raw = typeof sc === "string" ? sc.trim() : sc;
     const isAbsent = typeof raw === "string" && raw.toUpperCase() === "ABS";
     const current = isAbsent || raw === "" || raw === null || raw === undefined ? null : Number(raw);
@@ -74,7 +100,9 @@ export const computeStudent = (student, subjects = []) => {
       const partnerScore = Number.isFinite(pNum) ? pNum : null;
       partnerRaw = pIsAbsent ? "ABS" : partnerScore;
 
-      if (currentScore !== null || partnerScore !== null) {
+      if (compositeExcluded) {
+        effectiveScore = currentScore ?? partnerScore;
+      } else if (currentScore !== null || partnerScore !== null) {
         // Composite mode always averages over two sittings.
         effectiveScore = ((currentScore ?? 0) + (partnerScore ?? 0)) / 2;
       } else {
@@ -89,7 +117,7 @@ export const computeStudent = (student, subjects = []) => {
       score: Number.isFinite(effectiveScore) ? effectiveScore : null,
       grade: getGrade(effectiveScore),
       raw: isAbsent ? "ABS" : currentScore,
-      ...(rawPartner !== undefined ? { partnerRaw } : {}),
+      ...(rawPartner !== undefined ? { partnerRaw, compositeExcluded } : {}),
     };
   });
 

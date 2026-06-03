@@ -352,6 +352,31 @@ export function SettingsPage({
     setUpdatingComposite(false);
   };
 
+  const toggleCompositeExcludedSubject = (examKey, subject) => {
+    const normalizedSubject = cleanSubject(subject);
+    if (!normalizedSubject) return;
+    setCompositeConfig((prev) => {
+      const currentEntry = prev[examKey] ?? {};
+      const currentExcluded = Array.isArray(currentEntry.excludedSubjects)
+        ? currentEntry.excludedSubjects
+        : [];
+      const nextExcluded = currentExcluded.includes(normalizedSubject)
+        ? currentExcluded.filter((entry) => entry !== normalizedSubject)
+        : [...currentExcluded, normalizedSubject];
+      return {
+        ...prev,
+        [examKey]: {
+          ...currentEntry,
+          partnerExam:
+            currentEntry.partnerExam ??
+            COMPOSITE_EXAM_CONFIG[examKey]?.partnerExam ??
+            "",
+          excludedSubjects: nextExcluded,
+        },
+      };
+    });
+  };
+
   const compositeExamKeys = Object.keys(COMPOSITE_EXAM_CONFIG);
 
   const styles = {
@@ -1283,68 +1308,127 @@ export function SettingsPage({
           const defaultPartner = COMPOSITE_EXAM_CONFIG[examKey].partnerExam;
           const currentPartner =
             compositeConfig[examKey]?.partnerExam ?? defaultPartner;
+          const currentExcluded =
+            compositeConfig[examKey]?.excludedSubjects ??
+            COMPOSITE_EXAM_CONFIG[examKey]?.excludedSubjects ??
+            [];
           return (
             <div
               key={examKey}
               style={{
-                display: "flex",
-                alignItems: "center",
+                display: "grid",
                 gap: 10,
-                flexWrap: "wrap",
+                padding: "12px 14px",
+                border: "1px solid #dbe6fb",
+                borderRadius: 12,
+                background: "#fbfdff",
               }}
             >
-              <span
+              <div
                 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "#003366",
-                  minWidth: 120,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  flexWrap: "wrap",
                 }}
               >
-                {examKey}
-              </span>
-              <span style={{ fontSize: 11, color: "#667" }}>
-                {t("settingsPartner", "partner")}:
-              </span>
-              <select
-                value={currentPartner}
-                onChange={(e) =>
-                  setCompositeConfig((prev) => ({
-                    ...prev,
-                    [examKey]: {
-                      ...(prev[examKey] ?? {}),
-                      partnerExam: e.target.value,
-                    },
-                  }))
-                }
-                style={styles.select}
-              >
-                {EXAM_TYPES.map((et) => (
-                  <option key={et.value} value={et.value}>
-                    {et.label}
-                  </option>
-                ))}
-              </select>
-              {currentPartner !== defaultPartner && (
-                <button
+                <span
                   style={{
-                    ...styles.saveBtn,
-                    background: "#667",
-                    fontSize: 10,
-                    padding: "4px 8px",
-                    height: "auto",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#003366",
+                    minWidth: 120,
                   }}
-                  onClick={() =>
-                    setCompositeConfig((prev) => {
-                      const next = { ...prev };
-                      delete next[examKey];
-                      return next;
-                    })
-                  }
                 >
-                  {t("settingsReset", "Reset")}
-                </button>
-              )}
+                  {examKey}
+                </span>
+                <span style={{ fontSize: 11, color: "#667" }}>
+                  {t("settingsPartner", "partner")}:
+                </span>
+                <select
+                  value={currentPartner}
+                  onChange={(e) =>
+                    setCompositeConfig((prev) => ({
+                      ...prev,
+                      [examKey]: {
+                        ...(prev[examKey] ?? {}),
+                        partnerExam: e.target.value,
+                      },
+                    }))
+                  }
+                  style={styles.select}
+                >
+                  {EXAM_TYPES.map((et) => (
+                    <option key={et.value} value={et.value}>
+                      {et.label}
+                    </option>
+                  ))}
+                </select>
+                {currentPartner !== defaultPartner && (
+                  <button
+                    style={{
+                      ...styles.saveBtn,
+                      background: "#667",
+                      fontSize: 10,
+                      padding: "4px 8px",
+                      height: "auto",
+                    }}
+                    onClick={() =>
+                      setCompositeConfig((prev) => {
+                        const next = { ...prev };
+                        delete next[examKey];
+                        return next;
+                      })
+                    }
+                  >
+                    {t("settingsReset", "Reset")}
+                  </button>
+                )}
+              </div>
+              <div style={{ display: "grid", gap: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#003366" }}>
+                  Subjects excluded from divide-by-2
+                </div>
+                <div style={{ fontSize: 10, color: "#667" }}>
+                  Use this for new subjects like AGR that were not offered in the partner exam.
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 10,
+                  }}
+                >
+                  {subjects.map((subject) => {
+                    const checked = currentExcluded.includes(subject);
+                    return (
+                      <label
+                        key={`${examKey}-${subject}`}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "6px 10px",
+                          borderRadius: 999,
+                          border: checked ? "1px solid #0b6b3a" : "1px solid #dbe6fb",
+                          background: checked ? "#eaf7ef" : "#fff",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: checked ? "#0b6b3a" : "#334155",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleCompositeExcludedSubject(examKey, subject)}
+                        />
+                        <span>{subject}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           );
         })}

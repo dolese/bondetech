@@ -261,7 +261,12 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
         const scores = resolveExamScores(student, examType);
         if (compositeEntry) {
           const partnerScores = resolveExamScores(student, compositeEntry.partnerExam);
-          return { ...student, scores, partnerScores };
+          return {
+            ...student,
+            scores,
+            partnerScores,
+            compositeExcludedSubjects: compositeEntry.excludedSubjects ?? [],
+          };
         }
         return { ...student, scores };
       });
@@ -279,7 +284,12 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
       const scores = resolveExamScores(student, activeExam);
       if (compositeEntry) {
         const partnerScores = resolveExamScores(student, compositeEntry.partnerExam);
-        return { ...student, scores, partnerScores };
+        return {
+          ...student,
+          scores,
+          partnerScores,
+          compositeExcludedSubjects: compositeEntry.excludedSubjects ?? [],
+        };
       }
       return { ...student, scores };
     });

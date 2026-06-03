@@ -140,14 +140,17 @@ export const COMPOSITE_EXAM_CONFIG = {
   "Terminal Exam": {
     partnerExam: "March Exam",
     label: "March + Terminal",
+    excludedSubjects: ["AGR"],
   },
   "September Exam": {
     partnerExam: "Pre-Mock Exam",
     label: "Pre-Mock + September",
+    excludedSubjects: [],
   },
   "Annual Exam": {
     partnerExam: "September Exam",
     label: "September + Annual",
+    excludedSubjects: [],
   },
 };
 
