@@ -74,6 +74,42 @@ function renderDottedLines(count) {
   ));
 }
 
+function renderInstructionContent(instruction) {
+  const blocks = String(instruction || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (!blocks.length) return renderDottedLines(4);
+
+  return (
+    <div style={{ display: "grid", gap: 6, lineHeight: 1.55 }}>
+      {blocks.map((line, index) => {
+        const isBullet = /^(\d+[\.\)]|[-*•])\s+/.test(line);
+        return (
+          <div
+            key={`instruction-line-${index}`}
+            style={{
+              display: isBullet ? "grid" : "block",
+              gridTemplateColumns: isBullet ? "16px 1fr" : undefined,
+              gap: isBullet ? 6 : undefined,
+            }}
+          >
+            {isBullet ? (
+              <>
+                <span style={{ fontWeight: 800, color: "#163f97" }}>•</span>
+                <span>{line.replace(/^(\d+[\.\)]|[-*•])\s+/, "")}</span>
+              </>
+            ) : (
+              <span>{line}</span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function buildSummarySentence(student, totalStudents) {
   const position = student?.posn ?? "-";
   const total = totalStudents || "-";
@@ -469,14 +505,15 @@ export function ReportCardPrint({
       lineHeight: 1.35,
     },
     remarksSection: {
-      marginTop: 5,
+      marginTop: 6,
+      display: "grid",
+      gap: 7,
     },
     remarkRow: {
       display: "grid",
       gridTemplateColumns: isCompact ? "116px 1fr 70px 90px" : "145px 1fr 82px 110px",
       gap: 10,
       alignItems: "start",
-      marginBottom: 5,
       fontSize: isCompact ? 9.5 : 10.5,
     },
     remarkLabel: {
@@ -503,14 +540,20 @@ export function ReportCardPrint({
       gridTemplateColumns: isCompact ? "116px 1fr" : "145px 1fr",
       gap: 10,
       alignItems: "start",
-      marginTop: 4,
       fontSize: isCompact ? 9.5 : 10.5,
+    },
+    instructionBox: {
+      minHeight: isCompact ? 74 : 90,
+      border: "1px solid #cbd5e1",
+      borderRadius: 8,
+      padding: isCompact ? "8px 10px" : "10px 12px",
+      background: "#fbfdff",
+      boxSizing: "border-box",
     },
     phoneGrid: {
       display: "grid",
       gridTemplateColumns: isCompact ? "1fr" : "1fr 1fr",
       gap: 10,
-      marginTop: 5,
       fontSize: isCompact ? 9.5 : 10.5,
     },
     phoneItem: {
@@ -739,12 +782,8 @@ export function ReportCardPrint({
 
         <div style={styles.instructionRow}>
           <div style={styles.remarkLabel}>Maagizo:</div>
-          <div style={styles.remarkText}>
-            {reportInstruction ? (
-              <div style={{ lineHeight: 1.5 }}>{reportInstruction}</div>
-            ) : (
-              renderDottedLines(4)
-            )}
+          <div style={styles.instructionBox}>
+            {renderInstructionContent(reportInstruction)}
           </div>
         </div>
 

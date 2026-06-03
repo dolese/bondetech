@@ -81,6 +81,13 @@ function normalizeAdmissionDraft(value) {
   return raw;
 }
 
+function countInstructionWords(value) {
+  return String(value || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
 export function EntryPanel({
   classId,
   classData,
@@ -174,6 +181,8 @@ export function EntryPanel({
   const { isMobile, isTablet } = useViewport();
   const compactLayout = isMobile || isTablet;
   const editingLocked = Boolean(resultsLocked);
+  const instructionText = String(schoolInfo.reportInstruction ?? "");
+  const instructionWordCount = countInstructionWords(instructionText);
 
   useEffect(() => {
     setClassYear(classData.year ?? "");
@@ -661,29 +670,60 @@ export function EntryPanel({
       gap: 10,
     },
     instructionPanel: {
-      background: "#fff",
-      border: "1px solid #d0dcf8",
-      borderRadius: 8,
-      padding: compactLayout ? 10 : 12,
+      background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
+      border: "1px solid #cfe0ff",
+      borderRadius: 14,
+      padding: compactLayout ? 12 : 14,
       display: "grid",
+      gap: 10,
+      boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
+    },
+    instructionMeta: {
+      display: "flex",
       gap: 8,
+      flexWrap: "wrap",
+      alignItems: "center",
+    },
+    instructionChip: {
+      display: "inline-flex",
+      alignItems: "center",
+      padding: "4px 10px",
+      borderRadius: 999,
+      border: "1px solid #d8e4ff",
+      background: "#eef4ff",
+      color: "#26437a",
+      fontSize: 10,
+      fontWeight: 800,
+      letterSpacing: 0.3,
+    },
+    instructionHelper: {
+      display: "grid",
+      gap: 4,
+      padding: "10px 12px",
+      borderRadius: 10,
+      border: "1px solid #dbe7ff",
+      background: "#f8fbff",
+      color: "#52627a",
+      fontSize: 11,
+      lineHeight: 1.45,
     },
     instructionTextarea: {
       width: "100%",
-      minHeight: compactLayout ? 74 : 82,
+      minHeight: compactLayout ? 128 : 142,
       resize: "vertical",
-      padding: "8px 10px",
-      borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      padding: "12px 14px",
+      borderRadius: 12,
+      border: "1px solid #c7d7f5",
       fontSize: 12,
-      lineHeight: 1.5,
+      lineHeight: 1.7,
       boxSizing: "border-box",
       fontFamily: "inherit",
-      background: "#fbfcff",
+      background: "#ffffff",
+      color: "#0f172a",
     },
     instructionSaveBtn: {
-      padding: "7px 12px",
-      borderRadius: 6,
+      padding: "8px 14px",
+      borderRadius: 10,
       border: "none",
       background: "#0b6b3a",
       color: "#fff",
@@ -988,7 +1028,7 @@ export function EntryPanel({
         <div style={styles.instructionPanel}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#003366" }}>
                 Maagizo ya Ripoti ya Mwanafunzi
               </div>
               <div style={{ fontSize: 11, color: "#667", marginTop: 2 }}>
@@ -1010,14 +1050,23 @@ export function EntryPanel({
               {savingInstruction ? "Saving..." : !onUpdateSchool ? "Read Only" : "Save Maagizo"}
             </button>
           </div>
+          <div style={styles.instructionMeta}>
+            <span style={styles.instructionChip}>{instructionWordCount} words</span>
+            <span style={styles.instructionChip}>Printed in section E</span>
+            <span style={styles.instructionChip}>Line breaks preserved</span>
+          </div>
+          <div style={styles.instructionHelper}>
+            <div>Write clear school instructions, return dates, fee reminders, or preparation notes.</div>
+            <div>Use short paragraphs or one instruction per line for better spacing on the report card.</div>
+          </div>
           <textarea
-            value={schoolInfo.reportInstruction ?? ""}
+            value={instructionText}
             onChange={(e) => {
               setSchoolInfo({ ...schoolInfo, reportInstruction: e.target.value });
               setInstructionNotice("");
               setInstructionNoticeType("success");
             }}
-            placeholder="Andika maagizo ya jumla yatakayoonekana kwenye report card za darasa hili..."
+            placeholder={"Andika maagizo ya jumla yatakayoonekana kwenye report card za darasa hili...\nMfano:\n1. Shule itafunguliwa tarehe 10/06/2026.\n2. Mwanafunzi aje na sare kamili na vifaa vya masomo."}
             style={styles.instructionTextarea}
           />
           {instructionNotice && (
