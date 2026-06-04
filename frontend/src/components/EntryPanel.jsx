@@ -569,15 +569,16 @@ export function EntryPanel({
   ];
 
   const gradeBadgeStyle = (grade) => ({
-    fontWeight: 700,
-    fontSize: 9,
+    fontWeight: 800,
+    fontSize: 10,
     color: grade ? GRADE_COLORS[grade] : "#aaa",
     background: grade ? GRADE_BACKGROUNDS[grade] : "#f0f0f0",
-    padding: "1px 3px",
-    borderRadius: 3,
-    border: grade ? `1px solid ${GRADE_COLORS[grade]}` : "1px solid #ddd",
-    minWidth: 16,
+    padding: "1px 6px",
+    borderRadius: 999,
+    border: grade ? `1px solid ${GRADE_BACKGROUNDS[grade]}` : "1px solid #ddd",
+    minWidth: 18,
     textAlign: "center",
+    display: "inline-block",
   });
 
   const styles = {
@@ -906,7 +907,6 @@ export function EntryPanel({
           }}
         >
           <div style={{ minWidth: 0 }}>
-            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800, display: "none" }}>Marks Entry</h3>
             <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "#64748b" }}>
               Class Workspace
             </div>
@@ -928,10 +928,9 @@ export function EntryPanel({
             }}
           >
             <div
-              style={{ ...styles.infoBadge, fontSize: 0 }}
+              style={styles.infoBadge}
               title="Safe import updates existing students by CNO and adds only new rows. Existing CNO values remain unchanged unless an administrator uses the reorder action."
             >
-              <span style={{ fontSize: 11 }}>Safe Import</span>
               Safe Import
             </div>
             <button
@@ -1628,7 +1627,7 @@ export function EntryPanel({
             fontSize: 12,
           }}
         >
-          No students yet. Use "Import CSV" or click "New" to add the first student.
+          No students yet. Use "Import CSV" or click "Add Student" to add the first student.
         </div>
       )}
 
@@ -1921,124 +1920,45 @@ export function EntryPanel({
         >
           <thead>
             <tr style={styles.stickyTh}>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "left",
-                  fontWeight: 700,
-                    border: "1px solid #224488",
-                }}
-              >
-                CNO
-              </th>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "left",
-                  fontWeight: 700,
-                    border: "1px solid #224488",
-                }}
-              >
-                Name
-              </th>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "center",
-                  fontWeight: 700,
-                  border: "1px solid #224488",
-                }}
-              >
-                Sex
-              </th>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "center",
-                  fontWeight: 700,
-                  border: "1px solid #224488",
-                }}
-              >
-                Status
-              </th>
-              {/* Subject Score Headers */}
+              {[
+                { label: "CNO", align: "left" },
+                { label: "Name", align: "left", minWidth: 120 },
+                { label: "Sex", align: "center" },
+                { label: "Status", align: "center", minWidth: 80 },
+              ].map(({ label, align, minWidth }) => (
+                <th key={label} style={{ padding: "7px 8px", textAlign: align, fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: 0.3, minWidth }}>
+                  {label}
+                </th>
+              ))}
               {subjects.map((subj, i) => (
                 <th
                   key={i}
                   style={{
-                    padding: "5px 4px",
+                    padding: "7px 4px",
                     textAlign: "center",
                     fontWeight: 700,
-                    fontSize: 9,
-                    border: "1px solid #224488",
-                    maxWidth: 40,
+                    fontSize: 10,
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    maxWidth: 48,
+                    letterSpacing: 0.2,
                   }}
                   title={subj}
                 >
-                  {subj.slice(0, 3)}{subjectMetadata[i]?.type === "optional" ? "*" : ""}
+                  {subj.slice(0, 4)}{subjectMetadata[i]?.type === "optional" ? "*" : ""}
                 </th>
               ))}
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "center",
-                  fontWeight: 700,
-                  border: "1px solid #224488",
-                }}
-              >
-                Total
-              </th>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "center",
-                  fontWeight: 700,
-                  border: "1px solid #224488",
-                }}
-              >
-                Avg
-              </th>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "center",
-                  fontWeight: 700,
-                  border: "1px solid #224488",
-                }}
-              >
-                Grade
-              </th>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "center",
-                  fontWeight: 700,
-                  border: "1px solid #224488",
-                }}
-              >
-                Div
-              </th>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "left",
-                  fontWeight: 700,
-                  border: "1px solid #224488",
-                  minWidth: 80,
-                }}
-              >
-                Remarks
-              </th>
-              <th
-                style={{
-                  padding: "5px 6px",
-                  textAlign: "center",
-                  fontWeight: 700,
-                  border: "1px solid #224488",
-                }}
-              >
-                Action
-              </th>
+              {[
+                { label: "Total" },
+                { label: "Avg" },
+                { label: "Grade" },
+                { label: "Div" },
+                { label: "Remarks", align: "left", minWidth: 80 },
+                { label: "Action", minWidth: 100 },
+              ].map(({ label, align, minWidth }) => (
+                <th key={label} style={{ padding: "7px 8px", textAlign: align ?? "center", fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: 0.3, minWidth }}>
+                  {label}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -2053,23 +1973,30 @@ export function EntryPanel({
                       : i % 2 === 0
                       ? "#fff"
                       : "#f8fafc",
+                    height: 36,
                   }}
                 >
                   <td
                     style={{
-                      padding: "4px 6px",
+                      padding: "4px 8px",
                       textAlign: "center",
                       border: "1px solid #d2def5",
                       fontWeight: 700,
+                      fontSize: 11,
+                      fontFamily: "monospace",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {s.index_no}
                   </td>
                   <td
                     style={{
-                      padding: "4px 6px",
+                      padding: "4px 8px",
                       textAlign: "left",
                       border: "1px solid #d2def5",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: "#1a2e4a",
                     }}
                   >
                     {s.name}
@@ -2081,7 +2008,15 @@ export function EntryPanel({
                       border: "1px solid #d2def5",
                     }}
                   >
-                    {s.sex}
+                    <span style={{
+                      display: "inline-block",
+                      padding: "1px 7px",
+                      borderRadius: 999,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      background: s.sex === "F" ? "#fce8f7" : "#e4eeff",
+                      color: s.sex === "F" ? "#6b0055" : "#0b4f9e",
+                    }}>{s.sex === "F" ? "F" : "M"}</span>
                   </td>
                   <td
                     style={{
@@ -2090,7 +2025,17 @@ export function EntryPanel({
                       border: "1px solid #d2def5",
                     }}
                   >
-                    {s.status}
+                    <span style={{
+                      display: "inline-block",
+                      padding: "2px 8px",
+                      borderRadius: 999,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      background: s.status === "absent" ? "#fff0f0" : s.status === "incomplete" ? "#fff8e0" : "#e8f8ee",
+                      color: s.status === "absent" ? "#8b2500" : s.status === "incomplete" ? "#7a5800" : "#0b6b3a",
+                    }}>
+                      {s.status === "absent" ? "Absent" : s.status === "incomplete" ? "Incomplete" : "Present"}
+                    </span>
                   </td>
 
                   {/* Score inputs */}
@@ -2139,11 +2084,12 @@ export function EntryPanel({
                                 setEditData({ ...editData, grades: newGrades });
                               }}
                               style={{
-                                width: 36,
-                                padding: "2px 3px",
+                                width: 40,
+                                padding: "2px 4px",
                                 borderRadius: 3,
-                                border: "1px solid #d0dcf8",
-                                fontSize: 10,
+                                border: "1px solid #b8cdf5",
+                                fontSize: 11,
+                                textAlign: "center",
                               }}
                             />
                             <span style={gradeBadgeStyle(editGrade)}>
@@ -2152,7 +2098,7 @@ export function EntryPanel({
                           </div>
                         ) : (
                           <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
-                            <span style={{ fontWeight: 600, fontSize: 10 }}>{score}</span>
+                            <span style={{ fontWeight: 600, fontSize: 11 }}>{score}</span>
                             {viewGrade && (
                               <span style={gradeBadgeStyle(viewGrade)}>
                                 {viewGrade}
@@ -2170,6 +2116,7 @@ export function EntryPanel({
                       textAlign: "center",
                       border: "1px solid #d2def5",
                       fontWeight: 700,
+                      fontSize: 11,
                     }}
                   >
                     {s.total ?? "–"}
@@ -2179,6 +2126,7 @@ export function EntryPanel({
                       padding: "4px 6px",
                       textAlign: "center",
                       border: "1px solid #d2def5",
+                      fontSize: 11,
                     }}
                   >
                     {s.avg ?? "–"}
@@ -2188,22 +2136,40 @@ export function EntryPanel({
                       padding: "4px 6px",
                       textAlign: "center",
                       border: "1px solid #d2def5",
-                      fontWeight: 700,
-                      color: GRADE_COLORS[s.agrd],
                     }}
                   >
-                    {s.agrd ?? "–"}
+                    {s.agrd ? (
+                      <span style={{
+                        display: "inline-block",
+                        padding: "1px 8px",
+                        borderRadius: 999,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        background: GRADE_BACKGROUNDS[s.agrd],
+                        color: GRADE_COLORS[s.agrd],
+                      }}>{s.agrd}</span>
+                    ) : <span style={{ color: "#bbb", fontSize: 11 }}>–</span>}
                   </td>
                   <td
                     style={{
                       padding: "4px 6px",
                       textAlign: "center",
                       border: "1px solid #d2def5",
-                      fontWeight: 700,
-                      color: DIVISION_COLORS[s.div],
                     }}
                   >
-                    {s.div ?? "–"}
+                    {s.div && s.div !== "0" ? (
+                      <span style={{
+                        display: "inline-block",
+                        padding: "1px 8px",
+                        borderRadius: 999,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        background: "#e4eeff",
+                        color: DIVISION_COLORS[s.div],
+                      }}>Div {s.div}</span>
+                    ) : s.div === "0" ? (
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#999" }}>Div 0</span>
+                    ) : <span style={{ color: "#bbb", fontSize: 11 }}>–</span>}
                   </td>
                   <td
                     style={{
@@ -2225,8 +2191,8 @@ export function EntryPanel({
                           width: "100%",
                           padding: "3px 4px",
                           borderRadius: 3,
-                          border: "1px solid #d0dcf8",
-                          fontSize: 10,
+                          border: "1px solid #b8cdf5",
+                          fontSize: 11,
                           boxSizing: "border-box",
                         }}
                       />
@@ -2239,7 +2205,7 @@ export function EntryPanel({
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
                           maxWidth: isMobile ? 140 : 200,
-                          fontSize: 10,
+                          fontSize: 11,
                           color: s.remarks ? "#333" : "#bbb",
                         }}
                       >
@@ -2298,32 +2264,34 @@ export function EntryPanel({
                           onClick={() => handleEdit(s)}
                           disabled={editingLocked}
                           style={{
-                            padding: "3px 6px",
+                            padding: "3px 8px",
                             background: editingLocked ? "#94a3b8" : "#0077aa",
                             color: "#fff",
                             border: "none",
-                            borderRadius: 3,
+                            borderRadius: 4,
                             cursor: editingLocked ? "not-allowed" : "pointer",
                             fontSize: 10,
                             fontWeight: 700,
+                            letterSpacing: 0.2,
                           }}
                         >
-                          ✎
+                          Edit
                         </button>
                         <button
                           onClick={() => onShowModal("report-card-export", s.id)}
                           style={{
-                            padding: "3px 6px",
+                            padding: "3px 8px",
                             background: "#003366",
                             color: "#fff",
                             border: "none",
-                            borderRadius: 3,
+                            borderRadius: 4,
                             cursor: "pointer",
                             fontSize: 10,
                             fontWeight: 700,
+                            letterSpacing: 0.2,
                           }}
                         >
-                          📥
+                          Card
                         </button>
                         <button
                           onClick={() => {
@@ -2333,18 +2301,19 @@ export function EntryPanel({
                           }}
                           disabled={editingLocked || !canDeleteStudents}
                           style={{
-                            padding: "3px 6px",
+                            padding: "3px 8px",
                             background: editingLocked ? "#94a3b8" : "#8b2500",
                             color: "#fff",
                             border: "none",
-                            borderRadius: 3,
+                            borderRadius: 4,
                             cursor: editingLocked || !canDeleteStudents ? "not-allowed" : "pointer",
                             fontSize: 10,
                             fontWeight: 700,
+                            letterSpacing: 0.2,
                             display: canDeleteStudents ? undefined : "none",
                           }}
                         >
-                          🗑
+                          Del
                         </button>
                       </div>
                     )}
