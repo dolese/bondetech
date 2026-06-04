@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  GRADE_COLORS,
   GRADE_BACKGROUNDS,
   DIVISION_COLORS,
   DEFAULT_SCHOOL,
@@ -25,6 +24,8 @@ const CONDUCT_FIELDS = [
   ["michezo", "MICHEZO"],
   ["ushirikiano", "USHIRIKIANO"],
 ];
+
+const GRADE_TEXT_COLOR = "#111827";
 
 // Return the appropriate display value for a grade cell in view mode.
 // In composite mode grade.raw holds the current-exam entry; fall back to grade.score.
@@ -575,11 +576,11 @@ export function EntryPanel({
   const gradeBadgeStyle = (grade) => ({
     fontWeight: 800,
     fontSize: 10,
-    color: grade ? GRADE_COLORS[grade] : "#aaa",
+    color: grade ? GRADE_TEXT_COLOR : "#6b7280",
     background: grade ? GRADE_BACKGROUNDS[grade] : "#f0f0f0",
     padding: "1px 6px",
     borderRadius: 999,
-    border: grade ? `1px solid ${GRADE_BACKGROUNDS[grade]}` : "1px solid #ddd",
+    border: grade ? "1px solid rgba(17, 24, 39, 0.08)" : "1px solid #ddd",
     minWidth: 18,
     textAlign: "center",
     display: "inline-block",
@@ -1921,7 +1922,12 @@ export function EntryPanel({
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 12px", fontSize: 11 }}>
                   <span>Total: <b style={{ color: "#003366" }}>{s.total ?? "—"}</b></span>
                   <span>Avg: <b>{s.avg ?? "—"}</b></span>
-                  {s.agrd && <span style={{ fontWeight: 700, color: GRADE_COLORS[s.agrd] }}>Grade: {s.agrd}</span>}
+                  {s.agrd && (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, color: "#334155" }}>
+                      Grade:
+                      <span style={gradeBadgeStyle(s.agrd)}>{s.agrd}</span>
+                    </span>
+                  )}
                   {s.div && <span style={{ fontWeight: 700, color: DIVISION_COLORS[s.div] }}>Div {s.div}</span>}
                   {s.posn && <span style={{ color: "#888" }}>#{s.posn}</span>}
                   {s.remarks && <span style={{ color: "#555", fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 160 }} title={s.remarks}>{s.remarks}</span>}
@@ -2169,7 +2175,8 @@ export function EntryPanel({
                         fontSize: 10,
                         fontWeight: 800,
                         background: GRADE_BACKGROUNDS[s.agrd],
-                        color: GRADE_COLORS[s.agrd],
+                        color: GRADE_TEXT_COLOR,
+                        border: "1px solid rgba(17, 24, 39, 0.08)",
                       }}>{s.agrd}</span>
                     ) : <span style={{ color: "#bbb", fontSize: 11 }}>–</span>}
                   </td>
