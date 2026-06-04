@@ -82,6 +82,13 @@ function normalizeAdmissionDraft(value) {
   return raw;
 }
 
+function normalizeStudentName(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
 function countInstructionWords(value) {
   return String(value || "")
     .trim()
@@ -108,6 +115,8 @@ export function EntryPanel({
   resultsLocked = false,
 }) {
   const subjects = classData.subjects ?? [];
+  const duplicateWarningMessage =
+    "Possible duplicate student found in this class. Review the existing record below, then save again if you still want to continue.";
   const subjectMetadata = normalizeSubjectMetadataList(classData);
   const currentClassLabel = [classData.form, classData.stream, classData.year]
     .map((value) => String(value || "").trim())
@@ -190,6 +199,7 @@ export function EntryPanel({
   const editingLocked = Boolean(resultsLocked);
   const instructionText = String(schoolInfo.reportInstruction ?? "");
   const instructionWordCount = countInstructionWords(instructionText);
+  const [duplicateSaveConfirmed, setDuplicateSaveConfirmed] = useState(false);
 
   useEffect(() => {
     setClassYear(classData.year ?? "");
@@ -238,6 +248,61 @@ export function EntryPanel({
     if (grade.score != null) return grade.score;
     return "";
   };
+
+  const pendingStudentName = [newStudent.firstName, newStudent.lastName]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .join(" ");
+
+  const possibleDuplicateStudents = (classData.students ?? [])
+    .filter((student) => {
+      const existingName = normalizeStudentName(
+        student?.name ||
+          [student?.firstName, student?.lastName]
+            .map((value) => String(value || "").trim())
+            .filter(Boolean)
+            .join(" "),
+      );
+      if (!existingName) return false;
+      if (existingName !== normalizeStudentName(pendingStudentName)) return false;
+      return true;
+    })
+    .map((student) => ({
+      id: student.id,
+      name:
+        String(student?.name || "").trim() ||
+        [student?.firstName, student?.lastName]
+          .map((value) => String(value || "").trim())
+          .filter(Boolean)
+          .join(" "),
+      sex: String(student?.sex || "").trim().toUpperCase(),
+      indexNo: String(student?.index_no || student?.indexNo || "").trim(),
+      admissionNo: String(student?.admission_no || student?.admissionNo || "").trim(),
+      guardianName: String(student?.parentName || student?.parent_name || "").trim(),
+      guardianPhone: String(student?.parentPhone || student?.parent_phone || "").trim(),
+    }))
+    .sort((a, b) => {
+      const aSameSex = a.sex && a.sex === String(newStudent.sex || "").trim().toUpperCase();
+      const bSameSex = b.sex && b.sex === String(newStudent.sex || "").trim().toUpperCase();
+      if (aSameSex !== bSameSex) return aSameSex ? -1 : 1;
+      return String(a.name).localeCompare(String(b.name));
+    });
+
+  useEffect(() => {
+    setDuplicateSaveConfirmed(false);
+    setErrors((prev) => (
+      prev?._form === duplicateWarningMessage
+        ? { ...prev, _form: undefined }
+        : prev
+    ));
+  }, [
+    addingNew,
+    newStudent.firstName,
+    newStudent.lastName,
+    newStudent.sex,
+    newStudent.parentName,
+    newStudent.parentPhone,
+  ]);
 
   const filtered = (computed ?? [])
     .filter((s) => {
@@ -308,10 +373,7 @@ export function EntryPanel({
 
   const handleAddNew = async () => {
     if (editingLocked) return;
-    const registrationName = [newStudent.firstName, newStudent.lastName]
-      .map((value) => String(value || "").trim())
-      .filter(Boolean)
-      .join(" ");
+    const registrationName = pendingStudentName;
     const validation = validateStudent({
       ...newStudent,
       name: registrationName || newStudent.name,
@@ -326,6 +388,11 @@ export function EntryPanel({
     }
     if (!String(newStudent.parentName || "").trim()) {
       setErrors((prev) => ({ ...prev, parentName: "Guardian name is required" }));
+      return;
+    }
+    if (possibleDuplicateStudents.length > 0 && !duplicateSaveConfirmed) {
+      setDuplicateSaveConfirmed(true);
+      setErrors((prev) => ({ ...prev, _form: duplicateWarningMessage }));
       return;
     }
     setSavingNewStudent(true);
@@ -360,6 +427,7 @@ export function EntryPanel({
         conduct: { ...DEFAULT_CONDUCT },
       });
       setAddingNew(false);
+      setDuplicateSaveConfirmed(false);
       setErrors({});
     } catch (err) {
       setErrors((prev) => ({ ...prev, _form: err.message || "Unable to add student." }));
@@ -983,6 +1051,7 @@ export function EntryPanel({
             <button
               onClick={() => {
                 setAddingNew(!addingNew);
+                setDuplicateSaveConfirmed(false);
                 setErrors({});
               }}
               title="Add a new student"
@@ -1560,6 +1629,61 @@ export function EntryPanel({
               </div>
             </div>
 
+            {possibleDuplicateStudents.length > 0 && (
+              <div
+                style={{
+                  border: "1px solid #fde68a",
+                  background: "#fffbeb",
+                  borderRadius: 12,
+                  padding: isMobile ? 12 : 14,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 900, color: "#92400e" }}>
+                      Possible duplicate student
+                    </div>
+                    <div style={{ fontSize: 11, color: "#78350f", lineHeight: 1.5 }}>
+                      A student with the same name already exists in this class. Review the record below before saving.
+                    </div>
+                  </div>
+                  {duplicateSaveConfirmed && (
+                    <div style={{ fontSize: 10, fontWeight: 800, color: "#92400e", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 999, padding: "5px 10px" }}>
+                      Save again to continue
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {possibleDuplicateStudents.map((student) => (
+                    <div
+                      key={student.id}
+                      style={{
+                        display: "grid",
+                        gap: 4,
+                        borderRadius: 10,
+                        border: "1px solid #fcd34d",
+                        background: "#fffdf5",
+                        padding: "10px 12px",
+                      }}
+                    >
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "#111827" }}>{student.name}</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, fontSize: 11, color: "#6b7280" }}>
+                        <span><strong style={{ color: "#374151" }}>CNO:</strong> {student.indexNo || "-"}</span>
+                        <span><strong style={{ color: "#374151" }}>Admission No:</strong> {student.admissionNo || "-"}</span>
+                        <span><strong style={{ color: "#374151" }}>Sex:</strong> {student.sex || "-"}</span>
+                      </div>
+                      {(student.guardianName || student.guardianPhone) && (
+                        <div style={{ fontSize: 11, color: "#6b7280" }}>
+                          <strong style={{ color: "#374151" }}>Guardian:</strong>{" "}
+                          {[student.guardianName, student.guardianPhone].filter(Boolean).join(" - ")}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {optionalSubjectOptions.length > 0 && (
               <div>
                 <div style={{ fontSize: 11, fontWeight: 800, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
@@ -1662,12 +1786,13 @@ export function EntryPanel({
                 fontWeight: 700,
               }}
             >
-              {savingNewStudent ? "Saving..." : "Save"}
+              {savingNewStudent ? "Saving..." : duplicateSaveConfirmed && possibleDuplicateStudents.length > 0 ? "Save Anyway" : "Save"}
             </button>
             <button
               onClick={() => {
                 if (savingNewStudent) return;
                 setAddingNew(false);
+                setDuplicateSaveConfirmed(false);
                 setErrors({});
               }}
               disabled={savingNewStudent}
