@@ -444,6 +444,7 @@ export default function App() {
     onUpdateClassMeta,
     onArchiveClass,
     onRestoreClass,
+    onRestoreClassById,
     onPublishClass,
     onUnpublishClass,
     onExportBackup,
@@ -970,8 +971,12 @@ export default function App() {
                 setPage("students");
                 if (isMobile) setSideOpen(false);
               }}
-              onCreateClass={(opts) => {
-                addClass(opts);
+              onCreateClass={async (opts) => {
+                await addClass(opts);
+                if (isMobile) setSideOpen(false);
+              }}
+              onRestoreClass={async (classId) => {
+                await onRestoreClassById(classId);
                 if (isMobile) setSideOpen(false);
               }}
             />

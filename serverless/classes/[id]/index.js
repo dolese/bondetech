@@ -84,7 +84,11 @@ module.exports = async (req, res) => {
       const restored = await restoreClassRecord(db, classId);
       return sendJson(res, 200, restored);
     } catch (err) {
-      const status = /class not found/i.test(err.message) ? 404 : 500;
+      const status = /class not found/i.test(err.message)
+        ? 404
+        : /already exists/i.test(err.message)
+        ? 409
+        : 500;
       return sendJson(res, status, { error: err.message });
     }
   }

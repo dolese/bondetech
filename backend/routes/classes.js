@@ -135,7 +135,12 @@ router.patch("/:id", requireRole(canManageClasses, "Only administrators can rest
     const restored = await restoreClassRecord(getDb(), req.params.id);
     res.json(restored);
   } catch (err) {
-    res.status(/class not found/i.test(err.message) ? 404 : 500).json({ error: err.message });
+    const status = /class not found/i.test(err.message)
+      ? 404
+      : /already exists/i.test(err.message)
+      ? 409
+      : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 

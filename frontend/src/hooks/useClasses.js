@@ -789,6 +789,30 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, showToast]);
 
+  const onRestoreClassById = useCallback(async (classId, opts = {}) => {
+    if (!classId) return { ok: false, error: "Class not found" };
+    try {
+      const updated = normalizeClass(await API.restoreClass(classId));
+      setClasses((prev) => {
+        const existing = prev.find((cls) => cls.id === classId);
+        if (existing) {
+          return prev.map((cls) => (cls.id === classId ? { ...updated, students: cls.students } : cls));
+        }
+        return [...prev, { ...updated, students: [] }];
+      });
+      setActiveId(updated.id);
+      if (!opts.silent) {
+        showToast?.(`${updated.form || "Class"} ${updated.stream || ""} ${updated.year || ""} restored`.trim());
+      }
+      return { ok: true, classData: updated };
+    } catch (err) {
+      if (!opts.silent) {
+        showToast?.(err.message, "error");
+      }
+      return { ok: false, error: err.message };
+    }
+  }, [showToast]);
+
   const onPublishClass = useCallback(async () => {
     if (!activeClass) return;
     try {
@@ -936,6 +960,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onUpdateClassMeta,
     onArchiveClass,
     onRestoreClass,
+    onRestoreClassById,
     onPublishClass,
     onUnpublishClass,
     onExportBackup,
