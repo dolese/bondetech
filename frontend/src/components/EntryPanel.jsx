@@ -108,6 +108,10 @@ export function EntryPanel({
 }) {
   const subjects = classData.subjects ?? [];
   const subjectMetadata = normalizeSubjectMetadataList(classData);
+  const currentClassLabel = [classData.form, classData.stream, classData.year]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .join(" ");
   const optionalSubjectOptions = subjectMetadata
     .filter((entry) => entry.type === "optional")
     .map((entry) => entry.name);
@@ -1279,8 +1283,27 @@ export function EntryPanel({
           >
             Working in: {effectiveExam}
           </span>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "6px 10px",
+              borderRadius: 999,
+              background: "#f8fafc",
+              border: "1px solid #d9e2ec",
+              color: "#3f536e",
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: 0.2,
+            }}
+          >
+            Current Class: {currentClassLabel || "Unassigned"}
+          </span>
           <span style={{ fontSize: 11, color: "#607086", lineHeight: 1.5 }}>
             Imports, exports, and saved marks apply to the current exam entry shown here.
+          </span>
+          <span style={{ fontSize: 11, color: "#607086", lineHeight: 1.5 }}>
+            Switch classes from the sidebar or Forms &amp; Streams. Marks Entry does not edit class placement.
           </span>
         </div>
       </div>

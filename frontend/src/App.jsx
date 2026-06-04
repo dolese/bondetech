@@ -921,8 +921,6 @@ export default function App() {
                 onReorderStudentCnos={role === "admin" ? onReorderStudentCnos : null}
                 canDeleteStudents={role === "admin" || role === "academic"}
                 onUpdateSchool={role === "admin" ? onUpdateSchool : null}
-                onUpdateSubjects={role === "admin" || role === "academic" ? onUpdateSubjects : null}
-                onUpdateClassMeta={role === "admin" || role === "academic" ? onUpdateClassMeta : null}
                 activeExam={activeExam}
                 onChangeExam={onChangeExam}
               />

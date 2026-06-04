@@ -11,8 +11,6 @@ export function StudentsPage({
   onReorderStudentCnos,
   canDeleteStudents,
   onUpdateSchool,
-  onUpdateSubjects,
-  onUpdateClassMeta,
   activeExam,
   onChangeExam,
 }) {
@@ -28,9 +26,7 @@ export function StudentsPage({
       onReorderStudentCnos={onReorderStudentCnos}
       canDeleteStudents={canDeleteStudents}
       onUpdateSchool={onUpdateSchool}
-      onUpdateSubjects={onUpdateSubjects}
-      onUpdateClassMeta={onUpdateClassMeta}
-      hideSettings={!onUpdateSchool && !onUpdateSubjects && !onUpdateClassMeta}
+      hideSettings
       activeExam={activeExam}
       onChangeExam={onChangeExam}
       resultsLocked={classData.published}
