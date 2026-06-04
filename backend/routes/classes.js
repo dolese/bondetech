@@ -34,6 +34,7 @@ const {
   deleteStudentRecord,
   reorderStudentsBySexAndRegenerateCnos,
   promoteStudentsToClass,
+  moveStudentToClass,
 } = require("../../lib/classStudents");
 
 const requireAuth = async (req, res, next) => {
@@ -213,15 +214,30 @@ router.post("/:id/students/bulk", requireRole(canManageStudents, "You do not hav
 
 router.patch(
   "/:id/students",
-  requireRole(canManageClasses, "Only administrators can run rollover and CNO actions"),
   async (req, res) => {
     try {
       const action = String(req.body?.action || "").trim();
       let result;
       if (action === "reorder-cnos") {
+        if (!canManageClasses(req.authUser.role)) {
+          return res.status(403).json({ error: "Only administrators can reorder CNO values" });
+        }
         result = await reorderStudentsBySexAndRegenerateCnos(getDb(), req.params.id);
       } else if (action === "promote-rollover") {
+        if (!canManageClasses(req.authUser.role)) {
+          return res.status(403).json({ error: "Only administrators can run rollover actions" });
+        }
         result = await promoteStudentsToClass(getDb(), req.params.id, req.body?.targetClassId);
+      } else if (action === "move-stream") {
+        if (!canManageStudents(req.authUser.role)) {
+          return res.status(403).json({ error: "You do not have permission to assign students to streams" });
+        }
+        result = await moveStudentToClass(
+          getDb(),
+          req.params.id,
+          req.body?.studentId,
+          req.body?.targetClassId
+        );
       } else {
         return res.status(400).json({ error: "Unsupported student action" });
       }

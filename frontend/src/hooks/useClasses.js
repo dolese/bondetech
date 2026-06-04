@@ -471,6 +471,30 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [classes, refreshClass, showToast]);
 
+  const onMoveStudentToClass = useCallback(async (sourceClassId, studentId, targetClassId, opts = {}) => {
+    const sourceClass = classes.find((cls) => cls.id === sourceClassId);
+    const targetClass = classes.find((cls) => cls.id === targetClassId);
+    if (!sourceClass || !targetClass) {
+      if (!opts.silent) showToast?.("Source or target class not found", "error");
+      return { ok: false, error: "Source or target class not found" };
+    }
+    try {
+      const result = await API.moveStudentToClass(sourceClassId, studentId, targetClassId);
+      await Promise.all([refreshClass(sourceClassId), refreshClass(targetClassId)]);
+      if (!opts.silent) {
+        showToast?.(
+          `${result.studentName || "Student"} moved to ${targetClass.form || targetClass.name || "target class"} ${targetClass.stream || ""}`.trim()
+        );
+      }
+      return { ok: true, result };
+    } catch (err) {
+      if (!opts.silent) {
+        showToast?.(err.message, "error");
+      }
+      return { ok: false, error: err.message };
+    }
+  }, [classes, refreshClass, showToast]);
+
   const onPromoteStudents = useCallback(async (sourceClassId, targetClassId, opts = {}) => {
     const sourceClass = classes.find((cls) => cls.id === sourceClassId);
     const targetClass = classes.find((cls) => cls.id === targetClassId);
@@ -950,6 +974,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onUpdateStudentInClass,
     onDeleteStudent,
     onDeleteStudentFromClass,
+    onMoveStudentToClass,
     onPromoteStudents,
     onBulkImport,
     onReorderStudentCnos,

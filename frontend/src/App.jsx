@@ -434,6 +434,7 @@ export default function App() {
     onUpdateStudentInClass,
     onDeleteStudent,
     onDeleteStudentFromClass,
+    onMoveStudentToClass,
     onPromoteStudents,
     onBulkImport,
     onReorderStudentCnos,
@@ -966,6 +967,7 @@ export default function App() {
             <FormsStreamsPage
               classes={visibleClasses}
               canCreateClasses={role === "admin"}
+              canAssignStreams={role === "admin" || role === "academic"}
               onNavigateToClass={(cls) => {
                 setActiveId(cls.id);
                 setPage("students");
@@ -979,6 +981,7 @@ export default function App() {
                 await onRestoreClassById(classId);
                 if (isMobile) setSideOpen(false);
               }}
+              onMoveStudentToClass={onMoveStudentToClass}
             />
           )}
 

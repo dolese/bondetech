@@ -129,6 +129,7 @@ export const API = {
   bulkImport:     (cid, students, examType) => post(`/classes/${cid}/students/bulk`, { students, examType }),
   reorderStudentCnos: (cid)     => patch(`/classes/${cid}/students`, { action: "reorder-cnos" }),
   promoteStudents: (cid, targetClassId) => patch(`/classes/${cid}/students`, { action: "promote-rollover", targetClassId }),
+  moveStudentToClass: (cid, studentId, targetClassId) => patch(`/classes/${cid}/students`, { action: "move-stream", studentId, targetClassId }),
   updateStudent:  (cid, sid, data) => put(`/classes/${cid}/students/${sid}`, data),
   deleteStudent:  (cid, sid)    => del(`/classes/${cid}/students/${sid}`),
 

@@ -23,6 +23,14 @@ function StatCard({ label, value, sub }) {
   );
 }
 
+function getClassLabel(cls = {}) {
+  return [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim() || cls.name || "Class";
+}
+
+function makeStudentKey(student = {}) {
+  return `${student.classId || ""}:${student.id || ""}`;
+}
+
 function ClassCell({ cls, onSelect }) {
   const [hovered, setHovered] = useState(false);
   const isPublished = cls.published;
@@ -233,9 +241,11 @@ function pillStyle(color, background) {
 export function FormsStreamsPage({
   classes = [],
   canCreateClasses = false,
+  canAssignStreams = false,
   onNavigateToClass,
   onCreateClass,
   onRestoreClass,
+  onMoveStudentToClass,
 }) {
   const years = useMemo(() => {
     const found = new Set(classes.map((cls) => cls.year).filter(Boolean));
@@ -253,6 +263,15 @@ export function FormsStreamsPage({
   const [loadingArchived, setLoadingArchived] = useState(false);
   const [action, setAction] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [selectedForm, setSelectedForm] = useState("");
+  const [mappingClasses, setMappingClasses] = useState([]);
+  const [mappingError, setMappingError] = useState("");
+  const [loadingMapping, setLoadingMapping] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState({});
+  const [targetClassByStudent, setTargetClassByStudent] = useState({});
+  const [bulkTargetClassId, setBulkTargetClassId] = useState("");
+  const [movingStudentKey, setMovingStudentKey] = useState("");
+  const [bulkMoving, setBulkMoving] = useState(false);
   const { isMobile, isXs } = useViewport();
 
   useEffect(() => {
@@ -295,10 +314,32 @@ export function FormsStreamsPage({
     () => classes.filter((cls) => cls.year === selectedYear),
     [classes, selectedYear],
   );
+  const activeYearClasses = useMemo(
+    () => yearClasses.filter((cls) => !cls.archived),
+    [yearClasses],
+  );
   const archivedYearClasses = useMemo(
     () => archivedClasses.filter((cls) => cls.year === selectedYear),
     [archivedClasses, selectedYear],
   );
+
+  const mappingFormOptions = useMemo(
+    () =>
+      Array.from(new Set(activeYearClasses.map((cls) => String(cls.form || "").trim()).filter(Boolean))).sort(
+        (left, right) => left.localeCompare(right, "en")
+      ),
+    [activeYearClasses]
+  );
+
+  useEffect(() => {
+    if (!mappingFormOptions.length) {
+      setSelectedForm("");
+      return;
+    }
+    if (!mappingFormOptions.includes(selectedForm)) {
+      setSelectedForm(mappingFormOptions[0]);
+    }
+  }, [mappingFormOptions, selectedForm]);
 
   const classMap = useMemo(() => {
     const map = new Map();
@@ -341,6 +382,191 @@ export function FormsStreamsPage({
     });
     return map;
   }, [yearClasses, archivedYearClasses]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadMappingClasses = async () => {
+      if (!canAssignStreams || !selectedForm) {
+        setMappingClasses([]);
+        setSelectedStudents({});
+        setTargetClassByStudent({});
+        setBulkTargetClassId("");
+        setMappingError("");
+        return;
+      }
+      const targetClasses = activeYearClasses
+        .filter((cls) => cls.form === selectedForm)
+        .sort((left, right) =>
+          String(left.stream || "").trim().toUpperCase().localeCompare(String(right.stream || "").trim().toUpperCase(), "en")
+        );
+      if (!targetClasses.length) {
+        setMappingClasses([]);
+        return;
+      }
+      setLoadingMapping(true);
+      setMappingError("");
+      try {
+        const loaded = await Promise.all(targetClasses.map((cls) => API.getClass(cls.id)));
+        if (cancelled) return;
+        setMappingClasses(
+          loaded.map((cls) => ({
+            ...cls,
+            stream: String(cls.stream || "").trim().toUpperCase(),
+            students: Array.isArray(cls.students) ? cls.students : [],
+          }))
+        );
+      } catch (err) {
+        if (!cancelled) {
+          setMappingError(err.message || "Unable to load stream mapping");
+          setMappingClasses([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingMapping(false);
+        }
+      }
+    };
+    loadMappingClasses();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeYearClasses, canAssignStreams, selectedForm]);
+
+  const mappingStreamOptions = useMemo(
+    () =>
+      [...mappingClasses]
+        .sort((left, right) => String(left.stream || "").localeCompare(String(right.stream || ""), "en"))
+        .map((cls) => ({
+          id: cls.id,
+          stream: String(cls.stream || "").trim().toUpperCase(),
+          label: getClassLabel(cls),
+          studentCount: Array.isArray(cls.students) ? cls.students.length : 0,
+        })),
+    [mappingClasses]
+  );
+
+  const assignmentStudents = useMemo(
+    () =>
+      mappingClasses
+        .flatMap((cls) =>
+          (cls.students || []).map((student) => ({
+            ...student,
+            classId: cls.id,
+            classLabel: getClassLabel(cls),
+            stream: String(cls.stream || "").trim().toUpperCase(),
+            admissionNo: String(student.admissionNo || student.admission_no || "").trim(),
+            parentName: String(student.parentName || student.parent_name || "").trim(),
+            parentPhone: String(student.parentPhone || student.parent_phone || "").trim(),
+          }))
+        )
+        .sort((left, right) => {
+          const streamCompare = String(left.stream || "").localeCompare(String(right.stream || ""), "en");
+          if (streamCompare !== 0) return streamCompare;
+          return String(left.name || "").localeCompare(String(right.name || ""), "en");
+        }),
+    [mappingClasses]
+  );
+
+  const selectedAssignmentCount = useMemo(
+    () => assignmentStudents.filter((student) => selectedStudents[makeStudentKey(student)]).length,
+    [assignmentStudents, selectedStudents]
+  );
+
+  const toggleSelectedStudent = (studentKey) => {
+    setSelectedStudents((prev) => ({
+      ...prev,
+      [studentKey]: !prev[studentKey],
+    }));
+  };
+
+  const toggleAllStudents = () => {
+    if (!assignmentStudents.length) return;
+    const allSelected = assignmentStudents.every((student) => selectedStudents[makeStudentKey(student)]);
+    if (allSelected) {
+      setSelectedStudents({});
+      return;
+    }
+    setSelectedStudents(
+      Object.fromEntries(assignmentStudents.map((student) => [makeStudentKey(student), true]))
+    );
+  };
+
+  const moveSingleStudent = async (student, targetClassId) => {
+    if (!targetClassId || movingStudentKey || bulkMoving) return;
+    const studentKey = makeStudentKey(student);
+    setMovingStudentKey(studentKey);
+    try {
+      const result = await onMoveStudentToClass?.(student.classId, student.id, targetClassId);
+      if (!result?.ok) {
+        setMappingError(result?.error || "Unable to move student to the selected stream.");
+        return;
+      }
+      setMappingError("");
+      const refreshed = await Promise.all(
+        mappingStreamOptions.map((entry) => API.getClass(entry.id))
+      );
+      setMappingClasses(
+        refreshed.map((cls) => ({
+          ...cls,
+          stream: String(cls.stream || "").trim().toUpperCase(),
+          students: Array.isArray(cls.students) ? cls.students : [],
+        }))
+      );
+      setSelectedStudents((prev) => {
+        const next = { ...prev };
+        delete next[studentKey];
+        return next;
+      });
+      setTargetClassByStudent((prev) => {
+        const next = { ...prev };
+        delete next[studentKey];
+        return next;
+      });
+    } finally {
+      setMovingStudentKey("");
+    }
+  };
+
+  const moveSelectedStudents = async () => {
+    if (!bulkTargetClassId || !selectedAssignmentCount || bulkMoving || movingStudentKey) return;
+    const chosen = assignmentStudents.filter((student) => selectedStudents[makeStudentKey(student)]);
+    const eligible = chosen.filter((student) => student.classId !== bulkTargetClassId);
+    if (!eligible.length) {
+      setMappingError("Selected students are already in that stream.");
+      return;
+    }
+    setBulkMoving(true);
+    setMappingError("");
+    try {
+      let failed = false;
+      for (const student of eligible) {
+        const result = await onMoveStudentToClass?.(student.classId, student.id, bulkTargetClassId, { silent: false });
+        if (!result?.ok) {
+          setMappingError(result?.error || "Unable to move all selected students.");
+          failed = true;
+          break;
+        }
+      }
+      if (!failed) {
+        setMappingError("");
+      }
+      const refreshed = await Promise.all(
+        mappingStreamOptions.map((entry) => API.getClass(entry.id))
+      );
+      setMappingClasses(
+        refreshed.map((cls) => ({
+          ...cls,
+          stream: String(cls.stream || "").trim().toUpperCase(),
+          students: Array.isArray(cls.students) ? cls.students : [],
+        }))
+      );
+      setSelectedStudents({});
+      setTargetClassByStudent({});
+      setBulkTargetClassId("");
+    } finally {
+      setBulkMoving(false);
+    }
+  };
 
   const handleSelectCell = (cls) => {
     if (cls.archived) {
@@ -537,6 +763,299 @@ export function FormsStreamsPage({
             })}
           </div>
         </div>
+
+        {canAssignStreams && (
+          <div
+            style={{
+              borderRadius: 24,
+              border: "1px solid rgba(226,232,240,0.92)",
+              background: "linear-gradient(180deg,#ffffff,#f8fbff)",
+              boxShadow: "0 14px 40px rgba(15,23,42,0.07)",
+              padding: isMobile ? "16px 14px" : "20px 22px",
+              display: "grid",
+              gap: 18,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1, textTransform: "uppercase" }}>
+                  Stream Mapping
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a", marginTop: 4 }}>
+                  Assign students to the right stream
+                </div>
+                <div style={{ fontSize: 13, color: "#64748b", marginTop: 6, lineHeight: 1.6, fontWeight: 600 }}>
+                  Move students between active streams inside the same form and year. This keeps one real student record and refreshes both stream rosters.
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {mappingFormOptions.map((form) => (
+                  <button
+                    key={form}
+                    type="button"
+                    onClick={() => {
+                      setSelectedForm(form);
+                      setSelectedStudents({});
+                      setTargetClassByStudent({});
+                      setBulkTargetClassId("");
+                      setMappingError("");
+                    }}
+                    style={{
+                      border: selectedForm === form ? "none" : "1px solid rgba(203,213,225,0.92)",
+                      borderRadius: 12,
+                      padding: "8px 14px",
+                      cursor: "pointer",
+                      background: selectedForm === form ? "linear-gradient(135deg,#0f766e,#0f9f92)" : "#fff",
+                      color: selectedForm === form ? "#fff" : "#475569",
+                      fontSize: 12,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {form}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {mappingStreamOptions.length > 0 && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
+                {mappingStreamOptions.map((entry) => (
+                  <div
+                    key={entry.id}
+                    style={{
+                      borderRadius: 16,
+                      border: "1px solid rgba(191,219,254,0.85)",
+                      background: "#f8fbff",
+                      padding: "14px 16px",
+                    }}
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#2563eb", letterSpacing: 0.8, textTransform: "uppercase" }}>
+                      Stream {entry.stream}
+                    </div>
+                    <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a", marginTop: 4 }}>{entry.studentCount}</div>
+                    <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginTop: 2 }}>{entry.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderRadius: 18,
+                border: "1px solid rgba(226,232,240,0.92)",
+                background: "#fff",
+                padding: isMobile ? "12px 14px" : "14px 16px",
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 900, color: "#0f172a" }}>
+                  {selectedAssignmentCount ? `${selectedAssignmentCount} student${selectedAssignmentCount === 1 ? "" : "s"} selected` : "Select students to move in bulk"}
+                </div>
+                <div style={{ fontSize: 11, color: "#64748b", marginTop: 4, fontWeight: 600 }}>
+                  Bulk move works only inside {selectedForm || "the selected form"} for {selectedYear}.
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <select
+                  value={bulkTargetClassId}
+                  onChange={(event) => setBulkTargetClassId(event.target.value)}
+                  style={{
+                    minWidth: isMobile ? 170 : 220,
+                    borderRadius: 12,
+                    border: "1px solid rgba(203,213,225,0.92)",
+                    padding: "10px 12px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    background: "#fff",
+                  }}
+                >
+                  <option value="">Choose target stream</option>
+                  {mappingStreamOptions.map((entry) => (
+                    <option key={entry.id} value={entry.id}>{entry.label}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={moveSelectedStudents}
+                  disabled={!selectedAssignmentCount || !bulkTargetClassId || bulkMoving || loadingMapping}
+                  style={{
+                    border: "none",
+                    borderRadius: 12,
+                    padding: "10px 16px",
+                    background: !selectedAssignmentCount || !bulkTargetClassId || bulkMoving || loadingMapping
+                      ? "#94a3b8"
+                      : "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                    color: "#fff",
+                    fontWeight: 800,
+                    cursor: !selectedAssignmentCount || !bulkTargetClassId || bulkMoving || loadingMapping ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {bulkMoving ? "Moving..." : "Move Selected Students"}
+                </button>
+              </div>
+            </div>
+
+            {mappingError && (
+              <div
+                style={{
+                  borderRadius: 14,
+                  border: "1px solid #fecaca",
+                  background: "#fef2f2",
+                  padding: "12px 14px",
+                  color: "#b91c1c",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                {mappingError}
+              </div>
+            )}
+
+            {loadingMapping ? (
+              <div style={{ fontSize: 13, color: "#64748b", fontWeight: 700 }}>Loading stream rosters...</div>
+            ) : assignmentStudents.length === 0 ? (
+              <div
+                style={{
+                  borderRadius: 18,
+                  border: "1px dashed rgba(203,213,225,0.9)",
+                  background: "#fff",
+                  padding: "20px 18px",
+                  color: "#64748b",
+                  fontSize: 13,
+                  fontWeight: 700,
+                }}
+              >
+                No students are currently available for {selectedForm || "this form"} in {selectedYear}.
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+                <div style={{ minWidth: 920 }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "44px minmax(180px,1.3fr) minmax(110px,0.8fr) minmax(80px,0.5fr) minmax(120px,0.8fr) minmax(220px,1fr) 120px",
+                      gap: 10,
+                      padding: "0 10px 10px",
+                      fontSize: 11,
+                      fontWeight: 900,
+                      color: "#64748b",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.8,
+                    }}
+                  >
+                    <label style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <input
+                        type="checkbox"
+                        checked={assignmentStudents.length > 0 && assignmentStudents.every((student) => selectedStudents[makeStudentKey(student)])}
+                        onChange={toggleAllStudents}
+                      />
+                    </label>
+                    <span>Student</span>
+                    <span>Admission / CNO</span>
+                    <span>Sex</span>
+                    <span>Current Stream</span>
+                    <span>Move To</span>
+                    <span>Action</span>
+                  </div>
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {assignmentStudents.map((student) => {
+                      const studentKey = makeStudentKey(student);
+                      const targetOptions = mappingStreamOptions.filter((entry) => entry.id !== student.classId);
+                      return (
+                        <div
+                          key={studentKey}
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "44px minmax(180px,1.3fr) minmax(110px,0.8fr) minmax(80px,0.5fr) minmax(120px,0.8fr) minmax(220px,1fr) 120px",
+                            gap: 10,
+                            alignItems: "center",
+                            borderRadius: 18,
+                            border: selectedStudents[studentKey]
+                              ? "1px solid rgba(59,130,246,0.35)"
+                              : "1px solid rgba(226,232,240,0.92)",
+                            background: selectedStudents[studentKey] ? "#eff6ff" : "#fff",
+                            padding: "12px 10px",
+                          }}
+                        >
+                          <label style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <input
+                              type="checkbox"
+                              checked={Boolean(selectedStudents[studentKey])}
+                              onChange={() => toggleSelectedStudent(studentKey)}
+                            />
+                          </label>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>{student.name || "Unnamed student"}</div>
+                            <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>
+                              {[student.parentName, student.parentPhone].filter(Boolean).join(" · ") || "No guardian details"}
+                            </div>
+                          </div>
+                          <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>
+                            <div>{student.admissionNo || "-"}</div>
+                            <div style={{ marginTop: 4, color: "#94a3b8" }}>{student.indexNo || student.index_no || "-"}</div>
+                          </div>
+                          <div style={{ fontSize: 12, fontWeight: 800, color: "#334155" }}>{student.sex || "-"}</div>
+                          <div>
+                            <span style={pillStyle("#2563eb", "#eff6ff")}>
+                              STREAM {student.stream || "-"}
+                            </span>
+                          </div>
+                          <select
+                            value={targetClassByStudent[studentKey] || ""}
+                            onChange={(event) =>
+                              setTargetClassByStudent((prev) => ({
+                                ...prev,
+                                [studentKey]: event.target.value,
+                              }))
+                            }
+                            style={{
+                              borderRadius: 12,
+                              border: "1px solid rgba(203,213,225,0.92)",
+                              padding: "10px 12px",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: "#0f172a",
+                              background: "#fff",
+                            }}
+                          >
+                            <option value="">Choose target stream</option>
+                            {targetOptions.map((entry) => (
+                              <option key={entry.id} value={entry.id}>{entry.label}</option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => moveSingleStudent(student, targetClassByStudent[studentKey])}
+                            disabled={!targetClassByStudent[studentKey] || movingStudentKey === studentKey || bulkMoving}
+                            style={{
+                              border: "none",
+                              borderRadius: 12,
+                              padding: "10px 12px",
+                              background: !targetClassByStudent[studentKey] || movingStudentKey === studentKey || bulkMoving
+                                ? "#94a3b8"
+                                : "linear-gradient(135deg,#0f766e,#0f9f92)",
+                              color: "#fff",
+                              fontWeight: 800,
+                              cursor: !targetClassByStudent[studentKey] || movingStudentKey === studentKey || bulkMoving ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {movingStudentKey === studentKey ? "Moving..." : "Move Now"}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
           <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700 }}>Legend:</span>

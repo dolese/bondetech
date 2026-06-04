@@ -12,6 +12,7 @@ const {
   createStudentRecord,
   reorderStudentsBySexAndRegenerateCnos,
   promoteStudentsToClass,
+  moveStudentToClass,
 } = require("../../../../lib/classStudents");
 const {
   getClassSnapshot,
@@ -76,17 +77,25 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === "PATCH") {
-    if (!canManageClasses(currentUser.role)) {
-      return sendJson(res, 403, { error: "Only administrators can run rollover and CNO actions" });
-    }
     try {
       const body = await readJsonBody(req);
       const action = String(body?.action || "").trim();
       let result;
       if (action === "reorder-cnos") {
+        if (!canManageClasses(currentUser.role)) {
+          return sendJson(res, 403, { error: "Only administrators can reorder CNO values" });
+        }
         result = await reorderStudentsBySexAndRegenerateCnos(db, classId);
       } else if (action === "promote-rollover") {
+        if (!canManageClasses(currentUser.role)) {
+          return sendJson(res, 403, { error: "Only administrators can run rollover actions" });
+        }
         result = await promoteStudentsToClass(db, classId, body?.targetClassId);
+      } else if (action === "move-stream") {
+        if (!canManageStudents(currentUser.role)) {
+          return sendJson(res, 403, { error: "You do not have permission to assign students to streams" });
+        }
+        result = await moveStudentToClass(db, classId, body?.studentId, body?.targetClassId);
       } else {
         return sendJson(res, 400, { error: "Unsupported student action" });
       }
