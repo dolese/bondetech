@@ -144,6 +144,8 @@ export function EntryPanel({
   const [editData, setEditData] = useState(null);
   const [errors, setErrors] = useState({});
   const [addingNew, setAddingNew] = useState(false);
+  const [savingNewStudent, setSavingNewStudent] = useState(false);
+  const [savingEditStudent, setSavingEditStudent] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [bulkScores, setBulkScores] = useState({});
   const [bulkSaving, setBulkSaving] = useState(false);
@@ -275,22 +277,33 @@ export function EntryPanel({
       setErrors(validation.errors);
       return;
     }
-    // Use grade.raw when available (avoids saving the combined average in composite mode).
-    const scores = (classData.subjects ?? []).map((_, i) => {
-      const g = editData.grades?.[i];
-      if (!g) return null;
-      if (g.raw === "ABS") return "ABS";
-      return g.raw ?? g.score ?? null;
-    });
-    await onUpdateStudent({
-      ...editData,
-      optionalSubjects: Array.isArray(editData.optionalSubjects) ? editData.optionalSubjects : [],
-      scores,
-      examType: effectiveExam,
-    });
-    setEditId(null);
-    setEditData(null);
-    setErrors({});
+    setSavingEditStudent(true);
+    try {
+      // Use grade.raw when available (avoids saving the combined average in composite mode).
+      const scores = (classData.subjects ?? []).map((_, i) => {
+        const g = editData.grades?.[i];
+        if (!g) return null;
+        if (g.raw === "ABS") return "ABS";
+        return g.raw ?? g.score ?? null;
+      });
+      const result = await onUpdateStudent({
+        ...editData,
+        optionalSubjects: Array.isArray(editData.optionalSubjects) ? editData.optionalSubjects : [],
+        scores,
+        examType: effectiveExam,
+      });
+      if (result && result.ok === false) {
+        setErrors((prev) => ({ ...prev, _form: result.error || "Unable to update student." }));
+        return;
+      }
+      setEditId(null);
+      setEditData(null);
+      setErrors({});
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, _form: err.message || "Unable to update student." }));
+    } finally {
+      setSavingEditStudent(false);
+    }
   };
 
   const handleAddNew = async () => {
@@ -315,33 +328,44 @@ export function EntryPanel({
       setErrors((prev) => ({ ...prev, parentName: "Guardian name is required" }));
       return;
     }
-    const scores = (classData.subjects ?? []).map(() => null);
-    await onAddStudent({
-      ...newStudent,
-      admission_no: normalizeAdmissionDraft(newStudent.admission_no),
-      name: registrationName,
-      parentPhone: normalizeTzPhoneDraft(newStudent.parentPhone),
-      optionalSubjects: Array.isArray(newStudent.optionalSubjects) ? newStudent.optionalSubjects : [],
-      scores,
-      examType: effectiveExam,
-    });
-    setNewStudent({
-      admission_no: "",
-      index_no: "",
-      firstName: "",
-      lastName: "",
-      sex: "M",
-      status: "present",
-      dateOfBirth: "",
-      parentName: "",
-      parentPhone: "",
-      address: "",
-      optionalSubjectsConfigured: true,
-      optionalSubjects: [],
-      conduct: { ...DEFAULT_CONDUCT },
-    });
-    setAddingNew(false);
-    setErrors({});
+    setSavingNewStudent(true);
+    try {
+      const scores = (classData.subjects ?? []).map(() => null);
+      const result = await onAddStudent({
+        ...newStudent,
+        admission_no: normalizeAdmissionDraft(newStudent.admission_no),
+        name: registrationName,
+        parentPhone: normalizeTzPhoneDraft(newStudent.parentPhone),
+        optionalSubjects: Array.isArray(newStudent.optionalSubjects) ? newStudent.optionalSubjects : [],
+        scores,
+        examType: effectiveExam,
+      });
+      if (result && result.ok === false) {
+        setErrors((prev) => ({ ...prev, _form: result.error || "Unable to add student." }));
+        return;
+      }
+      setNewStudent({
+        admission_no: "",
+        index_no: "",
+        firstName: "",
+        lastName: "",
+        sex: "M",
+        status: "present",
+        dateOfBirth: "",
+        parentName: "",
+        parentPhone: "",
+        address: "",
+        optionalSubjectsConfigured: true,
+        optionalSubjects: [],
+        conduct: { ...DEFAULT_CONDUCT },
+      });
+      setAddingNew(false);
+      setErrors({});
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, _form: err.message || "Unable to add student." }));
+    } finally {
+      setSavingNewStudent(false);
+    }
   };
 
   const toggleNewStudentOptionalSubject = (subject) => {
@@ -957,7 +981,10 @@ export function EntryPanel({
               {bulkMode ? "Exit Bulk Mode" : "Bulk Scores"}
             </button>
             <button
-              onClick={() => setAddingNew(!addingNew)}
+              onClick={() => {
+                setAddingNew(!addingNew);
+                setErrors({});
+              }}
               title="Add a new student"
               disabled={editingLocked}
               style={{
@@ -1604,32 +1631,53 @@ export function EntryPanel({
                 />
               </div>
             </div>
+            {errors._form && (
+              <div
+                style={{
+                  marginTop: 4,
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid #fecaca",
+                  background: "#fef2f2",
+                  color: "#b91c1c",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                {errors._form}
+              </div>
+            )}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "flex-end" }}>
             <button
               onClick={handleAddNew}
-              disabled={editingLocked}
+              disabled={editingLocked || savingNewStudent}
               style={{
                 padding: "6px 16px",
-                background: editingLocked ? "#94a3b8" : "#0b6b3a",
+                background: editingLocked || savingNewStudent ? "#94a3b8" : "#0b6b3a",
                 color: "#fff",
                 border: "none",
                 borderRadius: 5,
-                cursor: editingLocked ? "not-allowed" : "pointer",
+                cursor: editingLocked || savingNewStudent ? "not-allowed" : "pointer",
                 fontWeight: 700,
               }}
             >
-              Save
+              {savingNewStudent ? "Saving..." : "Save"}
             </button>
             <button
-              onClick={() => setAddingNew(false)}
+              onClick={() => {
+                if (savingNewStudent) return;
+                setAddingNew(false);
+                setErrors({});
+              }}
+              disabled={savingNewStudent}
               style={{
                 padding: "6px 16px",
-                background: "#888",
+                background: savingNewStudent ? "#94a3b8" : "#888",
                 color: "#fff",
                 border: "none",
                 borderRadius: 5,
-                cursor: "pointer",
+                cursor: savingNewStudent ? "not-allowed" : "pointer",
                 fontWeight: 700,
               }}
             >
@@ -1830,18 +1878,40 @@ export function EntryPanel({
                       </div>
                     </div>
                   )}
+                  {errors._form && (
+                    <div
+                      style={{
+                        marginBottom: 10,
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        border: "1px solid #fecaca",
+                        background: "#fef2f2",
+                        color: "#b91c1c",
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {errors._form}
+                    </div>
+                  )}
                   {/* Save/cancel */}
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button
                       onClick={handleSaveEdit}
-                      disabled={editingLocked}
-                      style={{ padding: "7px 18px", background: editingLocked ? "#94a3b8" : "#0b6b3a", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: editingLocked ? "not-allowed" : "pointer" }}
+                      disabled={editingLocked || savingEditStudent}
+                      style={{ padding: "7px 18px", background: editingLocked || savingEditStudent ? "#94a3b8" : "#0b6b3a", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: editingLocked || savingEditStudent ? "not-allowed" : "pointer" }}
                     >
-                      Save
+                      {savingEditStudent ? "Saving..." : "Save"}
                     </button>
                     <button
-                      onClick={() => { setEditId(null); setEditData(null); setErrors({}); }}
-                      style={{ padding: "7px 18px", background: "#888", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                      onClick={() => {
+                        if (savingEditStudent) return;
+                        setEditId(null);
+                        setEditData(null);
+                        setErrors({});
+                      }}
+                      disabled={savingEditStudent}
+                      style={{ padding: "7px 18px", background: savingEditStudent ? "#94a3b8" : "#888", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: savingEditStudent ? "not-allowed" : "pointer" }}
                     >
                       Cancel
                     </button>
