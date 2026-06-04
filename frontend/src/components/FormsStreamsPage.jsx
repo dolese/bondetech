@@ -23,6 +23,29 @@ function StatCard({ label, value, sub }) {
   );
 }
 
+function SectionTitle({ eyebrow, title, body, aside = null }) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+      <div>
+        {eyebrow ? (
+          <div style={{ fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1, textTransform: "uppercase" }}>
+            {eyebrow}
+          </div>
+        ) : null}
+        <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a", marginTop: eyebrow ? 4 : 0 }}>
+          {title}
+        </div>
+        {body ? (
+          <div style={{ fontSize: 13, color: "#64748b", marginTop: 6, lineHeight: 1.6, fontWeight: 600 }}>
+            {body}
+          </div>
+        ) : null}
+      </div>
+      {aside}
+    </div>
+  );
+}
+
 function getClassLabel(cls = {}) {
   return [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim() || cls.name || "Class";
 }
@@ -272,6 +295,8 @@ export function FormsStreamsPage({
   const [bulkTargetClassId, setBulkTargetClassId] = useState("");
   const [movingStudentKey, setMovingStudentKey] = useState("");
   const [bulkMoving, setBulkMoving] = useState(false);
+  const [assignmentSearch, setAssignmentSearch] = useState("");
+  const [sourceStreamFilter, setSourceStreamFilter] = useState("");
   const { isMobile, isXs } = useViewport();
 
   useEffect(() => {
@@ -467,9 +492,25 @@ export function FormsStreamsPage({
     [mappingClasses]
   );
 
+  const filteredAssignmentStudents = useMemo(() => {
+    const query = String(assignmentSearch || "").trim().toLowerCase();
+    return assignmentStudents.filter((student) => {
+      if (sourceStreamFilter && String(student.stream || "") !== sourceStreamFilter) {
+        return false;
+      }
+      if (!query) return true;
+      return (
+        String(student.name || "").toLowerCase().includes(query) ||
+        String(student.admissionNo || "").toLowerCase().includes(query) ||
+        String(student.indexNo || student.index_no || "").toLowerCase().includes(query) ||
+        String(student.parentName || "").toLowerCase().includes(query)
+      );
+    });
+  }, [assignmentSearch, assignmentStudents, sourceStreamFilter]);
+
   const selectedAssignmentCount = useMemo(
-    () => assignmentStudents.filter((student) => selectedStudents[makeStudentKey(student)]).length,
-    [assignmentStudents, selectedStudents]
+    () => filteredAssignmentStudents.filter((student) => selectedStudents[makeStudentKey(student)]).length,
+    [filteredAssignmentStudents, selectedStudents]
   );
 
   const toggleSelectedStudent = (studentKey) => {
@@ -480,15 +521,22 @@ export function FormsStreamsPage({
   };
 
   const toggleAllStudents = () => {
-    if (!assignmentStudents.length) return;
-    const allSelected = assignmentStudents.every((student) => selectedStudents[makeStudentKey(student)]);
+    if (!filteredAssignmentStudents.length) return;
+    const allSelected = filteredAssignmentStudents.every((student) => selectedStudents[makeStudentKey(student)]);
     if (allSelected) {
-      setSelectedStudents({});
+      setSelectedStudents((prev) => {
+        const next = { ...prev };
+        filteredAssignmentStudents.forEach((student) => {
+          delete next[makeStudentKey(student)];
+        });
+        return next;
+      });
       return;
     }
-    setSelectedStudents(
-      Object.fromEntries(assignmentStudents.map((student) => [makeStudentKey(student), true]))
-    );
+    setSelectedStudents((prev) => ({
+      ...prev,
+      ...Object.fromEntries(filteredAssignmentStudents.map((student) => [makeStudentKey(student), true])),
+    }));
   };
 
   const moveSingleStudent = async (student, targetClassId) => {
@@ -529,7 +577,7 @@ export function FormsStreamsPage({
 
   const moveSelectedStudents = async () => {
     if (!bulkTargetClassId || !selectedAssignmentCount || bulkMoving || movingStudentKey) return;
-    const chosen = assignmentStudents.filter((student) => selectedStudents[makeStudentKey(student)]);
+    const chosen = filteredAssignmentStudents.filter((student) => selectedStudents[makeStudentKey(student)]);
     const eligible = chosen.filter((student) => student.classId !== bulkTargetClassId);
     if (!eligible.length) {
       setMappingError("Selected students are already in that stream.");
@@ -668,25 +716,45 @@ export function FormsStreamsPage({
           border: "1px solid rgba(226,232,240,0.9)",
           background: "#fff",
           padding: isMobile ? "12px 14px" : "14px 18px",
-          color: "#64748b",
-          fontSize: 12,
-          lineHeight: 1.7,
-          fontWeight: 600,
+          display: "flex",
+          gap: 10,
+          flexWrap: "wrap",
+          alignItems: "center",
         }}>
-          Empty cells no longer create classes immediately. Archived stream classes remain visible here so you can restore them instead of creating duplicate records.
+          <span style={pillStyle("#2563eb", "#eff6ff")}>Create with review</span>
+          <span style={pillStyle("#92400e", "#fef3c7")}>Restore archived slots</span>
+          {canAssignStreams ? <span style={pillStyle("#0f766e", "#ccfbf1")}>Move students between streams</span> : null}
+          <span style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
+            Use the grid to manage stream slots and the mapping studio to place students into the correct stream.
+          </span>
         </div>
 
-        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <div
-            style={{
-              borderRadius: 24,
-              border: "1px solid rgba(226,232,240,0.92)",
-              background: "linear-gradient(180deg,#ffffff,#f8fbff)",
-              boxShadow: "0 14px 40px rgba(15,23,42,0.07)",
-              overflow: "hidden",
-              minWidth: isMobile ? 440 : 560,
-            }}
-          >
+        <div
+          style={{
+            borderRadius: 24,
+            border: "1px solid rgba(226,232,240,0.92)",
+            background: "linear-gradient(180deg,#ffffff,#f8fbff)",
+            boxShadow: "0 14px 40px rgba(15,23,42,0.07)",
+            padding: isMobile ? "16px 14px" : "20px 22px",
+            display: "grid",
+            gap: 18,
+          }}
+        >
+          <SectionTitle
+            eyebrow="Structure"
+            title="Class map"
+            body="View each form against its streams, open active classes, and create or restore class slots without accidental duplicates."
+          />
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            <div
+              style={{
+                borderRadius: 24,
+                border: "1px solid rgba(226,232,240,0.92)",
+                background: "linear-gradient(180deg,#ffffff,#f8fbff)",
+                overflow: "hidden",
+                minWidth: isMobile ? 440 : 560,
+              }}
+            >
             <div
               style={{
                 display: "grid",
@@ -761,6 +829,7 @@ export function FormsStreamsPage({
                 </div>
               );
             })}
+            </div>
           </div>
         </div>
 
@@ -776,46 +845,42 @@ export function FormsStreamsPage({
               gap: 18,
             }}
           >
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1, textTransform: "uppercase" }}>
-                  Stream Mapping
+            <SectionTitle
+              eyebrow="Assignment"
+              title="Stream mapping studio"
+              body="Place students into the correct stream inside the selected form. Bulk moves are limited to one form and year to keep assignments safe."
+              aside={(
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {mappingFormOptions.map((form) => (
+                    <button
+                      key={form}
+                      type="button"
+                      onClick={() => {
+                        setSelectedForm(form);
+                        setSelectedStudents({});
+                        setTargetClassByStudent({});
+                        setBulkTargetClassId("");
+                        setAssignmentSearch("");
+                        setSourceStreamFilter("");
+                        setMappingError("");
+                      }}
+                      style={{
+                        border: selectedForm === form ? "none" : "1px solid rgba(203,213,225,0.92)",
+                        borderRadius: 12,
+                        padding: "8px 14px",
+                        cursor: "pointer",
+                        background: selectedForm === form ? "linear-gradient(135deg,#0f766e,#0f9f92)" : "#fff",
+                        color: selectedForm === form ? "#fff" : "#475569",
+                        fontSize: 12,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {form}
+                    </button>
+                  ))}
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a", marginTop: 4 }}>
-                  Assign students to the right stream
-                </div>
-                <div style={{ fontSize: 13, color: "#64748b", marginTop: 6, lineHeight: 1.6, fontWeight: 600 }}>
-                  Move students between active streams inside the same form and year. This keeps one real student record and refreshes both stream rosters.
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {mappingFormOptions.map((form) => (
-                  <button
-                    key={form}
-                    type="button"
-                    onClick={() => {
-                      setSelectedForm(form);
-                      setSelectedStudents({});
-                      setTargetClassByStudent({});
-                      setBulkTargetClassId("");
-                      setMappingError("");
-                    }}
-                    style={{
-                      border: selectedForm === form ? "none" : "1px solid rgba(203,213,225,0.92)",
-                      borderRadius: 12,
-                      padding: "8px 14px",
-                      cursor: "pointer",
-                      background: selectedForm === form ? "linear-gradient(135deg,#0f766e,#0f9f92)" : "#fff",
-                      color: selectedForm === form ? "#fff" : "#475569",
-                      fontSize: 12,
-                      fontWeight: 800,
-                    }}
-                  >
-                    {form}
-                  </button>
-                ))}
-              </div>
-            </div>
+              )}
+            />
 
             {mappingStreamOptions.length > 0 && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
@@ -841,6 +906,47 @@ export function FormsStreamsPage({
 
             <div
               style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "minmax(220px,1.2fr) minmax(180px,0.8fr)",
+                gap: 10,
+              }}
+            >
+              <input
+                value={assignmentSearch}
+                onChange={(event) => setAssignmentSearch(event.target.value)}
+                placeholder="Search student, admission number, CNO, or guardian"
+                style={{
+                  borderRadius: 12,
+                  border: "1px solid rgba(203,213,225,0.92)",
+                  padding: "11px 13px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#0f172a",
+                  background: "#fff",
+                }}
+              />
+              <select
+                value={sourceStreamFilter}
+                onChange={(event) => setSourceStreamFilter(event.target.value)}
+                style={{
+                  borderRadius: 12,
+                  border: "1px solid rgba(203,213,225,0.92)",
+                  padding: "11px 13px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#0f172a",
+                  background: "#fff",
+                }}
+              >
+                <option value="">All current streams</option>
+                {mappingStreamOptions.map((entry) => (
+                  <option key={entry.id} value={entry.stream}>Stream {entry.stream}</option>
+                ))}
+              </select>
+            </div>
+
+            <div
+              style={{
                 display: "flex",
                 gap: 12,
                 flexWrap: "wrap",
@@ -857,7 +963,7 @@ export function FormsStreamsPage({
                   {selectedAssignmentCount ? `${selectedAssignmentCount} student${selectedAssignmentCount === 1 ? "" : "s"} selected` : "Select students to move in bulk"}
                 </div>
                 <div style={{ fontSize: 11, color: "#64748b", marginTop: 4, fontWeight: 600 }}>
-                  Bulk move works only inside {selectedForm || "the selected form"} for {selectedYear}.
+                  Showing {filteredAssignmentStudents.length} of {assignmentStudents.length} students. Bulk move works only inside {selectedForm || "the selected form"} for {selectedYear}.
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -919,7 +1025,7 @@ export function FormsStreamsPage({
 
             {loadingMapping ? (
               <div style={{ fontSize: 13, color: "#64748b", fontWeight: 700 }}>Loading stream rosters...</div>
-            ) : assignmentStudents.length === 0 ? (
+            ) : filteredAssignmentStudents.length === 0 ? (
               <div
                 style={{
                   borderRadius: 18,
@@ -931,7 +1037,7 @@ export function FormsStreamsPage({
                   fontWeight: 700,
                 }}
               >
-                No students are currently available for {selectedForm || "this form"} in {selectedYear}.
+                No students match the current stream filters for {selectedForm || "this form"} in {selectedYear}.
               </div>
             ) : (
               <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
@@ -952,7 +1058,7 @@ export function FormsStreamsPage({
                     <label style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <input
                         type="checkbox"
-                        checked={assignmentStudents.length > 0 && assignmentStudents.every((student) => selectedStudents[makeStudentKey(student)])}
+                        checked={filteredAssignmentStudents.length > 0 && filteredAssignmentStudents.every((student) => selectedStudents[makeStudentKey(student)])}
                         onChange={toggleAllStudents}
                       />
                     </label>
@@ -964,7 +1070,7 @@ export function FormsStreamsPage({
                     <span>Action</span>
                   </div>
                   <div style={{ display: "grid", gap: 10 }}>
-                    {assignmentStudents.map((student) => {
+                    {filteredAssignmentStudents.map((student) => {
                       const studentKey = makeStudentKey(student);
                       const targetOptions = mappingStreamOptions.filter((entry) => entry.id !== student.classId);
                       return (
