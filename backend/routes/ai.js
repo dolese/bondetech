@@ -13,6 +13,44 @@ const {
   recordAiAuditLog,
 } = require("../../lib/aiGovernance");
 
+function mapAiRouteError(error) {
+  const rawMessage = String(error?.message || "Unable to complete AI request");
+  const status = Number(error?.status || 500);
+  const lower = rawMessage.toLowerCase();
+
+  if (status === 429) {
+    return {
+      status: 429,
+      message: "The academic assistant is busy right now. Please wait a moment and try again.",
+    };
+  }
+  if (status === 503 && lower.includes("no ai provider is configured")) {
+    return {
+      status: 503,
+      message: "The academic assistant is not configured yet. Add an AI provider key on the server and try again.",
+    };
+  }
+  if (status === 503 && lower.includes("gemini_api_key")) {
+    return {
+      status: 503,
+      message: "The backup AI provider is not configured on the server.",
+    };
+  }
+  if (lower.includes("quota") || lower.includes("billing") || lower.includes("insufficient_quota")) {
+    return {
+      status: status >= 400 ? status : 503,
+      message: "The configured AI provider does not currently have available quota. Please try again later.",
+    };
+  }
+  if (lower.includes("authentication required")) {
+    return { status: 401, message: "Authentication is required to use the academic assistant." };
+  }
+  return {
+    status: status >= 400 ? status : 500,
+    message: rawMessage,
+  };
+}
+
 async function requireAuth(req, res, next) {
   try {
     const user = await resolveSessionUser(getDb(), req);
@@ -32,10 +70,12 @@ router.post("/chat", async (req, res) => {
   if (!canReadClassData(req.authUser?.role)) {
     return res.status(403).json({ error: "You do not have permission to use the AI assistant" });
   }
+  let rateLimitInfo = null;
   try {
-    assertAiRateLimit(req.authUser, req);
+    rateLimitInfo = assertAiRateLimit(req.authUser, req);
   } catch (err) {
-    return res.status(err.status || 429).json({ error: err.message });
+    const mapped = mapAiRouteError(err);
+    return res.status(mapped.status).json({ error: mapped.message });
   }
 
   const rawMessages = Array.isArray(req.body?.messages) ? req.body.messages : [];
@@ -127,9 +167,20 @@ router.post("/chat", async (req, res) => {
         citations,
         confidence,
         actionDraft,
+        session: {
+          provider: response.provider,
+          model: response.model,
+          fallbackUsed: response.fallbackUsed === true,
+          actionMode,
+          responseLanguage,
+          guardianTone,
+          toolCallsUsed: toolCalls.length,
+          remainingRequests: rateLimitInfo?.remaining ?? null,
+        },
       },
     });
   } catch (err) {
+    const mapped = mapAiRouteError(err);
     try {
       await recordAiAuditLog(getDb(), {
         user: req.authUser,
@@ -140,12 +191,12 @@ router.post("/chat", async (req, res) => {
         activeExam: String(context.activeExam || "").trim(),
         promptPreview: messages[messages.length - 1]?.content || "",
         outcome: "error",
-        error: err.message || "Unable to complete AI request",
+        error: mapped.message || err.message || "Unable to complete AI request",
         ip: req.headers?.["x-forwarded-for"] || req.ip || req.socket?.remoteAddress || "",
         userAgent: req.headers?.["user-agent"] || "",
       });
     } catch (_) {}
-    return res.status(err.status || 500).json({ error: err.message || "Unable to complete AI request" });
+    return res.status(mapped.status).json({ error: mapped.message });
   }
 });
 

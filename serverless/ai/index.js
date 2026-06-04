@@ -12,6 +12,44 @@ const {
   recordAiAuditLog,
 } = require("../../lib/aiGovernance");
 
+function mapAiRouteError(error) {
+  const rawMessage = String(error?.message || "Unable to complete AI request");
+  const status = Number(error?.status || 500);
+  const lower = rawMessage.toLowerCase();
+
+  if (status === 429) {
+    return {
+      status: 429,
+      message: "The academic assistant is busy right now. Please wait a moment and try again.",
+    };
+  }
+  if (status === 503 && lower.includes("no ai provider is configured")) {
+    return {
+      status: 503,
+      message: "The academic assistant is not configured yet. Add an AI provider key on the server and try again.",
+    };
+  }
+  if (status === 503 && lower.includes("gemini_api_key")) {
+    return {
+      status: 503,
+      message: "The backup AI provider is not configured on the server.",
+    };
+  }
+  if (lower.includes("quota") || lower.includes("billing") || lower.includes("insufficient_quota")) {
+    return {
+      status: status >= 400 ? status : 503,
+      message: "The configured AI provider does not currently have available quota. Please try again later.",
+    };
+  }
+  if (lower.includes("authentication required")) {
+    return { status: 401, message: "Authentication is required to use the academic assistant." };
+  }
+  return {
+    status: status >= 400 ? status : 500,
+    message: rawMessage,
+  };
+}
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     return sendJson(res, 405, { error: "Method not allowed" });
@@ -30,10 +68,12 @@ module.exports = async (req, res) => {
   if (!canReadClassData(currentUser.role)) {
     return sendJson(res, 403, { error: "You do not have permission to use the AI assistant" });
   }
+  let rateLimitInfo = null;
   try {
-    assertAiRateLimit(currentUser, req);
+    rateLimitInfo = assertAiRateLimit(currentUser, req);
   } catch (err) {
-    return sendJson(res, err.status || 429, { error: err.message });
+    const mapped = mapAiRouteError(err);
+    return sendJson(res, mapped.status, { error: mapped.message });
   }
 
   try {
@@ -125,9 +165,20 @@ module.exports = async (req, res) => {
         citations,
         confidence,
         actionDraft,
+        session: {
+          provider: response.provider,
+          model: response.model,
+          fallbackUsed: response.fallbackUsed === true,
+          actionMode,
+          responseLanguage,
+          guardianTone,
+          toolCallsUsed: toolCalls.length,
+          remainingRequests: rateLimitInfo?.remaining ?? null,
+        },
       },
     });
   } catch (err) {
+    const mapped = mapAiRouteError(err);
     try {
       const body = typeof req.body === "object" ? req.body : {};
       const context = body?.context && typeof body.context === "object" ? body.context : {};
@@ -139,11 +190,11 @@ module.exports = async (req, res) => {
         activeClassId: String(context.activeClassId || ""),
         activeExam: String(context.activeExam || "").trim(),
         outcome: "error",
-        error: err.message || "Unable to complete AI request",
+        error: mapped.message || err.message || "Unable to complete AI request",
         ip: req.headers?.["x-forwarded-for"] || req.socket?.remoteAddress || "",
         userAgent: req.headers?.["user-agent"] || "",
       });
     } catch (_) {}
-    return sendJson(res, err.status || 500, { error: err.message || "Unable to complete AI request" });
+    return sendJson(res, mapped.status, { error: mapped.message });
   }
 };

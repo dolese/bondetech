@@ -91,6 +91,30 @@ function formatTime(date) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+function getRoleLabel(role = "") {
+  const normalized = String(role || "").trim().toLowerCase();
+  if (!normalized) return "User";
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+function getProviderLabel(provider = "") {
+  const normalized = String(provider || "").trim().toLowerCase();
+  if (normalized === "openai") return "OpenAI";
+  if (normalized === "gemini") return "Gemini";
+  return "Assistant";
+}
+
+function buildAssistantMetaSummary(meta = {}) {
+  const parts = [];
+  if (meta?.confidence?.level) parts.push(`Confidence ${String(meta.confidence.level).toUpperCase()}`);
+  if (meta?.citations?.classLabel) parts.push(meta.citations.classLabel);
+  if (meta?.citations?.examType) parts.push(meta.citations.examType);
+  if (Number(meta?.citations?.studentCount || 0) > 0) {
+    parts.push(`${Number(meta.citations.studentCount)} students`);
+  }
+  return parts;
+}
+
 function buildConversationStorageKey(classId, examName) {
   const classPart = classId || "all-classes";
   const examPart = examName || "default-exam";
@@ -515,6 +539,7 @@ export function AiAssistantPage({
     () => [...messages].reverse().find((message) => message.role === "assistant"),
     [messages]
   );
+  const sessionMeta = latestAssistantMessage?.meta?.session || null;
   const followupPrompts = useMemo(
     () => buildFollowupPrompts(latestAssistantMessage?.content, selectedClass),
     [latestAssistantMessage?.content, selectedClass]
@@ -573,6 +598,7 @@ export function AiAssistantPage({
     setMessages(nextMessages);
     setDraft("");
     setError("");
+    setShowQuickActions(false);
     setIsSending(true);
 
     if (textareaRef.current) {
@@ -706,8 +732,12 @@ export function AiAssistantPage({
                   <h1 style={{ margin: 0, fontSize: isMobile ? 16 : 18, lineHeight: 1.2, color: "#18181b", fontWeight: 700 }}>
                     Academic Assistant
                   </h1>
-                  <span style={pillStyle({ tone: "blue" })}>AI</span>
+                  <span style={pillStyle({ tone: "blue" })}>Read-only</span>
+                  <span style={pillStyle({ tone: "slate" })}>{getRoleLabel(currentUser?.role)}</span>
                   {actionMode && <span style={pillStyle({ tone: "green" })}>Action mode</span>}
+                </div>
+                <div style={{ marginTop: 4, fontSize: 13, color: "#71717a", fontWeight: 500 }}>
+                  School operations chat for results, student lookups, and guardian drafts.
                 </div>
               </div>
             </div>
@@ -806,6 +836,40 @@ export function AiAssistantPage({
         </header>
 
         {/* ── QUICK ACTIONS (toggled) ── */}
+        <div
+          style={{
+            padding: isMobile ? "10px 16px" : "10px 20px",
+            borderBottom: "1px solid #f4f4f5",
+            background: "#fafafa",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            alignItems: "center",
+            flexShrink: 0,
+          }}
+        >
+          <span style={pillStyle({ tone: "slate" })}>
+            {selectedClass ? getClassLabel(selectedClass) : "Flexible class context"}
+          </span>
+          <span style={pillStyle({ tone: "slate" })}>
+            {activeExam || "Default exam context"}
+          </span>
+          <span style={pillStyle({ tone: "slate" })}>
+            {responseLanguage === "sw" ? "Swahili responses" : "English responses"}
+          </span>
+          {sessionMeta?.provider && (
+            <span style={pillStyle({ tone: sessionMeta.fallbackUsed ? "amber" : "green" })}>
+              {getProviderLabel(sessionMeta.provider)}
+              {sessionMeta.fallbackUsed ? " fallback" : ""}
+            </span>
+          )}
+          {Number.isFinite(Number(sessionMeta?.remainingRequests)) && (
+            <span style={pillStyle({ tone: "slate" })}>
+              {Number(sessionMeta.remainingRequests)} requests left
+            </span>
+          )}
+        </div>
+
         {showQuickActions && !isFreshConversation && (
           <div
             style={{
