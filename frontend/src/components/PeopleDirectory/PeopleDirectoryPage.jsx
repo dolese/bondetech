@@ -90,7 +90,7 @@ export function PeopleDirectoryPage({
             background: palette.soft,
             border: `1px solid ${palette.border}`,
             color: palette.accent,
-            fontWeight: 900,
+            fontWeight: 800,
             fontSize: 13,
           }}
         >

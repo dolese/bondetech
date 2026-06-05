@@ -101,7 +101,7 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
               style={{
                 marginTop: 8,
                 fontSize: isMobile ? 20 : 24,
-                fontWeight: 900,
+                fontWeight: 800,
                 color: "#102a43",
               }}
             >

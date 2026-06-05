@@ -715,7 +715,7 @@ export function SettingsPage({
                 fontWeight: 700,
                 color: "#555",
                 textTransform: "uppercase",
-                letterSpacing: 0.5,
+                letterSpacing: "0.06em",
               }}
             >
               {t("settingsClassName", "Class Name")}
@@ -735,7 +735,7 @@ export function SettingsPage({
                 fontWeight: 700,
                 color: "#555",
                 textTransform: "uppercase",
-                letterSpacing: 0.5,
+                letterSpacing: "0.06em",
               }}
             >
               {t("settingsYear", "Year")}
@@ -756,7 +756,7 @@ export function SettingsPage({
                 fontWeight: 700,
                 color: "#555",
                 textTransform: "uppercase",
-                letterSpacing: 0.5,
+                letterSpacing: "0.06em",
               }}
             >
               {t("settingsForm", "Form")}
@@ -779,7 +779,7 @@ export function SettingsPage({
                 fontWeight: 700,
                 color: "#555",
                 textTransform: "uppercase",
-                letterSpacing: 0.5,
+                letterSpacing: "0.06em",
               }}
             >
               Stream

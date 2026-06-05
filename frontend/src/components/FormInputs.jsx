@@ -27,17 +27,17 @@ export function TextInput({
     label: {
       fontSize: 11,
       fontWeight: 700,
-      color: "#555",
+      color: "#64748b",
       textTransform: "uppercase",
-      letterSpacing: 0.5,
+      letterSpacing: "0.08em",
     },
     labelRequired: {
-      color: "#cc2222",
+      color: "#dc2626",
       marginLeft: 4,
     },
     input: {
-      border: error ? "2px solid #cc2222" : "1.5px solid #ccd6f0",
-      borderRadius: 5,
+      border: error ? "1.5px solid #dc2626" : "1px solid rgba(214,226,245,0.92)",
+      borderRadius: 10,
       padding: "6px 10px",
       fontSize: 12,
       outline: "none",
@@ -49,8 +49,8 @@ export function TextInput({
     },
     errorMsg: {
       fontSize: 10,
-      color: "#cc2222",
-      fontWeight: 700,
+      color: "#dc2626",
+      fontWeight: 600,
     },
   };
 
@@ -100,17 +100,17 @@ export function NumberInput({
     label: {
       fontSize: 11,
       fontWeight: 700,
-      color: "#555",
+      color: "#64748b",
       textTransform: "uppercase",
-      letterSpacing: 0.5,
+      letterSpacing: "0.08em",
     },
     labelRequired: {
-      color: "#cc2222",
+      color: "#dc2626",
       marginLeft: 4,
     },
     input: {
-      border: error ? "2px solid #cc2222" : "1.5px solid #ccd6f0",
-      borderRadius: 5,
+      border: error ? "1.5px solid #dc2626" : "1px solid rgba(214,226,245,0.92)",
+      borderRadius: 10,
       padding: "6px 10px",
       fontSize: 12,
       outline: "none",
@@ -123,8 +123,8 @@ export function NumberInput({
     },
     errorMsg: {
       fontSize: 10,
-      color: "#cc2222",
-      fontWeight: 700,
+      color: "#dc2626",
+      fontWeight: 600,
     },
   };
 
@@ -171,17 +171,17 @@ export function SelectInput({
     label: {
       fontSize: 11,
       fontWeight: 700,
-      color: "#555",
+      color: "#64748b",
       textTransform: "uppercase",
-      letterSpacing: 0.5,
+      letterSpacing: "0.08em",
     },
     labelRequired: {
-      color: "#cc2222",
+      color: "#dc2626",
       marginLeft: 4,
     },
     select: {
-      border: error ? "2px solid #cc2222" : "1.5px solid #ccd6f0",
-      borderRadius: 5,
+      border: error ? "1.5px solid #dc2626" : "1px solid rgba(214,226,245,0.92)",
+      borderRadius: 10,
       padding: "6px 10px",
       fontSize: 12,
       outline: "none",
@@ -193,8 +193,8 @@ export function SelectInput({
     },
     errorMsg: {
       fontSize: 10,
-      color: "#cc2222",
-      fontWeight: 700,
+      color: "#dc2626",
+      fontWeight: 600,
     },
   };
 
@@ -244,17 +244,17 @@ export function TextAreaInput({
     label: {
       fontSize: 11,
       fontWeight: 700,
-      color: "#555",
+      color: "#64748b",
       textTransform: "uppercase",
-      letterSpacing: 0.5,
+      letterSpacing: "0.08em",
     },
     labelRequired: {
-      color: "#cc2222",
+      color: "#dc2626",
       marginLeft: 4,
     },
     textarea: {
-      border: error ? "2px solid #cc2222" : "1.5px solid #ccd6f0",
-      borderRadius: 5,
+      border: error ? "1.5px solid #dc2626" : "1px solid rgba(214,226,245,0.92)",
+      borderRadius: 10,
       padding: "8px 10px",
       fontSize: 12,
       outline: "none",
@@ -266,8 +266,8 @@ export function TextAreaInput({
     },
     errorMsg: {
       fontSize: 10,
-      color: "#cc2222",
-      fontWeight: 700,
+      color: "#dc2626",
+      fontWeight: 600,
     },
   };
 

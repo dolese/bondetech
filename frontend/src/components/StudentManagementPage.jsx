@@ -604,7 +604,7 @@ export function StudentManagementPage({
         >
           <div>
             <div style={{ display: "inline-flex", ...pillStyle({ tone: "blue" }) }}>School-wide records</div>
-            <div style={{ fontSize: isMobile ? 30 : 34, fontWeight: 900, color: "#0f172a", lineHeight: 1.05, marginTop: 10 }}>
+            <div style={{ fontSize: isMobile ? 28 : 32, fontWeight: 800, color: "#0f172a", lineHeight: 1.08, marginTop: 10 }}>
               Student Records
             </div>
             <div style={{ fontSize: 14, color: "#64748b", marginTop: 6, maxWidth: 720 }}>
@@ -638,10 +638,10 @@ export function StudentManagementPage({
               key={label}
               style={{ ...softCardStyle({ padding: 15, radius: 20 }), display: "grid", gap: 6 }}
             >
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.7 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.09em" }}>
                 {label}
               </div>
-              <div style={{ fontSize: 30, fontWeight: 900, color: "#0f172a" }}>{value}</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: "#0f172a" }}>{value}</div>
               <div style={{ fontSize: 12, color: "#64748b" }}>{note}</div>
             </div>
           ))}
@@ -656,7 +656,7 @@ export function StudentManagementPage({
         }}
       >
         <div style={{ display: "grid", gap: 4 }}>
-          <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a" }}>Academic Year Promotion</div>
+          <div style={{ fontSize: 20, fontWeight: 600, color: "#0f172a" }}>Academic Year Promotion</div>
           <div style={{ fontSize: 13, color: "#64748b", maxWidth: 760, lineHeight: 1.6 }}>
             Roll students into the next class while keeping their permanent identity, guardian details, and optional-subject setup aligned to the target class.
           </div>
@@ -670,7 +670,7 @@ export function StudentManagementPage({
           }}
         >
           <label style={{ display: "grid", gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Source Class
             </span>
             <select
@@ -687,7 +687,7 @@ export function StudentManagementPage({
             </select>
           </label>
           <label style={{ display: "grid", gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Target Class
             </span>
             <select
@@ -734,7 +734,7 @@ export function StudentManagementPage({
           }}
         >
         <div style={{ display: "grid", gap: 4 }}>
-          <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a" }}>Directory</div>
+          <div style={{ fontSize: 20, fontWeight: 600, color: "#0f172a" }}>Directory</div>
           <div style={{ fontSize: 13, color: "#64748b" }}>
               Search, filter, and maintain full student records from one place. Use the directory to find a learner, then continue from the focused student panel or full profile.
           </div>
@@ -847,7 +847,7 @@ export function StudentManagementPage({
             >
               <div style={{ display: "grid", gap: 4 }}>
                 <div style={{ display: "inline-flex", ...pillStyle({ tone: "teal" }) }}>Student Focus</div>
-                <div style={{ fontSize: isMobile ? 22 : 24, fontWeight: 900, color: "#0f172a" }}>
+                <div style={{ fontSize: isMobile ? 22 : 24, fontWeight: 800, color: "#0f172a" }}>
                   {selectedStudent.name || "Unnamed Student"}
                 </div>
                 <div style={{ fontSize: 13, color: "#64748b" }}>
@@ -895,10 +895,10 @@ export function StudentManagementPage({
                 ["Phone", selectedStudent.parentPhone || "Missing", selectedStudent.parentPhone ? "blue" : "amber"],
               ].map(([label, value, tone]) => (
                 <div key={label} style={{ ...softCardStyle({ padding: 12, radius: 18 }), display: "grid", gap: 6 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                     {label}
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 900, color: "#0f172a" }}>{value}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{value}</div>
                   <div style={pillStyle({ tone })}>{label === "Lifecycle" ? value : "Record detail"}</div>
                 </div>
               ))}
@@ -925,12 +925,12 @@ export function StudentManagementPage({
                     style={{
                       textAlign: "left",
                       padding: "12px 10px",
-                      fontSize: 12,
-                      fontWeight: 900,
+                      fontSize: 11,
+                      fontWeight: 700,
                       color: "#475569",
                       borderBottom: "1px solid rgba(214,226,245,0.92)",
                       textTransform: "uppercase",
-                      letterSpacing: 0.5,
+                      letterSpacing: "0.08em",
                       whiteSpace: "nowrap",
                       background: "rgba(247,250,252,0.94)",
                     }}
@@ -953,14 +953,14 @@ export function StudentManagementPage({
                     cursor: "pointer",
                   }}
                 >
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 600, color: "#0f172a" }}>
                     {student.admissionNo || student.admission_no || "-"}
                   </td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 800, color: "#0f172a" }}>
+                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 600, color: "#0f172a" }}>
                     {student.index_no || student.indexNo || "-"}
                   </td>
                   <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
-                    <div style={{ fontWeight: 800, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
+                    <div style={{ fontWeight: 600, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
                     <div style={{ fontSize: 12, color: "#64748b" }}>
                       {student.parentName ? `Guardian: ${student.parentName}` : "Student record"}
                     </div>
@@ -1045,14 +1045,14 @@ export function StudentManagementPage({
             {groupedStudents.map((yearGroup) => (
               <div key={yearGroup.year} style={{ display: "grid", gap: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                  <div style={{ fontSize: 22, fontWeight: 900, color: "#0f172a" }}>{yearGroup.year}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{yearGroup.year}</div>
                   <div style={pillStyle({ tone: "blue" })}>
                     {yearGroup.forms.reduce((count, formEntry) => count + formEntry.classes.reduce((sum, cls) => sum + cls.students.length, 0), 0)} students
                   </div>
                 </div>
                 {yearGroup.forms.map((formEntry) => (
                   <div key={`${yearGroup.year}-${formEntry.formName}`} style={{ display: "grid", gap: 10 }}>
-                    <div style={{ fontSize: 16, fontWeight: 900, color: "#16325c" }}>{formEntry.formName}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>{formEntry.formName}</div>
                     <div
                       style={{
                         display: "grid",
@@ -1070,7 +1070,7 @@ export function StudentManagementPage({
                           }}
                         >
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                            <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{classEntry.classLabel}</div>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>{classEntry.classLabel}</div>
                             <div style={pillStyle({ tone: "slate" })}>{classEntry.students.length} students</div>
                           </div>
                           <div style={{ display: "grid", gap: 8 }}>
@@ -1100,7 +1100,7 @@ export function StudentManagementPage({
                               >
                                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
                                   <div>
-                                    <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
+                                    <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
                                     <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
                                       {(student.admissionNo || student.admission_no || "No admission no")} | {(student.index_no || student.indexNo || "No CNO")}
                                     </div>
@@ -1201,7 +1201,7 @@ export function StudentManagementPage({
               <div style={{ display: "inline-flex", ...pillStyle({ tone: modalMode === "edit" ? "blue" : "teal" }) }}>
                 {modalMode === "edit" ? "Update record" : "Create record"}
               </div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a", marginTop: 10 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", marginTop: 10 }}>
                 {modalMode === "edit" ? "Edit Student" : "Add Student"}
               </div>
               <div style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>
@@ -1213,7 +1213,7 @@ export function StudentManagementPage({
 
             <div style={{ display: "grid", gridTemplateColumns: fieldGridColumns, gap: 12 }}>
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Class</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Class</span>
                 <select
                   value={form.classGroupKey}
                   onChange={(event) => updateClassGroup(event.target.value)}
@@ -1230,7 +1230,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Stream</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Stream</span>
                 <select
                   value={form.stream}
                   onChange={(event) => updateStream(event.target.value)}
@@ -1246,7 +1246,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Admission Number</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Admission Number</span>
                 <input
                   value={form.admission_no}
                   onChange={(event) => updateField("admission_no", event.target.value)}
@@ -1259,7 +1259,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>CNO</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>CNO</span>
                 <input
                   value={form.index_no}
                   onChange={(event) => updateField("index_no", event.target.value)}
@@ -1269,7 +1269,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Student Name</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Student Name</span>
                 <input
                   value={form.name}
                   onChange={(event) => updateField("name", event.target.value)}
@@ -1279,7 +1279,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Sex</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Sex</span>
                 <select
                   value={form.sex}
                   onChange={(event) => updateField("sex", event.target.value)}
@@ -1291,7 +1291,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Lifecycle Status</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Lifecycle Status</span>
                 <select
                   value={form.enrollmentStatus}
                   onChange={(event) => updateField("enrollmentStatus", event.target.value)}
@@ -1306,7 +1306,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Record Status</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Record Status</span>
                 <select
                   value={form.status}
                   onChange={(event) => updateField("status", event.target.value)}
@@ -1319,7 +1319,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Parent / Guardian</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Parent / Guardian</span>
                 <input
                   value={form.parentName}
                   onChange={(event) => updateField("parentName", event.target.value)}
@@ -1329,7 +1329,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Guardian Phone</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Guardian Phone</span>
                 <input
                   value={form.parentPhone}
                   onChange={(event) => updateField("parentPhone", event.target.value)}
@@ -1341,7 +1341,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Address</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Address</span>
                 <input
                   value={form.address}
                   onChange={(event) => updateField("address", event.target.value)}
@@ -1352,7 +1352,7 @@ export function StudentManagementPage({
             </div>
 
             <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Remarks</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Remarks</span>
               <textarea
                 value={form.remarks}
                 onChange={(event) => updateField("remarks", event.target.value)}
@@ -1370,7 +1370,7 @@ export function StudentManagementPage({
                 }}
               >
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>Optional Subjects</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Optional Subjects</div>
                   <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
                     Select only the optional subjects this student actually takes. Compulsory subjects stay available automatically.
                   </div>
@@ -1428,7 +1428,7 @@ export function StudentManagementPage({
                 }}
               >
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>Tabia na Mwenendo</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Tabia na Mwenendo</div>
                   <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
                     Use A, B, or C only. Blank fields will fall back to the system suggestion on the report card.
                   </div>
@@ -1447,7 +1447,7 @@ export function StudentManagementPage({
               <div style={{ display: "grid", gridTemplateColumns: fieldGridColumns, gap: 12 }}>
                 {CONDUCT_FIELDS.map(([key, label]) => (
                   <label key={key} style={{ display: "grid", gap: 6 }}>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>{label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>{label}</span>
                     <select
                       value={form.conduct[key] || ""}
                       onChange={(event) => updateConductField(key, event.target.value)}

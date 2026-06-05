@@ -16,7 +16,7 @@ function StatCard({ label, value, sub }) {
         minWidth: 0,
       }}
     >
-      <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.02em" }}>{value}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>{value}</div>
       <div style={{ fontSize: 13, fontWeight: 700, color: "#475569", marginTop: 4 }}>{label}</div>
       {sub ? <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2, fontWeight: 600 }}>{sub}</div> : null}
     </div>
@@ -28,11 +28,11 @@ function SectionTitle({ eyebrow, title, body, aside = null }) {
     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
       <div>
         {eyebrow ? (
-          <div style={{ fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1, textTransform: "uppercase" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
             {eyebrow}
           </div>
         ) : null}
-        <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a", marginTop: eyebrow ? 4 : 0 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", marginTop: eyebrow ? 4 : 0 }}>
           {title}
         </div>
         {body ? (
@@ -87,7 +87,7 @@ function ClassCell({ cls, onSelect }) {
       }}
       title={`${cls.form} ${cls.stream} ${cls.year}`}
     >
-      <div style={{ fontSize: 22, fontWeight: 900, color: "#0f172a" }}>{studentCount}</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{studentCount}</div>
       <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700 }}>students</div>
       <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" }}>
         {isPublished && (
@@ -159,7 +159,7 @@ function EmptyCell({ canCreate, onCreate }) {
       title="Review class creation"
     >
       <span style={{ fontSize: 20, lineHeight: 1 }}>+</span>
-      <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.3 }}>NEW CLASS</span>
+      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.04em" }}>NEW CLASS</span>
     </button>
   );
 }
@@ -192,10 +192,10 @@ function ActionPanel({ action, busy, onConfirm, onCancel }) {
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
               Stream Action Review
             </div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: "#0f172a", marginTop: 4 }}>{heading}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginTop: 4 }}>{heading}</div>
             <div style={{ fontSize: 13, color: "#475569", marginTop: 4, fontWeight: 700 }}>{detail}</div>
           </div>
           <span style={pillStyle(isRestore ? "#92400e" : "#2563eb", isRestore ? "#fef3c7" : "#eff6ff")}>
@@ -257,7 +257,7 @@ function pillStyle(color, background) {
     background,
     borderRadius: 6,
     padding: "2px 6px",
-    letterSpacing: 0.3,
+    letterSpacing: "0.04em",
   };
 }
 
@@ -663,7 +663,7 @@ export function FormsStreamsPage({
       <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: isMobile ? 16 : 24 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+            <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 800, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
               Forms &amp; Streams
             </h1>
             <p style={{ fontSize: 14, color: "#64748b", margin: "6px 0 0", fontWeight: 600 }}>
@@ -764,7 +764,7 @@ export function FormsStreamsPage({
                 padding: "0 16px",
               }}
             >
-              <div style={{ padding: "14px 8px", fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1.2, textTransform: "uppercase" }}>
+              <div style={{ padding: "14px 8px", fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                 Form
               </div>
               {displayStreams.map((stream) => (
@@ -774,7 +774,7 @@ export function FormsStreamsPage({
                     padding: isMobile ? "10px 4px" : "14px 8px",
                     textAlign: "center",
                     fontSize: isMobile ? 11 : 13,
-                    fontWeight: 900,
+                    fontWeight: 800,
                     color: "#334155",
                   }}
                 >
@@ -799,7 +799,7 @@ export function FormsStreamsPage({
                   }}
                 >
                   <div style={{ padding: "4px 8px" }}>
-                    <div style={{ fontSize: 15, fontWeight: 900, color: "#0f172a" }}>{form}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>{form}</div>
                     <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600, marginTop: 3 }}>
                       {fs.classes} active class{fs.classes !== 1 ? "es" : ""} · {fs.students} students
                     </div>
@@ -894,10 +894,10 @@ export function FormsStreamsPage({
                       padding: "14px 16px",
                     }}
                   >
-                    <div style={{ fontSize: 11, fontWeight: 800, color: "#2563eb", letterSpacing: 0.8, textTransform: "uppercase" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#2563eb", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                       Stream {entry.stream}
                     </div>
-                    <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a", marginTop: 4 }}>{entry.studentCount}</div>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", marginTop: 4 }}>{entry.studentCount}</div>
                     <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginTop: 2 }}>{entry.label}</div>
                   </div>
                 ))}
@@ -959,7 +959,7 @@ export function FormsStreamsPage({
               }}
             >
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 900, color: "#0f172a" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>
                   {selectedAssignmentCount ? `${selectedAssignmentCount} student${selectedAssignmentCount === 1 ? "" : "s"} selected` : "Select students to move in bulk"}
                 </div>
                 <div style={{ fontSize: 11, color: "#64748b", marginTop: 4, fontWeight: 600 }}>
@@ -1049,10 +1049,10 @@ export function FormsStreamsPage({
                       gap: 10,
                       padding: "0 10px 10px",
                       fontSize: 11,
-                      fontWeight: 900,
+                      fontWeight: 800,
                       color: "#64748b",
                       textTransform: "uppercase",
-                      letterSpacing: 0.8,
+                      letterSpacing: "0.08em",
                     }}
                   >
                     <label style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1174,7 +1174,7 @@ export function FormsStreamsPage({
               key={label}
               style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#475569" }}
             >
-              <span style={{ background: bg, color, borderRadius: 6, padding: "2px 8px", fontSize: 10, fontWeight: 800, letterSpacing: 0.3 }}>
+              <span style={{ background: bg, color, borderRadius: 6, padding: "2px 8px", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em" }}>
                 {label.toUpperCase()}
               </span>
               {label}

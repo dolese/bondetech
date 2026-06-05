@@ -1206,20 +1206,20 @@ export function AccountPage({
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: isXs ? 17 : isMobile ? 20 : 26,
-                fontWeight: 900,
+                fontWeight: 800,
                 color: "#fff",
                 flexShrink: 0,
                 boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
-                letterSpacing: 1,
+                letterSpacing: "0.10em",
               }}
             >
               {initialsFrom(user)}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.62)", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.62)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>
                 Account
               </div>
-              <div style={{ fontSize: isXs ? 18 : isMobile ? 22 : 28, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: isXs ? 18 : isMobile ? 22 : 28, fontWeight: 800, color: "#fff", lineHeight: 1.1, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.displayName || user?.username || "School Account"}
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
@@ -1274,7 +1274,7 @@ export function AccountPage({
             <div style={{ fontSize: 12, fontWeight: 800, color: "#9a6700", letterSpacing: 1.1, textTransform: "uppercase" }}>
               {t("passwordResetRequired")}
             </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: "#6b4f00" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#6b4f00" }}>
               {t("mustChangePasswordTitle")}
             </div>
             <div style={{ fontSize: 14, color: "#7a5d00", lineHeight: 1.7, maxWidth: 720 }}>
@@ -1344,7 +1344,7 @@ export function AccountPage({
                         : "#e0e9f7",
                       color: active ? "#fff" : tab.badgeDanger ? "#fff" : "#2563eb",
                       fontSize: 10,
-                      fontWeight: 900,
+                      fontWeight: 800,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1380,10 +1380,10 @@ export function AccountPage({
                 background: profileCompletionPercent >= 100 ? "linear-gradient(135deg, #ecfdf3, #f7fee7)" : "linear-gradient(135deg, #fffbeb, #fef9c3)",
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.08em", color: "#92400e" }}>
+              <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#92400e" }}>
                 Profile completion
               </div>
-              <div style={{ fontSize: 20, fontWeight: 900, color: "#102a43" }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#102a43" }}>
                 {profileCompletionPercent}% complete
               </div>
               {profileMissingFields.length ? (
@@ -1812,11 +1812,11 @@ export function AccountPage({
             >
               {roleSummaryRows.map((row) => (
                 <div key={row.role} style={{ ...softGlassStyle, borderRadius: 12, padding: "10px 12px", display: "grid", gap: 4 }}>
-                  <div style={{ fontSize: 12, fontWeight: 900, color: "#102a43", textTransform: "capitalize" }}>{formatUserRole(row.role)}</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#102a43", textTransform: "capitalize" }}>{formatUserRole(row.role)}</div>
                   <div style={{ fontSize: 12, color: "#64748b" }}>
                     {row.active} active · {row.inactive} inactive · {row.resetRequired} reset required
                   </div>
-                  <div style={{ fontSize: 19, fontWeight: 900, color: "#0f172a" }}>{row.total}</div>
+                  <div style={{ fontSize: 19, fontWeight: 800, color: "#0f172a" }}>{row.total}</div>
                 </div>
               ))}
             </div>
@@ -2092,7 +2092,7 @@ export function AccountPage({
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontWeight: 900,
+                            fontWeight: 800,
                             fontSize: 14,
                             flexShrink: 0,
                           }}

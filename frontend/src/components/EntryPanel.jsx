@@ -816,7 +816,7 @@ export function EntryPanel({
       color: "#26437a",
       fontSize: 10,
       fontWeight: 800,
-      letterSpacing: 0.3,
+      letterSpacing: "0.04em",
     },
     instructionHelper: {
       display: "grid",
@@ -1004,10 +1004,10 @@ export function EntryPanel({
           }}
         >
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "#64748b" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase", color: "#64748b" }}>
               Class Workspace
             </div>
-            <div style={{ marginTop: 4, fontSize: isMobile ? 18 : 20, fontWeight: 900, color: "#102a43" }}>
+            <div style={{ marginTop: 4, fontSize: isMobile ? 18 : 20, fontWeight: 800, color: "#102a43" }}>
               Marks Entry
             </div>
             <div style={{ fontSize: 11, color: "#667", marginTop: 4 }}>
@@ -1375,7 +1375,7 @@ export function EntryPanel({
               color: "#26437a",
               fontSize: 10,
               fontWeight: 800,
-              letterSpacing: 0.2,
+              letterSpacing: "0.02em",
             }}
           >
             Working in: {effectiveExam}
@@ -1391,7 +1391,7 @@ export function EntryPanel({
               color: "#3f536e",
               fontSize: 10,
               fontWeight: 800,
-              letterSpacing: 0.2,
+              letterSpacing: "0.02em",
             }}
           >
             Current Class: {currentClassLabel || "Unassigned"}
@@ -1419,7 +1419,7 @@ export function EntryPanel({
               fontWeight: 800,
               color: "#64748b",
               textTransform: "uppercase",
-              letterSpacing: 0.8,
+              letterSpacing: "0.08em",
             }}
           >
             Class Setup
@@ -1551,19 +1551,19 @@ export function EntryPanel({
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
             <div>
-              <h4 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 900, color: "#0f2d6e" }}>Student Registration</h4>
+              <h4 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: "#0f2d6e" }}>Student Registration</h4>
               <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5 }}>
                 Register a student with guardian details. Parents will appear automatically in management from the guardian information you save here.
               </div>
             </div>
-            <div style={{ fontSize: 10, fontWeight: 800, color: "#0b6b3a", background: "#dcfce7", border: "1px solid #86efac", borderRadius: 999, padding: "5px 10px" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#0b6b3a", background: "#dcfce7", border: "1px solid #86efac", borderRadius: 999, padding: "5px 10px" }}>
               Real student data
             </div>
           </div>
 
           <div style={{ display: "grid", gap: 18 }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
                 Student Details
               </div>
               <div
@@ -1640,7 +1640,7 @@ export function EntryPanel({
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 900, color: "#92400e" }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#92400e" }}>
                       Possible duplicate student
                     </div>
                     <div style={{ fontSize: 11, color: "#78350f", lineHeight: 1.5 }}>
@@ -1648,7 +1648,7 @@ export function EntryPanel({
                     </div>
                   </div>
                   {duplicateSaveConfirmed && (
-                    <div style={{ fontSize: 10, fontWeight: 800, color: "#92400e", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 999, padding: "5px 10px" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#92400e", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 999, padding: "5px 10px" }}>
                       Save again to continue
                     </div>
                   )}
@@ -1686,7 +1686,7 @@ export function EntryPanel({
 
             {optionalSubjectOptions.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 800, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
                   Optional Subjects
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", gap: 8 }}>
@@ -1722,7 +1722,7 @@ export function EntryPanel({
             )}
 
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
                 Guardian Information
               </div>
               <div
@@ -2150,7 +2150,7 @@ export function EntryPanel({
                 { label: "Sex", align: "center" },
                 { label: "Status", align: "center", minWidth: 80 },
               ].map(({ label, align, minWidth }) => (
-                <th key={label} style={{ padding: "7px 8px", textAlign: align, fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: 0.3, minWidth }}>
+                <th key={label} style={{ padding: "7px 8px", textAlign: align, fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.04em", minWidth }}>
                   {label}
                 </th>
               ))}
@@ -2164,7 +2164,7 @@ export function EntryPanel({
                     fontSize: 10,
                     border: "1px solid rgba(255,255,255,0.12)",
                     maxWidth: 48,
-                    letterSpacing: 0.2,
+                    letterSpacing: "0.02em",
                   }}
                   title={subj}
                 >
@@ -2179,7 +2179,7 @@ export function EntryPanel({
                 { label: "Remarks", align: "left", minWidth: 80 },
                 { label: "Action", minWidth: 100 },
               ].map(({ label, align, minWidth }) => (
-                <th key={label} style={{ padding: "7px 8px", textAlign: align ?? "center", fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: 0.3, minWidth }}>
+                <th key={label} style={{ padding: "7px 8px", textAlign: align ?? "center", fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.04em", minWidth }}>
                   {label}
                 </th>
               ))}
@@ -2497,7 +2497,7 @@ export function EntryPanel({
                             cursor: editingLocked ? "not-allowed" : "pointer",
                             fontSize: 10,
                             fontWeight: 700,
-                            letterSpacing: 0.2,
+                            letterSpacing: "0.02em",
                           }}
                         >
                           Edit
@@ -2513,7 +2513,7 @@ export function EntryPanel({
                             cursor: "pointer",
                             fontSize: 10,
                             fontWeight: 700,
-                            letterSpacing: 0.2,
+                            letterSpacing: "0.02em",
                           }}
                         >
                           Card
@@ -2534,7 +2534,7 @@ export function EntryPanel({
                             cursor: editingLocked || !canDeleteStudents ? "not-allowed" : "pointer",
                             fontSize: 10,
                             fontWeight: 700,
-                            letterSpacing: 0.2,
+                            letterSpacing: "0.02em",
                             display: canDeleteStudents ? undefined : "none",
                           }}
                         >

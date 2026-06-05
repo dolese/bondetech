@@ -717,13 +717,13 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>Communication</div>
-            <div style={{ marginTop: 10, fontSize: 24, fontWeight: 900, color: "#0f172a" }}>SMS Center</div>
+            <div style={{ marginTop: 10, fontSize: 24, fontWeight: 800, color: "#0f172a" }}>SMS Center</div>
             <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", maxWidth: 760, lineHeight: 1.7 }}>
               Prepare shared guardian notices or generate personalized student result SMS automatically from the saved marks in the system.
             </div>
           </div>
           <div style={{ ...softCardStyle({ padding: 12, radius: 18 }), minWidth: 240, display: "grid", gap: 6 }}>
-            <div style={{ fontSize: 12, fontWeight: 900, color: "#0f172a" }}>Gateway status</div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>Gateway status</div>
             <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
               {gatewayStatus.loading
                 ? "Checking Beem Africa SMS connection..."
@@ -755,10 +755,10 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
           {stats.map((item) => (
             <div key={item.label} style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 4 }}>
-              <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {item.label}
               </div>
-              <div style={{ fontSize: 24, color: "#0f172a", fontWeight: 900 }}>{item.value}</div>
+              <div style={{ fontSize: 24, color: "#0f172a", fontWeight: 800 }}>{item.value}</div>
             </div>
           ))}
         </div>
@@ -766,7 +766,7 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
         <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14, alignContent: "start" }}>
-          <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
             {mode === "results" ? "Results Targeting" : "Audience Targeting"}
           </div>
           <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>{scopeDescription}</div>
@@ -887,7 +887,7 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
 
         <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
               {mode === "results" ? "Results Message Preview" : "Message Composer"}
             </div>
             {mode === "custom" ? (
@@ -1003,7 +1003,7 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
           {sendResult ? (
             <div style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                <div style={{ fontSize: 13, fontWeight: 900, color: "#0f172a" }}>Latest send summary</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>Latest send summary</div>
                 <div style={{ ...pillStyle({ tone: sendResult.successful ? "teal" : "amber" }) }}>
                   {sendResult.successful ? "Submitted" : "Submitted with warnings"}
                 </div>
@@ -1016,10 +1016,10 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
                   { label: "Batches", value: sendResult.batchCount ?? 0 },
                 ].map((item) => (
                   <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 14 }) }}>
-                    <div style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.05em" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.05em" }}>
                       {item.label}
                     </div>
-                    <div style={{ marginTop: 4, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>{item.value}</div>
+                    <div style={{ marginTop: 4, fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{item.value}</div>
                   </div>
                 ))}
               </div>
@@ -1055,7 +1055,7 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
       <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>Send History</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>Send History</div>
             <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
               Recent outbound SMS activity recorded from this portal.
             </div>
@@ -1089,7 +1089,7 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
               <div key={entry.id} style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div style={{ display: "grid", gap: 4 }}>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>
                       {entry.class_label || entry.scope || "General"}
                     </div>
                     <div style={{ fontSize: 12, color: "#64748b" }}>
@@ -1118,10 +1118,10 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
                     { label: "Batches", value: entry.batch_count || 0 },
                   ].map((item) => (
                     <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 14 }) }}>
-                      <div style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.06em" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.06em" }}>
                         {item.label}
                       </div>
-                      <div style={{ marginTop: 4, fontSize: 20, fontWeight: 900, color: "#0f172a" }}>{item.value}</div>
+                      <div style={{ marginTop: 4, fontSize: 20, fontWeight: 800, color: "#0f172a" }}>{item.value}</div>
                     </div>
                   ))}
                 </div>
@@ -1148,7 +1148,7 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
       <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
               {mode === "results" ? "Generated Results SMS" : "Recipient Preview"}
             </div>
             <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>

@@ -572,7 +572,7 @@ export function ReportsPage({
       fontWeight: 800,
       color: "#516074",
       textTransform: "uppercase",
-      letterSpacing: 0.6,
+      letterSpacing: "0.07em",
       marginBottom: 4,
       display: "block",
     },
@@ -673,7 +673,7 @@ export function ReportsPage({
             <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex", marginBottom: 8 }}>
               Form Reports
             </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: "#102a43" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#102a43" }}>
               {t("reportsBrowseByForm", "Browse Reports by Form")}
             </div>
             <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.7 }}>
@@ -731,7 +731,7 @@ export function ReportsPage({
                   flexWrap: "wrap",
                 }}
               >
-                <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
                   {section.form}
                 </div>
                 <div style={{ fontSize: 11, color: "#64748b" }}>
@@ -765,7 +765,7 @@ export function ReportsPage({
                         }}
                       >
                         <div>
-                          <div style={{ fontSize: 14, fontWeight: 900, color: "#102a43" }}>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
                             {entry.label}
                           </div>
                           <div style={{ fontSize: 11, color: "#64748b" }}>
@@ -837,7 +837,7 @@ export function ReportsPage({
               style={{
                 margin: "0 0 6px",
                 fontSize: 20,
-                fontWeight: 900,
+                fontWeight: 800,
                 color: "#102a43",
               }}
             >
@@ -938,7 +938,7 @@ export function ReportsPage({
             >
               {t("reportsStudentsReported", "Students Reported")}
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: "#102a43" }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#102a43" }}>
               {present.length}
             </div>
             <div style={{ fontSize: 12, color: "#64748b" }}>
@@ -959,7 +959,7 @@ export function ReportsPage({
             >
               {t("reportsClassAverage", "Class Average")}
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: "#102a43" }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#102a43" }}>
               {currentAvg.toFixed(1)}
             </div>
             <div style={{ fontSize: 12, color: "#64748b" }}>
@@ -980,7 +980,7 @@ export function ReportsPage({
             >
               {t("reportsYearRank", "Year Rank")}
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: "#102a43" }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#102a43" }}>
               {classComparison.rank || "-"}
             </div>
             <div style={{ fontSize: 12, color: "#64748b" }}>
@@ -1002,7 +1002,7 @@ export function ReportsPage({
             >
               {t("reportsTopPerformer", "Top Performer")}
             </div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: "#102a43" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43" }}>
               {present[0]?.name || "-"}
             </div>
             <div style={{ fontSize: 12, color: "#64748b" }}>
@@ -1093,7 +1093,7 @@ export function ReportsPage({
             }}
           >
             <div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
                 {t("reportsRankingHistory", "Ranking History")}
               </div>
               <div style={{ fontSize: 12, color: "#64748b" }}>
@@ -1233,7 +1233,7 @@ export function ReportsPage({
                     <div
                       style={{
                         fontSize: 24,
-                        fontWeight: 900,
+                        fontWeight: 800,
                         color: "#102a43",
                         marginTop: 4,
                       }}
@@ -1262,7 +1262,7 @@ export function ReportsPage({
 
         <div style={{ ...styles.section, display: "grid", gap: 14 }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
               {t("reportsSubjectTrends", "Subject Trends")}
             </div>
             <div style={{ fontSize: 12, color: "#64748b" }}>
@@ -1380,7 +1380,7 @@ export function ReportsPage({
                     <div
                       style={{
                         fontSize: 16,
-                        fontWeight: 900,
+                        fontWeight: 800,
                         color: "#17324d",
                       }}
                     >
@@ -1411,7 +1411,7 @@ export function ReportsPage({
       ) : (
         <div style={{ ...styles.section, display: "grid", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "#102a43" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
               {t("reportsPrintableTemplates", "Printable Report Templates")}
             </div>
             <div style={{ fontSize: 12, color: "#64748b" }}>

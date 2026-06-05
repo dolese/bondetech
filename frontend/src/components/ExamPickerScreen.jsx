@@ -50,7 +50,7 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
     },
     heading: {
       fontSize: isMobile ? 24 : 30,
-      fontWeight: 900,
+      fontWeight: 800,
       color: "#0f172a",
       lineHeight: 1.05,
     },
@@ -75,7 +75,7 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
     },
     sectionLabel: {
       fontSize: 11,
-      fontWeight: 900,
+      fontWeight: 800,
       color: "#64748b",
       textTransform: "uppercase",
       letterSpacing: "0.12em",
@@ -139,8 +139,8 @@ export function ExamPickerScreen({ classData, onPick, onCancel }) {
             background: "rgba(255,255,255,0.92)",
             color: meta.color,
             fontSize: 11,
-            fontWeight: 900,
-            letterSpacing: 0.6,
+            fontWeight: 800,
+            letterSpacing: "0.07em",
             border: `1px solid ${meta.border}`,
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
           }}

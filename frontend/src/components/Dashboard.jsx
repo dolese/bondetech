@@ -473,7 +473,7 @@ function MetricCard({ item, compact, dense, onClick, onPinToggle, onMoveUp, onMo
       </div>
       <div>
         <div style={{ fontSize: dense ? 13 : 14, color: "#334155", fontWeight: 700 }}>{item.label}</div>
-        <div style={{ marginTop: dense ? 5 : 8, fontSize: dense ? 22 : compact ? 28 : 34, lineHeight: 1, fontWeight: 900, color: "#0f172a" }}>
+        <div style={{ marginTop: dense ? 5 : 8, fontSize: dense ? 22 : compact ? 28 : 34, lineHeight: 1, fontWeight: 800, color: "#0f172a" }}>
           {item.value}
         </div>
         <div style={{ marginTop: dense ? 5 : 10, fontSize: dense ? 11 : 13, fontWeight: 700, color: item.deltaColor, lineHeight: 1.35 }}>
@@ -1092,7 +1092,7 @@ export function Dashboard({
                     borderRadius: "50%",
                     background: "linear-gradient(145deg, #1f3c88, #11998e)",
                     color: "#fff",
-                    fontWeight: 900,
+                    fontWeight: 800,
                     fontSize: dense ? 22 : compact ? 28 : 36,
                     display: "grid",
                     placeItems: "center",
@@ -1155,7 +1155,7 @@ export function Dashboard({
                       ]).map(([label, value]) => (
                     <div key={label} style={{ ...softCardStyle({ padding: 10, radius: 16 }), display: "grid", gap: 2 }}>
                       <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
-                      <div style={{ fontSize: 18, color: "#0f172a", fontWeight: 900 }}>{value}</div>
+                      <div style={{ fontSize: 18, color: "#0f172a", fontWeight: 800 }}>{value}</div>
                     </div>
                   ))}
                 </div>
@@ -1190,7 +1190,7 @@ export function Dashboard({
                     gap: 8,
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 900, color: "#334155", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#334155", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                     Current timetable load
                   </div>
                   <div
@@ -1294,7 +1294,7 @@ export function Dashboard({
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ fontSize: compact ? 17 : 19, fontWeight: 900, color: "#0f172a" }}>Attention Center</div>
+            <div style={{ fontSize: compact ? 17 : 19, fontWeight: 800, color: "#0f172a" }}>Attention Center</div>
             <div style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
               {[
                 { key: "current", label: "Current Year" },
@@ -1336,7 +1336,7 @@ export function Dashboard({
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>{item.title}</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>{item.title}</div>
                     <div style={{ marginTop: 3, fontSize: 12, color: "#64748b" }}>{item.detail}</div>
                   </div>
                   <button
@@ -1384,7 +1384,7 @@ export function Dashboard({
             }}
           >
             <div>
-              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>Results Overview</div>
+              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>Results Overview</div>
               <div style={{ marginTop: 5, fontSize: 14, color: "#64748b", fontWeight: 600 }}>
                 {selectedYear ? `${selectedYear} academic year` : "Current academic view"}
               </div>
@@ -1459,7 +1459,7 @@ export function Dashboard({
               padding: dense ? 14 : compact ? 18 : 22,
             }}
           >
-            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900, marginBottom: 16 }}>
+            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800, marginBottom: 16 }}>
               Quick Actions
             </div>
             <div
@@ -1485,7 +1485,7 @@ export function Dashboard({
             }}
           >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                  <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>
+                  <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>
                 Operational Summary
                   </div>
                   <div style={{ fontSize: 14, color: "#64748b", fontWeight: 700 }}>
@@ -1560,7 +1560,7 @@ export function Dashboard({
                   {operationalStats.map(([label, value, color]) => (
                     <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                       <div style={{ fontSize: 15, color: "#334155", fontWeight: 700 }}>{label}</div>
-                      <div style={{ fontSize: 15, color, fontWeight: 900 }}>{value}</div>
+                      <div style={{ fontSize: 15, color, fontWeight: 800 }}>{value}</div>
                     </div>
                   ))}
                   <div style={{ marginTop: 10, paddingTop: 12, borderTop: "1px solid rgba(226,232,240,0.88)", display: "flex", justifyContent: "space-between", gap: 12 }}>
@@ -1590,7 +1590,7 @@ export function Dashboard({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>Recent Activities</div>
+              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>Recent Activities</div>
               <button
                 onClick={onOpenAccount}
                 style={{
@@ -1598,7 +1598,7 @@ export function Dashboard({
                   background: "transparent",
                   color: "#2563eb",
                   fontSize: 14,
-                  fontWeight: 900,
+                  fontWeight: 800,
                   cursor: "pointer",
                 }}
               >
@@ -1665,7 +1665,7 @@ export function Dashboard({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>Announcements</div>
+              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>Announcements</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {onOpenHomepageEditor && (
                   <button
@@ -1691,7 +1691,7 @@ export function Dashboard({
                     background: "transparent",
                     color: "#2563eb",
                     fontSize: 14,
-                    fontWeight: 900,
+                    fontWeight: 800,
                     cursor: "pointer",
                   }}
                 >
@@ -1716,10 +1716,10 @@ export function Dashboard({
                     padding: dense ? "14px 14px 12px" : "16px 16px 14px",
                   }}
                 >
-                  <div style={{ color: tone.chip, fontSize: 12, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>
+                  <div style={{ color: tone.chip, fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     {announcement.tone || "info"}
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 18, color: "#0f172a", fontWeight: 900, lineHeight: 1.25 }}>
+                  <div style={{ marginTop: 8, fontSize: 18, color: "#0f172a", fontWeight: 800, lineHeight: 1.25 }}>
                     {announcement.title}
                   </div>
                   <div style={{ marginTop: 8, fontSize: 14, color: "#475569", lineHeight: 1.6 }}>
@@ -1763,7 +1763,7 @@ export function Dashboard({
               }}
             >
               <div style={{ display: "grid", gap: 5 }}>
-                <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>
+                <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>
                   Student Lookup
                 </div>
                 <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.55, maxWidth: 520 }}>
@@ -1892,7 +1892,7 @@ export function Dashboard({
                       }}
                     >
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: dense ? "normal" : "nowrap" }}>
+                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: dense ? "normal" : "nowrap" }}>
                           {student.name}
                         </div>
                         <div style={{ marginTop: 5, fontSize: 13, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: dense ? "normal" : "nowrap", lineHeight: dense ? 1.45 : undefined }}>
@@ -1956,7 +1956,7 @@ export function Dashboard({
                       gap: 6,
                     }}
                   >
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "#102a43" }}>{item.title}</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>{item.title}</div>
                     <div style={{ fontSize: 12, lineHeight: 1.65, color: "#5b6b80" }}>{item.text}</div>
                   </div>
                 ))}
@@ -1973,7 +1973,7 @@ export function Dashboard({
               gap: 14,
             }}
           >
-            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 900 }}>
+            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>
               Portal Highlights
             </div>
             <div
@@ -1990,7 +1990,7 @@ export function Dashboard({
                     ...softCardStyle({ padding: "14px 16px", radius: 20 }),
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 900, color: highlight.color || "#2563eb", textTransform: "uppercase", letterSpacing: 0.8 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: highlight.color || "#2563eb", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                     {highlight.label}
                   </div>
                   <div style={{ marginTop: 6, fontSize: 24, color: "#0f172a", fontWeight: 950 }}>

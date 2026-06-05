@@ -177,7 +177,7 @@ export function AppTopBar({
               padding: "12px 14px",
               textAlign: "left",
               color: "#0f172a",
-              fontWeight: 800,
+              fontWeight: 700,
               fontSize: 13,
               cursor: "pointer",
               minWidth: 0,
@@ -299,7 +299,7 @@ export function AppTopBar({
                     background: "#ef4444",
                     color: "#fff",
                     fontSize: 10,
-                    fontWeight: 900,
+                    fontWeight: 700,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -341,7 +341,7 @@ export function AppTopBar({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontWeight: 900,
+                fontWeight: 800,
                 fontSize: isMobile ? 13 : 16,
                 boxShadow: "0 10px 24px rgba(31,60,136,0.18)",
               }}
@@ -352,7 +352,7 @@ export function AppTopBar({
             {!isMobile && (
               <>
                 <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>
                     {currentUser?.displayName || currentUser?.username || "Admin"}
                   </div>
                   <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>

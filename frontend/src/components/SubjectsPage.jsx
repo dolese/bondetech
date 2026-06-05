@@ -79,7 +79,7 @@ function TypeBadge({ type }) {
       style={{
         fontSize: 10,
         fontWeight: 800,
-        letterSpacing: 0.3,
+        letterSpacing: "0.04em",
         borderRadius: 999,
         padding: "4px 9px",
         background: isOptional ? "#fef3c7" : "#eff6ff",
@@ -103,7 +103,7 @@ function StatCard({ label, value, sub }) {
         padding: "16px 18px",
       }}
     >
-      <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.02em" }}>
+      <div style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
         {value}
       </div>
       <div style={{ fontSize: 13, fontWeight: 700, color: "#475569", marginTop: 4 }}>{label}</div>
@@ -209,7 +209,7 @@ function SubjectRow({
                 background: entry.forms.has(form) ? "#d1fae5" : "#f1f5f9",
                 color: entry.forms.has(form) ? "#059669" : "#cbd5e1",
                 fontSize: 11,
-                fontWeight: 900,
+                fontWeight: 800,
               }}
             >
               {entry.forms.has(form) ? "OK" : "-"}
@@ -229,7 +229,7 @@ function SubjectRow({
               background: expanded ? "rgba(37,99,235,0.12)" : "#f1f5f9",
               color: expanded ? "#2563eb" : "#64748b",
               fontSize: 12,
-              fontWeight: 900,
+              fontWeight: 800,
             }}
           >
             {entry.classes.length}
@@ -523,7 +523,7 @@ export function SubjectsPage({
     >
       <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gap: isMobile ? 16 : 24 }}>
         <div>
-          <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 800, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
             Subjects
           </h1>
           <p style={{ fontSize: 14, color: "#64748b", margin: "6px 0 0", fontWeight: 600 }}>
@@ -551,7 +551,7 @@ export function SubjectsPage({
             }}
           >
             <div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>Subject master actions</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>Subject master actions</div>
               <div style={{ fontSize: 12, color: "#64748b", marginTop: 4, fontWeight: 600 }}>
                 Add a subject once, choose its type, then apply it to all classes, selected forms, or hand-picked classes.
               </div>
@@ -704,7 +704,7 @@ export function SubjectsPage({
                   background: "#003366",
                   color: "#ffffff",
                   fontSize: 12,
-                  fontWeight: 900,
+                  fontWeight: 800,
                   cursor: "pointer",
                 }}
               >
@@ -865,21 +865,21 @@ export function SubjectsPage({
                       borderBottom: "1px solid rgba(226,232,240,0.92)",
                     }}
                   >
-                    <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1.2, textTransform: "uppercase" }}>
+                    <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                       Subject
                     </th>
-                    <th style={{ padding: "12px 12px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1.2, textTransform: "uppercase" }}>
+                    <th style={{ padding: "12px 12px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                       Type
                     </th>
                     {CLASS_FORMS.map((form) => (
                       <th
                         key={form}
-                        style={{ padding: "12px 12px", textAlign: "center", fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1.2, textTransform: "uppercase", whiteSpace: "nowrap" }}
+                        style={{ padding: "12px 12px", textAlign: "center", fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.12em", textTransform: "uppercase", whiteSpace: "nowrap" }}
                       >
                         {form.replace("Form ", "Frm ")}
                       </th>
                     ))}
-                    <th style={{ padding: "12px 16px", textAlign: "right", fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1.2, textTransform: "uppercase" }}>
+                    <th style={{ padding: "12px 16px", textAlign: "right", fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                       Classes
                     </th>
                   </tr>

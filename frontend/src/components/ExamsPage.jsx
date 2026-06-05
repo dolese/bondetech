@@ -37,7 +37,7 @@ function StatCard({ label, value, sub }) {
         padding: "16px 18px",
       }}
     >
-      <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.02em" }}>
+      <div style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
         {value}
       </div>
       <div style={{ fontSize: 13, fontWeight: 700, color: "#475569", marginTop: 4 }}>{label}</div>
@@ -87,7 +87,7 @@ function ExamBadge({ exam }) {
         whiteSpace: "nowrap",
       }}
     >
-      <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.3 }}>{meta.icon}</span>
+      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.04em" }}>{meta.icon}</span>
       {exam}
     </span>
   );
@@ -131,8 +131,8 @@ function ExamTypeRow({ examValue, label, count, total, isSelected, onClick, comp
           border: `1px solid ${meta.border}`,
           color: meta.color,
           fontSize: 10,
-          fontWeight: 900,
-          letterSpacing: 0.4,
+          fontWeight: 800,
+          letterSpacing: "0.05em",
           flexShrink: 0,
         }}
       >
@@ -312,15 +312,15 @@ function ClassRow({ cls, canManage, baseExamOptions, onChangeExam, onNavigate })
       </td>
       <td style={{ padding: "12px 16px" }}>
         {cls.published ? (
-          <span style={{ fontSize: 10, fontWeight: 800, color: "#059669", background: "#d1fae5", borderRadius: 6, padding: "3px 8px" }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: "#059669", background: "#d1fae5", borderRadius: 6, padding: "3px 8px" }}>
             PUBLISHED
           </span>
         ) : cls.archived ? (
-          <span style={{ fontSize: 10, fontWeight: 800, color: "#92400e", background: "#fef3c7", borderRadius: 6, padding: "3px 8px" }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: "#92400e", background: "#fef3c7", borderRadius: 6, padding: "3px 8px" }}>
             ARCHIVED
           </span>
         ) : (
-          <span style={{ fontSize: 10, fontWeight: 800, color: "#2563eb", background: "#eff6ff", borderRadius: 6, padding: "3px 8px" }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: "#2563eb", background: "#eff6ff", borderRadius: 6, padding: "3px 8px" }}>
             ACTIVE
           </span>
         )}
@@ -463,7 +463,7 @@ export function ExamsPage({
     >
       <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: isMobile ? 16 : 24 }}>
         <div>
-          <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 900, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 800, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
             Exams
           </h1>
           <p style={{ fontSize: 14, color: "#64748b", margin: "6px 0 0", fontWeight: 600 }}>
@@ -497,7 +497,7 @@ export function ExamsPage({
               background: "linear-gradient(180deg,#f8faff,#f1f5fe)",
             }}
           >
-            <span style={{ fontSize: 11, fontWeight: 900, color: "#64748b", letterSpacing: 1.4, textTransform: "uppercase" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.12em", textTransform: "uppercase" }}>
               Exam Types
             </span>
             <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>
@@ -543,7 +543,7 @@ export function ExamsPage({
             }}
           >
             <div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>Exam master actions</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>Exam master actions</div>
               <div style={{ fontSize: 12, color: "#64748b", marginTop: 4, fontWeight: 600 }}>
                 Apply one exam to all visible classes, the current year/form filter, or hand-picked classes. Published classes stay locked.
               </div>
@@ -654,7 +654,7 @@ export function ExamsPage({
                   background: "#003366",
                   color: "#ffffff",
                   fontSize: 12,
-                  fontWeight: 900,
+                  fontWeight: 800,
                   cursor: "pointer",
                 }}
               >
@@ -761,9 +761,9 @@ export function ExamsPage({
                             padding: "12px 16px",
                             textAlign: "left",
                             fontSize: 11,
-                            fontWeight: 900,
+                            fontWeight: 800,
                             color: "#64748b",
-                            letterSpacing: 1.2,
+                            letterSpacing: "0.12em",
                             textTransform: "uppercase",
                             whiteSpace: "nowrap",
                           }}

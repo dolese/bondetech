@@ -54,7 +54,7 @@ export function QuickCard({ icon, bg, badge, title, desc, onClick, featured = fa
             alignItems: "center",
             justifyContent: "center",
             color: "#166534",
-            fontWeight: 900,
+            fontWeight: 800,
             fontSize: compact ? 12 : 14,
           }}
         >

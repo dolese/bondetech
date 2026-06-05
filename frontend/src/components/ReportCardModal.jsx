@@ -180,7 +180,7 @@ export function ReportCardModal({ student, classData, onClose, autoExport = fals
               <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", opacity: 0.76 }}>
                 Printable Template
               </div>
-              <div style={{ fontSize: 18, fontWeight: 900, marginTop: 2 }}>Student Report Card</div>
+              <div style={{ fontSize: 18, fontWeight: 800, marginTop: 2 }}>Student Report Card</div>
             </div>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", justifyContent: "flex-end" }}>

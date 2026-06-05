@@ -216,7 +216,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
             <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>
               Official Result Sheet
             </div>
-            <h2 style={{ margin: "10px 0 0", fontSize: 18, fontWeight: 900, color: "#003366" }}>
+            <h2 style={{ margin: "10px 0 0", fontSize: 18, fontWeight: 800, color: "#003366" }}>
               {classData.form} {classData.year}
             </h2>
             <div style={{ fontSize: 12, color: "#667", marginTop: 6 }}>

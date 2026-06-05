@@ -76,7 +76,7 @@ export function PersonCard({
         {/* Info Header */}
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-            <div style={{ fontSize: 17, fontWeight: 900, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {entry.name || "Unnamed"}
             </div>
           </div>
@@ -87,7 +87,7 @@ export function PersonCard({
                 style={{
                   borderRadius: 6, padding: "3px 6px",
                   background: palette.soft, color: palette.accent,
-                  fontWeight: 800, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5,
+                  fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em",
                 }}
               >
                 {entry.badge}
@@ -106,7 +106,7 @@ export function PersonCard({
       >
         {entry.phone ? (
           <div>
-            <div style={{ fontSize: 10, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Phone
             </div>
             <div className="dir-copy-wrapper">
@@ -118,7 +118,7 @@ export function PersonCard({
             <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap" }}>
               <a
                 href={`tel:${entry.phone}`}
-                style={{ color: palette.accent, fontSize: 11, fontWeight: 800, textDecoration: "none" }}
+                style={{ color: palette.accent, fontSize: 11, fontWeight: 700, textDecoration: "none" }}
               >
                 Call
               </a>
@@ -127,7 +127,7 @@ export function PersonCard({
         ) : null}
         {entry.email ? (
           <div>
-            <div style={{ fontSize: 10, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Email
             </div>
             <div className="dir-copy-wrapper">
@@ -141,7 +141,7 @@ export function PersonCard({
             <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap" }}>
               <a
                 href={`mailto:${entry.email}`}
-                style={{ color: palette.accent, fontSize: 11, fontWeight: 800, textDecoration: "none" }}
+                style={{ color: palette.accent, fontSize: 11, fontWeight: 700, textDecoration: "none" }}
               >
                 Email
               </a>
@@ -150,7 +150,7 @@ export function PersonCard({
         ) : null}
         {entry.username ? (
           <div>
-            <div style={{ fontSize: 10, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Username
             </div>
             <div className="dir-copy-wrapper">
@@ -163,7 +163,7 @@ export function PersonCard({
         ) : null}
         {entry.lastSeen ? (
           <div>
-            <div style={{ fontSize: 10, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Last Activity
             </div>
             <div style={{ marginTop: 4, fontSize: 13, color: "#475569", fontWeight: 600 }}>
@@ -175,7 +175,7 @@ export function PersonCard({
 
       {entry.address ? (
         <div>
-          <div style={{ fontSize: 10, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.8 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Address
           </div>
           <div style={{ marginTop: 4, fontSize: 13, color: "#334155", lineHeight: 1.5 }}>
@@ -186,7 +186,7 @@ export function PersonCard({
 
       {entry.students?.length ? (
         <div className="dir-student-list">
-          <div style={{ fontSize: 10, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.8 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Linked Students ({entry.students.length})
           </div>
           <div style={{ display: "grid", gap: 8 }}>
@@ -214,7 +214,7 @@ export function PersonCard({
                       Open Profile
                     </button>
                   ) : null}
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: 10, fontWeight: 800 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: 10, fontWeight: 700 }}>
                     {getInitials(student.name)}
                   </div>
                 </div>
@@ -227,7 +227,7 @@ export function PersonCard({
       {entry.assignments?.length ? (
         <div className="dir-student-list">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Timetable Assignments ({entry.assignments.length})
             </div>
             {onOpenTimetable ? (

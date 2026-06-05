@@ -192,8 +192,8 @@ function sectionLabelStyle() {
   return {
     color: "#64748b",
     fontSize: 11,
-    fontWeight: 900,
-    letterSpacing: 1.4,
+    fontWeight: 700,
+    letterSpacing: "0.10em",
     textTransform: "uppercase",
   };
 }
@@ -370,7 +370,7 @@ export function AppSidebar({
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
               fontSize: 15,
-              fontWeight: active ? 900 : 800,
+              fontWeight: active ? 700 : 600,
               color: active ? "#2563eb" : "#0f172a",
             }}
           >
@@ -467,8 +467,8 @@ export function AppSidebar({
               />
             </div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.02em" }}>
-                BONDE OS
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
+                Bonde OS
               </div>
               <div style={{ fontSize: 13, color: "#64748b", fontWeight: 600, marginTop: 4 }}>
                 {t("resultSystem")}
@@ -555,7 +555,7 @@ export function AppSidebar({
                       }}
                       onClick={() => onToggleYear(year)}
                     >
-                      <span style={{ color: "#0f172a", fontSize: 13, fontWeight: 900, display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ color: "#0f172a", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
                         <ChevronIcon open={expandedYears.has(year)} width={13} height={13} />
                         {year}
                       </span>
@@ -633,7 +633,7 @@ export function AppSidebar({
                               }}
                               title={`${form} ${year}`}
                             >
-                              <span style={{ fontSize: 13, fontWeight: active ? 900 : 800 }}>{form}</span>
+                              <span style={{ fontSize: 13, fontWeight: active ? 700 : 600 }}>{form}</span>
                               <span
                                 style={{
                                   minWidth: 30,
@@ -646,7 +646,7 @@ export function AppSidebar({
                                   background: active ? "rgba(37,99,235,0.12)" : "#ffffff",
                                   color: active ? "#2563eb" : "#64748b",
                                   fontSize: 11,
-                                  fontWeight: 900,
+                                  fontWeight: 700,
                                   border: "1px solid rgba(226,232,240,0.84)",
                                 }}
                               >
@@ -703,7 +703,7 @@ export function AppSidebar({
                       padding: "10px",
                     }}
                   >
-                    <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900, marginBottom: 8 }}>
+                    <div style={{ color: "#64748b", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
                       {t("unorganized")}
                     </div>
                     <div style={{ display: "grid", gap: 6 }}>
@@ -726,7 +726,7 @@ export function AppSidebar({
                           }}
                         >
                           <span style={{ fontSize: 13, fontWeight: 800 }}>{cls.name}</span>
-                          <span style={{ color: "#64748b", fontSize: 11, fontWeight: 900 }}>
+                          <span style={{ color: "#64748b", fontSize: 11, fontWeight: 700 }}>
                             {cls.studentCount ?? cls.students?.length ?? 0}
                           </span>
                         </button>
@@ -763,7 +763,7 @@ export function AppSidebar({
                 padding: "0 14px",
                 color: "#0f172a",
                 fontSize: 15,
-                fontWeight: 900,
+                fontWeight: 700,
                 boxShadow: "0 10px 26px rgba(15,23,42,0.04)",
               }}
             >

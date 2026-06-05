@@ -308,7 +308,7 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={e => e.stopPropagation()}>
         <div style={styles.header}>
-          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900 }}>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>
             📤 Import Students (CSV)
           </h2>
           <button style={styles.closeBtn} onClick={onClose}>

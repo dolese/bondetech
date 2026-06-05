@@ -20,3 +20,10 @@ mobile/.env.local
 mobile/.env.*.local
 .vercel
 mobile/.expo/
+mobile/.idea/
+mobile/android/
+mobile/pnpm-lock.yaml
+
+# Local binaries and generated artifacts
+frontend/node-local.exe
+backend/bonde_results.db

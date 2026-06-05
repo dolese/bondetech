@@ -311,7 +311,7 @@ export function UserGuideModal({
               WebkitBackdropFilter: "blur(12px)",
             }}
           >
-            <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 20, fontWeight: 900, color: "#0f172a" }}>
+            <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 20, fontWeight: 800, color: "#0f172a" }}>
               User Guide
             </h2>
             <p style={{ margin: "4px 0 10px", fontSize: isMobile ? 12 : 13, color: "#64748b" }}>
@@ -468,7 +468,7 @@ export function UserGuideModal({
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: 12,
-                    fontWeight: 900,
+                    fontWeight: 800,
                     color: "#0f172a",
                   }}
                 >

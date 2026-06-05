@@ -19,7 +19,7 @@ export function AnalysisPanel({ classData, computed }) {
         }}
       >
         <h2
-          style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#003366" }}
+          style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#003366" }}
         >
           📊 {t("analysisTitle", "Analysis & Statistics")}
         </h2>
@@ -154,7 +154,7 @@ export function AnalysisPanel({ classData, computed }) {
         style={{
           margin: "0 0 8px",
           fontSize: 16,
-          fontWeight: 900,
+          fontWeight: 800,
           color: "#003366",
         }}
       >
@@ -179,7 +179,7 @@ export function AnalysisPanel({ classData, computed }) {
             }}
           >
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 14, fontWeight: 900, color: "#0077aa" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#0077aa" }}>
                 {maleStudents.length}
               </div>
               <div
@@ -205,7 +205,7 @@ export function AnalysisPanel({ classData, computed }) {
             </div>
             <div style={{ fontSize: 2, color: "#ddd" }}></div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 14, fontWeight: 900, color: "#c041a3" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#c041a3" }}>
                 {femaleStudents.length}
               </div>
               <div

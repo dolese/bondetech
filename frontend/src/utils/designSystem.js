@@ -93,11 +93,13 @@ export function primaryButtonStyle({ compact = false } = {}) {
     borderRadius: compact ? 12 : 14,
     background: "linear-gradient(135deg, #1d4ed8, #0f8b8d)",
     color: "#fff",
-    fontWeight: 800,
+    fontWeight: 700,
     fontSize: 13,
+    letterSpacing: "0.01em",
     padding: compact ? "10px 14px" : "12px 16px",
     cursor: "pointer",
     boxShadow: "0 14px 28px rgba(29,78,216,0.18)",
+    transition: "filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease",
   };
 }
 
@@ -107,11 +109,13 @@ export function secondaryButtonStyle({ compact = false } = {}) {
     borderRadius: compact ? 12 : 14,
     background: "rgba(255,255,255,0.84)",
     color: "#334155",
-    fontWeight: 800,
+    fontWeight: 700,
     fontSize: 13,
+    letterSpacing: "0.01em",
     padding: compact ? "10px 14px" : "12px 16px",
     cursor: "pointer",
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
+    transition: "background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease",
   };
 }
 
@@ -119,6 +123,7 @@ export function pillStyle({ tone = "slate" } = {}) {
   const tones = {
     teal: { color: "#0f766e", background: "rgba(20,184,166,0.12)", border: "rgba(20,184,166,0.22)" },
     blue: { color: "#1d4ed8", background: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.22)" },
+    green: { color: "#15803d", background: "rgba(34,197,94,0.12)", border: "rgba(34,197,94,0.22)" },
     amber: { color: "#b45309", background: "rgba(251,191,36,0.16)", border: "rgba(245,158,11,0.22)" },
     red: { color: "#b91c1c", background: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.2)" },
     slate: { color: "#475569", background: "rgba(226,232,240,0.7)", border: "rgba(203,213,225,0.84)" },

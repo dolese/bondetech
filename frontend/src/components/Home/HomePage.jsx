@@ -545,8 +545,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <SchoolCrest size={isMobile ? 36 : 44} />
             <div>
-              <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 800, color: navBg, letterSpacing: 0.3, lineHeight: 1.2 }}>BONDE SECONDARY SCHOOL</div>
-              <div style={{ fontSize: isMobile ? 10 : 10, fontWeight: 700, color: "#d97706", letterSpacing: 1, textTransform: "uppercase" }}>{t("resultSystem")}</div>
+              <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 800, color: navBg, letterSpacing: "0.04em", lineHeight: 1.2 }}>BONDE SECONDARY SCHOOL</div>
+              <div style={{ fontSize: isMobile ? 10 : 10, fontWeight: 700, color: "#d97706", letterSpacing: "0.10em", textTransform: "uppercase" }}>{t("resultSystem")}</div>
             </div>
           </div>
 
@@ -684,7 +684,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           }}
         >
           <div style={{ color: "#fff", minWidth: 0 }}>
-            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: compactHero ? "5px 12px" : "5px 14px", fontSize: isMobile ? 11 : 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: compactHero ? 12 : 18 }}>
+            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: compactHero ? "5px 12px" : "5px 14px", fontSize: isMobile ? 11 : 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: compactHero ? 12 : 18 }}>
               {heroBadge}
             </div>
             <h1 className="home-serif-title" style={{ fontSize: isMobile ? (isXs ? 24 : 28) : 48, fontWeight: 700, lineHeight: compactHero ? 1.02 : 1.08, margin: compactHero ? "0 0 10px" : "0 0 16px", letterSpacing: -0.8, maxWidth: compactHero ? 360 : 620 }}>
@@ -1113,7 +1113,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
               <SchoolCrest size={44} />
               <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", letterSpacing: 0.3 }}>BONDE SECONDARY SCHOOL</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", letterSpacing: "0.04em" }}>BONDE SECONDARY SCHOOL</div>
                 <div style={{ fontSize: isMobile ? 11 : 10, color: "#86efac" }}>{t("resultSystem")}</div>
               </div>
             </div>
