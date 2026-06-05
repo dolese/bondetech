@@ -11,6 +11,13 @@ import { TextInput, SelectInput } from "./FormInputs";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
 import { buildPhoneCollection, normalizeTzPhoneDraft } from "../utils/phone";
+import {
+  glassPanelStyle,
+  pageBackground,
+  pillStyle,
+  premiumFontStack,
+  softCardStyle,
+} from "../utils/designSystem";
 
 function TinyIcon({ children }) {
   return (
@@ -24,6 +31,35 @@ function TinyIcon({ children }) {
     >
       {children}
     </svg>
+  );
+}
+
+function SummaryTile({ label, value, note, tone = "slate" }) {
+  return (
+    <div
+      style={{
+        ...softCardStyle({ padding: 14, radius: 18 }),
+        display: "grid",
+        gap: 5,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 800,
+          color: "#64748b",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>{value}</div>
+        <span style={pillStyle({ tone })}>{tone === "red" ? "Locked" : tone === "teal" ? "Ready" : "Active"}</span>
+      </div>
+      <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{note}</div>
+    </div>
   );
 }
 
@@ -378,6 +414,48 @@ export function SettingsPage({
   };
 
   const compositeExamKeys = Object.keys(COMPOSITE_EXAM_CONFIG);
+  const classLabel =
+    [classData.form, classData.stream, classData.year].filter(Boolean).join(" ").trim() ||
+    classData.name ||
+    "Current class";
+  const summaryTiles = [
+    {
+      label: "Class",
+      value: classLabel,
+      note: "Current class identity and record grouping.",
+      tone: "blue",
+    },
+    {
+      label: "Subjects",
+      value: subjects.length,
+      note: "Managed subject entries for this class workspace.",
+      tone: "teal",
+    },
+    {
+      label: "Monthly Exams",
+      value: monthlyExams.length,
+      note: "Enabled monthly exam checkpoints for the current class.",
+      tone: monthlyExams.length ? "amber" : "slate",
+    },
+    {
+      label: "Results Status",
+      value: resultsLocked ? "Published" : "Draft",
+      note: resultsLocked
+        ? "Unpublish before changing subjects, monthly exams, or composite rules."
+        : "Configuration changes can still be applied safely.",
+      tone: resultsLocked ? "red" : "teal",
+    },
+  ];
+  const settingsAreas = [
+    "Class Identity",
+    "School Profile",
+    "Report Context",
+    "Subjects",
+    "Monthly Exams",
+    "Composite Rules",
+    "Backup",
+    "Audit",
+  ];
 
   const styles = {
     panel: {
@@ -388,6 +466,8 @@ export function SettingsPage({
       flexDirection: "column",
       gap: 16,
       minHeight: 0,
+      background: pageBackground,
+      fontFamily: premiumFontStack,
     },
     section: {
       background: "#fff",
@@ -670,6 +750,70 @@ export function SettingsPage({
 
   return (
     <div style={styles.panel}>
+      <div
+        style={{
+          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 24 : 30 }),
+          display: "grid",
+          gap: 14,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div style={{ display: "inline-flex", ...pillStyle({ tone: "blue" }) }}>Settings Center</div>
+            <div style={{ fontSize: isMobile ? 28 : 32, fontWeight: 900, color: "#0f172a", lineHeight: 1.06, marginTop: 10 }}>
+              Settings
+            </div>
+            <div style={{ fontSize: 14, color: "#64748b", marginTop: 6, maxWidth: 760 }}>
+              Maintain class identity, school branding, report context, subject setup, and result-governance rules from one controlled workspace.
+            </div>
+          </div>
+          <div
+            style={{
+              ...softCardStyle({ padding: "14px 16px", radius: 18 }),
+              display: "grid",
+              gap: 6,
+              minWidth: isMobile ? "100%" : 260,
+            }}
+          >
+            <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Active Workspace
+            </div>
+            <div style={{ fontSize: 18, color: "#0f172a", fontWeight: 900 }}>{classLabel}</div>
+            <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>
+              Use this page for administrative configuration. Daily marks entry stays in the separate Marks Entry workspace.
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))",
+            gap: 12,
+          }}
+        >
+          {summaryTiles.map((tile) => (
+            <SummaryTile key={tile.label} {...tile} />
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {settingsAreas.map((label, index) => (
+            <span key={label} style={pillStyle({ tone: index < 2 ? "blue" : index < 5 ? "teal" : "slate" })}>
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+
       {resultsLocked ? (
         <div
           style={{
@@ -685,10 +829,6 @@ export function SettingsPage({
           Results are published for this class. Unpublish them before changing subjects, monthly exams, or composite exam setup.
         </div>
       ) : null}
-      <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800 }}>
-        ⚙️ {t("settingsTitle", "Settings")}
-      </h3>
-
       {/* Class name / year / form */}
       <div style={styles.section}>
         <div>
@@ -799,7 +939,7 @@ export function SettingsPage({
             onClick={handleUpdateMeta}
             disabled={updatingMeta}
           >
-            {updatingMeta ? t("saving", "Saving…") : t("save", "Save")}
+            {updatingMeta ? t("saving", "Saving...") : t("save", "Save")}
           </button>
           {metaError && <div style={styles.errMsg}>{metaError}</div>}
         </div>
@@ -991,7 +1131,7 @@ export function SettingsPage({
             disabled={updatingSchool}
           >
             {updatingSchool
-              ? t("saving", "Saving…")
+              ? t("saving", "Saving...")
               : t("settingsSaveSchoolSettings", "Save School Settings")}
           </button>
         </div>
@@ -1034,7 +1174,7 @@ export function SettingsPage({
             disabled={updatingReportContext}
           >
             {updatingReportContext
-              ? t("saving", "Saving…")
+              ? t("saving", "Saving...")
               : t("settingsSaveReportContext", "Save Report Context")}
           </button>
         </div>
@@ -1438,7 +1578,7 @@ export function SettingsPage({
             onClick={handleUpdateCompositeConfig}
             disabled={updatingComposite}
           >
-            {updatingComposite ? t("saving", "Saving…") : t("save", "Save")}
+            {updatingComposite ? t("saving", "Saving...") : t("save", "Save")}
           </button>
         </div>
       </div>

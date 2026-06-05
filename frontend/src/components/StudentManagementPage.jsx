@@ -116,6 +116,29 @@ function makeStudentKey(student = {}) {
   return `${student.classId || ""}:${student.id || ""}`;
 }
 
+function SignalCard({ label, value, note, tone = "slate" }) {
+  return (
+    <div style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 5 }}>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 800,
+          color: "#64748b",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>{value}</div>
+        <span style={pillStyle({ tone })}>{tone === "teal" ? "Live" : tone === "blue" ? "Focused" : "Ready"}</span>
+      </div>
+      <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{note}</div>
+    </div>
+  );
+}
+
 export function StudentManagementPage({
   classes = [],
   canDeleteStudents = false,
@@ -322,6 +345,12 @@ export function StudentManagementPage({
     }),
     [students],
   );
+  const scopeSummary = [
+    yearFilter || "All years",
+    formFilter || "All forms",
+    classFilter ? classOptions.find((entry) => entry.id === classFilter)?.label || "Selected class" : "All classes",
+    lifecycleFilter ? getEnrollmentLabel(lifecycleFilter) : "All statuses",
+  ];
 
   const selectedStudent = useMemo(
     () => students.find((student) => makeStudentKey(student) === selectedStudentKey) || null,
@@ -645,6 +674,37 @@ export function StudentManagementPage({
               <div style={{ fontSize: 12, color: "#64748b" }}>{note}</div>
             </div>
           ))}
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
+            gap: 12,
+          }}
+        >
+          <SignalCard
+            label="Directory Scope"
+            value={scopeSummary.join(" • ")}
+            note="Filters define the school-wide directory view without changing the active class workspace."
+            tone="blue"
+          />
+          <SignalCard
+            label="Current Focus"
+            value={selectedStudent?.name || "No student selected"}
+            note={
+              selectedStudent
+                ? `${selectedStudent.classLabel || "Class"} • ${getEnrollmentLabel(selectedStudent.enrollmentStatus)}`
+                : "Select a learner from the directory to inspect the summary panel and continue to full profile."
+            }
+            tone="teal"
+          />
+          <SignalCard
+            label="Directory Mode"
+            value={`${viewMode === "grouped" ? "Grouped" : "Table"} • ${filteredStudents.length} visible`}
+            note="Use grouped view for registrar-style browsing and table view for faster scanning across many students."
+            tone="slate"
+          />
         </div>
       </section>
 
