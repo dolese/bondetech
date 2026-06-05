@@ -288,6 +288,39 @@ function blankHomepageSlide(index = 0) {
   };
 }
 
+function SummaryTile({ label, value, tone = "blue", helper = "" }) {
+  const tones = {
+    blue: { bg: "linear-gradient(180deg,#eff6ff,#f8fbff)", border: "rgba(191,219,254,0.9)", value: "#1d4ed8" },
+    green: { bg: "linear-gradient(180deg,#ecfdf5,#f7fee7)", border: "rgba(134,239,172,0.9)", value: "#15803d" },
+    amber: { bg: "linear-gradient(180deg,#fffbeb,#fff7ed)", border: "rgba(253,230,138,0.9)", value: "#b45309" },
+    slate: { bg: "linear-gradient(180deg,#f8fafc,#ffffff)", border: "rgba(226,232,240,0.95)", value: "#334155" },
+  };
+  const currentTone = tones[tone] || tones.blue;
+  return (
+    <div
+      style={{
+        borderRadius: 18,
+        border: `1px solid ${currentTone.border}`,
+        background: currentTone.bg,
+        padding: "14px 16px",
+        minWidth: 0,
+      }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+        {label}
+      </div>
+      <div style={{ marginTop: 6, fontSize: 24, fontWeight: 800, color: currentTone.value }}>
+        {value}
+      </div>
+      {helper ? (
+        <div style={{ marginTop: 4, fontSize: 11, color: "#64748b", lineHeight: 1.5 }}>
+          {helper}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function AccountPage({
   user,
   users = [],
@@ -1061,6 +1094,34 @@ export function AccountPage({
   };
 
   const failedLogsCount = authLogs.filter((l) => l.status === "failed").length;
+  const activeManagedUsersCount = manageableUsers.filter((managedUser) => managedUser.active !== false).length;
+  const homepageContentCount =
+    (homepageForm.slides?.length || 0) +
+    (homepageForm.announcements?.length || 0) +
+    (homepageForm.highlights?.length || 0);
+  const tabSummary = {
+    profile: {
+      eyebrow: "Personal workspace",
+      title: "Profile and security",
+      description: "Keep your account details current and secure before moving into the wider admin workspace.",
+    },
+    users: {
+      eyebrow: "Administration",
+      title: "User access control",
+      description: "Create accounts, reset passwords, and manage teacher, parent, and academic access from one controlled surface.",
+    },
+    activity: {
+      eyebrow: "Audit",
+      title: "Authentication activity",
+      description: "Review login outcomes, filter failed attempts, and export recent account events for follow-up.",
+    },
+    homepage: {
+      eyebrow: "Public portal",
+      title: "Homepage publishing",
+      description: "Control public-facing slides, highlights, and announcements without leaving the admin workspace.",
+    },
+  };
+  const activeTabSummary = tabSummary[activeTab] || tabSummary.profile;
 
   const handleToggleAllVisibleUsers = (checked) => {
     if (!checked) {
@@ -1163,6 +1224,7 @@ export function AccountPage({
         ]
       : []),
   ];
+  const shellGridColumns = stackedColumns ? "1fr" : "280px minmax(0, 1fr)";
 
   return (
     <div
@@ -1225,7 +1287,7 @@ export function AccountPage({
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                 <RoleBadge role={user?.role} />
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
-                  @{user?.username || "—"}
+                  @{user?.username || "-"}
                 </span>
                 {!isXs && user?.lastLoginAt && (
                   <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
@@ -1284,79 +1346,112 @@ export function AccountPage({
         )}
 
         {/* ── Tab bar ──────────────────────────────────── */}
-        <div
-          style={{
-            display: "flex",
-            gap: 4,
-            flexWrap: "nowrap",
-            overflowX: "auto",
-            background: "rgba(255,255,255,0.56)",
-            borderRadius: 18,
-            border: "1px solid rgba(191,219,254,0.4)",
-            padding: "6px 8px",
-            boxShadow: "0 10px 26px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,0.82)",
-            backdropFilter: "blur(14px)",
-            WebkitBackdropFilter: "blur(14px)",
-            WebkitOverflowScrolling: isMobile ? "touch" : "auto",
-            scrollSnapType: isMobile ? "x proximity" : "none",
-            overscrollBehaviorX: isMobile ? "contain" : "auto",
-            scrollbarWidth: "thin",
-            scrollbarColor: "#d0dcf8 transparent",
-          }}
-        >
-          {tabs.map((tab) => {
-            const active = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  border: "none",
-                  borderRadius: 12,
-                  padding: isXs ? "8px 12px" : "9px 16px",
-                  fontSize: isXs ? 12 : 13,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  background: active ? "linear-gradient(135deg, #0f2d6e, #2563eb)" : "transparent",
-                  color: active ? "#fff" : "#52627a",
-                  boxShadow: active ? "0 6px 16px rgba(37,99,235,0.22)" : "none",
-                   transition: "background 0.18s, color 0.18s",
-                   whiteSpace: "nowrap",
-                   flexShrink: 0,
-                   minHeight: isMobile ? 44 : "auto",
-                   scrollSnapAlign: isMobile ? "start" : "none",
-                 }}
-               >
-                {tab.label}
-                {tab.badge != null && (
-                  <span
+        <div style={{ display: "grid", gridTemplateColumns: shellGridColumns, gap: 18, alignItems: "start" }}>
+          <div
+            style={{
+              ...sectionStyle,
+              display: "grid",
+              gap: 8,
+              padding: isMobile ? 14 : 18,
+            }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
+              Workspace
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43" }}>
+              Account Center
+            </div>
+            <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
+              Move between your personal profile, user administration, audit activity, and homepage publishing from one organized workspace.
+            </div>
+            <div style={{ display: "grid", gap: 8, marginTop: 4 }}>
+              {tabs.map((tab) => {
+                const active = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
                     style={{
-                      minWidth: 18,
-                      height: 18,
-                      borderRadius: 999,
-                      background: active
-                        ? "rgba(255,255,255,0.22)"
-                        : tab.badgeDanger
-                        ? "#ef4444"
-                        : "#e0e9f7",
-                      color: active ? "#fff" : tab.badgeDanger ? "#fff" : "#2563eb",
-                      fontSize: 10,
-                      fontWeight: 800,
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
-                      padding: "0 4px",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      border: active ? "1px solid rgba(59,130,246,0.35)" : "1px solid rgba(226,232,240,0.9)",
+                      borderRadius: 14,
+                      padding: "12px 14px",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      background: active ? "linear-gradient(135deg,#eff6ff,#f8fbff)" : "rgba(255,255,255,0.68)",
+                      color: active ? "#1d4ed8" : "#334155",
+                      textAlign: "left",
                     }}
                   >
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+                    <span>{tab.label}</span>
+                    {tab.badge != null ? (
+                      <span
+                        style={{
+                          minWidth: 22,
+                          height: 22,
+                          borderRadius: 999,
+                          background: tab.badgeDanger ? "#fee2e2" : active ? "#dbeafe" : "#eff6ff",
+                          color: tab.badgeDanger ? "#b91c1c" : "#1d4ed8",
+                          fontSize: 10,
+                          fontWeight: 800,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "0 6px",
+                        }}
+                      >
+                        {tab.badge}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ ...sectionStyle, display: "grid", gap: 14 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
+                {activeTabSummary.eyebrow}
+              </div>
+              <div style={{ marginTop: 4, fontSize: isMobile ? 22 : 24, fontWeight: 800, color: "#102a43" }}>
+                {activeTabSummary.title}
+              </div>
+              <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", lineHeight: 1.7, maxWidth: 780 }}>
+                {activeTabSummary.description}
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: stackedColumns ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))", gap: 12 }}>
+              <SummaryTile
+                label="Profile"
+                value={`${profileCompletionPercent}%`}
+                tone={profileCompletionPercent >= 100 ? "green" : "amber"}
+                helper={profileMissingFields.length ? `${profileMissingFields.length} field(s) need attention` : "Profile complete"}
+              />
+              <SummaryTile
+                label="Managed Users"
+                value={manageableUsers.length}
+                tone="blue"
+                helper={`${activeManagedUsersCount} active accounts`}
+              />
+              <SummaryTile
+                label="Failed Logins"
+                value={failedLogsCount}
+                tone={failedLogsCount ? "amber" : "slate"}
+                helper={failedLogsCount ? "Review recent activity" : "No failed attempts in current log set"}
+              />
+              <SummaryTile
+                label="Homepage Assets"
+                value={homepageContentCount}
+                tone="slate"
+                helper={`${homepageForm.slides?.length || 0} slides, ${homepageForm.announcements?.length || 0} notices`}
+              />
+            </div>
+          </div>
         </div>
 
         {/* ══════════════════════════════════════════════
@@ -1392,7 +1487,7 @@ export function AccountPage({
                 </div>
               ) : (
                 <div style={{ fontSize: 13, color: "#166534", lineHeight: 1.6 }}>
-                  Great — your profile details are complete.
+                  Great - your profile details are complete.
                 </div>
               )}
             </div>
