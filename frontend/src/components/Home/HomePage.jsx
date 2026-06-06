@@ -462,6 +462,28 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     ? String(stats.latestExamLabel).replace(/\s+20\d{2}$/, "").trim()
     : t("noExamYet");
   const compactHero = isMobile;
+  const heroSignals = [
+    {
+      label: stats.publishedClasses > 0 ? t("publishedClassesLabel") : t("activeForms"),
+      value: stats.publishedClasses > 0 ? String(stats.publishedClasses || 0) : String(stats.activeForms || 0),
+      note:
+        stats.publishedClasses > 0
+          ? formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)
+          : formatCount(stats.totalStudents, "indexed student", "wanafunzi waliopo", language),
+    },
+    {
+      label: t("latestExam"),
+      value: shortExamLabel,
+      note: latestExamLabel || t("noExamYet"),
+    },
+    {
+      label: t("totalStudents"),
+      value: Number(stats.totalStudents || 0).toLocaleString(),
+      note: `${stats.totalClasses || 0} ${language === "sw" ? "madarasa hai" : "active classes"}`,
+    },
+  ];
+  const summaryHighlights = performanceStats.slice(0, 4);
+  const routeCards = [quickAccess[0], quickAccess[2], quickAccess[5], quickAccess[3]].filter(Boolean);
   
   const containerClass = `home-content-wrapper ${isMobile ? 'home-content-wrapper-mobile' : 'home-content-wrapper-desktop'}`;
   const headmasterPhonesDisplay = formatContactPhones(
@@ -668,7 +690,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       <section
         className="home-hero-shell"
         style={{
-          padding: isMobile ? (isShort ? "18px 0 20px" : "20px 0 24px") : "56px 0 64px",
+          padding: isMobile ? (isShort ? "18px 0 22px" : "22px 0 28px") : "58px 0 72px",
           position: "relative",
         }}
       >
@@ -681,28 +703,28 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           style={{
             display: "grid",
             gridTemplateColumns: isDesktop
-              ? "minmax(0, 1fr) 340px"
+              ? "minmax(0, 1.12fr) minmax(300px, 0.88fr)"
               : isMobile
-              ? "minmax(0, 1fr) minmax(148px, 39vw)"
+              ? "1fr"
               : "1fr",
-            gap: isMobile ? 14 : 40,
+            gap: isMobile ? 16 : 42,
             alignItems: compactHero ? "start" : "center",
             position: "relative",
             zIndex: 2,
           }}
         >
           <div style={{ color: "#fff", minWidth: 0 }}>
-            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: compactHero ? "5px 12px" : "5px 14px", fontSize: isMobile ? 11 : 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: compactHero ? 12 : 18 }}>
+            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: compactHero ? "5px 12px" : "6px 14px", fontSize: isMobile ? 11 : 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: compactHero ? 12 : 18 }}>
               {heroBadge}
             </div>
-            <h1 className="home-serif-title" style={{ fontSize: isMobile ? (isXs ? 24 : 28) : 48, fontWeight: 700, lineHeight: compactHero ? 1.02 : 1.08, margin: compactHero ? "0 0 10px" : "0 0 16px", letterSpacing: -0.8, maxWidth: compactHero ? 360 : 620 }}>
+            <h1 className="home-serif-title" style={{ fontSize: isMobile ? (isXs ? 26 : 32) : 56, fontWeight: 700, lineHeight: compactHero ? 1.02 : 1.04, margin: compactHero ? "0 0 12px" : "0 0 18px", letterSpacing: -1, maxWidth: compactHero ? 360 : 700 }}>
               {heroTitle}
             </h1>
-            <p style={{ fontSize: isMobile ? 12 : 15, color: "rgba(255,255,255,0.82)", lineHeight: compactHero ? 1.55 : 1.8, marginBottom: compactHero ? 16 : 28, maxWidth: compactHero ? 320 : 500 }}>
+            <p style={{ fontSize: isMobile ? 13 : 16, color: "rgba(255,255,255,0.82)", lineHeight: compactHero ? 1.65 : 1.75, marginBottom: compactHero ? 16 : 28, maxWidth: compactHero ? 340 : 560 }}>
               {heroDescription}
             </p>
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: compactHero ? 10 : 12, marginBottom: compactHero ? 14 : 24 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: compactHero ? 10 : 12, marginBottom: compactHero ? 16 : 28 }}>
               <button className="landing-btn-solid" onClick={() => runHeroAction(currentHeroSlide.primaryAction)} style={compactHero ? { padding: "11px 18px", fontSize: 12 } : undefined}>
                 {getHeroActionLabel(currentHeroSlide.primaryAction)}
               </button>
@@ -711,144 +733,79 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               </button>
             </div>
 
-            <div className="home-hero-metrics" style={{ maxWidth: compactHero ? "100%" : 620 }}>
-              {[
-                { label: t("totalStudents"), value: Number(stats.totalStudents || 0).toLocaleString() },
-                { label: t("activeClasses"), value: String(stats.totalClasses || 0) },
-                { label: t("latestExam"), value: shortExamLabel },
-              ].map((metric) => (
-                <div key={metric.label} className="home-hero-metric">
-                  <div style={{ display: "flex", alignItems: "center", gap: compactHero ? 6 : 8 }}>
-                    <div
-                      style={{
-                        width: compactHero ? 24 : 34,
-                        height: compactHero ? 24 : 34,
-                        borderRadius: compactHero ? 8 : 12,
-                        background: "rgba(255,255,255,0.10)",
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#fff",
-                      }}
-                    >
-                      <HomeIcon
-                        name={
-                          metric.label === t("totalStudents")
-                            ? "students"
-                            : metric.label === t("activeClasses")
-                              ? "classes"
-                              : "exam"
-                        }
-                        label={metric.label}
-                        size={compactHero ? 12 : 16}
-                        color="#ffffff"
-                      />
-                    </div>
-                    <div style={{ fontSize: compactHero ? 9 : isMobile ? 12 : 11, fontWeight: 700, color: "rgba(255,255,255,0.74)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                      {metric.label}
-                    </div>
+            <div className="home-hero-metrics institutional" style={{ maxWidth: compactHero ? "100%" : 700 }}>
+              {heroSignals.map((metric) => (
+                <div key={metric.label} className="home-hero-metric institutional">
+                  <div style={{ fontSize: compactHero ? 9 : isMobile ? 11 : 10, fontWeight: 800, color: "rgba(255,255,255,0.74)", textTransform: "uppercase", letterSpacing: "0.10em" }}>
+                    {metric.label}
                   </div>
-                  <div style={{ fontSize: compactHero ? 18 : isMobile ? 23 : 28, fontWeight: 800, color: "#fff", marginTop: compactHero ? 4 : 6, lineHeight: compactHero ? 1.08 : 1.15 }}>
+                  <div style={{ fontSize: compactHero ? 18 : isMobile ? 24 : 30, fontWeight: 900, color: "#fff", marginTop: compactHero ? 5 : 6, lineHeight: 1.08 }}>
                     {metric.value}
+                  </div>
+                  <div style={{ fontSize: compactHero ? 9 : 11, color: "rgba(255,255,255,0.62)", lineHeight: 1.5, marginTop: 4 }}>
+                    {metric.note}
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="home-hero-panel" style={{ borderRadius: compactHero ? 20 : 24, padding: compactHero ? "12px 12px" : "22px 20px", width: "100%", alignSelf: "start" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: compactHero ? 10 : 16, gap: 8 }}>
-              <div style={{ fontSize: compactHero ? 10 : 13, fontWeight: 700, color: "#0a3d2b", lineHeight: 1.3 }}>{latestExamLabel}</div>
-              <span style={{ fontSize: compactHero ? 10 : isMobile ? 12 : 11, color: "#64748b", flexShrink: 0 }}>{stats.latestYear || t("currentYear")}</span>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: compactHero ? "1fr" : "1fr 1fr", gap: compactHero ? 8 : 12, marginBottom: compactHero ? 10 : 16 }}>
-              <div style={{ background: "#f0fdf4", borderRadius: 12, padding: compactHero ? "10px 10px" : "12px 14px" }}>
-                <div style={{ fontSize: compactHero ? 10 : isMobile ? 12 : 11, color: "#64748b", marginBottom: 4 }}>{t("totalStudents")}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: compactHero ? 18 : 22, fontWeight: 800, color: "#0a3d2b" }}>{Number(stats.totalStudents || 0).toLocaleString()}</span>
-                </div>
+          <div className="home-hero-panel institutional" style={{ borderRadius: compactHero ? 20 : 24, padding: compactHero ? "16px 14px" : "24px 22px", width: "100%", alignSelf: "start" }}>
+            <div style={{ display: "grid", gap: 10 }}>
+              <div style={{ display: "inline-flex", alignSelf: "start", background: "#edf7ef", color: "#14532d", borderRadius: 999, padding: "5px 10px", fontSize: compactHero ? 10 : 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                {language === "sw" ? "Muhtasari wa Bonde" : "Bonde at a Glance"}
               </div>
-              <div style={{ background: "#f0fdf4", borderRadius: 12, padding: compactHero ? "10px 10px" : "12px 14px" }}>
-                <div style={{ fontSize: compactHero ? 10 : isMobile ? 12 : 11, color: "#64748b", marginBottom: 4 }}>{t("activeClasses")}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: compactHero ? 18 : 22, fontWeight: 800, color: "#059669" }}>{stats.totalClasses || 0}</span>
-                </div>
+              <div style={{ fontSize: compactHero ? 22 : 28, fontWeight: 900, color: "#0f1c12", lineHeight: 1.08 }}>
+                {language === "sw" ? "Shule ya umma yenye nidhamu, mawasiliano wazi, na ufuatiliaji wa matokeo." : "A public school built on discipline, clarity, and accountable academic reporting."}
+              </div>
+              <div style={{ fontSize: compactHero ? 12 : 13, color: "#5b6f64", lineHeight: 1.7 }}>
+                {language === "sw"
+                  ? "Ukurasa huu unaleta pamoja maelezo ya shule, taarifa rasmi, na njia salama ya kufikia matokeo yaliyopitishwa."
+                  : "This homepage brings together school identity, official notices, and a safe route to published academic results."}
               </div>
             </div>
 
-            {compactHero ? (
-              <div style={{ background: "#eefbf3", borderRadius: 12, padding: "10px 10px" }}>
-                <div style={{ fontSize: 10, color: "#166534", fontWeight: 700, marginBottom: 3 }}>
-                  {stats.publishedClasses > 0 ? t("publishedClassesLabel") : t("activeForms")}
-                </div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#1a2040" }}>
-                  {stats.publishedClasses > 0 ? stats.publishedClasses || 0 : stats.activeForms || 0}
-                </div>
-                <div style={{ fontSize: 9, color: "#64748b", lineHeight: 1.4 }}>
-                  {stats.publishedClasses > 0
-                    ? formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)
-                    : formatCount(stats.totalStudents, "indexed student", "wanafunzi waliopo", language)}
-                </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 16 }}>
+              <div className="home-data-chip">
+                <div className="home-data-chip-label">{t("activeClasses")}</div>
+                <div className="home-data-chip-value">{stats.totalClasses || 0}</div>
               </div>
-            ) : (
-              <>
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: isMobile ? 12 : 11, fontWeight: 700, color: "#475569", marginBottom: 10 }}>{t("studentsByForm")}</div>
-                  <MiniBarChart bars={chartBars} />
-                </div>
+              <div className="home-data-chip">
+                <div className="home-data-chip-label">{t("averageClassSizeLabel")}</div>
+                <div className="home-data-chip-value">{stats.averageClassSize || 0}</div>
+              </div>
+            </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div style={{ background: stats.publishedClasses > 0 ? "#fffbeb" : "#eefbf3", borderRadius: 12, padding: "10px 12px" }}>
-                    <div style={{ fontSize: isMobile ? 11 : 10, color: stats.publishedClasses > 0 ? "#92400e" : "#166534", fontWeight: 600, marginBottom: 3 }}>
-                      {stats.publishedClasses > 0 ? t("publishedClassesLabel") : t("activeForms")}
-                    </div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: "#1a2040" }}>
-                      {stats.publishedClasses > 0 ? stats.publishedClasses || 0 : stats.activeForms || 0}
-                    </div>
-                    <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>
-                      {stats.publishedClasses > 0
-                        ? formatCount(stats.publishedStudents, "searchable student", "wanafunzi wanaotafutika", language)
-                        : formatCount(stats.totalStudents, "indexed student", "wanafunzi waliopo", language)}
-                    </div>
-                  </div>
-                  <div style={{ background: "#ecfdf5", borderRadius: 12, padding: "10px 12px" }}>
-                    <div style={{ fontSize: isMobile ? 11 : 10, color: "#065f46", fontWeight: 600, marginBottom: 3 }}>{t("averageClassSizeLabel")}</div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: "#0a3d2b" }}>{stats.averageClassSize || 0}</div>
-                    <div style={{ fontSize: isMobile ? 11 : 10, color: "#64748b", lineHeight: 1.45 }}>{formatCount(stats.monthlyExamCount, "monthly exam", "mitihani ya kila mwezi", language)}</div>
-                  </div>
+            {!compactHero && chartBars.length > 0 && (
+              <div style={{ marginTop: 18 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#5b6f64", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  {t("studentsByForm")}
                 </div>
-              </>
+                <MiniBarChart bars={chartBars} />
+              </div>
             )}
           </div>
         </div>
       </section>
 
-      <section style={{ padding: isMobile ? "28px 0 18px" : "44px 0 20px" }}>
+      <section style={{ padding: isMobile ? "26px 0 12px" : "40px 0 18px" }}>
         <div className={containerClass}>
-          <div
-            className="home-overview-shell glass-panel"
-            style={{
-              borderRadius: 28,
-              padding: isMobile ? "22px 18px" : "28px 28px",
-            }}
-          >
+          <div className="home-school-story glass-panel" style={{ borderRadius: 30, padding: isMobile ? "22px 18px" : "30px 30px" }}>
             <div>
-              <div className="home-section-kicker">{language === "sw" ? "Shule Yetu" : "Our School"}</div>
+              <div className="home-section-kicker">{language === "sw" ? "Kuhusu Bonde" : "About Bonde"}</div>
               <div className="home-section-title">
-                {language === "sw" ? "Mfumo wa matokeo umejengwa juu ya utambulisho wa Bonde." : "The results portal now reflects Bonde's real identity."}
+                {language === "sw" ? "Ukurasa wa shule unapaswa kueleza taasisi, sio kuonekana kama dashibodi ya mfumo." : "The school homepage should explain the institution, not read like a software dashboard."}
               </div>
-              <div className="home-section-copy" style={{ maxWidth: 620, marginTop: 10 }}>
+              <div className="home-section-copy" style={{ maxWidth: 620, marginTop: 12 }}>
                 {language === "sw"
-                  ? "Bonde Secondary School ni taasisi ya umma inayolenga nidhamu, utendaji wa kitaaluma, na mawasiliano ya wazi kati ya shule, wanafunzi, na wazazi. Ukurasa huu unapaswa kueleza shule, sio kutumika kama bango la mfumo pekee."
-                  : "Bonde Secondary School is a public institution focused on discipline, academic performance, and clear communication between the school, students, and guardians. The homepage should explain the school, not just advertise the portal."}
+                  ? "Bonde Secondary School ni taasisi ya umma inayolenga nidhamu, utendaji wa kitaaluma, na mawasiliano ya wazi kati ya shule, wanafunzi, na wazazi. Hivyo tovuti ya mwanzo inapaswa kujenga uaminifu, kueleza shule, na kuelekeza wageni kwenye huduma muhimu."
+                  : "Bonde Secondary School is a public institution focused on discipline, academic performance, and clear communication between the school, students, and guardians. The homepage should build trust first, explain the school clearly, and guide visitors to key services."}
               </div>
             </div>
 
-            <div className="home-overview-grid" style={{ marginTop: isMobile ? 18 : 24 }}>
+            <div className="home-overview-grid institutional">
               {schoolOverviewCards.map((card) => (
-                <div key={card.key} className="home-overview-card glass-card">
+                <div key={card.key} className="home-overview-card glass-card institutional">
                   <div className="home-overview-icon">
                     <HomeIcon name={card.icon} label={card.title} size={18} />
                   </div>
@@ -864,65 +821,72 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
       <section ref={searchSectionRef} style={{ padding: isMobile ? "28px 0" : "38px 0" }}>
         <div className={containerClass}>
-          <div className="glass-panel" style={{ borderRadius: 24, padding: isMobile ? "20px 16px" : "28px 28px" }}>
-            <div className="home-section-header" style={{ marginBottom: 14 }}>
-              <div>
-                <div className="home-section-kicker">{t("resultsDesk")}</div>
-                <div className="home-section-title">{t("searchResultsHeading")}</div>
-                <div className="home-section-copy">{t("searchInstructions")}</div>
+          <div className="home-results-desk glass-panel" style={{ borderRadius: 28, padding: isMobile ? "20px 16px" : "30px 30px" }}>
+            <div>
+              <div className="home-section-kicker">{t("resultsDesk")}</div>
+              <div className="home-section-title">{t("searchResultsHeading")}</div>
+              <div className="home-section-copy" style={{ marginTop: 10 }}>
+                {language === "sw"
+                  ? "Matokeo ya umma yanaonekana hapa baada ya kuchapishwa rasmi na shule. Tafuta kwa namba ya kujiunga au jina, kisha chuja kwa kidato au mwaka kama inahitajika."
+                  : "Published student results appear here once the school has formally released them. Search by admission number or student name, then narrow by form or year when needed."}
               </div>
-              {homepageStatus === "fallback" && (
-                <span style={{ fontSize: isMobile ? 12 : 11, color: "#64748b" }}>{t("liveOverviewUnavailable")}</span>
-              )}
+              <div className="home-results-notes">
+                <span className="home-results-note">{stats.publishedClasses > 0 ? t("publishedClassesLabel") : t("activeForms")}: {stats.publishedClasses > 0 ? stats.publishedClasses || 0 : stats.activeForms || 0}</span>
+                <span className="home-results-note">{t("latestExam")}: {latestExamLabel || t("noExamYet")}</span>
+                {homepageStatus === "fallback" && (
+                  <span className="home-results-note subtle">{t("liveOverviewUnavailable")}</span>
+                )}
+              </div>
             </div>
 
-            <form onSubmit={handleSearch}>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: isDesktop
-                    ? "repeat(3, 1fr)"
-                    : isXs
-                    ? "1fr"
-                    : isMobile || isTablet
-                    ? "1fr 1fr"
-                    : "repeat(3, 1fr)",
-                  gap: 10,
-                  marginBottom: 14,
-                }}
-              >
-                <input
-                  type="search"
-                  className="landing-search-input"
-                  placeholder={t("admissionPlaceholder")}
-                  value={searchAdmission}
-                  onChange={(e) => setSearchAdmission(e.target.value)}
-                />
-                <select className="landing-search-input landing-search-select" value={searchForm} onChange={(e) => setSearchForm(e.target.value)}>
-                  <option value="">{t("classFormAll")}</option>
-                  {["Form I", "Form II", "Form III", "Form IV"].map((form) => (
-                    <option key={form}>{form}</option>
-                  ))}
-                </select>
-                <select className="landing-search-input landing-search-select" value={searchYear} onChange={(e) => setSearchYear(e.target.value)}>
-                  <option value="">{t("yearAll")}</option>
-                  {searchYearOptions.map((year) => (
-                    <option key={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="home-results-form-shell">
+              <form onSubmit={handleSearch}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: isDesktop
+                      ? "repeat(3, 1fr)"
+                      : isXs
+                      ? "1fr"
+                      : isMobile || isTablet
+                      ? "1fr 1fr"
+                      : "repeat(3, 1fr)",
+                    gap: 10,
+                    marginBottom: 14,
+                  }}
+                >
+                  <input
+                    type="search"
+                    className="landing-search-input"
+                    placeholder={t("admissionPlaceholder")}
+                    value={searchAdmission}
+                    onChange={(e) => setSearchAdmission(e.target.value)}
+                  />
+                  <select className="landing-search-input landing-search-select" value={searchForm} onChange={(e) => setSearchForm(e.target.value)}>
+                    <option value="">{t("classFormAll")}</option>
+                    {["Form I", "Form II", "Form III", "Form IV"].map((form) => (
+                      <option key={form}>{form}</option>
+                    ))}
+                  </select>
+                  <select className="landing-search-input landing-search-select" value={searchYear} onChange={(e) => setSearchYear(e.target.value)}>
+                    <option value="">{t("yearAll")}</option>
+                    {searchYearOptions.map((year) => (
+                      <option key={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
 
-              {searchError && (
-                <div style={{ fontSize: 12, color: "#b42318", fontWeight: 600, marginBottom: 10 }}>{searchError}</div>
-              )}
+                {searchError && (
+                  <div style={{ fontSize: 12, color: "#b42318", fontWeight: 600, marginBottom: 10 }}>{searchError}</div>
+                )}
 
-              <button type="submit" disabled={searching} className="landing-btn-solid" style={{ width: "100%", padding: isMobile ? "14px 0" : "15px 0" }}>
-                {searching ? t("searching") : t("searchResultsButton")}
-              </button>
-            </form>
+                <button type="submit" disabled={searching} className="landing-btn-solid" style={{ width: "100%", padding: isMobile ? "14px 0" : "15px 0" }}>
+                  {searching ? t("searching") : t("searchResultsButton")}
+                </button>
+              </form>
 
-            {searchResults && searchResults.length > 1 && (
-              <div style={{ marginTop: 20 }}>
+              {searchResults && searchResults.length > 1 && (
+                <div style={{ marginTop: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#0a3d2b", marginBottom: 10 }}>
                   {language === "sw"
                     ? `${searchResults.length} ${t("studentsFoundSelect")}`
@@ -961,42 +925,40 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2040" }}>{result.name}</div>
                       <div style={{ fontSize: isMobile ? 12 : 11, color: "#64748b", marginTop: 2 }}>
-                        {result.indexNo} | {result.form} | {result.year}
+                        {result.admissionNo || result.indexNo} | {result.form} | {result.year}
                       </div>
                     </div>
                     <span style={{ fontSize: 14, color: "#166534", fontWeight: 700 }}>{t("view")}</span>
                   </button>
                 ))}
               </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </section>
 
-      <section style={{ padding: isMobile ? "8px 0 28px" : "8px 0 34px" }}>
+      <section style={{ padding: isMobile ? "8px 0 28px" : "12px 0 34px" }}>
         <div className={containerClass}>
           <div className="home-section-header">
             <div>
-              <div className="home-section-kicker">{t("fastRoutes")}</div>
-              <div className="home-section-title">{t("quickAccess")}</div>
+              <div className="home-section-kicker">{language === "sw" ? "Njia Muhimu" : "Useful Routes"}</div>
+              <div className="home-section-title">{language === "sw" ? "Njia za haraka kwa familia, wanafunzi, na watumishi." : "Fast routes for families, students, and staff."}</div>
+              <div className="home-section-copy" style={{ marginTop: 8 }}>
+                {language === "sw"
+                  ? "Elekeza wageni kwenye matokeo, taarifa za mitihani, na mlango salama wa kuingia bila kuunda fujo ya kadi nyingi zisizo muhimu."
+                  : "Guide visitors to results, exam updates, and secure portal access without filling the homepage with low-priority cards."}
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={scrollToSearch}
-              className="home-link-inline"
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-            >
-              {t("viewAll")}
-            </button>
           </div>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isXs ? "1fr" : isMobile || isTablet ? "1fr 1fr" : "repeat(3, 1fr)",
+              gridTemplateColumns: isXs ? "1fr" : isMobile || isTablet ? "1fr 1fr" : "repeat(4, 1fr)",
               gap: isMobile ? 10 : 14,
             }}
           >
-            {quickAccess.map((item) => (
+            {routeCards.map((item) => (
               <QuickCard key={item.id} {...item} featured={item.id === "results"} compact={isMobile} />
             ))}
           </div>
@@ -1009,8 +971,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             <div>
               <div className="home-section-header">
                 <div>
-                  <div className="home-section-kicker">{t("performanceSnapshot")}</div>
-                  <div className="home-section-title">{t("portalHighlights")}</div>
+                  <div className="home-section-kicker">{language === "sw" ? "Picha ya Kiutendaji" : "Academic Snapshot"}</div>
+                  <div className="home-section-title">{language === "sw" ? "Muhtasari wa utendaji na taarifa za shule." : "A compact view of performance and school updates."}</div>
                 </div>
               </div>
               <div
@@ -1021,13 +983,13 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                 }}
               >
                 <div className="home-highlight-grid">
-                  {performanceStats.map((stat, index) => (
+                  {summaryHighlights.map((stat, index) => (
                     <div
                       key={stat.key || `${stat.label}-${index}`}
                       className="home-highlight-cell"
                       style={{
                         borderBottom:
-                          isCompactScreen && index < performanceStats.length - 2
+                          isCompactScreen && index < summaryHighlights.length - 2
                             ? "1px solid rgba(241, 245, 249, 0.9)"
                             : undefined,
                       }}
@@ -1067,6 +1029,11 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                 <div>
                   <div className="home-section-kicker">{t("updates")}</div>
                   <div className="home-section-title">{t("recentAnnouncements")}</div>
+                  <div className="home-section-copy" style={{ marginTop: 8 }}>
+                    {language === "sw"
+                      ? "Tangazo rasmi linapaswa kuwa rahisi kusoma na kupatikana haraka kutoka ukurasa wa mwanzo."
+                      : "Official updates should be readable at a glance and easy to reach from the homepage."}
+                  </div>
                 </div>
               </div>
               <div className="glass-panel" style={{ borderRadius: 22, overflow: "hidden" }}>
@@ -1086,18 +1053,18 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         </div>
       </section>
 
-      <section style={{ padding: isMobile ? "8px 0 32px" : "12px 0 44px" }}>
+      <section style={{ padding: isMobile ? "10px 0 32px" : "14px 0 44px" }}>
         <div className={containerClass}>
           <div className="home-support-band glass-panel">
             <div>
-              <div className="home-section-kicker">{language === "sw" ? "Mwongozo wa Wageni" : "Visitor Support"}</div>
+              <div className="home-section-kicker">{language === "sw" ? "Msaada wa Wageni" : "Visitor Support"}</div>
               <div className="home-section-title">
-                {language === "sw" ? "Tunza hatua muhimu za mgeni wa tovuti mahali pamoja." : "Keep the most important visitor actions in one place."}
+                {language === "sw" ? "Wageni wanahitaji matokeo, maelekezo, na mawasiliano wazi." : "Visitors need results, direction, and clear contact routes."}
               </div>
               <div className="home-section-copy" style={{ marginTop: 8 }}>
                 {language === "sw"
-                  ? "Badala ya kuonyesha kadi nyingi zisizo na kipaumbele, ukurasa wa mwanzo unapaswa kuelekeza wageni moja kwa moja kwenye matokeo, taarifa, na mawasiliano."
-                  : "Instead of showing too many low-priority cards, the homepage should guide visitors directly to results, notices, and school contacts."}
+                  ? "Sehemu hii ibebe hatua za msingi kwa familia: kutafuta matokeo, kuelewa shule, na kupata ofisi rasmi ya mawasiliano."
+                  : "This section should carry the essential actions for families: finding results, understanding the school, and reaching the official office channels."}
               </div>
             </div>
             <div className="home-support-actions">
