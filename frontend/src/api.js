@@ -87,13 +87,17 @@ function buildStudentProfileUrl(target) {
   const ref = target && typeof target === "object" ? target : { indexNo: target };
   const indexNo = String(ref?.indexNo || ref?.linkedIndexNo || "").trim();
   const admissionNo = String(ref?.admissionNo || "").trim().toUpperCase();
-  if (!indexNo && !admissionNo) {
+  const classId = String(ref?.classId || "").trim();
+  const studentId = String(ref?.studentId || ref?.id || "").trim();
+  if (!indexNo && !admissionNo && !(classId && studentId)) {
     throw new Error("Student profile target is required");
   }
-  const pathIdentifier = indexNo || "_";
+  const pathIdentifier = indexNo || classId || "_";
   const params = new URLSearchParams();
   if (indexNo) params.set("indexNo", indexNo);
   if (admissionNo) params.set("admissionNo", admissionNo);
+  if (classId) params.set("classId", classId);
+  if (studentId) params.set("studentId", studentId);
   const qs = params.toString();
   return `/students/${encodeURIComponent(pathIdentifier)}/profile${qs ? `?${qs}` : ""}`;
 }

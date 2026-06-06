@@ -14,11 +14,13 @@ module.exports = async (req, res) => {
     const profile = await getStudentProfileByIdentifier(getDb(), {
       indexNo: req.query.indexNo || "",
       admissionNo: req.query.admissionNo || "",
+      classId: req.query.classId || "",
+      studentId: req.query.studentId || "",
       publishedOnly,
     });
     return sendJson(res, 200, profile);
   } catch (err) {
-    const status = /indexno or admissionno is required/i.test(err.message)
+    const status = /indexno, admissionno, or classid \+ studentid is required/i.test(err.message)
       ? 400
       : /student not found/i.test(err.message)
       ? 404

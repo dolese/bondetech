@@ -36,12 +36,14 @@ router.get("/:indexNo/profile", async (req, res) => {
       {
         indexNo: req.query?.indexNo || decodeURIComponent(req.params.indexNo || ""),
         admissionNo: req.query?.admissionNo || "",
+        classId: req.query?.classId || "",
+        studentId: req.query?.studentId || "",
         publishedOnly,
       }
     );
     res.json(profile);
   } catch (err) {
-    const status = /indexno or admissionno is required/i.test(err.message)
+    const status = /indexno, admissionno, or classid \+ studentid is required/i.test(err.message)
       ? 400
       : /student not found/i.test(err.message)
       ? 404

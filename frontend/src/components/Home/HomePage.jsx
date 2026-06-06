@@ -413,6 +413,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         setProfileStudentRef({
           admissionNo: String(results[0].admissionNo || "").trim().toUpperCase(),
           indexNo: String(results[0].indexNo || "").trim(),
+          classId: String(results[0].classId || "").trim(),
+          studentId: String(results[0].studentId || "").trim(),
         });
       } else {
         setSearchResults(results);
@@ -900,6 +902,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                       setProfileStudentRef({
                         admissionNo: String(result.admissionNo || "").trim().toUpperCase(),
                         indexNo: String(result.indexNo || "").trim(),
+                        classId: String(result.classId || "").trim(),
+                        studentId: String(result.studentId || "").trim(),
                       })
                     }
                     style={{
@@ -1195,12 +1199,13 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               borderRadius: isMobile ? 0 : 20,
               width: "100%",
               maxWidth: 760,
-              minHeight: isMobile ? "100vh" : undefined,
-              maxHeight: isMobile ? "100vh" : "90vh",
+              minHeight: isMobile ? "100dvh" : undefined,
+              maxHeight: isMobile ? "100dvh" : "90vh",
               overflowY: "auto",
               boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
               display: "flex",
               flexDirection: "column",
+              paddingBottom: isMobile ? "max(12px, env(safe-area-inset-bottom))" : 0,
             }}
             onClick={(e) => e.stopPropagation()}
           >
