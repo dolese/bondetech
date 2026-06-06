@@ -241,7 +241,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [searchResults, setSearchResults] = useState(null);
-  const [profileIndexNo, setProfileIndexNo] = useState(null);
+  const [profileStudentRef, setProfileStudentRef] = useState(null);
   const [homepageData, setHomepageData] = useState(fallbackOverview);
   const [homepageStatus, setHomepageStatus] = useState("loading");
   const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
@@ -309,14 +309,14 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
   // Body scroll lock when profile is open
   useEffect(() => {
-    if (profileIndexNo) {
+    if (profileStudentRef) {
       const originalStyle = window.getComputedStyle(document.body).overflow;
       document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = originalStyle;
       };
     }
-  }, [profileIndexNo]);
+  }, [profileStudentRef]);
 
   const resolvedHeroSlides = useMemo(() => {
     const source = Array.isArray(homepageData?.slides) && homepageData.slides.length
@@ -400,7 +400,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     setSearchError("");
     setSearching(true);
     setSearchResults(null);
-    setProfileIndexNo(null);
+    setProfileStudentRef(null);
 
     try {
       const opts = {};
@@ -410,7 +410,10 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       if (results.length === 0) {
         setSearchError(t("noResultsFound"));
       } else if (results.length === 1) {
-        setProfileIndexNo(results[0].indexNo);
+        setProfileStudentRef({
+          admissionNo: String(results[0].admissionNo || "").trim().toUpperCase(),
+          indexNo: String(results[0].indexNo || "").trim(),
+        });
       } else {
         setSearchResults(results);
       }
@@ -423,6 +426,11 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
   const currentYear = new Date().getFullYear();
   const stats = homepageData?.stats || fallbackOverview.stats;
+  const latestKnownYear = Math.max(
+    currentYear,
+    Number(stats.latestYear || 0) || 0
+  );
+  const searchYearOptions = Array.from({ length: 10 }, (_, index) => String(latestKnownYear - index));
   const announcements = Array.isArray(homepageData?.announcements) && homepageData.announcements.length > 0
     ? homepageData.announcements
     : fallbackOverview.announcements;
@@ -898,7 +906,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                 </select>
                 <select className="landing-search-input landing-search-select" value={searchYear} onChange={(e) => setSearchYear(e.target.value)}>
                   <option value="">{t("yearAll")}</option>
-                  {Array.from({ length: 5 }, (_, index) => currentYear - index).map((year) => (
+                  {searchYearOptions.map((year) => (
                     <option key={year}>{year}</option>
                   ))}
                 </select>
@@ -924,7 +932,12 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                   <button
                     type="button"
                     key={`${result.classId}-${result.id}`}
-                    onClick={() => setProfileIndexNo(result.indexNo)}
+                    onClick={() =>
+                      setProfileStudentRef({
+                        admissionNo: String(result.admissionNo || "").trim().toUpperCase(),
+                        indexNo: String(result.indexNo || "").trim(),
+                      })
+                    }
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -1194,7 +1207,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         </div>
       </footer>
 
-      {profileIndexNo && (
+      {profileStudentRef && (
         <div
           style={{
             position: "fixed",
@@ -1207,7 +1220,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             padding: isMobile ? 0 : "24px 16px",
             overflowY: "auto",
           }}
-          onClick={() => setProfileIndexNo(null)}
+          onClick={() => setProfileStudentRef(null)}
         >
           <div
             style={{
@@ -1238,7 +1251,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             >
               <div style={{ fontSize: 14, fontWeight: 800 }}>{t("studentResults")}</div>
               <button
-                onClick={() => setProfileIndexNo(null)}
+                onClick={() => setProfileStudentRef(null)}
                 style={{
                   background: "rgba(255,255,255,0.15)",
                   border: "none",
@@ -1256,7 +1269,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                 x
               </button>
             </div>
-            <StudentProfilePage indexNo={profileIndexNo} onBack={() => setProfileIndexNo(null)} />
+            <StudentProfilePage studentRef={profileStudentRef} onBack={() => setProfileStudentRef(null)} />
           </div>
         </div>
       )}
