@@ -539,6 +539,98 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           : "The portal is ready to expose results once publishing is completed.",
     },
   ];
+  const leadershipPillars = [
+    {
+      key: "discipline",
+      title: language === "sw" ? "Nidhamu na Uongozi" : "Discipline and Leadership",
+      description:
+        language === "sw"
+          ? "Mazingira ya shule yanajengwa juu ya uwajibikaji, heshima, na mwenendo unaoandaa wanafunzi kwa maisha ya baadaye."
+          : "The school culture is built on accountability, respect, and habits that prepare learners for life beyond the classroom.",
+    },
+    {
+      key: "tracking",
+      title: language === "sw" ? "Ufuatiliaji wa Kielimu" : "Academic Monitoring",
+      description:
+        language === "sw"
+          ? "Mitihani, taarifa, na maoni huunganishwa ili shule, wazazi, na wanafunzi wawe na picha wazi ya maendeleo."
+          : "Exams, notices, and reporting are connected so the school, parents, and students share a clear picture of progress.",
+    },
+    {
+      key: "communication",
+      title: language === "sw" ? "Mawasiliano ya Familia" : "Family Communication",
+      description:
+        language === "sw"
+          ? "Tovuti inasaidia mawasiliano rasmi kati ya shule na familia bila kuchanganya kazi za umma na za ndani."
+          : "The website supports official communication between the school and families without mixing public and internal workflows.",
+    },
+  ];
+  const academicPathways = [
+    {
+      key: "forms",
+      eyebrow: language === "sw" ? "Muundo wa Kidato" : "Form Structure",
+      title:
+        language === "sw"
+          ? `${stats.activeForms || 0} vidato vinafuatiliwa kwa taarifa na matokeo`
+          : `${stats.activeForms || 0} forms are tracked for reporting and results`,
+      description:
+        language === "sw"
+          ? "Muundo wa vidato na madarasa unaonekana wazi kwa ufuatiliaji wa kitaaluma na usimamizi wa shule."
+          : "The form and stream structure is organized clearly for academic oversight and school management.",
+    },
+    {
+      key: "exams",
+      eyebrow: language === "sw" ? "Mzunguko wa Mitihani" : "Exam Cycle",
+      title:
+        latestExamLabel || (language === "sw" ? "Mitihani ya sasa" : "Current exam session"),
+      description:
+        language === "sw"
+          ? "Matokeo yanachapishwa kwa utaratibu rasmi baada ya uhakiki, ili taarifa za umma ziwe sahihi na salama."
+          : "Results are released through a formal review flow so public academic records stay accurate and controlled.",
+    },
+    {
+      key: "portal",
+      eyebrow: language === "sw" ? "Ufikiaji wa Matokeo" : "Results Access",
+      title:
+        stats.publishedClasses > 0
+          ? language === "sw"
+            ? `${stats.publishedStudents || 0} wanafunzi wanaweza kutafutwa`
+            : `${stats.publishedStudents || 0} students are searchable`
+          : language === "sw"
+          ? "Matokeo yataonekana baada ya kuchapishwa"
+          : "Results appear once classes are published",
+      description:
+        language === "sw"
+          ? "Sehemu ya matokeo inabaki rahisi kwa wazazi na wanafunzi bila kubeba mzigo wa dashibodi nzima ya shule."
+          : "The public results desk stays simple for families while the heavier school operations remain in the secure portal.",
+    },
+  ];
+  const communitySignals = [
+    {
+      key: "care",
+      title: language === "sw" ? "Malezi na Mwelekeo" : "Guidance and Care",
+      copy:
+        language === "sw"
+          ? "Wanafunzi wanahitaji mazingira yanayowalea kiakili, kitabia, na kijamii pamoja na masomo."
+          : "Students need an environment that develops them academically, socially, and in character.",
+    },
+    {
+      key: "notice",
+      title: language === "sw" ? "Taarifa Rasmi" : "Official Notices",
+      copy:
+        language === "sw"
+          ? "Taarifa za shule, kalenda, na matangazo ya mitihani zinapaswa kupatikana kwa urahisi kutoka ukurasa wa mwanzo."
+          : "School notices, calendars, and exam updates should be easy to reach directly from the homepage.",
+    },
+    {
+      key: "trust",
+      title: language === "sw" ? "Uaminifu wa Umma" : "Public Trust",
+      copy:
+        language === "sw"
+          ? "Muundo wa tovuti unapaswa kuonyesha shule inayoaminika, si programu yenye vipengele vingi visivyopangwa."
+          : "The website should project a trustworthy school institution, not a feature-heavy software surface.",
+    },
+  ];
 
   const supportActions = [
     {
@@ -821,6 +913,72 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         </div>
       </section>
 
+      <section style={{ padding: isMobile ? "8px 0 20px" : "10px 0 28px" }}>
+        <div className={containerClass}>
+          <div className="home-leadership-band">
+            <div className="home-leadership-message glass-panel" style={{ borderRadius: 28, padding: isMobile ? "22px 18px" : "28px 28px" }}>
+              <div className="home-section-kicker">{language === "sw" ? "Uongozi wa Shule" : "School Leadership"}</div>
+              <div className="home-section-title">
+                {language === "sw"
+                  ? "Uongozi wa shule unapaswa kuonekana kama dira ya nidhamu, matokeo, na uwazi."
+                  : "School leadership should appear as a guide for discipline, results, and accountability."}
+              </div>
+              <div className="home-section-copy" style={{ marginTop: 10, maxWidth: 620 }}>
+                {language === "sw"
+                  ? `Bonde inaongozwa chini ya ${schoolSettings.authority || "uongozi wa shule"} kwa msisitizo wa maendeleo ya mwanafunzi, utendaji wa kitaaluma, na mawasiliano rasmi na familia.`
+                  : `Bonde operates under ${schoolSettings.authority || "school leadership"} with an emphasis on student development, academic performance, and formal communication with families.`}
+              </div>
+              <div className="home-leadership-signoff">
+                <div className="home-leadership-signoff-name">
+                  {language === "sw" ? "Ofisi ya Mkuu wa Shule" : "Headmaster's Office"}
+                </div>
+                <div className="home-leadership-signoff-meta">
+                  {headmasterPhonesDisplay || schoolSettings.email}
+                </div>
+              </div>
+            </div>
+
+            <div className="home-leadership-grid">
+              {leadershipPillars.map((item) => (
+                <div key={item.key} className="home-editorial-card glass-card">
+                  <div className="home-editorial-card-title">{item.title}</div>
+                  <div className="home-editorial-card-copy">{item.description}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: isMobile ? "8px 0 20px" : "8px 0 28px" }}>
+        <div className={containerClass}>
+          <div className="home-section-header">
+            <div>
+              <div className="home-section-kicker">{language === "sw" ? "Mwelekeo wa Kielimu" : "Academic Pathways"}</div>
+              <div className="home-section-title">
+                {language === "sw"
+                  ? "Muundo wa shule unahitaji kuonyesha njia za kufuatilia maendeleo ya mwanafunzi."
+                  : "The school structure should show how academic progress is guided and reported."}
+              </div>
+              <div className="home-section-copy" style={{ marginTop: 8 }}>
+                {language === "sw"
+                  ? "Badala ya kujaza tovuti kwa takwimu zisizoeleweka, sehemu hii inaonyesha kwa namna tulivu jinsi Bonde inavyopanga darasa, mitihani, na utoaji wa matokeo."
+                  : "Instead of crowding the homepage with disconnected metrics, this section explains how Bonde organizes classes, exams, and published academic records."}
+              </div>
+            </div>
+          </div>
+          <div className="home-pathway-grid">
+            {academicPathways.map((item) => (
+              <div key={item.key} className="home-pathway-card glass-card">
+                <div className="home-pathway-eyebrow">{item.eyebrow}</div>
+                <div className="home-pathway-title">{item.title}</div>
+                <div className="home-pathway-copy">{item.description}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section ref={searchSectionRef} style={{ padding: isMobile ? "28px 0" : "38px 0" }}>
         <div className={containerClass}>
           <div className="home-results-desk glass-panel" style={{ borderRadius: 28, padding: isMobile ? "20px 16px" : "30px 30px" }}>
@@ -965,6 +1123,34 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             {routeCards.map((item) => (
               <QuickCard key={item.id} {...item} featured={item.id === "results"} compact={isMobile} />
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: isMobile ? "8px 0 28px" : "8px 0 34px" }}>
+        <div className={containerClass}>
+          <div className="home-community-band glass-panel" style={{ borderRadius: 28, padding: isMobile ? "22px 18px" : "28px 28px" }}>
+            <div>
+              <div className="home-section-kicker">{language === "sw" ? "Maisha ya Shule" : "School Life"}</div>
+              <div className="home-section-title">
+                {language === "sw"
+                  ? "Tovuti ya shule inapaswa kuonyesha jamii ya kujifunza, si ukurasa wa matokeo pekee."
+                  : "A school website should show a learning community, not only a results page."}
+              </div>
+              <div className="home-section-copy" style={{ marginTop: 10, maxWidth: 620 }}>
+                {language === "sw"
+                  ? "Bonde inahitaji kuonekana kama mazingira ya taaluma, malezi, taarifa za wazazi, na maendeleo ya wanafunzi kwa pamoja."
+                  : "Bonde should feel like a place of academics, guidance, parent communication, and student growth all at once."}
+              </div>
+            </div>
+            <div className="home-community-grid">
+              {communitySignals.map((item) => (
+                <div key={item.key} className="home-community-card">
+                  <div className="home-community-title">{item.title}</div>
+                  <div className="home-community-copy">{item.copy}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
