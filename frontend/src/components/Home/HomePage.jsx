@@ -497,30 +497,30 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     {
       key: "identity",
       icon: "secure",
-      title: language === "sw" ? "Utambulisho wa Shule" : "School Identity",
-      value: language === "sw" ? "Better future starts here" : "Better future starts here",
+      title: language === "sw" ? "Utambulisho wa Bonde" : "Bonde Identity",
+      value: schoolSettings.name || "BONDE SECONDARY SCHOOL",
       description:
         language === "sw"
-          ? "Kauli mbiu ya Bonde inaelekeza nidhamu, uongozi, na mafanikio ya kitaaluma."
-          : "Bonde's motto anchors discipline, leadership, and academic growth.",
+          ? `Shule inaendeshwa chini ya ${schoolSettings.authority || "uongozi wa elimu"} kwa msisitizo wa nidhamu, maadili, na maendeleo ya mwanafunzi.`
+          : `The school operates under ${schoolSettings.authority || "its educational authority"} with an emphasis on discipline, values, and student development.`,
     },
     {
       key: "coverage",
       icon: "classes",
-      title: language === "sw" ? "Uenezi wa Mfumo" : "Portal Coverage",
+      title: language === "sw" ? "Muundo wa Madarasa" : "Class Structure",
       value:
         language === "sw"
           ? `${stats.totalClasses || 0} madarasa`
           : `${stats.totalClasses || 0} active classes`,
       description:
         language === "sw"
-          ? `${stats.activeForms || 0} vidato vinafuatiliwa kwa matokeo, taarifa, na ripoti.`
-          : `${stats.activeForms || 0} forms are tracked for results, notices, and reports.`,
+          ? `${stats.activeForms || 0} vidato vinaonekana katika mpangilio wa masomo, mitihani, taarifa, na utoaji wa matokeo.`
+          : `${stats.activeForms || 0} forms are organized across academic reporting, examinations, notices, and published results.`,
     },
     {
       key: "access",
       icon: "announcements",
-      title: language === "sw" ? "Mawasiliano ya Umma" : "Public Access",
+      title: language === "sw" ? "Mawasiliano ya Umma" : "Public Communication",
       value:
         stats.publishedClasses > 0
           ? language === "sw"
@@ -532,11 +532,11 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       description:
         stats.publishedClasses > 0
           ? language === "sw"
-            ? `Matokeo ya madarasa ${stats.publishedClasses} yamefunguliwa kwa utafutaji wa umma.`
-            : `Results for ${stats.publishedClasses} classes are open for public search.`
+            ? `Matokeo ya madarasa ${stats.publishedClasses} yamefunguliwa kwa utafutaji rasmi wa umma kupitia tovuti hii.`
+            : `Results for ${stats.publishedClasses} classes are now available through the school's official public search desk.`
           : language === "sw"
-          ? "Tovuti iko tayari kupokea matokeo pindi uchapishaji unapofanyika."
-          : "The portal is ready to expose results once publishing is completed.",
+          ? "Tovuti inaonyesha taarifa za shule sasa, na matokeo yataonekana baada ya uchapishaji rasmi."
+          : "The website is already serving public school information, and results appear once classes are formally published.",
     },
   ];
   const leadershipPillars = [
@@ -545,16 +545,16 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       title: language === "sw" ? "Nidhamu na Uongozi" : "Discipline and Leadership",
       description:
         language === "sw"
-          ? "Mazingira ya shule yanajengwa juu ya uwajibikaji, heshima, na mwenendo unaoandaa wanafunzi kwa maisha ya baadaye."
-          : "The school culture is built on accountability, respect, and habits that prepare learners for life beyond the classroom.",
+          ? "Mazingira ya Bonde yanajengwa juu ya uwajibikaji, heshima, na mwenendo unaoandaa wanafunzi kwa maisha ya baadaye."
+          : "Bonde's school culture is built on accountability, respect, and habits that prepare learners for life beyond the classroom.",
     },
     {
       key: "tracking",
       title: language === "sw" ? "Ufuatiliaji wa Kielimu" : "Academic Monitoring",
       description:
         language === "sw"
-          ? "Mitihani, taarifa, na maoni huunganishwa ili shule, wazazi, na wanafunzi wawe na picha wazi ya maendeleo."
-          : "Exams, notices, and reporting are connected so the school, parents, and students share a clear picture of progress.",
+          ? "Mitihani, taarifa, na ripoti huunganishwa ili shule, wazazi, na wanafunzi wawe na picha wazi ya maendeleo."
+          : "Exams, notices, and reporting are connected so the school, parents, and students share a clear view of progress.",
     },
     {
       key: "communication",
@@ -562,7 +562,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       description:
         language === "sw"
           ? "Tovuti inasaidia mawasiliano rasmi kati ya shule na familia bila kuchanganya kazi za umma na za ndani."
-          : "The website supports official communication between the school and families without mixing public and internal workflows.",
+          : "The website supports formal communication between the school and families without mixing public and internal workflows.",
     },
   ];
   const academicPathways = [
@@ -575,8 +575,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           : `${stats.activeForms || 0} forms are tracked for reporting and results`,
       description:
         language === "sw"
-          ? "Muundo wa vidato na madarasa unaonekana wazi kwa ufuatiliaji wa kitaaluma na usimamizi wa shule."
-          : "The form and stream structure is organized clearly for academic oversight and school management.",
+          ? "Muundo wa vidato na madarasa unaonekana wazi kwa ufuatiliaji wa kitaaluma, uhamisho wa wanafunzi, na usimamizi wa shule."
+          : "The form and stream structure is clear enough for academic oversight, student transitions, and school administration.",
     },
     {
       key: "exams",
@@ -585,8 +585,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         latestExamLabel || (language === "sw" ? "Mitihani ya sasa" : "Current exam session"),
       description:
         language === "sw"
-          ? "Matokeo yanachapishwa kwa utaratibu rasmi baada ya uhakiki, ili taarifa za umma ziwe sahihi na salama."
-          : "Results are released through a formal review flow so public academic records stay accurate and controlled.",
+          ? "Matokeo yanachapishwa kwa utaratibu rasmi baada ya uhakiki, ili taarifa za umma ziwe sahihi, salama, na za kuaminika."
+          : "Results are released through a formal review flow so public academic records stay accurate, controlled, and trustworthy.",
     },
     {
       key: "portal",
@@ -601,8 +601,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           : "Results appear once classes are published",
       description:
         language === "sw"
-          ? "Sehemu ya matokeo inabaki rahisi kwa wazazi na wanafunzi bila kubeba mzigo wa dashibodi nzima ya shule."
-          : "The public results desk stays simple for families while the heavier school operations remain in the secure portal.",
+          ? "Sehemu ya matokeo inabaki rahisi kwa wazazi na wanafunzi huku kazi nzito za shule zikiendelea ndani ya tovuti salama ya watumishi."
+          : "The public results desk stays simple for families while the heavier school operations remain inside the secure staff portal.",
     },
   ];
   const communitySignals = [
@@ -627,8 +627,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       title: language === "sw" ? "Uaminifu wa Umma" : "Public Trust",
       copy:
         language === "sw"
-          ? "Muundo wa tovuti unapaswa kuonyesha shule inayoaminika, si programu yenye vipengele vingi visivyopangwa."
-          : "The website should project a trustworthy school institution, not a feature-heavy software surface.",
+          ? `Muundo wa tovuti unapaswa kuonyesha taasisi ya umma inayotumika ${schoolSettings.district || "katika wilaya yake"} kwa uaminifu, si programu yenye vipengele vingi visivyopangwa.`
+          : `The website should project a trustworthy public institution serving ${schoolSettings.district || "its district"}, not a feature-heavy software surface.`,
     },
   ];
 
@@ -925,8 +925,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               </div>
               <div className="home-section-copy" style={{ marginTop: 10, maxWidth: 620 }}>
                 {language === "sw"
-                  ? `Bonde inaongozwa chini ya ${schoolSettings.authority || "uongozi wa shule"} kwa msisitizo wa maendeleo ya mwanafunzi, utendaji wa kitaaluma, na mawasiliano rasmi na familia.`
-                  : `Bonde operates under ${schoolSettings.authority || "school leadership"} with an emphasis on student development, academic performance, and formal communication with families.`}
+                  ? `Bonde inaongozwa chini ya ${schoolSettings.authority || "uongozi wa shule"} kwa msisitizo wa maendeleo ya mwanafunzi, utendaji wa kitaaluma, na mawasiliano rasmi na familia katika ${schoolSettings.district || "eneo la shule"}.`
+                  : `Bonde operates under ${schoolSettings.authority || "school leadership"} with an emphasis on student development, academic performance, and formal communication with families in ${schoolSettings.district || "its school community"}.`}
               </div>
               <div className="home-leadership-signoff">
                 <div className="home-leadership-signoff-name">
@@ -962,8 +962,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               </div>
               <div className="home-section-copy" style={{ marginTop: 8 }}>
                 {language === "sw"
-                  ? "Badala ya kujaza tovuti kwa takwimu zisizoeleweka, sehemu hii inaonyesha kwa namna tulivu jinsi Bonde inavyopanga darasa, mitihani, na utoaji wa matokeo."
-                  : "Instead of crowding the homepage with disconnected metrics, this section explains how Bonde organizes classes, exams, and published academic records."}
+                  ? "Badala ya kujaza tovuti kwa takwimu zisizoeleweka, sehemu hii inaonyesha kwa namna tulivu jinsi Bonde inavyopanga madarasa, mitihani, na utoaji wa matokeo rasmi."
+                  : "Instead of crowding the homepage with disconnected metrics, this section explains how Bonde organizes classes, exams, and formal published academic records."}
               </div>
             </div>
           </div>
