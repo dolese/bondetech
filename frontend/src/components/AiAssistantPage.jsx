@@ -273,45 +273,45 @@ function renderInline(text) {
 }
 
 const mdStyles = {
-  p: { margin: "0 0 4px", lineHeight: 1.75, fontSize: 15, color: "#18181b" },
+  p: { margin: "0 0 4px", lineHeight: 1.75, fontSize: 15, color: "#2f2a24" },
   ul: { margin: "4px 0 6px", paddingLeft: 20, lineHeight: 1.75 },
   li: { margin: "3px 0", fontSize: 15 },
   pre: {
     margin: "10px 0",
     padding: "14px 16px",
     borderRadius: 10,
-    background: "#f4f4f5",
-    border: "1px solid #e4e4e7",
+    background: "#f6f1e8",
+    border: "1px solid #e8dfd2",
     overflowX: "auto",
     fontSize: 13,
     lineHeight: 1.6,
   },
-  code: { fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace", fontSize: 13, color: "#18181b" },
+  code: { fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace", fontSize: 13, color: "#2f2a24" },
   inlineCode: {
     fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace",
     fontSize: 13,
-    background: "#f4f4f5",
+    background: "#f6f1e8",
     padding: "2px 6px",
     borderRadius: 5,
-    border: "1px solid #e4e4e7",
-    color: "#18181b",
+    border: "1px solid #e8dfd2",
+    color: "#2f2a24",
   },
   tableWrap: { overflowX: "auto", margin: "10px 0" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: 14 },
   th: {
     textAlign: "left",
     padding: "9px 13px",
-    borderBottom: "2px solid #e4e4e7",
+    borderBottom: "2px solid #e8dfd2",
     fontWeight: 700,
     fontSize: 12,
     letterSpacing: "0.02em",
-    color: "#71717a",
-    background: "#fafafa",
+    color: "#7b6f61",
+    background: "#f6f1e8",
   },
   td: {
     padding: "8px 13px",
-    borderBottom: "1px solid #f4f4f5",
-    color: "#18181b",
+    borderBottom: "1px solid #eee4d7",
+    color: "#2f2a24",
     fontSize: 14,
   },
 };
@@ -343,7 +343,7 @@ function injectKeyframes() {
     .ai-msg-enter { animation: aiSlideIn 0.28s cubic-bezier(0.16,1,0.3,1) both; }
     .ai-bounce-dot { animation: aiBounce 1.4s infinite ease-in-out both; }
     .ai-fab-enter { animation: aiFabIn 0.22s ease-out both; }
-    .ai-textarea::placeholder { color: #a1a1aa; }
+    .ai-textarea::placeholder { color: #9f9588; }
     .ai-textarea:focus { outline: none; }
     .ai-send-btn { transition: opacity 0.15s, transform 0.15s; }
     .ai-send-btn:not(:disabled):hover { opacity: 0.88; transform: scale(1.04); }
@@ -354,11 +354,11 @@ function injectKeyframes() {
     .ai-scroll-fab { transition: opacity 0.15s, transform 0.15s; }
     .ai-scroll-fab:hover { opacity: 0.8; transform: scale(1.08); }
     .ai-suggestion-btn { transition: background 0.15s, border-color 0.15s; }
-    .ai-suggestion-btn:hover { background: #f4f4f5 !important; border-color: #a1a1aa !important; }
+    .ai-suggestion-btn:hover { background: #f3ecdf !important; border-color: #d6c8b1 !important; }
     .ai-copy-btn { transition: background 0.12s, color 0.12s; opacity: 0; }
     .ai-msg-row:hover .ai-copy-btn { opacity: 1; }
     .ai-followup-btn { transition: background 0.15s, border-color 0.15s; }
-    .ai-followup-btn:hover { background: #f4f4f5 !important; border-color: #a1a1aa !important; }
+    .ai-followup-btn:hover { background: #f3ecdf !important; border-color: #d6c8b1 !important; }
   `;
   document.head.appendChild(style);
 }
@@ -378,8 +378,8 @@ function AiAvatar({ animate = false }) {
         flexShrink: 0,
         display: "grid",
         placeItems: "center",
-        background: "linear-gradient(135deg, #f3e8ff, #ede9fe)",
-        color: "#7c3aed",
+        background: "linear-gradient(135deg, #f5ecdb, #efe3cb)",
+        color: "#9a6b30",
         marginTop: 2,
       }}
     >
@@ -395,8 +395,9 @@ function TypingIndicator() {
     <div className="ai-msg-enter ai-msg-row" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
       <AiAvatar animate />
       <div style={{
-        background: "#f4f4f5",
-        borderRadius: "4px 18px 18px 18px",
+        background: "#fffdf8",
+        border: "1px solid #e8dfd2",
+        borderRadius: "18px",
         padding: "14px 18px",
         display: "flex",
         alignItems: "center",
@@ -410,7 +411,7 @@ function TypingIndicator() {
               width: 7,
               height: 7,
               borderRadius: "50%",
-              background: "#a1a1aa",
+              background: "#b9aa95",
               animationDelay: `${i * 0.18}s`,
             }}
           />
@@ -429,12 +430,12 @@ function SuggestionCard({ text, onClick, disabled }) {
       disabled={disabled}
       style={{
         padding: "12px 16px",
-        borderRadius: 12,
-        border: "1px solid #e4e4e7",
-        background: "#ffffff",
+        borderRadius: 16,
+        border: "1px solid #e8dfd2",
+        background: "#fffdf8",
         fontSize: 14,
         fontWeight: 500,
-        color: "#18181b",
+        color: "#2f2a24",
         textAlign: "left",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.5 : 1,
@@ -684,6 +685,7 @@ export function AiAssistantPage({
     <div
       style={{
         padding: isMobile ? 0 : 18,
+        background: "#f8f5ee",
         minHeight: 0,
         display: "flex",
         flexDirection: "column",
@@ -701,10 +703,10 @@ export function AiAssistantPage({
           maxWidth: chatMaxWidth,
           width: "100%",
           margin: isMobile ? 0 : "0 auto",
-          borderRadius: isMobile ? 0 : 20,
-          border: isMobile ? "none" : "1px solid #e4e4e7",
-          background: "#ffffff",
-          boxShadow: isMobile ? "none" : "0 4px 24px rgba(0,0,0,0.06)",
+          borderRadius: isMobile ? 0 : 24,
+          border: isMobile ? "none" : "1px solid #e8dfd2",
+          background: "#f8f5ee",
+          boxShadow: isMobile ? "none" : "0 8px 28px rgba(98,78,44,0.08)",
           overflow: "hidden",
         }}
       >
@@ -712,8 +714,8 @@ export function AiAssistantPage({
         <header
           style={{
             padding: isMobile ? "12px 16px 10px" : "14px 20px 12px",
-            borderBottom: "1px solid #f4f4f5",
-            background: "#ffffff",
+            borderBottom: "1px solid #eee4d7",
+            background: "#f8f5ee",
             flexShrink: 0,
           }}
         >
@@ -729,14 +731,14 @@ export function AiAssistantPage({
               <AiAvatar />
               <div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 7, alignItems: "center" }}>
-                  <h1 style={{ margin: 0, fontSize: isMobile ? 16 : 18, lineHeight: 1.2, color: "#18181b", fontWeight: 700 }}>
+                  <h1 style={{ margin: 0, fontSize: isMobile ? 16 : 18, lineHeight: 1.2, color: "#2f2a24", fontWeight: 700 }}>
                     Academic Assistant
                   </h1>
                   <span style={pillStyle({ tone: "blue" })}>Read-only</span>
                   <span style={pillStyle({ tone: "slate" })}>{getRoleLabel(currentUser?.role)}</span>
                   {actionMode && <span style={pillStyle({ tone: "green" })}>Action mode</span>}
                 </div>
-                <div style={{ marginTop: 4, fontSize: 13, color: "#71717a", fontWeight: 500 }}>
+                <div style={{ marginTop: 4, fontSize: 13, color: "#7b6f61", fontWeight: 500 }}>
                   School operations chat for results, student lookups, and guardian drafts.
                 </div>
               </div>
@@ -798,7 +800,7 @@ export function AiAssistantPage({
                   type="checkbox"
                   checked={actionMode}
                   onChange={(event) => setActionMode(event.target.checked)}
-                  style={{ accentColor: "#7c3aed" }}
+                  style={{ accentColor: "#9a6b30" }}
                 />
                 <span style={{ fontSize: 12, fontWeight: 600, color: "#52525b", whiteSpace: "nowrap" }}>Action mode</span>
               </label>
@@ -815,9 +817,9 @@ export function AiAssistantPage({
                     gap: 5,
                     padding: "7px 12px",
                     borderRadius: 8,
-                    border: "1px solid #e4e4e7",
-                    background: "#ffffff",
-                    color: "#71717a",
+                    border: "1px solid #decdb7",
+                    background: "#fffaf2",
+                    color: "#7b6f61",
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer",
@@ -839,8 +841,8 @@ export function AiAssistantPage({
         <div
           style={{
             padding: isMobile ? "10px 16px" : "10px 20px",
-            borderBottom: "1px solid #f4f4f5",
-            background: "#fafafa",
+            borderBottom: "1px solid #eee4d7",
+            background: "#f3ecdf",
             display: "flex",
             flexWrap: "wrap",
             gap: 8,
@@ -874,11 +876,11 @@ export function AiAssistantPage({
           <div
             style={{
               padding: isMobile ? "10px 16px" : "10px 20px",
-              borderBottom: "1px solid #f4f4f5",
+              borderBottom: "1px solid #eee4d7",
               display: "flex",
               flexWrap: "wrap",
               gap: 6,
-              background: "#fafafa",
+              background: "#f3ecdf",
               flexShrink: 0,
             }}
           >
@@ -897,9 +899,9 @@ export function AiAssistantPage({
                   fontWeight: 500,
                   padding: "7px 13px",
                   fontSize: 13,
-                  background: "#ffffff",
-                  border: "1px solid #e4e4e7",
-                  color: "#18181b",
+                  background: "#fffdf8",
+                  border: "1px solid #e8dfd2",
+                  color: "#2f2a24",
                   cursor: isSending ? "not-allowed" : "pointer",
                   opacity: isSending ? 0.5 : 1,
                 }}
@@ -923,7 +925,7 @@ export function AiAssistantPage({
             flexDirection: "column",
             gap: isMobile ? 18 : 24,
             WebkitOverflowScrolling: "touch",
-            background: "#ffffff",
+            background: "#f8f5ee",
             position: "relative",
           }}
         >
@@ -950,10 +952,11 @@ export function AiAssistantPage({
                     {/* Message bubble */}
                     <div
                       style={{
-                        background: "#f4f4f5",
-                        borderRadius: "4px 18px 18px 18px",
+                        background: "#fffdf8",
+                        border: "1px solid #e8dfd2",
+                        borderRadius: "20px",
                         padding: "14px 18px",
-                        color: "#18181b",
+                        color: "#2f2a24",
                       }}
                     >
                       <div style={{ fontSize: 15, lineHeight: 1.75 }}>
@@ -961,9 +964,9 @@ export function AiAssistantPage({
                       </div>
 
                       {message?.meta?.confidence && (
-                        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #e4e4e7", fontSize: 12, color: "#71717a", display: "grid", gap: 3 }}>
+                        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #eee4d7", fontSize: 12, color: "#7b6f61", display: "grid", gap: 3 }}>
                           <div>
-                            Confidence: <strong style={{ color: "#52525b" }}>{String(message.meta.confidence.level || "low").toUpperCase()}</strong>
+                            Confidence: <strong style={{ color: "#4a4034" }}>{String(message.meta.confidence.level || "low").toUpperCase()}</strong>
                           </div>
                           {Array.isArray(message.meta.confidence.reasons) && message.meta.confidence.reasons.length > 0 && (
                             <div>{message.meta.confidence.reasons.join(" · ")}</div>
@@ -1010,9 +1013,9 @@ export function AiAssistantPage({
                           gap: 4,
                           padding: "4px 8px",
                           borderRadius: 6,
-                          border: "1px solid #e4e4e7",
-                          background: "#ffffff",
-                          color: "#71717a",
+                          border: "1px solid #e8dfd2",
+                          background: "#fffdf8",
+                          color: "#7b6f61",
                           fontSize: 11,
                           fontWeight: 600,
                           cursor: "pointer",
@@ -1036,7 +1039,7 @@ export function AiAssistantPage({
                         )}
                       </button>
                       {message.time && (
-                        <span style={{ fontSize: 11, color: "#a1a1aa" }}>{formatTime(message.time)}</span>
+                        <span style={{ fontSize: 11, color: "#9f9588" }}>{formatTime(message.time)}</span>
                       )}
                     </div>
                   </div>
@@ -1069,10 +1072,11 @@ export function AiAssistantPage({
                 >
                   <div
                     style={{
-                      background: "#18181b",
-                      borderRadius: "18px 4px 18px 18px",
+                      background: "#e9e2d5",
+                      border: "1px solid #d9ccb8",
+                      borderRadius: "20px",
                       padding: "12px 18px",
-                      color: "#ffffff",
+                      color: "#2f2a24",
                     }}
                   >
                     <div style={{ fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
@@ -1080,7 +1084,7 @@ export function AiAssistantPage({
                     </div>
                   </div>
                   {message.time && (
-                    <span style={{ fontSize: 11, color: "#a1a1aa", paddingRight: 2 }}>{formatTime(message.time)}</span>
+                    <span style={{ fontSize: 11, color: "#9f9588", paddingRight: 2 }}>{formatTime(message.time)}</span>
                   )}
                 </div>
               </div>
@@ -1099,7 +1103,7 @@ export function AiAssistantPage({
               }}
             >
               <div style={{ paddingLeft: 42 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#a1a1aa", marginBottom: 10, letterSpacing: "0.03em", textTransform: "uppercase" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#9f9588", marginBottom: 10, letterSpacing: "0.03em", textTransform: "uppercase" }}>
                   Suggestions
                 </div>
                 <div style={{
@@ -1131,9 +1135,9 @@ export function AiAssistantPage({
                   className="ai-followup-btn"
                   style={{
                     borderRadius: 999,
-                    border: "1px solid #e4e4e7",
-                    background: "#ffffff",
-                    color: "#52525b",
+                    border: "1px solid #e8dfd2",
+                    background: "#fffdf8",
+                    color: "#4a4034",
                     fontSize: 13,
                     fontWeight: 500,
                     padding: "7px 13px",
@@ -1162,13 +1166,13 @@ export function AiAssistantPage({
                 width: 36,
                 height: 36,
                 borderRadius: "50%",
-                border: "1px solid #e4e4e7",
-                background: "#ffffff",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+                border: "1px solid #e8dfd2",
+                background: "#fffdf8",
+                boxShadow: "0 2px 12px rgba(98,78,44,0.14)",
                 display: "grid",
                 placeItems: "center",
                 cursor: "pointer",
-                color: "#71717a",
+                color: "#7b6f61",
                 zIndex: 5,
               }}
               aria-label="Scroll to bottom"
@@ -1184,8 +1188,8 @@ export function AiAssistantPage({
         <div
           style={{
             padding: isMobile ? "10px 12px calc(env(safe-area-inset-bottom, 0px) + 10px)" : "12px 20px 16px",
-            borderTop: "1px solid #f4f4f5",
-            background: "#ffffff",
+            borderTop: "1px solid #eee4d7",
+            background: "#f8f5ee",
             flexShrink: 0,
           }}
         >
@@ -1223,8 +1227,8 @@ export function AiAssistantPage({
               gap: 8,
               alignItems: "flex-end",
               borderRadius: 16,
-              border: "1.5px solid #e4e4e7",
-              background: "#ffffff",
+              border: "1.5px solid #dfd2bf",
+              background: "#fffdf8",
               padding: isXs ? 6 : 8,
               transition: "border-color 0.15s",
             }}
@@ -1238,12 +1242,12 @@ export function AiAssistantPage({
                 width: isMobile ? 38 : 40,
                 height: isMobile ? 38 : 40,
                 borderRadius: "50%",
-                border: "1px solid #e4e4e7",
-                background: showQuickActions ? "#f4f4f5" : "#ffffff",
+                border: "1px solid #dfd2bf",
+                background: showQuickActions ? "#f3ecdf" : "#fffdf8",
                 display: "grid",
                 placeItems: "center",
                 cursor: "pointer",
-                color: showQuickActions ? "#7c3aed" : "#71717a",
+                color: showQuickActions ? "#9a6b30" : "#7b6f61",
                 flexShrink: 0,
                 transform: showQuickActions ? "rotate(45deg)" : "none",
                 transition: "transform 0.2s ease, color 0.15s, background 0.15s",
@@ -1279,7 +1283,7 @@ export function AiAssistantPage({
                 fontFamily: "inherit",
                 fontSize: isMobile ? 16 : 15,
                 lineHeight: 1.55,
-                color: "#18181b",
+                color: "#2f2a24",
                 background: "transparent",
                 padding: "9px 4px",
                 overflowY: "auto",
@@ -1296,8 +1300,8 @@ export function AiAssistantPage({
                 height: isMobile ? 38 : 40,
                 borderRadius: "50%",
                 border: "none",
-                background: draft.trim() && !isSending ? "#18181b" : "#e4e4e7",
-                color: "#ffffff",
+                background: draft.trim() && !isSending ? "#9a6b30" : "#e8dfd2",
+                color: "#fffdf8",
                 display: "grid",
                 placeItems: "center",
                 cursor: isSending || !draft.trim() ? "not-allowed" : "pointer",
@@ -1318,21 +1322,21 @@ export function AiAssistantPage({
             alignItems: "center",
             justifyContent: "flex-end",
             fontSize: 11,
-            color: "#a1a1aa",
+            color: "#9f9588",
             fontWeight: 500,
             padding: "5px 4px 0",
             gap: 8,
           }}>
             {draft.length > MAX_DRAFT_CHARS / 2 && (
-              <span style={{ color: draft.length >= MAX_DRAFT_CHARS ? "#ef4444" : "#d4d4d8" }}>
+              <span style={{ color: draft.length >= MAX_DRAFT_CHARS ? "#ef4444" : "#bcb1a3" }}>
                 {draft.length}/{MAX_DRAFT_CHARS}
               </span>
             )}
             {!isMobile && (
-              <span style={{ color: "#d4d4d8" }}>
-                <kbd style={{ padding: "1px 5px", borderRadius: 4, border: "1px solid #e4e4e7", background: "#fafafa", fontSize: 10, color: "#a1a1aa" }}>Enter</kbd>
+              <span style={{ color: "#bcb1a3" }}>
+                <kbd style={{ padding: "1px 5px", borderRadius: 4, border: "1px solid #e8dfd2", background: "#f6f1e8", fontSize: 10, color: "#9f9588" }}>Enter</kbd>
                 {" to send · "}
-                <kbd style={{ padding: "1px 5px", borderRadius: 4, border: "1px solid #e4e4e7", background: "#fafafa", fontSize: 10, color: "#a1a1aa" }}>Shift+Enter</kbd>
+                <kbd style={{ padding: "1px 5px", borderRadius: 4, border: "1px solid #e8dfd2", background: "#f6f1e8", fontSize: 10, color: "#9f9588" }}>Shift+Enter</kbd>
                 {" for new line"}
               </span>
             )}
