@@ -26,7 +26,7 @@ function buildInitialMessages(activeClass) {
   return [
     {
       role: "assistant",
-      content: `I can summarize **${classLabel}**, find incomplete or failed students, search by Admission Number, and draft guardian SMS text.\n\nI am **read-only** — I do not modify any data.`,
+      content: `Ask me about **${classLabel}**, student performance, missing results, or guardian follow-up drafts.`,
       time: new Date(),
     },
   ];
@@ -39,9 +39,9 @@ function getPreferredLanguageText(lang = "en") {
 function buildSuggestionPrompts(classRecord) {
   if (!classRecord) {
     return [
-      { text: "List the classes I can access." },
-      { text: "Explain what you can help with." },
-      { text: "How should I search for a student by Admission Number?" },
+      { text: "List my available classes." },
+      { text: "Show students who are at risk." },
+      { text: "Find a student by Admission Number." },
     ];
   }
 
@@ -685,7 +685,7 @@ export function AiAssistantPage({
     <div
       style={{
         padding: isMobile ? 0 : 18,
-        background: "#f8f5ee",
+        background: isMobile ? "#f3f4f6" : "#f8f5ee",
         minHeight: 0,
         display: "flex",
         flexDirection: "column",
@@ -705,7 +705,7 @@ export function AiAssistantPage({
           margin: isMobile ? 0 : "0 auto",
           borderRadius: isMobile ? 0 : 24,
           border: isMobile ? "none" : "1px solid #e8dfd2",
-          background: "#f8f5ee",
+          background: isMobile ? "#ffffff" : "#f8f5ee",
           boxShadow: isMobile ? "none" : "0 8px 28px rgba(98,78,44,0.08)",
           overflow: "hidden",
         }}
@@ -713,9 +713,9 @@ export function AiAssistantPage({
         {/* ── HEADER ── */}
         <header
           style={{
-            padding: isMobile ? "12px 16px 10px" : "14px 20px 12px",
+            padding: isMobile ? "10px 14px" : "14px 20px 12px",
             borderBottom: "1px solid #eee4d7",
-            background: "#f8f5ee",
+            background: isMobile ? "#ffffff" : "#f8f5ee",
             flexShrink: 0,
           }}
         >
@@ -731,15 +731,12 @@ export function AiAssistantPage({
               <AiAvatar />
               <div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 7, alignItems: "center" }}>
-                  <h1 style={{ margin: 0, fontSize: isMobile ? 16 : 18, lineHeight: 1.2, color: "#2f2a24", fontWeight: 700 }}>
-                    Academic Assistant
+                  <h1 style={{ margin: 0, fontSize: isMobile ? 17 : 18, lineHeight: 1.2, color: "#2f2a24", fontWeight: 700 }}>
+                    AI Assistant
                   </h1>
-                  <span style={pillStyle({ tone: "blue" })}>Read-only</span>
-                  <span style={pillStyle({ tone: "slate" })}>{getRoleLabel(currentUser?.role)}</span>
+                  {!isMobile && <span style={pillStyle({ tone: "blue" })}>Read-only</span>}
+                  {!isMobile && <span style={pillStyle({ tone: "slate" })}>{getRoleLabel(currentUser?.role)}</span>}
                   {actionMode && <span style={pillStyle({ tone: "green" })}>Action mode</span>}
-                </div>
-                <div style={{ marginTop: 4, fontSize: 13, color: "#7b6f61", fontWeight: 500 }}>
-                  School operations chat for results, student lookups, and guardian drafts.
                 </div>
               </div>
             </div>
@@ -755,7 +752,7 @@ export function AiAssistantPage({
                   onChange={(event) => setSelectedClassId(event.target.value)}
                   style={{ ...fieldStyle(), paddingRight: 32, fontSize: 13 }}
                 >
-                  <option value="">No fixed class</option>
+                  <option value="">All classes</option>
                   {classOptions.map((classRecord) => (
                     <option key={classRecord.id} value={classRecord.id}>
                       {getClassLabel(classRecord)}
@@ -851,14 +848,16 @@ export function AiAssistantPage({
           }}
         >
           <span style={pillStyle({ tone: "slate" })}>
-            {selectedClass ? getClassLabel(selectedClass) : "Flexible class context"}
+            {selectedClass ? getClassLabel(selectedClass) : "All classes"}
           </span>
           <span style={pillStyle({ tone: "slate" })}>
-            {activeExam || "Default exam context"}
+            {activeExam || "Current exam"}
           </span>
-          <span style={pillStyle({ tone: "slate" })}>
-            {responseLanguage === "sw" ? "Swahili responses" : "English responses"}
-          </span>
+          {!isMobile && (
+            <span style={pillStyle({ tone: "slate" })}>
+              {responseLanguage === "sw" ? "Swahili" : "English"}
+            </span>
+          )}
           {sessionMeta?.provider && (
             <span style={pillStyle({ tone: sessionMeta.fallbackUsed ? "amber" : "green" })}>
               {getProviderLabel(sessionMeta.provider)}
@@ -920,12 +919,12 @@ export function AiAssistantPage({
             minHeight: 0,
             overflowY: "auto",
             overflowX: "hidden",
-            padding: isMobile ? "20px 16px" : "28px 28px 20px",
+            padding: isMobile ? "16px 12px 12px" : "28px 28px 20px",
             display: "flex",
             flexDirection: "column",
             gap: isMobile ? 18 : 24,
             WebkitOverflowScrolling: "touch",
-            background: "#f8f5ee",
+            background: isMobile ? "#f3f4f6" : "#f8f5ee",
             position: "relative",
           }}
         >
@@ -952,11 +951,12 @@ export function AiAssistantPage({
                     {/* Message bubble */}
                     <div
                       style={{
-                        background: "#fffdf8",
-                        border: "1px solid #e8dfd2",
-                        borderRadius: "20px",
-                        padding: "14px 18px",
+                        background: "#ffffff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "18px",
+                        padding: isMobile ? "12px 14px" : "14px 18px",
                         color: "#2f2a24",
+                        boxShadow: "0 1px 2px rgba(17,24,39,0.05)",
                       }}
                     >
                       <div style={{ fontSize: 15, lineHeight: 1.75 }}>
@@ -964,7 +964,7 @@ export function AiAssistantPage({
                       </div>
 
                       {message?.meta?.confidence && (
-                        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #eee4d7", fontSize: 12, color: "#7b6f61", display: "grid", gap: 3 }}>
+                        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #f1f5f9", fontSize: 12, color: "#7b6f61", display: "grid", gap: 3 }}>
                           <div>
                             Confidence: <strong style={{ color: "#4a4034" }}>{String(message.meta.confidence.level || "low").toUpperCase()}</strong>
                           </div>
@@ -1013,8 +1013,8 @@ export function AiAssistantPage({
                           gap: 4,
                           padding: "4px 8px",
                           borderRadius: 6,
-                          border: "1px solid #e8dfd2",
-                          background: "#fffdf8",
+                          border: "1px solid #e5e7eb",
+                          background: "#ffffff",
                           color: "#7b6f61",
                           fontSize: 11,
                           fontWeight: 600,
@@ -1072,11 +1072,11 @@ export function AiAssistantPage({
                 >
                   <div
                     style={{
-                      background: "#e9e2d5",
-                      border: "1px solid #d9ccb8",
-                      borderRadius: "20px",
-                      padding: "12px 18px",
-                      color: "#2f2a24",
+                    background: "#111827",
+                    border: "1px solid #111827",
+                    borderRadius: "18px",
+                    padding: isMobile ? "11px 14px" : "12px 18px",
+                    color: "#f9fafb",
                     }}
                   >
                     <div style={{ fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
@@ -1104,7 +1104,7 @@ export function AiAssistantPage({
             >
               <div style={{ paddingLeft: 42 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#9f9588", marginBottom: 10, letterSpacing: "0.03em", textTransform: "uppercase" }}>
-                  Suggestions
+                  Quick prompts
                 </div>
                 <div style={{
                   display: "grid",
@@ -1187,9 +1187,9 @@ export function AiAssistantPage({
         {/* ── INPUT BAR ── */}
         <div
           style={{
-            padding: isMobile ? "10px 12px calc(env(safe-area-inset-bottom, 0px) + 10px)" : "12px 20px 16px",
-            borderTop: "1px solid #eee4d7",
-            background: "#f8f5ee",
+            padding: isMobile ? "8px 10px calc(env(safe-area-inset-bottom, 0px) + 10px)" : "12px 20px 16px",
+            borderTop: isMobile ? "none" : "1px solid #eee4d7",
+            background: isMobile ? "transparent" : "#f8f5ee",
             flexShrink: 0,
           }}
         >
@@ -1226,11 +1226,12 @@ export function AiAssistantPage({
               display: "flex",
               gap: 8,
               alignItems: "flex-end",
-              borderRadius: 16,
-              border: "1.5px solid #dfd2bf",
-              background: "#fffdf8",
+              borderRadius: 20,
+              border: isMobile ? "1px solid #d1d5db" : "1.5px solid #dfd2bf",
+              background: "#ffffff",
               padding: isXs ? 6 : 8,
               transition: "border-color 0.15s",
+              boxShadow: isMobile ? "0 8px 24px rgba(17,24,39,0.12)" : "none",
             }}
           >
             {/* Quick-action toggle */}
@@ -1242,12 +1243,12 @@ export function AiAssistantPage({
                 width: isMobile ? 38 : 40,
                 height: isMobile ? 38 : 40,
                 borderRadius: "50%",
-                border: "1px solid #dfd2bf",
-                background: showQuickActions ? "#f3ecdf" : "#fffdf8",
+                border: "1px solid #d1d5db",
+                background: showQuickActions ? "#f3f4f6" : "#ffffff",
                 display: "grid",
                 placeItems: "center",
                 cursor: "pointer",
-                color: showQuickActions ? "#9a6b30" : "#7b6f61",
+                color: showQuickActions ? "#111827" : "#6b7280",
                 flexShrink: 0,
                 transform: showQuickActions ? "rotate(45deg)" : "none",
                 transition: "transform 0.2s ease, color 0.15s, background 0.15s",
@@ -1267,8 +1268,8 @@ export function AiAssistantPage({
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={isMobile
-                ? "Ask about a class or student…"
-                : "Ask about a class, student, results, or SMS drafting…"
+                ? "Message AI Assistant…"
+                : "Ask about students, classes, results, or parent follow-up…"
               }
               rows={1}
               enterKeyHint="send"
@@ -1283,7 +1284,7 @@ export function AiAssistantPage({
                 fontFamily: "inherit",
                 fontSize: isMobile ? 16 : 15,
                 lineHeight: 1.55,
-                color: "#2f2a24",
+                color: "#111827",
                 background: "transparent",
                 padding: "9px 4px",
                 overflowY: "auto",
@@ -1300,8 +1301,8 @@ export function AiAssistantPage({
                 height: isMobile ? 38 : 40,
                 borderRadius: "50%",
                 border: "none",
-                background: draft.trim() && !isSending ? "#9a6b30" : "#e8dfd2",
-                color: "#fffdf8",
+                background: draft.trim() && !isSending ? "#111827" : "#d1d5db",
+                color: "#ffffff",
                 display: "grid",
                 placeItems: "center",
                 cursor: isSending || !draft.trim() ? "not-allowed" : "pointer",
@@ -1316,7 +1317,6 @@ export function AiAssistantPage({
             </button>
           </form>
 
-          {/* Footer hint */}
           <div style={{
             display: "flex",
             alignItems: "center",
@@ -1330,14 +1330,6 @@ export function AiAssistantPage({
             {draft.length > MAX_DRAFT_CHARS / 2 && (
               <span style={{ color: draft.length >= MAX_DRAFT_CHARS ? "#ef4444" : "#bcb1a3" }}>
                 {draft.length}/{MAX_DRAFT_CHARS}
-              </span>
-            )}
-            {!isMobile && (
-              <span style={{ color: "#bcb1a3" }}>
-                <kbd style={{ padding: "1px 5px", borderRadius: 4, border: "1px solid #e8dfd2", background: "#f6f1e8", fontSize: 10, color: "#9f9588" }}>Enter</kbd>
-                {" to send · "}
-                <kbd style={{ padding: "1px 5px", borderRadius: 4, border: "1px solid #e8dfd2", background: "#f6f1e8", fontSize: 10, color: "#9f9588" }}>Shift+Enter</kbd>
-                {" for new line"}
               </span>
             )}
           </div>
