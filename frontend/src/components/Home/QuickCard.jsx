@@ -29,7 +29,7 @@ export function QuickCard({ icon, bg, badge, title, desc, onClick, featured = fa
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#14532d",
+            color: "#173b74",
           }}
         >
           <HomeIcon name={icon} label={title} size={compact ? 18 : 20} />
@@ -41,7 +41,7 @@ export function QuickCard({ icon, bg, badge, title, desc, onClick, featured = fa
       <div style={{ fontSize: compact ? 13 : 14, fontWeight: 800, color: "#1a2040", letterSpacing: "-0.01em" }}>{title}</div>
       <div style={{ fontSize: compact ? 10 : 11, color: "#64748b", lineHeight: compact ? 1.55 : 1.7, flex: 1 }}>{desc}</div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 2 }}>
-        <span style={{ fontSize: compact ? 10 : 11, fontWeight: 800, color: "#166534", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+        <span style={{ fontSize: compact ? 10 : 11, fontWeight: 800, color: "#1d4ed8", letterSpacing: "0.04em", textTransform: "uppercase" }}>
           {t("openAction")}
         </span>
         <span
@@ -49,11 +49,11 @@ export function QuickCard({ icon, bg, badge, title, desc, onClick, featured = fa
             width: compact ? 26 : 30,
             height: compact ? 26 : 30,
             borderRadius: 999,
-            background: "rgba(22,101,52,0.10)",
+            background: "rgba(29,78,216,0.10)",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#166534",
+            color: "#1d4ed8",
             fontWeight: 800,
             fontSize: compact ? 12 : 14,
           }}

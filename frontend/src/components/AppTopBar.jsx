@@ -85,6 +85,13 @@ function HelpIcon() {
   );
 }
 
+// Flat shared surfaces (no glassmorphism).
+const FLAT_CONTROL = {
+  border: "1px solid #e2e8f0",
+  background: "#ffffff",
+  boxShadow: "0 1px 2px rgba(15,23,42,0.05)",
+};
+
 export function AppTopBar({
   isMobile,
   currentUser,
@@ -120,11 +127,9 @@ export function AppTopBar({
         position: "sticky",
         top: 0,
         zIndex: 20,
-        background: "linear-gradient(135deg, rgba(255,255,255,0.68), rgba(241,247,255,0.58))",
-        backdropFilter: "blur(22px) saturate(135%)",
-        WebkitBackdropFilter: "blur(22px) saturate(135%)",
-        borderBottom: "1px solid rgba(255,255,255,0.62)",
-        boxShadow: "0 14px 36px rgba(15,23,42,0.08)",
+        background: "#ffffff",
+        borderBottom: "1px solid #e2e8f0",
+        boxShadow: "0 1px 3px rgba(15,23,42,0.05)",
         padding: isMobile ? "10px 12px" : "14px 20px 12px",
         boxSizing: "border-box",
         fontFamily: uiFont,
@@ -143,15 +148,10 @@ export function AppTopBar({
         {showMenu ? (
           <button
             style={{
-              border: "none",
-              background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(246,250,255,0.62))",
+              ...FLAT_CONTROL,
               width: isMobile ? 42 : 48,
               height: isMobile ? 42 : 48,
-              borderRadius: 16,
-              boxShadow: "0 14px 34px rgba(15,23,42,0.09), inset 0 1px 0 rgba(255,255,255,0.82)",
-              border: "1px solid rgba(255,255,255,0.7)",
-              backdropFilter: "blur(18px)",
-              WebkitBackdropFilter: "blur(18px)",
+              borderRadius: 12,
               color: "#0f172a",
               cursor: "pointer",
               display: "flex",
@@ -171,9 +171,8 @@ export function AppTopBar({
           <button
             onClick={showMenu ? onOpenSidebar : onOpenAccount}
             style={{
-              border: "1px solid rgba(255,255,255,0.7)",
-              background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(246,250,255,0.64))",
-              borderRadius: 16,
+              ...FLAT_CONTROL,
+              borderRadius: 12,
               padding: "12px 14px",
               textAlign: "left",
               color: "#0f172a",
@@ -184,9 +183,6 @@ export function AppTopBar({
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              boxShadow: "0 14px 34px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.82)",
-              backdropFilter: "blur(18px)",
-              WebkitBackdropFilter: "blur(18px)",
               fontFamily: uiFont,
             }}
           >
@@ -200,13 +196,10 @@ export function AppTopBar({
               gridTemplateColumns: "1fr auto",
               alignItems: "center",
               gap: 12,
-              background: "linear-gradient(135deg, rgba(255,255,255,0.78), rgba(246,250,255,0.62))",
-              borderRadius: 18,
-              border: "1px solid rgba(255,255,255,0.74)",
-              boxShadow: "0 16px 40px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.86)",
-              backdropFilter: "blur(18px)",
-              WebkitBackdropFilter: "blur(18px)",
-              padding: "13px 18px",
+              background: "#f8fafc",
+              borderRadius: 10,
+              border: "1px solid #e2e8f0",
+              padding: "12px 16px",
               cursor: "pointer",
               width: "100%",
               textAlign: "left",
@@ -222,9 +215,9 @@ export function AppTopBar({
                 width: 34,
                 height: 34,
                 borderRadius: "50%",
-                background: "linear-gradient(145deg, rgba(255,255,255,0.6), rgba(226,238,255,0.46))",
-                border: "1px solid rgba(255,255,255,0.7)",
-                color: "#475569",
+                background: "#eff5ff",
+                border: "1px solid #dbe7fe",
+                color: "#1d4ed8",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -267,22 +260,17 @@ export function AppTopBar({
             <button
               onClick={onOpenAccount}
               style={{
-                border: "none",
-                background: "linear-gradient(135deg, rgba(255,255,255,0.5), rgba(248,251,255,0.34))",
-                borderRadius: 16,
-                border: "1px solid rgba(255,255,255,0.64)",
-                boxShadow: "0 12px 28px rgba(15,23,42,0.06)",
+                ...FLAT_CONTROL,
+                borderRadius: 12,
                 cursor: "pointer",
                 position: "relative",
-                color: "#0f8b8d",
+                color: "#1d4ed8",
                 width: 36,
                 height: 36,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 0,
-                backdropFilter: "blur(18px)",
-                WebkitBackdropFilter: "blur(18px)",
               }}
               title={t("notifications")}
             >
@@ -304,7 +292,7 @@ export function AppTopBar({
                     alignItems: "center",
                     justifyContent: "center",
                     padding: "0 4px",
-                    boxShadow: "0 10px 18px rgba(239,68,68,0.22)",
+                    boxShadow: "0 4px 10px rgba(239,68,68,0.22)",
                   }}
                 >
                   {failedCount}
@@ -316,18 +304,13 @@ export function AppTopBar({
           <button
             onClick={onOpenAccount}
             style={{
-              border: "none",
-              background: "linear-gradient(135deg, rgba(255,255,255,0.48), rgba(248,251,255,0.3))",
-              border: "1px solid rgba(255,255,255,0.62)",
-              boxShadow: "0 14px 34px rgba(15,23,42,0.07)",
-              backdropFilter: "blur(18px)",
-              WebkitBackdropFilter: "blur(18px)",
+              ...FLAT_CONTROL,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               gap: 10,
               padding: isMobile ? "4px 6px 4px 4px" : "6px 10px 6px 6px",
-              borderRadius: 18,
+              borderRadius: 12,
             }}
             title={t("openAccountLabel")}
           >
@@ -336,14 +319,14 @@ export function AppTopBar({
                 width: isMobile ? 38 : 48,
                 height: isMobile ? 38 : 48,
                 borderRadius: "50%",
-                background: "linear-gradient(145deg, #1f3c88, #16a3a3)",
+                background: "linear-gradient(145deg, #0f2d6e, #1d4ed8)",
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontWeight: 800,
                 fontSize: isMobile ? 13 : 16,
-                boxShadow: "0 10px 24px rgba(31,60,136,0.18)",
+                boxShadow: "0 2px 8px rgba(15,45,110,0.18)",
               }}
             >
               {initialsFromUser(currentUser)}
@@ -369,19 +352,15 @@ export function AppTopBar({
           {isMobile && (
             <button
               style={{
-                border: "1px solid rgba(255,255,255,0.72)",
-                background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(246,250,255,0.62))",
-              color: "#0f172a",
-              borderRadius: 14,
-              padding: "10px 11px",
-              cursor: "pointer",
-              fontFamily: uiFont,
-              display: "flex",
-              alignItems: "center",
+                ...FLAT_CONTROL,
+                color: "#0f172a",
+                borderRadius: 12,
+                padding: "10px 11px",
+                cursor: "pointer",
+                fontFamily: uiFont,
+                display: "flex",
+                alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 14px 32px rgba(15,23,42,0.08)",
-                backdropFilter: "blur(18px)",
-                WebkitBackdropFilter: "blur(18px)",
               }}
               onClick={onLogout}
               title={t("logout")}

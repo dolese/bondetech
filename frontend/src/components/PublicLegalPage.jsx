@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { useI18n } from "../i18n";
 import { LanguageToggle } from "./LanguageToggle";
-import { displayFontStack, liquidGlassStyle, premiumFontStack } from "../utils/designSystem";
 
 function SchoolCrest({ size = 44 }) {
   return (
@@ -10,7 +9,7 @@ function SchoolCrest({ size = 44 }) {
       alt="BONDE Secondary School Logo"
       width={size}
       height={size}
-      style={{ objectFit: "contain", borderRadius: 4 }}
+      className="rounded object-contain"
     />
   );
 }
@@ -167,175 +166,82 @@ export function PublicLegalPage({ type = "terms", onBackHome, onOpenLogin }) {
   }, [pageTitle]);
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background:
-          "radial-gradient(circle at top left, rgba(37,99,235,0.08), transparent 28%), linear-gradient(180deg, #f8fbff 0%, #edf3fa 100%)",
-        fontFamily: premiumFontStack,
-        color: "#14213d",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1040,
-          margin: "0 auto",
-          padding: "22px 16px 54px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            marginBottom: 22,
-            flexWrap: "wrap",
-          }}
-        >
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      <div className="mx-auto max-w-5xl px-4 pb-14 pt-6">
+        {/* Top bar */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <button
+            type="button"
             onClick={onBackHome}
-            style={{
-              border: "1px solid rgba(37,99,235,0.18)",
-              background: "#fff",
-              color: "#173b74",
-              borderRadius: 999,
-              padding: "10px 16px",
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(15,23,42,0.06)",
-            }}
+            className="btn-secondary rounded-full px-4 py-2 text-brand-800"
           >
-            {"<-"} {language === "sw" ? "Rudi Mwanzo" : "Back Home"}
+            <span aria-hidden="true">&larr;</span>{" "}
+            {language === "sw" ? "Rudi Mwanzo" : "Back Home"}
           </button>
-
           <LanguageToggle />
         </div>
 
-        <div
-          style={{
-            ...liquidGlassStyle({ radius: 28, padding: 0, tint: "blue", blur: 28 }),
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              padding: "28px 24px 22px",
-              borderBottom: "1px solid rgba(226,232,240,0.95)",
-              background:
-                "linear-gradient(135deg, rgba(15,45,110,0.96), rgba(37,99,235,0.88))",
-              color: "#fff",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
+        {/* Card */}
+        <div className="card overflow-hidden">
+          {/* Header */}
+          <div className="border-b border-slate-200 bg-brand-900 p-7 text-white">
+            <div className="mb-5 flex items-center gap-3.5">
               <SchoolCrest size={54} />
               <div>
-                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.08em" }}>
-                  BONDE OS
-                </div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.78)" }}>
-                  Results System
-                </div>
+                <div className="text-[13px] font-bold tracking-[0.08em]">BONDE OS</div>
+                <div className="text-[13px] text-white/70">Results System</div>
               </div>
             </div>
 
-            <div style={{ fontFamily: displayFontStack, fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{pageTitle}</div>
-            <div
-              style={{
-                marginTop: 10,
-                maxWidth: 720,
-                fontSize: 14,
-                lineHeight: 1.7,
-                color: "rgba(255,255,255,0.82)",
-              }}
-            >
+            <h1 className="font-display text-2xl font-bold leading-tight md:text-3xl">
+              {pageTitle}
+            </h1>
+            <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-white/80">
               {pageIntro}
-            </div>
+            </p>
           </div>
 
-          <div style={{ padding: "24px 24px 28px" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 12,
-                marginBottom: 22,
-              }}
-            >
-              <div
-                style={{
-                  ...liquidGlassStyle({ radius: 18, padding: "14px 16px", tint: "slate", blur: 18, shadowOpacity: 0.08 }),
-                }}
-              >
-                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, marginBottom: 4 }}>
+          {/* Body */}
+          <div className="p-6 md:p-7">
+            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="mb-1 text-xs font-medium text-slate-500">
                   {language === "sw" ? "Mfumo" : "System"}
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#173b74" }}>
-                  BONDE Results Portal
-                </div>
+                <div className="text-sm font-semibold text-brand-800">BONDE Results Portal</div>
               </div>
-              <div
-                style={{
-                  ...liquidGlassStyle({ radius: 18, padding: "14px 16px", tint: "slate", blur: 18, shadowOpacity: 0.08 }),
-                }}
-              >
-                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, marginBottom: 4 }}>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="mb-1 text-xs font-medium text-slate-500">
                   {language === "sw" ? "Inatumika Kwa" : "Used For"}
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#173b74" }}>
-                  {language === "sw" ? "Matokeo na Taarifa Rasmi" : "Results and Official School Operations"}
+                <div className="text-sm font-semibold text-brand-800">
+                  {language === "sw"
+                    ? "Matokeo na Taarifa Rasmi"
+                    : "Results and Official School Operations"}
                 </div>
               </div>
             </div>
 
-            <div style={{ display: "grid", gap: 14 }}>
+            <div className="grid gap-3.5">
               {sections.map((section) => (
                 <div
                   key={section.title}
-                  style={{
-                    ...liquidGlassStyle({ radius: 20, padding: "18px 18px 16px", tint: "slate", blur: 18, shadowOpacity: 0.08 }),
-                  }}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-4"
                 >
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#0f2d6e", marginBottom: 8 }}>
-                    {section.title}
-                  </div>
-                  <div style={{ fontSize: 14, lineHeight: 1.75, color: "#475569" }}>{section.body}</div>
+                  <div className="mb-2 text-base font-bold text-brand-900">{section.title}</div>
+                  <p className="text-sm leading-relaxed text-slate-600">{section.body}</p>
                 </div>
               ))}
             </div>
 
-            <div
-              style={{
-                marginTop: 24,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-                flexWrap: "wrap",
-                borderTop: "1px solid rgba(226,232,240,0.95)",
-                paddingTop: 18,
-              }}
-            >
-              <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+              <p className="text-sm leading-relaxed text-slate-500">
                 {language === "sw"
                   ? "Kwa maelezo zaidi, wasiliana na Bonde Secondary School kupitia mawasiliano rasmi ya shule."
                   : "For further clarification, contact Bonde Secondary School through the official school contact channels."}
-              </div>
+              </p>
 
-              <button
-                onClick={onOpenLogin}
-                style={{
-                  border: "none",
-                  background: "linear-gradient(135deg, #f59e0b, #fbbf24)",
-                  color: "#14213d",
-                  borderRadius: 999,
-                  padding: "12px 18px",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
+              <button type="button" onClick={onOpenLogin} className="btn-accent">
                 {language === "sw" ? "Ingia kwenye Mfumo" : "Open Login"}
               </button>
             </div>

@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Seed primitive classes for the migrated UI. These are the start of the
+ * shared component layer — every screen that gets migrated should use these
+ * (or React wrappers around them) instead of re-declaring inline styles.
+ * Note: `border` is always paired with an explicit color because Tailwind
+ * preflight (which sets the default border color) is disabled for now.
+ */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold
+           transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+           focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 px-4 py-2.5 text-white hover:bg-brand-700;
+  }
+  .btn-secondary {
+    @apply btn border border-slate-200 bg-white px-4 py-2.5 text-slate-700 hover:bg-slate-50;
+  }
+  .btn-accent {
+    @apply btn bg-accent-500 px-4 py-2.5 text-brand-950 hover:bg-accent-400;
+  }
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white shadow-card;
+  }
+}

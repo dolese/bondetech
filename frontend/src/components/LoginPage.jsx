@@ -197,21 +197,17 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
         }
         .login-field {
           width: 100%;
-          background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,248,252,0.88));
-          border: 1px solid rgba(83,120,154,0.16);
-          border-radius: 16px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
           display: flex;
           align-items: center;
-          padding: 14px 16px;
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.7),
-            0 8px 16px rgba(15,85,121,0.06);
-          transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+          padding: 13px 14px;
+          transition: border-color 0.18s ease, box-shadow 0.18s ease;
         }
         .login-field:focus-within {
-          border-color: rgba(15,85,121,0.55);
-          box-shadow: 0 0 0 4px rgba(15,85,121,0.12), inset 0 1px 0 rgba(255,255,255,0.72);
-          transform: translateY(-1px);
+          border-color: #1d4ed8;
+          box-shadow: 0 0 0 3px rgba(29,78,216,0.12);
         }
         .login-field.error {
           border-color: rgba(180, 35, 24, 0.6);
@@ -273,7 +269,6 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
           align-items: center;
           gap: 6px;
           font-family: inherit;
-          backdrop-filter: blur(10px);
           transition: background 0.18s, transform 0.18s;
         }
         .login-back-btn:hover {
@@ -282,39 +277,32 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
         }
         .login-submit-btn {
           width: 100%;
-          background: linear-gradient(135deg, #0f5579, #1f8e9d);
+          background: #0f2d6e;
           color: #fff;
           border: none;
-          border-radius: 16px;
-          padding: 16px 0;
+          border-radius: 10px;
+          padding: 15px 0;
           font-size: 14px;
           font-weight: 800;
           letter-spacing: 0.18em;
           cursor: pointer;
           font-family: inherit;
-          box-shadow: 0 16px 28px rgba(19,104,133,0.30);
-          transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
+          box-shadow: 0 4px 12px rgba(15,45,110,0.22);
+          transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
         }
         .login-submit-btn:hover {
+          background: #1d4ed8;
           transform: translateY(-1px);
-          box-shadow: 0 20px 34px rgba(19,104,133,0.36);
-          filter: brightness(1.03);
+          box-shadow: 0 6px 16px rgba(29,78,216,0.28);
         }
         .login-card-inner {
-          padding: 18px 16px 15px;
+          padding: 22px 20px 18px;
           width: 100%;
           box-sizing: border-box;
-          border-radius: 26px;
-          background:
-            linear-gradient(180deg, rgba(247,251,255,0.68), rgba(230,239,247,0.34)),
-            linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
-          border: 1px solid rgba(255,255,255,0.46);
-          box-shadow:
-            0 28px 60px rgba(4,18,35,0.28),
-            0 10px 20px rgba(8,36,63,0.12),
-            inset 0 1px 0 rgba(255,255,255,0.56);
-          backdrop-filter: blur(22px) saturate(150%);
-          -webkit-backdrop-filter: blur(22px) saturate(150%);
+          border-radius: 16px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 12px 40px rgba(4,18,35,0.24);
           overflow: hidden;
         }
         .login-footer-section {
@@ -322,11 +310,7 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
           box-sizing: border-box;
         }
         .login-card-glow {
-          position: absolute;
-          border-radius: 999px;
-          pointer-events: none;
-          opacity: 0.9;
-          filter: blur(4px);
+          display: none;
         }
         .login-meta-chip {
           display: inline-flex;
@@ -334,9 +318,9 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
           gap: 8px;
           padding: 7px 11px;
           border-radius: 999px;
-          background: rgba(15,85,121,0.09);
-          border: 1px solid rgba(15,85,121,0.12);
-          color: #0f5579;
+          background: rgba(15,45,110,0.09);
+          border: 1px solid rgba(15,45,110,0.12);
+          color: #0f2d6e;
           font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.08em;
@@ -352,11 +336,11 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
         }
         .login-support-strip {
           margin-top: 4px;
-          padding: 9px 10px;
-          border-radius: 14px;
-          background: rgba(255,255,255,0.34);
-          border: 1px solid rgba(255,255,255,0.24);
-          color: #3e5468;
+          padding: 10px 12px;
+          border-radius: 10px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #475569;
           font-size: 11px;
           line-height: 1.45;
           text-align: left;
@@ -466,7 +450,7 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
             left: -36,
             width: isMobile ? 112 : 158,
             height: isMobile ? 112 : 158,
-            background: "radial-gradient(circle, rgba(31,142,157,0.24) 0%, rgba(31,142,157,0) 72%)",
+            background: "radial-gradient(circle, rgba(29,78,216,0.24) 0%, rgba(29,78,216,0) 72%)",
           }}
         />
 
@@ -488,12 +472,12 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
                 height: isMobile ? 46 : 56,
                 minWidth: isMobile ? 46 : 56,
                 borderRadius: isMobile ? 14 : 18,
-                background: "linear-gradient(145deg, rgba(15,85,121,0.96), rgba(31,142,157,0.95))",
+                background: "linear-gradient(145deg, rgba(15,45,110,0.96), rgba(29,78,216,0.95))",
                 border: "3px solid rgba(255,255,255,0.78)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 12px 22px rgba(15,85,121,0.2)",
+                boxShadow: "0 12px 22px rgba(15,45,110,0.2)",
               }}
             >
               <SchoolCrest size={isMobile ? 25 : 31} />
@@ -648,7 +632,7 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
                   border: "none",
                   padding: 0,
                   fontWeight: 800,
-                  color: "#0f5579",
+                  color: "#0f2d6e",
                   cursor: "pointer",
                   letterSpacing: "0.02em",
                 }}
@@ -689,13 +673,13 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 disabled={submitting}
-                style={{ width: 15, height: 15, accentColor: "#0f5579", cursor: "pointer" }}
+                style={{ width: 15, height: 15, accentColor: "#0f2d6e", cursor: "pointer" }}
               />
               {t("keepSignedIn")}
             </label>
             <button
               type="button"
-              style={{ background: "none", border: "none", padding: 0, fontSize: 13, color: "#0f5579", cursor: "pointer", fontWeight: 700 }}
+              style={{ background: "none", border: "none", padding: 0, fontSize: 13, color: "#0f2d6e", cursor: "pointer", fontWeight: 700 }}
               onClick={handleForgotPassword}
             >
               {t("forgotPassword")}

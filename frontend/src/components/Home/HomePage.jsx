@@ -128,7 +128,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     {
       id: "results",
       icon: "results",
-      bg: "#dcfce7",
+      bg: "#dbe7fe",
       badge: publishedLabel,
       title: t("checkResults"),
       desc: stats.publishedClasses > 0
@@ -141,7 +141,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     {
       id: "performance",
       icon: "performance",
-      bg: "#d1fae5",
+      bg: "#dbe7fe",
       badge: studentLabel,
       title: t("classPerformance"),
       desc: language === "sw"
@@ -169,7 +169,7 @@ function buildQuickAccess(stats, announcementCount, latestExamLabel, onOpenLogin
     {
       id: "announcements",
       icon: "announcements",
-      bg: "#d1fae5",
+      bg: "#dbe7fe",
       badge: formatCount(announcementCount, "live update", "taarifa hai", language),
       title: t("announcements"),
       desc: language === "sw"
@@ -458,7 +458,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     || (language === "sw" ? "Matokeo ya Taaluma Yamefanywa Rahisi" : "Academic Results Made Simple");
   const heroDescription = resolveHeroText(currentHeroSlide, language, "description", "descriptionSw")
     || t("getInstantResults");
-  const navBg = "#0a3d2b";
+  const navBg = "#0f2d6e";
   const isCompactScreen = isMobile || isTablet;
   const shortExamLabel = stats.latestExamLabel
     ? String(stats.latestExamLabel).replace(/\s+20\d{2}$/, "").trim()
@@ -695,7 +695,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             {isDesktop ? (
               <button
                 onClick={onOpenLogin}
-                style={{ background: navBg, color: "#fff", border: "none", borderRadius: 10, padding: "9px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(10,61,43,0.22)" }}
+                style={{ background: navBg, color: "#fff", border: "none", borderRadius: 10, padding: "9px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(15,23,42,0.22)" }}
               >
                 {t("loginButton")}
               </button>
@@ -728,7 +728,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               style={{
                 position: "fixed",
                 inset: `${isMobile ? 60 : 68}px 0 0`,
-                background: "rgba(5, 46, 22, 0.22)",
+                background: "rgba(10, 31, 77, 0.22)",
                 backdropFilter: "blur(3px)",
                 zIndex: 101,
                 animation: "fadeInOverlay 0.18s ease forwards",
@@ -846,13 +846,13 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
           <div className="home-hero-panel institutional" style={{ borderRadius: compactHero ? 20 : 24, padding: compactHero ? "16px 14px" : "24px 22px", width: "100%", alignSelf: "start" }}>
             <div style={{ display: "grid", gap: 10 }}>
-              <div style={{ display: "inline-flex", alignSelf: "start", background: "#edf7ef", color: "#14532d", borderRadius: 999, padding: "5px 10px", fontSize: compactHero ? 10 : 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              <div style={{ display: "inline-flex", alignSelf: "start", background: "#eff5ff", color: "#173b74", borderRadius: 999, padding: "5px 10px", fontSize: compactHero ? 10 : 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                 {language === "sw" ? "Muhtasari wa Bonde" : "Bonde at a Glance"}
               </div>
-              <div style={{ fontSize: compactHero ? 22 : 28, fontWeight: 900, color: "#0f1c12", lineHeight: 1.08 }}>
+              <div style={{ fontSize: compactHero ? 22 : 28, fontWeight: 900, color: "#0f172a", lineHeight: 1.08 }}>
                 {language === "sw" ? "Shule ya umma yenye nidhamu, mawasiliano wazi, na ufuatiliaji wa matokeo." : "A public school built on discipline, clarity, and accountable academic reporting."}
               </div>
-              <div style={{ fontSize: compactHero ? 12 : 13, color: "#5b6f64", lineHeight: 1.7 }}>
+              <div style={{ fontSize: compactHero ? 12 : 13, color: "#64748b", lineHeight: 1.7 }}>
                 {language === "sw"
                   ? "Ukurasa huu unaleta pamoja maelezo ya shule, taarifa rasmi, na njia salama ya kufikia matokeo yaliyopitishwa."
                   : "This homepage brings together school identity, official notices, and a safe route to published academic results."}
@@ -872,7 +872,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
             {!compactHero && chartBars.length > 0 && (
               <div style={{ marginTop: 18 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: "#5b6f64", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   {t("studentsByForm")}
                 </div>
                 <MiniBarChart bars={chartBars} />
@@ -1047,7 +1047,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
               {searchResults && searchResults.length > 1 && (
                 <div style={{ marginTop: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#0a3d2b", marginBottom: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0f2d6e", marginBottom: 10 }}>
                   {language === "sw"
                     ? `${searchResults.length} ${t("studentsFoundSelect")}`
                     : `${searchResults.length} student${searchResults.length !== 1 ? "s" : ""} found - select to view results:`}
@@ -1078,7 +1078,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                       textAlign: "left",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#dcfce7";
+                      e.currentTarget.style.background = "#dbe7fe";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = "#f0fdf4";
@@ -1090,7 +1090,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                         {result.admissionNo || result.indexNo} | {result.form} | {result.year}
                       </div>
                     </div>
-                    <span style={{ fontSize: 14, color: "#166534", fontWeight: 700 }}>{t("view")}</span>
+                    <span style={{ fontSize: 14, color: "#1d4ed8", fontWeight: 700 }}>{t("view")}</span>
                   </button>
                 ))}
               </div>
@@ -1196,12 +1196,12 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          color: "#14532d",
+                          color: "#173b74",
                         }}
                       >
                         <HomeIcon name={stat.icon} label={stat.label} size={isMobile ? 16 : 18} />
                       </div>
-                      <div style={{ fontSize: isMobile ? 13 : 18, fontWeight: 800, color: "#0a3d2b" }}>{stat.value}</div>
+                      <div style={{ fontSize: isMobile ? 13 : 18, fontWeight: 800, color: "#0f2d6e" }}>{stat.value}</div>
                       <div style={{ fontSize: isMobile ? 10 : 11, color: "#64748b", marginTop: 3, lineHeight: isMobile ? 1.35 : 1.45 }}>{stat.label}</div>
                       {stat.description && (
                         <div style={{ fontSize: isMobile ? 9 : 10, color: "#94a3b8", marginTop: isMobile ? 4 : 6, lineHeight: 1.45 }}>
@@ -1284,7 +1284,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               <SchoolCrest size={44} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", letterSpacing: "0.04em" }}>BONDE SECONDARY SCHOOL</div>
-                <div style={{ fontSize: isMobile ? 11 : 10, color: "#86efac" }}>{t("resultSystem")}</div>
+                <div style={{ fontSize: isMobile ? 11 : 10, color: "#bdd0fc" }}>{t("resultSystem")}</div>
               </div>
             </div>
             <p style={{ fontSize: isMobile ? 13 : 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: 260 }}>
@@ -1397,7 +1397,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           >
             <div
               style={{
-                background: "#0a3d2b",
+                background: "#0f2d6e",
                 color: "#fff",
                 padding: "14px 20px",
                 display: "flex",
