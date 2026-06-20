@@ -7,8 +7,13 @@ const {
 } = require("../../lib/homepageOverview");
 const { getSchoolSettings, saveSchoolSettings } = require("../../lib/schoolSettings");
 const { resolveSessionUser, canManageClasses, canReadClassData } = require("../../lib/auth");
-const { getBeemSmsConfig, normalizeRecipients, sendBeemSms, sendBeemSmsJobs } = require("../../lib/beemSms");
-const { listSmsHistory, saveSmsHistory } = require("../../lib/smsHistory");
+const {
+  getBeemSmsConfig,
+  getBeemDeliveryReport,
+  sendBeemSms,
+  sendBeemSmsJobs,
+} = require("../../lib/beemSms");
+const { listSmsHistory, refreshPendingSmsHistory, saveSmsHistory } = require("../../lib/smsHistory");
 
 module.exports = async (req, res) => {
   const requestUrl = new URL(req.url || "/api/stats", "https://bonde-results.local");
@@ -227,6 +232,9 @@ module.exports = async (req, res) => {
 
     if (req.method === "GET") {
       const config = getBeemSmsConfig();
+      if (config.configured && requestUrl.searchParams.get("refreshDelivery") === "true") {
+        await refreshPendingSmsHistory(getDb(), { getDeliveryReport: getBeemDeliveryReport });
+      }
       const history = await listSmsHistory(getDb(), {
         limit: requestUrl.searchParams.get("limit") || 20,
         indexNo: requestUrl.searchParams.get("indexNo") || "",
@@ -257,7 +265,7 @@ module.exports = async (req, res) => {
                 recipientName: job.recipientName || "",
                 recipientPhone: job.recipientPhone || "",
                 message: job.message,
-                recipients: normalizeRecipients(job.recipients),
+                recipients: job.recipients,
                 senderId: job.senderId,
                 scheduleTime: job.scheduleTime,
               })),
@@ -266,17 +274,27 @@ module.exports = async (req, res) => {
             })
           : await sendBeemSms({
               message: body.message,
-              recipients: normalizeRecipients(body.recipients),
+            recipients: body.recipients,
               senderId: body.senderId,
               scheduleTime: body.scheduleTime,
             });
-        await saveSmsHistory(getDb(), { body, result, currentUser });
+        const historyEntry = await saveSmsHistory(getDb(), { body, result, currentUser });
         return sendJson(res, 200, {
           ...result,
+          historyEntry,
           requestedBy: currentUser.username,
           sentAt: new Date().toISOString(),
         });
       } catch (err) {
+        try {
+          await saveSmsHistory(getDb(), {
+            body: body || {},
+            result: { successful: false, error: err.message, totalRequested: 0 },
+            currentUser,
+          });
+        } catch {
+          // Delivery failure remains the primary error if history persistence also fails.
+        }
         const status = /required|valid|configured/i.test(err.message) ? 400 : 502;
         return sendJson(res, status, { error: err.message });
       }

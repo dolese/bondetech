@@ -13,6 +13,17 @@ export function normalizeTzPhoneDraft(value) {
   return `255${digits}`;
 }
 
+export function normalizeTzPhone(value) {
+  let digits = String(value ?? "").replace(/\D/g, "");
+  if (!digits) return "";
+
+  if (digits.startsWith("00255")) digits = digits.slice(2);
+  if (digits.startsWith("0")) digits = `255${digits.slice(1)}`;
+  else if (/^[67]/.test(digits)) digits = `255${digits}`;
+
+  return /^255[67]\d{8}$/.test(digits) ? digits : "";
+}
+
 export function normalizeTzPhoneListInline(value) {
   const seen = new Set();
   return String(value ?? "")
@@ -39,7 +50,7 @@ export function parseTzPhoneList(value) {
     return Array.from(
       new Set(
         value
-          .map((entry) => normalizeTzPhoneDraft(entry))
+          .map((entry) => normalizeTzPhone(entry))
           .filter(Boolean),
       ),
     );
@@ -48,7 +59,7 @@ export function parseTzPhoneList(value) {
     new Set(
       String(value ?? "")
         .split(/[\s,;\n]+/)
-        .map((entry) => normalizeTzPhoneDraft(entry))
+        .map((entry) => normalizeTzPhone(entry))
         .filter(Boolean),
     ),
   );

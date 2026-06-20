@@ -103,6 +103,18 @@ test("bulk import updates an alternate exam without bleeding marks into the defa
   assert.deepEqual(updated.data().exam_scores["April Exam"], [15, 25]);
 });
 
+test("updating a guardian phone stores and returns the canonical SMS field", async () => {
+  const db = createSeedDb();
+
+  const response = await updateStudentRecord(db, "class_1", "student_1", {
+    parentPhone: "0712 345 678",
+  });
+
+  const updated = await db.collection("classes").doc("class_1").collection("students").doc("student_1").get();
+  assert.equal(updated.data().parent_phone, "255712345678");
+  assert.equal(response.parentPhone, "255712345678");
+});
+
 test("bulk import updates existing students by CNO and creates only new rows", async () => {
   const db = createSeedDb();
 

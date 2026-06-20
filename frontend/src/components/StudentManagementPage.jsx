@@ -18,7 +18,7 @@ import {
   secondaryButtonStyle,
   softCardStyle,
 } from "../utils/designSystem";
-import { normalizeTzPhoneDraft } from "../utils/phone";
+import { normalizeTzPhone, normalizeTzPhoneDraft } from "../utils/phone";
 
 function getClassLabel(cls = {}) {
   const base = [cls.form, cls.stream].filter(Boolean).join(" ").trim();
@@ -529,6 +529,12 @@ export function StudentManagementPage({
       return;
     }
     setFormError("");
+    const rawParentPhone = String(form.parentPhone || "").trim();
+    const parentPhone = normalizeTzPhone(rawParentPhone);
+    if (rawParentPhone && !parentPhone) {
+      setFormError("Enter a valid Tanzania mobile number, for example 255712345678.");
+      return;
+    }
     setSaving(true);
     const payload = {
       ...form,
@@ -536,7 +542,7 @@ export function StudentManagementPage({
       name: String(form.name || "").trim(),
       index_no: String(form.index_no || "").trim(),
       parentName: String(form.parentName || "").trim(),
-      parentPhone: normalizeTzPhoneDraft(form.parentPhone),
+      parentPhone,
       address: String(form.address || "").trim(),
       remarks: String(form.remarks || "").trim(),
       optionalSubjectsConfigured: true,

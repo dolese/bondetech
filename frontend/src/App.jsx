@@ -455,6 +455,7 @@ export default function App() {
     onUpdateCompositeConfig,
     onUpdateTimetable,
     onApplyExamMaster,
+    refreshClassesWithStudents,
     hydrateAllClassesWithStudents,
     resetClassesState,
   } = useClasses({
@@ -1021,6 +1022,7 @@ export default function App() {
               showToast={showToast}
               initialDraft={smsDraft}
               onDraftApplied={() => setSmsDraft(null)}
+              onRefreshRecipientClasses={refreshClassesWithStudents}
             />
           )}
 

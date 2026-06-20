@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API } from "../api";
 import { DEFAULT_SUBJECTS, DEFAULT_SCHOOL, DEFAULT_EXAM_TYPE, getCompositeEntry } from "../utils/constants";
 import { extractClassSchoolInfoOverrides } from "../utils/schoolSettings";
 import { normalizeClassTimetable } from "../utils/timetable";
 import { withPositions } from "../utils/grading";
+import { normalizeTzPhone } from "../utils/phone";
 
 export const CLASS_FORMS = ["Form I", "Form II", "Form III", "Form IV"];
 export const CLASS_STREAMS = ["A", "B", "C", "D", "E", "F"];
@@ -76,7 +77,9 @@ const normalizeStudent = (student) => {
     enrollmentStatus: student.enrollmentStatus ?? student.enrollment_status ?? "active",
     dateOfBirth: student.dateOfBirth ?? student.date_of_birth ?? "",
     parentName: student.parentName ?? student.parent_name ?? "",
-    parentPhone: student.parentPhone ?? student.parent_phone ?? "",
+    parentPhone: normalizeTzPhone(
+      student.parentPhone ?? student.parent_phone ?? student.guardianPhone ?? "",
+    ),
     address: student.address ?? "",
     previousSchool: student.previousSchool ?? student.previous_school ?? "",
     remarks: student.remarks ?? "",
@@ -124,7 +127,9 @@ const toApiStudent = (student) => {
     status: student.status ?? "present",
     dateOfBirth: student.dateOfBirth ?? student.date_of_birth ?? "",
     parentName: student.parentName ?? student.parent_name ?? "",
-    parentPhone: student.parentPhone ?? student.parent_phone ?? "",
+    parentPhone: normalizeTzPhone(
+      student.parentPhone ?? student.parent_phone ?? student.guardianPhone ?? "",
+    ),
     address: student.address ?? "",
     previousSchool: student.previousSchool ?? student.previous_school ?? "",
     remarks: student.remarks ?? "",
@@ -167,6 +172,11 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
   const [error, setError] = useState(null);
   const [expandedYears, setExpandedYears] = useState(new Set());
   const [auditLogs, setAuditLogs] = useState(null);
+  const classesRef = useRef([]);
+
+  useEffect(() => {
+    classesRef.current = classes;
+  }, [classes]);
 
   const resetClassesState = useCallback(() => {
     setClasses([]);
@@ -216,21 +226,34 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, []);
 
-  const hydrateAllClassesWithStudents = useCallback(async () => {
-    const classIds = classes.map((cls) => cls.id).filter(Boolean);
-    if (!classIds.length) return;
+  const refreshClassesWithStudents = useCallback(async (classIds = []) => {
+    const ids = Array.from(
+      new Set((Array.isArray(classIds) ? classIds : []).map((id) => String(id || "").trim()).filter(Boolean)),
+    );
+    if (!ids.length) return [];
+
     const loaded = await Promise.all(
-      classIds.map(async (id) => {
+      ids.map(async (id) => {
         try {
           return normalizeClass(await API.getClass(id));
         } catch {
-          return classes.find((cls) => cls.id === id) || null;
+          return null;
         }
-      })
+      }),
     );
-    const nextById = new Map(loaded.filter(Boolean).map((cls) => [cls.id, cls]));
-    setClasses((prev) => prev.map((cls) => nextById.get(cls.id) || cls));
-  }, [classes]);
+    const freshClasses = loaded.filter(Boolean);
+    if (freshClasses.length) {
+      const nextById = new Map(freshClasses.map((cls) => [String(cls.id), cls]));
+      setClasses((prev) => prev.map((cls) => nextById.get(String(cls.id)) || cls));
+    }
+    return freshClasses;
+  }, []);
+
+  const hydrateAllClassesWithStudents = useCallback(async () => {
+    const classIds = classesRef.current.map((cls) => cls.id).filter(Boolean);
+    if (!classIds.length) return;
+    await refreshClassesWithStudents(classIds);
+  }, [refreshClassesWithStudents]);
 
   useEffect(() => {
     if (loggedIn && activeId) {
@@ -429,13 +452,25 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
       return { ok: false, error: "Target class not found" };
     }
     try {
-      await API.updateStudent(
+      const updatedStudent = normalizeStudent(await API.updateStudent(
         classId,
         studentData.id,
         toApiStudent({
           ...studentData,
           examType: studentData.examType ?? targetClass.school_info?.exam ?? activeExam,
         }),
+      ));
+      setClasses((prev) =>
+        prev.map((cls) =>
+          String(cls.id) === String(classId)
+            ? {
+                ...cls,
+                students: (cls.students || []).map((student) =>
+                  String(student.id) === String(updatedStudent.id) ? updatedStudent : student,
+                ),
+              }
+            : cls,
+        ),
       );
       await refreshClass(classId);
       if (!opts.silent) {
@@ -995,6 +1030,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onUpdateCompositeConfig,
     onUpdateTimetable,
     onApplyExamMaster,
+    refreshClassesWithStudents,
     hydrateAllClassesWithStudents,
     resetClassesState,
   };

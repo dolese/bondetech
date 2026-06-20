@@ -180,7 +180,7 @@ router.post(
   } catch (err) {
     const status = /class not found/i.test(err.message)
       ? 404
-      : /student name is required/i.test(err.message)
+      : /student name is required|guardian phone number/i.test(err.message)
       ? 400
       : 500;
     res.status(status).json({ error: err.message });
@@ -271,7 +271,12 @@ router.put(
     const updated = await updateStudentRecord(getDb(), req.params.id, req.params.sid, req.body || {});
     res.json(updated);
   } catch (err) {
-    res.status(/class not found|student not found/i.test(err.message) ? 404 : 500).json({ error: err.message });
+    const status = /class not found|student not found/i.test(err.message)
+      ? 404
+      : /guardian phone number/i.test(err.message)
+      ? 400
+      : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 

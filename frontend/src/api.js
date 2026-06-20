@@ -34,6 +34,7 @@ async function request(method, url, body) {
     method,
     headers: { "Content-Type": "application/json" },
   };
+  if (method === "GET") opts.cache = "no-store";
   const token = getStoredAuthToken();
   if (token) {
     opts.headers.Authorization = `Bearer ${token}`;
@@ -160,6 +161,7 @@ export const API = {
     if (opts.limit) params.set("limit", opts.limit);
     if (opts.indexNo) params.set("indexNo", opts.indexNo);
     if (opts.phone) params.set("phone", opts.phone);
+    if (opts.refreshDelivery) params.set("refreshDelivery", "true");
     const qs = params.toString();
     return get(`/sms${qs ? `?${qs}` : ""}`);
   },
@@ -168,6 +170,7 @@ export const API = {
     if (opts.limit) params.set("limit", opts.limit);
     if (opts.indexNo) params.set("indexNo", opts.indexNo);
     if (opts.phone) params.set("phone", opts.phone);
+    if (opts.refreshDelivery) params.set("refreshDelivery", "true");
     const qs = params.toString();
     return get(`/sms${qs ? `?${qs}` : ""}`);
   },

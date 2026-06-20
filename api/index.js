@@ -61,6 +61,7 @@ module.exports = async (req, res) => {
           limit: req.query?.limit,
           indexNo: req.query?.indexNo,
           phone: req.query?.phone,
+          refreshDelivery: req.query?.refreshDelivery,
         });
         return statsIndex(req, res);
       case "auth-login":

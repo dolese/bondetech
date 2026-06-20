@@ -1,8 +1,13 @@
 const express = require("express");
 const { getDb } = require("../db");
 const { resolveSessionUser, canReadClassData } = require("../../lib/auth");
-const { getBeemSmsConfig, normalizeRecipients, sendBeemSms, sendBeemSmsJobs } = require("../../lib/beemSms");
-const { listSmsHistory, saveSmsHistory } = require("../../lib/smsHistory");
+const {
+  getBeemSmsConfig,
+  getBeemDeliveryReport,
+  sendBeemSms,
+  sendBeemSmsJobs,
+} = require("../../lib/beemSms");
+const { listSmsHistory, refreshPendingSmsHistory, saveSmsHistory } = require("../../lib/smsHistory");
 
 const router = express.Router();
 
@@ -24,6 +29,9 @@ router.use(async (req, res, next) => {
 
 router.get("/", async (req, res) => {
   const config = getBeemSmsConfig();
+  if (config.configured && req.query?.refreshDelivery === "true") {
+    await refreshPendingSmsHistory(getDb(), { getDeliveryReport: getBeemDeliveryReport });
+  }
   const history = await listSmsHistory(getDb(), {
     limit: req.query?.limit || 20,
     indexNo: req.query?.indexNo || "",
@@ -47,7 +55,7 @@ router.post("/", async (req, res) => {
             recipientName: job.recipientName || "",
             recipientPhone: job.recipientPhone || "",
             message: job.message,
-            recipients: normalizeRecipients(job.recipients),
+            recipients: job.recipients,
             senderId: job.senderId,
             scheduleTime: job.scheduleTime,
           })),
@@ -56,17 +64,27 @@ router.post("/", async (req, res) => {
         })
       : await sendBeemSms({
           message: req.body?.message,
-          recipients: normalizeRecipients(req.body?.recipients),
+          recipients: req.body?.recipients,
           senderId: req.body?.senderId,
           scheduleTime: req.body?.scheduleTime,
         });
-    await saveSmsHistory(getDb(), { body: req.body, result, currentUser: req.currentUser });
+    const historyEntry = await saveSmsHistory(getDb(), { body: req.body, result, currentUser: req.currentUser });
     return res.json({
       ...result,
+      historyEntry,
       requestedBy: req.currentUser.username,
       sentAt: new Date().toISOString(),
     });
   } catch (err) {
+    try {
+      await saveSmsHistory(getDb(), {
+        body: req.body || {},
+        result: { successful: false, error: err.message, totalRequested: 0 },
+        currentUser: req.currentUser,
+      });
+    } catch {
+      // Delivery failure remains the primary error if history persistence also fails.
+    }
     const status = /required|valid|configured/i.test(err.message) ? 400 : 502;
     return res.status(status).json({ error: err.message });
   }

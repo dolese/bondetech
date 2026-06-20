@@ -10,7 +10,7 @@ import {
   secondaryButtonStyle,
   softCardStyle,
 } from "../utils/designSystem";
-import { normalizeTzPhoneDraft, normalizeTzPhoneListDraft } from "../utils/phone";
+import { normalizeTzPhone, normalizeTzPhoneListDraft } from "../utils/phone";
 
 const MESSAGE_TEMPLATES = [
   {
@@ -83,11 +83,24 @@ const SUBJECT_LABELS = {
 };
 
 function normalizePhone(value) {
-  return normalizeTzPhoneDraft(value);
+  return normalizeTzPhone(value);
+}
+
+function normalizeClassValue(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
 function uniqueRecipientKey(entry) {
-  return `${entry.phone}|${entry.studentId || entry.classId || entry.classLabel}`;
+  const admissionNo = String(entry.admissionNo || "").trim().toUpperCase();
+  if (admissionNo) return `admission:${admissionNo}`;
+  if (entry.studentId && entry.classId) return `record:${entry.classId}:${entry.studentId}`;
+  return `phone:${entry.phone}`;
+}
+
+function deliveryTone(status) {
+  if (status === "delivered") return "teal";
+  if (status === "failed") return "red";
+  return "amber";
 }
 
 function formatNumber(value, decimals = 1) {
@@ -192,14 +205,18 @@ function buildRecipientDirectory(classes = []) {
   return (classes || []).flatMap((cls) =>
     (cls.students || [])
       .map((student) => {
-        const phone = normalizePhone(student.parentPhone || student.parent_phone || "");
+        const phone = normalizePhone(
+          student.parentPhone || student.parent_phone || student.guardianPhone || "",
+        );
         if (!phone) return null;
         return {
           id: `${cls.id}-${student.id}`,
           phone,
           parentName: String(student.parentName || student.parent_name || "").trim() || "Guardian",
           studentName: String(student.name || "").trim() || "Student",
+          admissionNo: String(student.admissionNo || student.admission_no || "").trim(),
           studentId: student.id,
+          admissionNo: String(student.admissionNo || student.admission_no || "").trim(),
           indexNo: String(student.index_no || student.indexNo || "").trim(),
           classId: cls.id,
           classLabel: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim(),
@@ -355,7 +372,13 @@ function buildResultsMessage(student, cls, language = "en") {
     .join("\n");
 }
 
-export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftApplied }) {
+export function SmsPage({
+  classes = [],
+  showToast,
+  initialDraft = null,
+  onDraftApplied,
+  onRefreshRecipientClasses,
+}) {
   const [mode, setMode] = useState("custom");
   const [scope, setScope] = useState("all");
   const [year, setYear] = useState("all");
@@ -374,6 +397,8 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
   const [savedTemplates, setSavedTemplates] = useState([]);
   const [templateLabel, setTemplateLabel] = useState("");
   const [historyModeFilter, setHistoryModeFilter] = useState("all");
+  const [historyRefreshing, setHistoryRefreshing] = useState(false);
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
 
   useEffect(() => {
     setSavedTemplates(loadStoredSmsTemplates());
@@ -381,7 +406,7 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
 
   useEffect(() => {
     let cancelled = false;
-    API.getSmsGatewayStatus({ limit: 12 })
+    API.getSmsGatewayStatus({ limit: 12, refreshDelivery: true })
       .then((status) => {
         if (cancelled) return;
         setGatewayStatus({ ...status, loading: false });
@@ -429,25 +454,77 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
       classes
         .filter(
           (cls) =>
-            (year === "all" || String(cls.year) === year) && (form === "all" || cls.form === form)
+            (year === "all" || normalizeClassValue(cls.year) === normalizeClassValue(year)) &&
+            (form === "all" || normalizeClassValue(cls.form) === normalizeClassValue(form))
         )
         .map((cls) => ({
-          id: cls.id,
+          id: String(cls.id),
           label: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim() || cls.name || "Class",
         })),
     [classes, form, year]
   );
 
+  useEffect(() => {
+    if (classId === "all") return;
+    if (!classOptions.some((entry) => entry.id === String(classId))) {
+      setClassId("all");
+    }
+  }, [classId, classOptions]);
+
+  const recipientRefreshIds = useMemo(() => {
+    if (scope === "manual" && mode !== "results") return [];
+
+    const scopedClasses = classes.filter((cls) => {
+      const matchesYear = year === "all" || normalizeClassValue(cls.year) === normalizeClassValue(year);
+      const matchesForm = form === "all" || normalizeClassValue(cls.form) === normalizeClassValue(form);
+      return matchesYear && matchesForm;
+    });
+    const validSelectedId = classOptions.some((entry) => entry.id === String(classId))
+      ? String(classId)
+      : "";
+
+    if (mode === "results" || scope === "class") {
+      return validSelectedId ? [validSelectedId] : scopedClasses.map((cls) => String(cls.id));
+    }
+    if (scope === "year" || scope === "form") {
+      return scopedClasses.map((cls) => String(cls.id));
+    }
+    return classes.map((cls) => String(cls.id));
+  }, [classId, classOptions, classes, form, mode, scope, year]);
+  const recipientRefreshKey = useMemo(
+    () => Array.from(new Set(recipientRefreshIds)).filter(Boolean).sort().join("|"),
+    [recipientRefreshIds],
+  );
+
+  useEffect(() => {
+    if (!onRefreshRecipientClasses || !recipientRefreshKey) {
+      setRecipientsLoading(false);
+      return undefined;
+    }
+    let cancelled = false;
+    setRecipientsLoading(true);
+    Promise.resolve(onRefreshRecipientClasses(recipientRefreshKey.split("|")))
+      .catch(() => {
+        // Existing recipient data remains available if a refresh fails.
+      })
+      .finally(() => {
+        if (!cancelled) setRecipientsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [onRefreshRecipientClasses, recipientRefreshKey]);
+
   const filteredRecipients = useMemo(() => {
     let entries = allRecipients;
     if (scope === "year" && year !== "all") {
-      entries = entries.filter((entry) => String(entry.year) === year);
+      entries = entries.filter((entry) => normalizeClassValue(entry.year) === normalizeClassValue(year));
     }
     if (scope === "form" && form !== "all") {
-      entries = entries.filter((entry) => entry.form === form);
+      entries = entries.filter((entry) => normalizeClassValue(entry.form) === normalizeClassValue(form));
     }
     if (scope === "class" && classId !== "all") {
-      entries = entries.filter((entry) => entry.classId === classId);
+      entries = entries.filter((entry) => String(entry.classId) === String(classId));
     }
     return Array.from(new Map(entries.map((entry) => [uniqueRecipientKey(entry), entry])).values());
   }, [allRecipients, classId, form, scope, year]);
@@ -477,7 +554,12 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
       : filteredRecipients;
 
   const selectedResultsClass = useMemo(
-    () => classes.find((cls) => cls.id === classId) || classOptions[0] && classes.find((cls) => cls.id === classOptions[0].id) || null,
+    () => {
+      const selectedOption =
+        classOptions.find((entry) => entry.id === String(classId)) || classOptions[0] || null;
+      if (!selectedOption) return null;
+      return classes.find((cls) => String(cls.id) === selectedOption.id) || null;
+    },
     [classId, classOptions, classes]
   );
 
@@ -510,7 +592,9 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
     const computed = buildComputedStudentsForExam(selectedResultsClass, resultsExam);
     return computed
       .map((student) => {
-        const phone = normalizePhone(student.parentPhone || student.parent_phone || "");
+        const phone = normalizePhone(
+          student.parentPhone || student.parent_phone || student.guardianPhone || "",
+        );
         if (!phone) return null;
         return {
           id: `${selectedResultsClass.id}-${student.id}`,
@@ -640,6 +724,9 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
                 recipients: [{
                   id: entry.id || `recipient-${index + 1}`,
                   phone: entry.phone,
+                  admissionNo: entry.admissionNo || "",
+                  studentId: entry.student?.id || "",
+                  classId: selectedResultsClass?.id || "",
                   indexNo: entry.student?.index_no || entry.student?.indexNo || "",
                   studentName: entry.studentName,
                   parentName: entry.parentName,
@@ -663,6 +750,9 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
               recipients: recipients.map((entry, index) => ({
                 id: entry.id || `recipient-${index + 1}`,
                 phone: entry.phone,
+                admissionNo: entry.admissionNo || "",
+                studentId: entry.studentId || "",
+                classId: entry.classId || "",
                 indexNo: entry.indexNo || "",
                 studentName: entry.studentName || "",
                 parentName: entry.parentName || "",
@@ -688,6 +778,19 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
       showToast?.(err.message || "Unable to send SMS right now", "error");
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleRefreshDeliveryStatuses = async () => {
+    setHistoryRefreshing(true);
+    try {
+      const refreshed = await API.getSmsHistory({ limit: 12, refreshDelivery: true });
+      setHistory(Array.isArray(refreshed?.history) ? refreshed.history : []);
+      showToast?.("SMS delivery statuses refreshed", "success");
+    } catch (err) {
+      showToast?.(err.message || "Unable to refresh SMS delivery statuses", "error");
+    } finally {
+      setHistoryRefreshing(false);
     }
   };
 
@@ -766,8 +869,13 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
         <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14, alignContent: "start" }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
-            {mode === "results" ? "Results Targeting" : "Audience Targeting"}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
+              {mode === "results" ? "Results Targeting" : "Audience Targeting"}
+            </div>
+            <span style={pillStyle({ tone: recipientsLoading ? "amber" : "teal" })}>
+              {recipientsLoading ? "Refreshing recipients..." : "Recipients current"}
+            </span>
           </div>
           <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>{scopeDescription}</div>
 
@@ -1061,6 +1169,17 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={handleRefreshDeliveryStatuses}
+              disabled={historyRefreshing || !gatewayStatus.configured}
+              style={{
+                ...secondaryButtonStyle({ compact: true }),
+                opacity: historyRefreshing || !gatewayStatus.configured ? 0.6 : 1,
+              }}
+            >
+              {historyRefreshing ? "Checking delivery..." : "Refresh delivery"}
+            </button>
             <select value={historyModeFilter} onChange={(e) => setHistoryModeFilter(e.target.value)} style={fieldStyle({ minWidth: 150, height: 36 })}>
               <option value="all">All history</option>
               <option value="custom">Custom SMS</option>
@@ -1097,8 +1216,12 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <span style={pillStyle({ tone: entry.successful ? "teal" : "amber" })}>
-                      {entry.successful ? "Submitted" : "Warnings"}
+                    <span style={pillStyle({ tone: deliveryTone(entry.gateway_status) })}>
+                      {entry.gateway_status === "delivered"
+                        ? "Delivered"
+                        : entry.gateway_status === "failed"
+                        ? "Failed"
+                        : "Pending"}
                     </span>
                     {entry.schedule_time ? (
                       <span style={pillStyle({ tone: isFutureSchedule(entry.schedule_time) ? "amber" : "blue" })}>
@@ -1113,9 +1236,9 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
                   {[
                     { label: "Requested", value: entry.total_requested || 0 },
-                    { label: "Valid", value: entry.valid || 0 },
-                    { label: "Invalid", value: entry.invalid || 0 },
-                    { label: "Batches", value: entry.batch_count || 0 },
+                    { label: "Delivered", value: entry.delivered || 0 },
+                    { label: "Failed", value: entry.failed || 0 },
+                    { label: "Pending", value: entry.pending || 0 },
                   ].map((item) => (
                     <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 14 }) }}>
                       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.06em" }}>
@@ -1125,6 +1248,42 @@ export function SmsPage({ classes = [], showToast, initialDraft = null, onDraftA
                     </div>
                   ))}
                 </div>
+
+                {Array.isArray(entry.deliveries) && entry.deliveries.length ? (
+                  <div style={{ display: "grid", gap: 7 }}>
+                    {entry.deliveries.slice(0, 8).map((delivery, index) => (
+                      <div
+                        key={delivery.key || `${delivery.phone}-${index}`}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 10,
+                          padding: "9px 11px",
+                          borderRadius: 12,
+                          background: "rgba(248,250,252,0.9)",
+                          border: "1px solid rgba(203,213,225,0.65)",
+                        }}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>
+                            {delivery.student_name || delivery.guardian_name || delivery.phone}
+                          </div>
+                          <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                            {delivery.phone}{delivery.class_label ? ` | ${delivery.class_label}` : ""}
+                          </div>
+                        </div>
+                        <span style={pillStyle({ tone: deliveryTone(delivery.status) })}>
+                          {delivery.status === "delivered"
+                            ? "Delivered"
+                            : delivery.status === "failed"
+                            ? "Failed"
+                            : "Pending"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
 
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {entry.sender_id ? <span style={pillStyle({ tone: "blue" })}>Sender {entry.sender_id}</span> : null}
