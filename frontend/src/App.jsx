@@ -744,7 +744,7 @@ export default function App() {
   );
 
   return (
-    <div style={{ ...S.root, ...(isMobile ? { overflow: "hidden" } : {}) }}>
+    <div style={{ ...S.root, ...(isMobile ? { overflow: "hidden", height: "100dvh" } : {}) }}>
       {toast && (
         <div
           style={{
@@ -1279,7 +1279,7 @@ export default function App() {
 }
 
 const S = {
-  root: { display: "flex", minHeight: "100vh", fontFamily: premiumFontStack, background: "#e8edf5", color: "#1a1a2e", overflowY: "auto" },
+  root: { display: "flex", minHeight: "100dvh", fontFamily: premiumFontStack, background: "#e8edf5", color: "#1a1a2e", overflowY: "auto" },
   toast: { position: "fixed", top: 16, right: 16, zIndex: 9999, color: "#fff", padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 700, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" },
 
   sidebar: { background: "#001a3d", flexShrink: 0 },
