@@ -9,7 +9,6 @@ import { LanguageToggle } from "../LanguageToggle";
 import { HeroSlider } from "./HeroSlider";
 import { QuickCard } from "./QuickCard";
 import { AnnouncementRow } from "./AnnouncementRow";
-import { MiniBarChart } from "./MiniBarChart";
 import { HomeIcon } from "./HomeIcons";
 import "./Home.css";
 
@@ -441,12 +440,6 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   const performanceStats = Array.isArray(homepageData?.highlights) && homepageData.highlights.length > 0
     ? homepageData.highlights
     : buildPerformanceStats(stats, latestExamLabel, t);
-  const chartBars = Array.isArray(homepageData?.formBreakdown) && homepageData.formBreakdown.length > 0
-    ? homepageData.formBreakdown.map((item) => ({
-        label: item.label.replace("Form ", "F"),
-        value: Number(item.students || 0),
-      }))
-    : [];
   const currentHeroSlide = resolvedHeroSlides[currentHeroIndex] || DEFAULT_HERO_SLIDES[0];
   const heroBadge = resolveHeroText(currentHeroSlide, language, "badge", "badgeSw")
     || (homepageStatus === "loading"
@@ -796,19 +789,15 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           className={containerClass}
           style={{
             display: "grid",
-            gridTemplateColumns: isDesktop
-              ? "minmax(0, 1.12fr) minmax(300px, 0.88fr)"
-              : isMobile
-              ? "1fr"
-              : "1fr",
+            gridTemplateColumns: "1fr",
             gap: isMobile ? 16 : 42,
-            alignItems: compactHero ? "start" : "center",
+            alignItems: "start",
             position: "relative",
             zIndex: 2,
           }}
         >
-          <div style={{ color: "#fff", minWidth: 0 }}>
-            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", borderRadius: 999, padding: compactHero ? "5px 12px" : "6px 14px", fontSize: isMobile ? 11 : 11, fontWeight: 700, letterSpacing: "0.08em", marginBottom: compactHero ? 12 : 18 }}>
+          <div style={{ color: "#fff", minWidth: 0, maxWidth: 760 }}>
+            <div style={{ display: "inline-block", background: "#fef3c7", color: "#b45309", borderRadius: 999, padding: "5px 12px", fontSize: 11, fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase", marginBottom: compactHero ? 12 : 18 }}>
               {heroBadge}
             </div>
             <h1 className="home-serif-title" style={{ fontSize: isMobile ? (isXs ? 26 : 32) : 56, fontWeight: 700, lineHeight: compactHero ? 1.02 : 1.04, margin: compactHero ? "0 0 12px" : "0 0 18px", letterSpacing: -1, maxWidth: compactHero ? 360 : 700 }}>
@@ -842,42 +831,6 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="home-hero-panel institutional" style={{ borderRadius: compactHero ? 20 : 24, padding: compactHero ? "16px 14px" : "24px 22px", width: "100%", alignSelf: "start" }}>
-            <div style={{ display: "grid", gap: 10 }}>
-              <div style={{ display: "inline-flex", alignSelf: "start", background: "#eff5ff", color: "#173b74", borderRadius: 999, padding: "5px 10px", fontSize: compactHero ? 10 : 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                {language === "sw" ? "Muhtasari wa Bonde" : "Bonde at a Glance"}
-              </div>
-              <div style={{ fontSize: compactHero ? 22 : 28, fontWeight: 900, color: "#0f172a", lineHeight: 1.08 }}>
-                {language === "sw" ? "Shule ya umma yenye nidhamu, mawasiliano wazi, na ufuatiliaji wa matokeo." : "A public school built on discipline, clarity, and accountable academic reporting."}
-              </div>
-              <div style={{ fontSize: compactHero ? 12 : 13, color: "#64748b", lineHeight: 1.7 }}>
-                {language === "sw"
-                  ? "Ukurasa huu unaleta pamoja maelezo ya shule, taarifa rasmi, na njia salama ya kufikia matokeo yaliyopitishwa."
-                  : "This homepage brings together school identity, official notices, and a safe route to published academic results."}
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 16 }}>
-              <div className="home-data-chip">
-                <div className="home-data-chip-label">{t("activeClasses")}</div>
-                <div className="home-data-chip-value">{stats.totalClasses || 0}</div>
-              </div>
-              <div className="home-data-chip">
-                <div className="home-data-chip-label">{t("averageClassSizeLabel")}</div>
-                <div className="home-data-chip-value">{stats.averageClassSize || 0}</div>
-              </div>
-            </div>
-
-            {!compactHero && chartBars.length > 0 && (
-              <div style={{ marginTop: 18 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  {t("studentsByForm")}
-                </div>
-                <MiniBarChart bars={chartBars} />
-              </div>
-            )}
           </div>
         </div>
       </section>

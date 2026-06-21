@@ -28,11 +28,11 @@ function SectionTitle({ eyebrow, title, body, aside = null }) {
     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
       <div>
         {eyebrow ? (
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
+          <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, color: "#b45309", background: "#fef3c7", padding: "5px 12px", borderRadius: 999, letterSpacing: "0.10em", textTransform: "uppercase" }}>
             {eyebrow}
           </div>
         ) : null}
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", marginTop: eyebrow ? 4 : 0 }}>
+        <div style={{ fontFamily: displayFontStack, fontSize: 25, fontWeight: 500, color: "#0f172a", letterSpacing: "-0.01em", lineHeight: 1.15, marginTop: eyebrow ? 12 : 0 }}>
           {title}
         </div>
         {body ? (
