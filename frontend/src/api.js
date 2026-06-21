@@ -138,6 +138,24 @@ export const API = {
   updateStudent:  (cid, sid, data) => put(`/classes/${cid}/students/${sid}`, data),
   deleteStudent:  (cid, sid)    => del(`/classes/${cid}/students/${sid}`),
 
+  // Forms, streams, and placement
+  getFormsStreams: (opts = {}) => {
+    const params = new URLSearchParams();
+    if (opts.year) params.set("year", opts.year);
+    if (opts.form) params.set("form", opts.form);
+    const qs = params.toString();
+    return get(`/forms-streams${qs ? `?${qs}` : ""}`);
+  },
+  createStream: (data) => post("/forms-streams", data),
+  updateStream: (id, data) => put(`/forms-streams/${id}`, data),
+  disableStream: (id) => del(`/forms-streams/${id}`),
+  bulkAssignStudentsToStream: (assignments, targetClassId) =>
+    patch("/forms-streams", { action: "bulk-assign", assignments, targetClassId }),
+  unassignStudentsFromStreams: (assignments) =>
+    patch("/forms-streams", { action: "unassign", assignments }),
+  assignUnassignedStudentsToStream: (unassignedIds, targetClassId) =>
+    patch("/forms-streams", { action: "assign-unassigned", unassignedIds, targetClassId }),
+
   // Student search & profile
   searchStudents: (q, opts = {}) => {
     const params = new URLSearchParams({ q });

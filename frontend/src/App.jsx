@@ -455,6 +455,7 @@ export default function App() {
     onUpdateCompositeConfig,
     onUpdateTimetable,
     onApplyExamMaster,
+    reloadClasses,
     refreshClassesWithStudents,
     hydrateAllClassesWithStudents,
     resetClassesState,
@@ -967,22 +968,25 @@ export default function App() {
           {page === "forms-streams" && canAccessClassData && (
             <FormsStreamsPage
               classes={visibleClasses}
+              teachers={(managedUsers || []).filter((user) => user.role === "teacher" && user.active !== false)}
               canCreateClasses={role === "admin"}
               canAssignStreams={role === "admin" || role === "academic"}
+              showToast={showToast}
               onNavigateToClass={(cls) => {
                 setActiveId(cls.id);
                 setPage("students");
                 if (isMobile) setSideOpen(false);
               }}
               onCreateClass={async (opts) => {
-                await addClass(opts);
-                if (isMobile) setSideOpen(false);
+                return addClass({ ...opts, navigate: false });
               }}
               onRestoreClass={async (classId) => {
-                await onRestoreClassById(classId);
+                const result = await onRestoreClassById(classId);
                 if (isMobile) setSideOpen(false);
+                return result;
               }}
               onMoveStudentToClass={onMoveStudentToClass}
+              onReloadClasses={reloadClasses}
             />
           )}
 

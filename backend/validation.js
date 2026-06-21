@@ -82,6 +82,24 @@ function validateClass(data) {
     }
   }
 
+  if (data.stream !== undefined && !/^[A-Z]$/i.test(String(data.stream || "").trim())) {
+    errors.stream = "Stream must be one letter from A to Z";
+  }
+
+  if (data.streamCapacity !== undefined || data.capacity !== undefined) {
+    const capacity = Number.parseInt(data.streamCapacity ?? data.capacity, 10);
+    if (!Number.isFinite(capacity) || capacity < 1 || capacity > 500) {
+      errors.streamCapacity = "Stream capacity must be between 1 and 500 students";
+    }
+  }
+
+  if (
+    data.streamStatus !== undefined &&
+    !["active", "inactive"].includes(String(data.streamStatus || "").trim().toLowerCase())
+  ) {
+    errors.streamStatus = "Stream status must be active or inactive";
+  }
+
   return { valid: Object.keys(errors).length === 0, errors };
 }
 

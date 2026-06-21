@@ -105,6 +105,11 @@ const normalizeClass = (cls) => ({
     cls.subjects ?? DEFAULT_SUBJECTS,
   ),
   stream: String(cls.stream ?? "").trim().toUpperCase(),
+  streamCapacity: Number(cls.streamCapacity ?? cls.stream_capacity ?? 0),
+  streamStatus: String(cls.streamStatus ?? cls.stream_status ?? "active").trim().toLowerCase() === "inactive"
+    ? "inactive"
+    : "active",
+  classTeacher: String(cls.classTeacher ?? cls.class_teacher ?? "").trim(),
   timetable: normalizeClassTimetable(cls.timetable),
   students: (cls.students ?? []).map(normalizeStudent),
   archived: cls.archived ?? false,
@@ -224,6 +229,18 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     } catch {
       // Keep UI responsive if refresh fails.
     }
+  }, []);
+
+  const reloadClasses = useCallback(async () => {
+    const incoming = (await API.getClasses()).map(normalizeClass);
+    setClasses((previous) => {
+      const previousById = new Map(previous.map((cls) => [String(cls.id), cls]));
+      return incoming.map((cls) => {
+        const existing = previousById.get(String(cls.id));
+        return existing?.students?.length ? { ...cls, students: existing.students } : cls;
+      });
+    });
+    return incoming;
   }, []);
 
   const refreshClassesWithStudents = useCallback(async (classIds = []) => {
@@ -392,14 +409,22 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
         year,
         form,
         stream,
+        streamCapacity: opts.streamCapacity ?? opts.capacity,
+        streamStatus: opts.streamStatus ?? opts.status,
+        classTeacher: opts.classTeacher || "",
       });
       const normalized = normalizeClass({ ...created, students: [] });
       setClasses((prev) => [...prev, normalized]);
-      setActiveId(created.id);
-      onNavigate?.("students");
+      if (opts.navigate !== false) {
+        setActiveId(created.id);
+        onNavigate?.("students");
+      }
       setExpandedYears((prev) => new Set([...prev, year]));
+      showToast?.(`${form} ${stream} ${year} created`);
+      return { ok: true, classData: normalized };
     } catch (err) {
       showToast?.(err.message, "error");
+      return { ok: false, error: err.message };
     }
   }, [classes, onNavigate, schoolSettings, showToast]);
 
@@ -1030,6 +1055,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onUpdateCompositeConfig,
     onUpdateTimetable,
     onApplyExamMaster,
+    reloadClasses,
     refreshClassesWithStudents,
     hydrateAllClassesWithStudents,
     resetClassesState,

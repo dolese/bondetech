@@ -19,6 +19,14 @@
       "destination": "/api/index.js?dispatch=classes"
     },
     {
+      "source": "/api/forms-streams/:id",
+      "destination": "/api/index.js?dispatch=forms-streams&id=:id"
+    },
+    {
+      "source": "/api/forms-streams",
+      "destination": "/api/index.js?dispatch=forms-streams"
+    },
+    {
       "source": "/api/classes/:id/students/bulk",
       "destination": "/api/index.js?dispatch=class-students-bulk&id=:id"
     },
