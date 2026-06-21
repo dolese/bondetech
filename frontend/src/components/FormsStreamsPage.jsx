@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { API } from "../api";
 import { CLASS_FORMS, CLASS_STREAMS } from "../hooks/useClasses";
-import { premiumFontStack } from "../utils/designSystem";
+import { displayFontStack, premiumFontStack } from "../utils/designSystem";
 import { useViewport } from "../utils/useViewport";
 
 function StatCard({ label, value, sub }) {
   return (
     <div
       style={{
-        borderRadius: 20,
-        border: "1px solid rgba(226,232,240,0.92)",
-        background: "linear-gradient(180deg,#ffffff,#f8fbff)",
-        boxShadow: "0 8px 24px rgba(15,23,42,0.05)",
+        borderRadius: 16,
+        border: "1px solid #e2e8f0",
+        background: "#ffffff",
+        boxShadow: "0 1px 2px rgba(15,23,42,0.04), 0 4px 14px rgba(15,23,42,0.06)",
         padding: "18px 22px",
         minWidth: 0,
       }}
@@ -70,13 +70,11 @@ function ClassCell({ cls, onSelect }) {
         borderRadius: 16,
         padding: "14px 12px",
         cursor: "pointer",
-        background: hovered
-          ? "linear-gradient(135deg,#edf4ff,#f5f9ff)"
-          : "linear-gradient(180deg,#ffffff,#f8fbff)",
+        background: hovered ? "#f8fafc" : "#ffffff",
         boxShadow: hovered
-          ? "0 10px 28px rgba(37,99,235,0.12)"
-          : "0 4px 16px rgba(15,23,42,0.05)",
-        border: hovered ? "1px solid rgba(37,99,235,0.25)" : "1px solid rgba(226,232,240,0.92)",
+          ? "0 4px 14px rgba(15,23,42,0.08)"
+          : "0 1px 2px rgba(15,23,42,0.05)",
+        border: hovered ? "1px solid #cbd5e1" : "1px solid #e2e8f0",
         textAlign: "center",
         transition: "all 0.18s ease",
         display: "flex",
@@ -656,14 +654,14 @@ export function FormsStreamsPage({
         overflowY: "auto",
         padding: isMobile ? "14px 12px 28px" : "28px 28px 40px",
         fontFamily: premiumFontStack,
-        background: "#f1f5fb",
+        background: "#f4f7fb",
         minHeight: 0,
       }}
     >
       <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: isMobile ? 16 : 24 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: isXs ? 20 : 26, fontWeight: 800, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+            <h1 style={{ fontFamily: displayFontStack, fontSize: isXs ? 24 : 32, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.02em", lineHeight: 1.1 }}>
               Forms &amp; Streams
             </h1>
             <p style={{ fontSize: 14, color: "#64748b", margin: "6px 0 0", fontWeight: 600 }}>
@@ -681,20 +679,16 @@ export function FormsStreamsPage({
                   setAction(null);
                 }}
                 style={{
-                  border: selectedYear === year ? "none" : "1px solid rgba(226,232,240,0.92)",
-                  borderRadius: 12,
+                  border: selectedYear === year ? "1px solid #1d4ed8" : "1px solid #e2e8f0",
+                  borderRadius: 999,
                   padding: "8px 16px",
                   cursor: "pointer",
-                  background: selectedYear === year
-                    ? "linear-gradient(135deg,#2563eb,#1d4ed8)"
-                    : "#ffffff",
+                  background: selectedYear === year ? "#1d4ed8" : "#ffffff",
                   color: selectedYear === year ? "#ffffff" : "#475569",
                   fontSize: 13,
-                  fontWeight: 800,
-                  boxShadow: selectedYear === year
-                    ? "0 4px 12px rgba(37,99,235,0.3)"
-                    : "0 2px 6px rgba(15,23,42,0.04)",
-                  transition: "all 0.15s ease",
+                  fontWeight: 700,
+                  boxShadow: "none",
+                  transition: "background 0.15s ease, border-color 0.15s ease",
                 }}
               >
                 {year}
@@ -731,10 +725,10 @@ export function FormsStreamsPage({
 
         <div
           style={{
-            borderRadius: 24,
-            border: "1px solid rgba(226,232,240,0.92)",
-            background: "linear-gradient(180deg,#ffffff,#f8fbff)",
-            boxShadow: "0 14px 40px rgba(15,23,42,0.07)",
+            borderRadius: 18,
+            border: "1px solid #e2e8f0",
+            background: "#ffffff",
+            boxShadow: "0 1px 2px rgba(15,23,42,0.04), 0 4px 14px rgba(15,23,42,0.06)",
             padding: isMobile ? "16px 14px" : "20px 22px",
             display: "grid",
             gap: 18,
@@ -745,92 +739,121 @@ export function FormsStreamsPage({
             title="Class map"
             body="View each form against its streams, open active classes, and create or restore class slots without accidental duplicates."
           />
-          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-            <div
-              style={{
-                borderRadius: 24,
-                border: "1px solid rgba(226,232,240,0.92)",
-                background: "linear-gradient(180deg,#ffffff,#f8fbff)",
-                overflow: "hidden",
-                minWidth: isMobile ? 440 : 560,
-              }}
-            >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: `${isMobile ? "140px" : "200px"} repeat(${displayStreams.length}, 1fr)`,
-                borderBottom: "1px solid rgba(226,232,240,0.92)",
-                background: "linear-gradient(180deg,#f8faff,#f1f5fe)",
-                padding: "0 16px",
-              }}
-            >
-              <div style={{ padding: "14px 8px", fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                Form
-              </div>
-              {displayStreams.map((stream) => (
-                <div
-                  key={stream}
-                  style={{
-                    padding: isMobile ? "10px 4px" : "14px 8px",
-                    textAlign: "center",
-                    fontSize: isMobile ? 11 : 13,
-                    fontWeight: 800,
-                    color: "#334155",
-                  }}
-                >
-                  {isMobile ? stream : `Stream ${stream}`}
-                </div>
-              ))}
-            </div>
 
-            {CLASS_FORMS.map((form, formIdx) => {
-              const fs = formStats.get(form) || { classes: 0, students: 0, archived: 0 };
-              return (
-                <div
-                  key={form}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: `${isMobile ? "140px" : "200px"} repeat(${displayStreams.length}, 1fr)`,
-                    borderBottom: formIdx < CLASS_FORMS.length - 1 ? "1px solid rgba(226,232,240,0.7)" : "none",
-                    padding: isMobile ? "8px 10px" : "12px 16px",
-                    gap: isMobile ? 6 : 10,
-                    alignItems: "center",
-                    background: formIdx % 2 === 0 ? "transparent" : "rgba(248,250,252,0.5)",
-                  }}
-                >
-                  <div style={{ padding: "4px 8px" }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>{form}</div>
-                    <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600, marginTop: 3 }}>
-                      {fs.classes} active class{fs.classes !== 1 ? "es" : ""} · {fs.students} students
+          {isMobile ? (
+            /* Mobile: stack each form as a card with its streams in a 2-col grid (no horizontal scroll). */
+            <div style={{ display: "grid", gap: 12 }}>
+              {CLASS_FORMS.map((form) => {
+                const fs = formStats.get(form) || { classes: 0, students: 0, archived: 0 };
+                return (
+                  <div
+                    key={form}
+                    style={{
+                      borderRadius: 14,
+                      border: "1px solid #e2e8f0",
+                      background: "#fff",
+                      padding: 14,
+                      display: "grid",
+                      gap: 12,
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>{form}</div>
+                      <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600, marginTop: 3 }}>
+                        {fs.classes} active class{fs.classes !== 1 ? "es" : ""} · {fs.students} students
+                      </div>
+                      {fs.archived ? (
+                        <div style={{ fontSize: 11, color: "#b45309", fontWeight: 700, marginTop: 4 }}>
+                          {fs.archived} archived stream{fs.archived !== 1 ? "s" : ""}
+                        </div>
+                      ) : null}
                     </div>
-                    {fs.archived ? (
-                      <div style={{ fontSize: 11, color: "#92400e", fontWeight: 700, marginTop: 4 }}>
-                        {fs.archived} archived stream{fs.archived !== 1 ? "s" : ""}
-                      </div>
-                    ) : null}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      {displayStreams.map((stream) => {
+                        const cls = classMap.get(`${form}::${stream}`);
+                        return (
+                          <div key={stream} style={{ display: "grid", gap: 4 }}>
+                            <div style={{ fontSize: 10, fontWeight: 800, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase", paddingLeft: 2 }}>
+                              Stream {stream}
+                            </div>
+                            {cls ? (
+                              <ClassCell cls={cls} onSelect={handleSelectCell} />
+                            ) : (
+                              <EmptyCell canCreate={canCreateClasses} onCreate={() => handleCreate(form, stream)} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-
-                  {displayStreams.map((stream) => {
-                    const key = `${form}::${stream}`;
-                    const cls = classMap.get(key);
-                    return (
-                      <div key={stream}>
-                        {cls ? (
-                          <ClassCell cls={cls} onSelect={handleSelectCell} />
-                        ) : (
-                          <EmptyCell
-                            canCreate={canCreateClasses}
-                            onCreate={() => handleCreate(form, stream)}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                );
+              })}
             </div>
-          </div>
+          ) : (
+            /* Desktop: clean flat grid table. */
+            <div style={{ borderRadius: 14, border: "1px solid #e2e8f0", background: "#fff", overflow: "hidden" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `200px repeat(${displayStreams.length}, 1fr)`,
+                  borderBottom: "1px solid #e2e8f0",
+                  background: "#f8fafc",
+                  padding: "0 16px",
+                }}
+              >
+                <div style={{ padding: "14px 8px", fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                  Form
+                </div>
+                {displayStreams.map((stream) => (
+                  <div key={stream} style={{ padding: "14px 8px", textAlign: "center", fontSize: 13, fontWeight: 800, color: "#334155" }}>
+                    Stream {stream}
+                  </div>
+                ))}
+              </div>
+
+              {CLASS_FORMS.map((form, formIdx) => {
+                const fs = formStats.get(form) || { classes: 0, students: 0, archived: 0 };
+                return (
+                  <div
+                    key={form}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `200px repeat(${displayStreams.length}, 1fr)`,
+                      borderBottom: formIdx < CLASS_FORMS.length - 1 ? "1px solid #eef2f7" : "none",
+                      padding: "12px 16px",
+                      gap: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <div style={{ padding: "4px 8px" }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>{form}</div>
+                      <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600, marginTop: 3 }}>
+                        {fs.classes} active class{fs.classes !== 1 ? "es" : ""} · {fs.students} students
+                      </div>
+                      {fs.archived ? (
+                        <div style={{ fontSize: 11, color: "#b45309", fontWeight: 700, marginTop: 4 }}>
+                          {fs.archived} archived stream{fs.archived !== 1 ? "s" : ""}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {displayStreams.map((stream) => {
+                      const cls = classMap.get(`${form}::${stream}`);
+                      return (
+                        <div key={stream}>
+                          {cls ? (
+                            <ClassCell cls={cls} onSelect={handleSelectCell} />
+                          ) : (
+                            <EmptyCell canCreate={canCreateClasses} onCreate={() => handleCreate(form, stream)} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {canAssignStreams && (
