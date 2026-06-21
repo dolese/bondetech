@@ -12,6 +12,7 @@ import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
 import { buildPhoneCollection, normalizeTzPhoneDraft } from "../utils/phone";
 import {
+  displayFontStack,
   glassPanelStyle,
   pageBackground,
   pillStyle,
@@ -767,8 +768,8 @@ export function SettingsPage({
           }}
         >
           <div>
-            <div style={{ display: "inline-flex", ...pillStyle({ tone: "blue" }) }}>Settings Center</div>
-            <div style={{ fontSize: isMobile ? 28 : 32, fontWeight: 900, color: "#0f172a", lineHeight: 1.06, marginTop: 10 }}>
+            <div style={{ display: "inline-flex", ...pillStyle({ tone: "amber" }) }}>Settings Center</div>
+            <div style={{ fontFamily: displayFontStack, fontSize: isMobile ? 28 : 32, fontWeight: 500, color: "#0f172a", lineHeight: 1.1, marginTop: 12 }}>
               Settings
             </div>
             <div style={{ fontSize: 14, color: "#64748b", marginTop: 6, maxWidth: 760 }}>

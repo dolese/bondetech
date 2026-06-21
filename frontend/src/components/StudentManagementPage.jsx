@@ -9,6 +9,7 @@ import {
   normalizeConductGrade,
 } from "../utils/conductAssessment";
 import {
+  displayFontStack,
   fieldStyle,
   glassPanelStyle,
   pageBackground,
@@ -638,8 +639,8 @@ export function StudentManagementPage({
           }}
         >
           <div>
-            <div style={{ display: "inline-flex", ...pillStyle({ tone: "blue" }) }}>School-wide records</div>
-            <div style={{ fontSize: isMobile ? 28 : 32, fontWeight: 800, color: "#0f172a", lineHeight: 1.08, marginTop: 10 }}>
+            <div style={{ display: "inline-flex", ...pillStyle({ tone: "amber" }) }}>School-wide records</div>
+            <div style={{ fontFamily: displayFontStack, fontSize: isMobile ? 28 : 32, fontWeight: 500, color: "#0f172a", lineHeight: 1.1, marginTop: 12 }}>
               Student Records
             </div>
             <div style={{ fontSize: 14, color: "#64748b", marginTop: 6, maxWidth: 720 }}>

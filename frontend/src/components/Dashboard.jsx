@@ -3,6 +3,7 @@ import { API } from "../api";
 import { exportElementToPdf } from "../utils/pdfExport";
 import { useViewport } from "../utils/useViewport";
 import {
+  displayFontStack,
   glassPanelStyle,
   pageBackground,
   pillStyle,
@@ -1120,11 +1121,11 @@ export function Dashboard({
             </div>
 
             <div style={{ minWidth: 0 }}>
-              <div style={{ ...pillStyle({ tone: "teal" }), display: "inline-flex" }}>
+              <div style={{ ...pillStyle({ tone: "amber" }), display: "inline-flex" }}>
                 {isTeacherPortal ? "Teaching Workspace" : "Operations Console"}
               </div>
               <div style={{ fontSize: dense ? 14 : compact ? 16 : 18, color: "#0f172a", fontWeight: 700, marginTop: dense ? 10 : 12 }}>Welcome back,</div>
-              <div style={{ fontSize: dense ? 28 : compact ? 34 : 44, lineHeight: 1.02, marginTop: 8, fontWeight: 950, color: "#0f172a", letterSpacing: "-0.03em" }}>
+              <div style={{ fontFamily: displayFontStack, fontSize: dense ? 28 : compact ? 34 : 44, lineHeight: 1.04, marginTop: 8, fontWeight: 500, color: "#0f172a", letterSpacing: "-0.01em" }}>
                 {welcomeName}
               </div>
               <div style={{ marginTop: dense ? 10 : 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>

@@ -20,6 +20,7 @@ import { useI18n } from "../i18n";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import {
+  displayFontStack,
   glassPanelStyle,
   pillStyle,
   primaryButtonStyle,
@@ -670,10 +671,10 @@ export function ReportsPage({
           }}
         >
           <div>
-            <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex", marginBottom: 8 }}>
+            <div style={{ ...pillStyle({ tone: "amber" }), display: "inline-flex", marginBottom: 8 }}>
               Form Reports
             </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#102a43" }}>
+            <div style={{ fontFamily: displayFontStack, fontSize: 22, fontWeight: 500, color: "#102a43" }}>
               {t("reportsBrowseByForm", "Browse Reports by Form")}
             </div>
             <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.7 }}>
@@ -830,14 +831,15 @@ export function ReportsPage({
           }}
         >
           <div>
-            <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex", marginBottom: 8 }}>
+            <div style={{ ...pillStyle({ tone: "amber" }), display: "inline-flex", marginBottom: 8 }}>
               {t("reportCards", "Report Cards")}
             </div>
             <h3
               style={{
                 margin: "0 0 6px",
-                fontSize: 20,
-                fontWeight: 800,
+                fontFamily: displayFontStack,
+                fontSize: 22,
+                fontWeight: 500,
                 color: "#102a43",
               }}
             >
