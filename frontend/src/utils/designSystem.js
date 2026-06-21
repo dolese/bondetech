@@ -1,5 +1,5 @@
 export const premiumFontStack = "'Inter', 'Segoe UI Variable', 'Segoe UI', sans-serif";
-export const displayFontStack = "'IBM Plex Serif', Georgia, serif";
+export const displayFontStack = "'Newsreader', 'IBM Plex Serif', Georgia, serif";
 
 // Clean flat theme. Brand navy (#0f2d6e / #1d4ed8) + amber accent. No glassmorphism.
 const FLAT_BORDER = "1px solid #e2e8f0";

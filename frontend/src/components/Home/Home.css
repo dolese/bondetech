@@ -1,5 +1,5 @@
 /* Home.css — clean flat brand theme (navy + amber). No glassmorphism. */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@600;700&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
 
 .home-container {
   --home-ink: #0f172a;
@@ -32,7 +32,7 @@
 }
 
 .home-serif-title {
-  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-family: 'Newsreader', 'IBM Plex Serif', Georgia, serif;
 }
 
 .landing-btn-outline {
@@ -369,19 +369,31 @@
 }
 
 .home-section-kicker {
+  display: inline-block;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-weight: 700;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: var(--home-cyan);
-  margin-bottom: 6px;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 14px;
 }
 
 .home-section-title {
-  font-size: 20px;
-  font-weight: 800;
+  font-family: 'Newsreader', 'IBM Plex Serif', Georgia, serif;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  font-weight: 500;
   color: var(--home-ink);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  line-height: 1.14;
+}
+
+.home-section-title em,
+.home-section-title strong {
+  font-style: italic;
+  font-weight: 500;
 }
 
 .home-section-copy {
@@ -750,10 +762,10 @@
     border-radius: 10px;
   }
   .home-section-title {
-    font-size: 18px;
+    font-size: 1.45rem;
   }
   .home-section-kicker {
-    font-size: 12px;
+    font-size: 11px;
   }
   .home-section-copy {
     font-size: 12px;
