@@ -540,13 +540,14 @@ export default function App() {
     [activeExam, displayActiveClass, visibleClasses]
   );
 
-  const hydratedFormKeyRef = useRef("");
+  const hydratedFormsRef = useRef(new Set());
   useEffect(() => {
-    if (!displayActiveClass || !["results", "reports"].includes(page)) return;
+    if (!displayActiveClass) return;
     const form = String(displayActiveClass.form || "").trim();
     const year = String(displayActiveClass.year || "").trim();
+    if (!form) return;
     const formKey = `${year}::${form}`;
-    if (hydratedFormKeyRef.current === formKey) return;
+    if (hydratedFormsRef.current.has(formKey)) return;
     const siblings = visibleClasses.filter(
       (cls) =>
         String(cls.year || "").trim() === year &&
@@ -554,13 +555,10 @@ export default function App() {
         cls.id !== displayActiveClass.id &&
         !(cls.students?.length),
     );
-    if (!siblings.length) {
-      hydratedFormKeyRef.current = formKey;
-      return;
-    }
-    hydratedFormKeyRef.current = formKey;
+    hydratedFormsRef.current.add(formKey);
+    if (!siblings.length) return;
     refreshClassesWithStudents(siblings.map((cls) => cls.id)).catch(() => {});
-  }, [displayActiveClass, page, refreshClassesWithStudents, visibleClasses]);
+  }, [displayActiveClass, refreshClassesWithStudents, visibleClasses]);
 
   const selectedStudentClassData = useMemo(() => {
     if (!selectedStudent?.classId) return displayActiveClass;
