@@ -546,16 +546,15 @@ export default function App() {
     if (!form) return;
     const formKey = `${year}::${form}`;
     if (hydratedFormsRef.current.has(formKey)) return;
-    const siblings = visibleClasses.filter(
+    const needsHydration = visibleClasses.filter(
       (cls) =>
         String(cls.year || "").trim() === year &&
         String(cls.form || "").trim() === form &&
-        cls.id !== displayActiveClass.id &&
         !(cls.students?.length),
     );
     hydratedFormsRef.current.add(formKey);
-    if (!siblings.length) return;
-    refreshClassesWithStudents(siblings.map((cls) => cls.id)).catch(() => {});
+    if (!needsHydration.length) return;
+    refreshClassesWithStudents(needsHydration.map((cls) => cls.id)).catch(() => {});
   }, [displayActiveClass, refreshClassesWithStudents, visibleClasses]);
 
   const selectedStudentClassData = useMemo(() => {

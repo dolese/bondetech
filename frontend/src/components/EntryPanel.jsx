@@ -695,12 +695,12 @@ export function EntryPanel({
   ];
 
   const gradeBadgeStyle = (grade) => ({
-    fontWeight: 800,
+    fontWeight: 600,
     fontSize: 10,
     color: grade ? GRADE_TEXT_COLOR : "#6b7280",
     background: grade ? GRADE_BACKGROUNDS[grade] : "#f0f0f0",
     padding: "1px 6px",
-    borderRadius: 999,
+    borderRadius: 4,
     border: grade ? "1px solid rgba(17, 24, 39, 0.08)" : "1px solid #ddd",
     minWidth: 18,
     textAlign: "center",
@@ -723,32 +723,35 @@ export function EntryPanel({
       overflowX: "auto",
       overflowY: "visible",
       minWidth: 0,
-      borderRadius: 6,
-      border: "1px solid #d6e0f5",
+      borderRadius: 8,
+      border: "1px solid #e2e8f0",
     },
     bulkTableScroller: {
       overflowX: "auto",
       overflowY: "auto",
       maxHeight: "60vh",
       minWidth: 0,
-      borderRadius: 6,
-      border: "1px solid #d6e0f5",
+      borderRadius: 8,
+      border: "1px solid #e2e8f0",
     },
     stickyTh: {
-      background: "#003366",
-      color: "#fff",
+      background: "#f8fafc",
+      color: "#64748b",
       position: "sticky",
       top: 0,
       zIndex: 2,
+      fontSize: 11,
+      fontWeight: 600,
+      textTransform: "uppercase",
+      letterSpacing: "0.04em",
     },
     tlbx: {
       display: "flex",
-      gap: 12,
+      gap: 10,
       flexWrap: "wrap",
       alignItems: compactLayout ? "stretch" : "center",
-      background: "#ffffff",
-      border: "1px solid #d8e4fb",
-      boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+      background: "#fff",
+      border: "1px solid #e2e8f0",
       padding: compactLayout ? 10 : 12,
       borderRadius: 12,
     },
@@ -762,72 +765,70 @@ export function EntryPanel({
     tlbDivider: {
       width: 1,
       height: 22,
-      background: "#d0dcf8",
+      background: "#e2e8f0",
       display: compactLayout ? "none" : "block",
     },
     bulkPanel: {
       background: "#fff",
-      border: "1px solid #d0dcf8",
+      border: "1px solid #e2e8f0",
       borderRadius: 8,
       padding: compactLayout ? 10 : 12,
       display: "flex",
       flexDirection: "column",
       gap: 10,
-      boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
     },
     bulkTable: {
       borderCollapse: "collapse",
       width: "100%",
       fontSize: compactLayout ? 10 : 11,
       background: "#fff",
-      border: "1px solid #d6e0f5",
+      border: "1px solid #e2e8f0",
       minWidth: compactLayout ? 680 : "auto",
     },
     bulkInput: {
       width: 44,
       padding: "3px 4px",
-      borderRadius: 3,
-      border: "1px solid #c6d5f5",
+      borderRadius: 4,
+      border: "1px solid #e2e8f0",
       fontSize: 10,
       textAlign: "center",
-      background: "#f9fbff",
+      background: "#fff",
       outline: "none",
     },
     subjectPanel: {
       background: "#fff",
-      border: "1px solid #d0dcf8",
-      borderRadius: 8,
-      padding: compactLayout ? 10 : 12,
+      border: "1px solid #e2e8f0",
+      borderRadius: 12,
+      padding: compactLayout ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 10,
     },
     metaPanel: {
       background: "#fff",
-      border: "1px solid #d0dcf8",
-      borderRadius: 8,
-      padding: compactLayout ? 10 : 12,
+      border: "1px solid #e2e8f0",
+      borderRadius: 12,
+      padding: compactLayout ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 10,
     },
     schoolPanel: {
       background: "#fff",
-      border: "1px solid #d0dcf8",
-      borderRadius: 8,
-      padding: compactLayout ? 10 : 12,
+      border: "1px solid #e2e8f0",
+      borderRadius: 12,
+      padding: compactLayout ? 10 : 14,
       display: "flex",
       flexDirection: "column",
       gap: 10,
     },
     instructionPanel: {
-      background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
-      border: "1px solid #cfe0ff",
-      borderRadius: 14,
+      background: "#fff",
+      border: "1px solid #e2e8f0",
+      borderRadius: 12,
       padding: compactLayout ? 12 : 14,
       display: "grid",
       gap: 10,
-      boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
     },
     instructionMeta: {
       display: "flex",
@@ -838,23 +839,22 @@ export function EntryPanel({
     instructionChip: {
       display: "inline-flex",
       alignItems: "center",
-      padding: "4px 10px",
-      borderRadius: 999,
-      border: "1px solid #d8e4ff",
-      background: "#eef4ff",
-      color: "#26437a",
+      padding: "3px 8px",
+      borderRadius: 4,
+      border: "1px solid #e2e8f0",
+      background: "#f8fafc",
+      color: "#64748b",
       fontSize: 10,
-      fontWeight: 800,
-      letterSpacing: "0.04em",
+      fontWeight: 600,
     },
     instructionHelper: {
       display: "grid",
       gap: 4,
       padding: "10px 12px",
-      borderRadius: 10,
-      border: "1px solid #dbe7ff",
-      background: "#f8fbff",
-      color: "#52627a",
+      borderRadius: 8,
+      border: "1px solid #e2e8f0",
+      background: "#f8fafc",
+      color: "#64748b",
       fontSize: 11,
       lineHeight: 1.45,
     },
@@ -862,33 +862,34 @@ export function EntryPanel({
       width: "100%",
       minHeight: compactLayout ? 128 : 142,
       resize: "vertical",
-      padding: "12px 14px",
-      borderRadius: 12,
-      border: "1px solid #c7d7f5",
+      padding: "10px 12px",
+      borderRadius: 8,
+      border: "1px solid #e2e8f0",
       fontSize: 12,
       lineHeight: 1.7,
       boxSizing: "border-box",
       fontFamily: "inherit",
-      background: "#ffffff",
+      background: "#fff",
       color: "#0f172a",
     },
     instructionSaveBtn: {
-      padding: "8px 14px",
-      borderRadius: 10,
+      padding: "7px 14px",
+      borderRadius: 6,
       border: "none",
-      background: "#0b6b3a",
+      background: "#0f2d6e",
       color: "#fff",
-      fontWeight: 700,
+      fontWeight: 600,
       cursor: "pointer",
       justifySelf: "start",
     },
     actionBtn: {
       padding: "6px 12px",
-      height: 30,
-      borderRadius: 5,
+      height: 32,
+      borderRadius: 6,
       border: "none",
       color: "#fff",
-      fontWeight: 700,
+      fontWeight: 600,
+      fontSize: 12,
       cursor: "pointer",
       display: "inline-flex",
       alignItems: "center",
@@ -906,36 +907,36 @@ export function EntryPanel({
       left: 0,
       minWidth: 148,
       background: "#fff",
-      border: "1px solid #d0dcf8",
+      border: "1px solid #e2e8f0",
       borderRadius: 8,
-      boxShadow: "0 10px 30px rgba(0,51,102,0.15)",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
       padding: 6,
       zIndex: 20,
       display: "grid",
-      gap: 4,
+      gap: 2,
     },
     dropdownItem: {
       padding: "8px 10px",
       border: "none",
       borderRadius: 6,
-      background: "#f8fbff",
-      color: "#003366",
+      background: "transparent",
+      color: "#0f172a",
       textAlign: "left",
       cursor: "pointer",
-      fontWeight: 700,
-      fontSize: 11,
+      fontWeight: 500,
+      fontSize: 12,
     },
     infoBadge: {
       display: "inline-flex",
       alignItems: "center",
       gap: 6,
-      padding: "7px 10px",
-      borderRadius: 999,
-      background: "#eef4ff",
-      border: "1px solid #d6e0f5",
-      color: "#26437a",
+      padding: "5px 10px",
+      borderRadius: 6,
+      background: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      color: "#64748b",
       fontSize: 11,
-      fontWeight: 800,
+      fontWeight: 600,
       flexShrink: 0,
       whiteSpace: "nowrap",
     },
@@ -949,65 +950,70 @@ export function EntryPanel({
       display: "inline-flex",
       alignItems: "center",
       gap: 6,
-      background: "#f4f7ff",
-      border: "1px solid #d0dcf8",
-      borderRadius: 999,
+      background: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: 4,
       padding: "4px 10px",
-      fontSize: 10,
-      fontWeight: 700,
-      color: "#003366",
+      fontSize: 11,
+      fontWeight: 500,
+      color: "#0f172a",
     },
     subjectRemove: {
-      background: "#8b2500",
+      background: "#dc2626",
       color: "#fff",
       border: "none",
-      borderRadius: 999,
-      padding: "3px 8px",
-      fontSize: 9,
-      fontWeight: 800,
+      borderRadius: 4,
+      padding: "2px 7px",
+      fontSize: 10,
+      fontWeight: 600,
       cursor: "pointer",
     },
     subjectInput: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
-      height: 30,
+      border: "1px solid #e2e8f0",
+      height: 32,
       minWidth: 160,
+      fontSize: 12,
     },
     subjectAddBtn: {
       padding: "6px 12px",
-      height: 30,
+      height: 32,
       borderRadius: 6,
       border: "none",
-      background: "#003366",
+      background: "#0f2d6e",
       color: "#fff",
-      fontWeight: 700,
+      fontWeight: 600,
+      fontSize: 12,
       cursor: "pointer",
     },
     metaInput: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
-      height: 30,
+      border: "1px solid #e2e8f0",
+      height: 32,
+      fontSize: 12,
       minWidth: compactLayout ? 0 : 120,
       width: compactLayout ? "100%" : "auto",
     },
     metaSelect: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
-      height: 30,
+      border: "1px solid #e2e8f0",
+      height: 32,
+      fontSize: 12,
       minWidth: compactLayout ? 0 : 120,
       width: compactLayout ? "100%" : "auto",
     },
     metaBtn: {
       padding: "6px 12px",
-      height: 30,
+      height: 32,
       borderRadius: 6,
       border: "none",
-      background: "#0b6b3a",
+      background: "#0f2d6e",
       color: "#fff",
-      fontWeight: 700,
+      fontWeight: 600,
+      fontSize: 12,
       cursor: "pointer",
     },
   };
@@ -1016,11 +1022,10 @@ export function EntryPanel({
     <div style={styles.panel}>
       <div
         style={{
-          background: "#ffffff",
-          border: "1px solid #d8e4fb",
-          borderRadius: 16,
+          background: "#fff",
+          border: "1px solid #e2e8f0",
+          borderRadius: 12,
           padding: isMobile ? 12 : 16,
-          boxShadow: "0 12px 28px rgba(15, 23, 42, 0.05)",
         }}
       >
         <div
@@ -1033,14 +1038,11 @@ export function EntryPanel({
           }}
         >
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase", color: "#64748b" }}>
-              Class Workspace
-            </div>
-            <div style={{ marginTop: 4, fontSize: isMobile ? 18 : 20, fontWeight: 800, color: "#102a43" }}>
+            <div style={{ fontSize: isMobile ? 17 : 18, fontWeight: 600, color: "#0f172a" }}>
               Marks Entry
             </div>
-            <div style={{ fontSize: 11, color: "#667", marginTop: 4 }}>
-              Enter marks, manage the class roster, and handle imports for this {hasStreamFilter ? "form" : "class"}.
+            <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+              {currentClassLabel || "Class"} &middot; Enter marks, manage roster, handle imports.
             </div>
           </div>
 
@@ -1065,12 +1067,12 @@ export function EntryPanel({
               disabled={editingLocked}
               style={{
                 padding: "6px 12px",
-                background: editingLocked ? "#94a3b8" : bulkMode ? "#8b2500" : "#003366",
+                background: editingLocked ? "#94a3b8" : bulkMode ? "#dc2626" : "#0f2d6e",
                 color: "#fff",
                 border: "none",
                 borderRadius: 5,
                 cursor: editingLocked ? "not-allowed" : "pointer",
-                fontWeight: 700,
+                fontWeight: 600,
                 height: 30,
                 flex: compactLayout ? 1 : "0 0 auto",
               }}
@@ -1087,12 +1089,12 @@ export function EntryPanel({
               disabled={editingLocked}
               style={{
                 padding: "6px 12px",
-                background: editingLocked ? "#94a3b8" : "#0b6b3a",
+                background: editingLocked ? "#94a3b8" : "#16a34a",
                 color: "#fff",
                 border: "none",
                 borderRadius: 5,
                 cursor: editingLocked ? "not-allowed" : "pointer",
-                fontWeight: 700,
+                fontWeight: 600,
                 height: 30,
                 flex: compactLayout ? 1 : "0 0 auto",
               }}
@@ -1104,7 +1106,7 @@ export function EntryPanel({
                 <button
                   onClick={() => setShowAdvancedMenu((prev) => !prev)}
                   disabled={editingLocked}
-                  style={{ ...styles.actionBtn, background: "#9a3412" }}
+                  style={{ ...styles.actionBtn, background: "#b45309" }}
                   title="Advanced student actions"
                 >
                   Advanced
@@ -1122,7 +1124,7 @@ export function EntryPanel({
                         color:
                           editingLocked || reorderingCnos || !(computed ?? []).length
                             ? "#9ca3af"
-                            : "#9a3412",
+                            : "#b45309",
                         cursor:
                           editingLocked || reorderingCnos || !(computed ?? []).length
                             ? "not-allowed"
@@ -1142,7 +1144,7 @@ export function EntryPanel({
               onClick={() => setShowInstructionPanel((prev) => !prev)}
               style={{
                 ...styles.actionBtn,
-                background: showInstructionPanel ? "#8b2500" : "#0b6b3a",
+                background: showInstructionPanel ? "#dc2626" : "#16a34a",
               }}
             >
               {showInstructionPanel ? "Hide Maagizo" : "Maagizo"}
@@ -1160,7 +1162,7 @@ export function EntryPanel({
               background: "#fff1f2",
               color: "#9f1239",
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 600,
             }}
           >
             Results are published for this class. Unpublish them before adding students, editing marks, importing, deleting, or reordering CNO values.
@@ -1174,13 +1176,13 @@ export function EntryPanel({
             alignItems: "center",
             gap: 8,
             background: "#fffbe6",
-            border: "1.5px solid #e0b800",
+            border: "1px solid #fbbf24",
             borderRadius: 7,
             padding: "7px 12px",
             marginBottom: 10,
             fontSize: 11,
             color: "#7a5800",
-            fontWeight: 700,
+            fontWeight: 600,
           }}>
             <span>Composite</span>
             <span>
@@ -1195,7 +1197,7 @@ export function EntryPanel({
         <div style={styles.instructionPanel}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#003366" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#0f2d6e" }}>
                 Maagizo ya Ripoti ya Mwanafunzi
               </div>
               <div style={{ fontSize: 11, color: "#667", marginTop: 2 }}>
@@ -1237,12 +1239,12 @@ export function EntryPanel({
             style={styles.instructionTextarea}
           />
           {instructionNotice && (
-            <div style={{ fontSize: 11, color: instructionNoticeType === "error" ? "#9f1239" : "#0b6b3a", fontWeight: 700 }}>
+            <div style={{ fontSize: 11, color: instructionNoticeType === "error" ? "#9f1239" : "#16a34a", fontWeight: 600 }}>
               {instructionNotice}
             </div>
           )}
           {!onUpdateSchool && (
-            <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700 }}>
+            <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>
               Only administrators can update Maagizo for this class.
             </div>
           )}
@@ -1286,7 +1288,7 @@ export function EntryPanel({
                   setShowExportMenu(false);
                 }}
                 disabled={editingLocked}
-                style={{ ...styles.actionBtn, background: "#0077aa" }}
+                style={{ ...styles.actionBtn, background: "#0f2d6e" }}
                 title="Import student data"
               >
                 Import
@@ -1344,7 +1346,7 @@ export function EntryPanel({
               style={{
                 padding: "6px 8px",
                 borderRadius: 5,
-                border: "1px solid #d0dcf8",
+                border: "1px solid #e2e8f0",
                 flex: 1,
                 minWidth: compactLayout ? 0 : 150,
                 height: 30,
@@ -1356,7 +1358,7 @@ export function EntryPanel({
               style={{
                 padding: "6px 8px",
                 borderRadius: 5,
-                border: "1px solid #d0dcf8",
+                border: "1px solid #e2e8f0",
                 height: 30,
                 flexShrink: 0,
               }}
@@ -1373,7 +1375,7 @@ export function EntryPanel({
                 style={{
                   padding: "6px 8px",
                   borderRadius: 5,
-                  border: "1px solid #d0dcf8",
+                  border: "1px solid #e2e8f0",
                   height: 30,
                   flexShrink: 0,
                 }}
@@ -1389,12 +1391,12 @@ export function EntryPanel({
               onClick={() => setSortAsc(!sortAsc)}
               style={{
                 padding: "6px 12px",
-                background: "#003366",
+                background: "#0f2d6e",
                 color: "#fff",
                 border: "none",
                 borderRadius: 5,
                 cursor: "pointer",
-                fontWeight: 700,
+                fontWeight: 600,
                 height: 30,
                 flexShrink: 0,
               }}
@@ -1417,12 +1419,12 @@ export function EntryPanel({
               display: "inline-flex",
               alignItems: "center",
               padding: "6px 10px",
-              borderRadius: 999,
+              borderRadius: 4,
               background: "#eef4ff",
-              border: "1px solid #d6e0f5",
+              border: "1px solid #e2e8f0",
               color: "#26437a",
               fontSize: 10,
-              fontWeight: 800,
+              fontWeight: 600,
               letterSpacing: "0.02em",
             }}
           >
@@ -1433,12 +1435,12 @@ export function EntryPanel({
               display: "inline-flex",
               alignItems: "center",
               padding: "6px 10px",
-              borderRadius: 999,
+              borderRadius: 4,
               background: "#f8fafc",
               border: "1px solid #d9e2ec",
               color: "#3f536e",
               fontSize: 10,
-              fontWeight: 800,
+              fontWeight: 600,
               letterSpacing: "0.02em",
             }}
           >
@@ -1464,7 +1466,7 @@ export function EntryPanel({
           <div
             style={{
               fontSize: 11,
-              fontWeight: 800,
+              fontWeight: 600,
               color: "#64748b",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
@@ -1474,7 +1476,7 @@ export function EntryPanel({
           </div>
 
           <div style={styles.schoolPanel}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#0f2d6e" }}>
               Global School Settings
             </div>
             <div style={{ fontSize: 10, color: "#667", lineHeight: 1.6 }}>
@@ -1485,7 +1487,7 @@ export function EntryPanel({
           <div style={styles.metaPanel}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Class Year & Form</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#0f2d6e" }}>Class Year & Form</div>
                 <div style={{ fontSize: 10, color: "#667" }}>
                   Used to group results by academic year.
                 </div>
@@ -1525,7 +1527,7 @@ export function EntryPanel({
                 Save
               </button>
               {metaError && (
-                <div style={{ fontSize: 10, color: "#8b2500", fontWeight: 700 }}>
+                <div style={{ fontSize: 10, color: "#dc2626", fontWeight: 600 }}>
                   {metaError}
                 </div>
               )}
@@ -1535,7 +1537,7 @@ export function EntryPanel({
           <div style={styles.subjectPanel}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Subjects</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#0f2d6e" }}>Subjects</div>
                 <div style={{ fontSize: 10, color: "#667" }}>
                   Add or remove subjects for this class. Scores are remapped automatically.
                 </div>
@@ -1579,7 +1581,7 @@ export function EntryPanel({
                 Add Subject
               </button>
               {subjectError && (
-                <div style={{ fontSize: 10, color: "#8b2500", fontWeight: 700 }}>
+                <div style={{ fontSize: 10, color: "#dc2626", fontWeight: 600 }}>
                   {subjectError}
                 </div>
               )}
@@ -1591,7 +1593,7 @@ export function EntryPanel({
         <div
           style={{
             background: "#fff",
-            border: "1px solid #d8e4fb",
+            border: "1px solid #e2e8f0",
             borderRadius: 14,
             padding: isMobile ? 14 : 18,
             boxShadow: "0 10px 26px rgba(0,51,102,0.06)",
@@ -1599,19 +1601,19 @@ export function EntryPanel({
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
             <div>
-              <h4 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: "#0f2d6e" }}>Student Registration</h4>
+              <h4 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, color: "#0f2d6e" }}>Student Registration</h4>
               <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5 }}>
                 Register a student with guardian details. Parents will appear automatically in management from the guardian information you save here.
               </div>
             </div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#0b6b3a", background: "#dcfce7", border: "1px solid #86efac", borderRadius: 999, padding: "5px 10px" }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "#16a34a", background: "#dcfce7", border: "1px solid #86efac", borderRadius: 4, padding: "5px 10px" }}>
               Real student data
             </div>
           </div>
 
           <div style={{ display: "grid", gap: 18 }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
                 Student Details
               </div>
               <div
@@ -1688,7 +1690,7 @@ export function EntryPanel({
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#92400e" }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#92400e" }}>
                       Possible duplicate student
                     </div>
                     <div style={{ fontSize: 11, color: "#78350f", lineHeight: 1.5 }}>
@@ -1696,7 +1698,7 @@ export function EntryPanel({
                     </div>
                   </div>
                   {duplicateSaveConfirmed && (
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "#92400e", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 999, padding: "5px 10px" }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: "#92400e", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 4, padding: "5px 10px" }}>
                       Save again to continue
                     </div>
                   )}
@@ -1714,7 +1716,7 @@ export function EntryPanel({
                         padding: "10px 12px",
                       }}
                     >
-                      <div style={{ fontSize: 12, fontWeight: 800, color: "#111827" }}>{student.name}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#111827" }}>{student.name}</div>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, fontSize: 11, color: "#6b7280" }}>
                         <span><strong style={{ color: "#374151" }}>CNO:</strong> {student.indexNo || "-"}</span>
                         <span><strong style={{ color: "#374151" }}>Admission No:</strong> {student.admissionNo || "-"}</span>
@@ -1734,7 +1736,7 @@ export function EntryPanel({
 
             {optionalSubjectOptions.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
                   Optional Subjects
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", gap: 8 }}>
@@ -1749,10 +1751,10 @@ export function EntryPanel({
                           gap: 8,
                           padding: "8px 10px",
                           borderRadius: 10,
-                          border: checked ? "1px solid #93c5fd" : "1px solid #d0dcf8",
+                          border: checked ? "1px solid #93c5fd" : "1px solid #e2e8f0",
                           background: checked ? "#eff6ff" : "#ffffff",
                           fontSize: 12,
-                          fontWeight: 700,
+                          fontWeight: 600,
                           color: "#0f172a",
                         }}
                       >
@@ -1770,7 +1772,7 @@ export function EntryPanel({
             )}
 
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#0f2d6e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
                 Guardian Information
               </div>
               <div
@@ -1813,7 +1815,7 @@ export function EntryPanel({
                   background: "#fef2f2",
                   color: "#b91c1c",
                   fontSize: 12,
-                  fontWeight: 700,
+                  fontWeight: 600,
                 }}
               >
                 {errors._form}
@@ -1826,12 +1828,12 @@ export function EntryPanel({
               disabled={editingLocked || savingNewStudent}
               style={{
                 padding: "6px 16px",
-                background: editingLocked || savingNewStudent ? "#94a3b8" : "#0b6b3a",
+                background: editingLocked || savingNewStudent ? "#94a3b8" : "#16a34a",
                 color: "#fff",
                 border: "none",
                 borderRadius: 5,
                 cursor: editingLocked || savingNewStudent ? "not-allowed" : "pointer",
-                fontWeight: 700,
+                fontWeight: 600,
               }}
             >
               {savingNewStudent ? "Saving..." : duplicateSaveConfirmed && possibleDuplicateStudents.length > 0 ? "Save Anyway" : "Save"}
@@ -1851,7 +1853,7 @@ export function EntryPanel({
                 border: "none",
                 borderRadius: 5,
                 cursor: savingNewStudent ? "not-allowed" : "pointer",
-                fontWeight: 700,
+                fontWeight: 600,
               }}
             >
               Cancel
@@ -1880,12 +1882,12 @@ export function EntryPanel({
         <div style={styles.bulkPanel}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#003366" }}>Bulk Scoring Grid</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#0f2d6e" }}>Bulk Scoring Grid</div>
               <div style={{ fontSize: 10, color: "#667" }}>Enter scores for all students quickly.</div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               {bulkNotice && (
-                <div style={{ fontSize: 10, color: "#0b6b3a", fontWeight: 700, alignSelf: "center" }}>
+                <div style={{ fontSize: 10, color: "#16a34a", fontWeight: 600, alignSelf: "center" }}>
                   {bulkNotice}
                 </div>
               )}
@@ -1894,12 +1896,12 @@ export function EntryPanel({
                 disabled={editingLocked || bulkSaving || subjects.length === 0 || filtered.length === 0}
                 style={{
                   padding: "6px 12px",
-                  background: editingLocked || bulkSaving ? "#999" : "#0b6b3a",
+                  background: editingLocked || bulkSaving ? "#999" : "#16a34a",
                   color: "#fff",
                   border: "none",
                   borderRadius: 5,
                   cursor: editingLocked || bulkSaving ? "not-allowed" : "pointer",
-                  fontWeight: 700,
+                  fontWeight: 600,
                   height: 30,
                 }}
               >
@@ -1922,7 +1924,7 @@ export function EntryPanel({
                       style={{
                         padding: "5px 6px",
                         textAlign: "center",
-                        fontWeight: 700,
+                        fontWeight: 600,
                         fontSize: 10,
                         border: "1px solid #224488",
                       }}
@@ -1935,14 +1937,14 @@ export function EntryPanel({
               <tbody>
                 {filtered.map((s, i) => (
                   <tr key={s.id} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc" }}>
-                    <td style={{ padding: "4px 6px", textAlign: "center", border: "1px solid #d2def5", fontWeight: 700 }}>
+                    <td style={{ padding: "4px 6px", textAlign: "center", border: "1px solid #e2e8f0", fontWeight: 600 }}>
                       {s.index_no}
                     </td>
-                    <td style={{ padding: "4px 6px", textAlign: "left", border: "1px solid #d2def5" }}>{s.name}</td>
+                    <td style={{ padding: "4px 6px", textAlign: "left", border: "1px solid #e2e8f0" }}>{s.name}</td>
                     {subjects.map((_, si) => {
                       const visible = isSubjectVisibleForStudent(s, si);
                       return (
-                        <td key={si} style={{ padding: "4px 4px", textAlign: "center", border: "1px solid #d2def5", background: visible ? "transparent" : "#f8fafc", color: visible ? "#334155" : "#94a3b8" }}>
+                        <td key={si} style={{ padding: "4px 4px", textAlign: "center", border: "1px solid #e2e8f0", background: visible ? "transparent" : "#f8fafc", color: visible ? "#334155" : "#94a3b8" }}>
                           {visible ? (
                             <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
                               <input
@@ -1962,7 +1964,7 @@ export function EntryPanel({
                               })()}
                             </div>
                           ) : (
-                            <span style={{ fontSize: 10, fontWeight: 700 }}>—</span>
+                            <span style={{ fontSize: 10, fontWeight: 600 }}>—</span>
                           )}
                         </td>
                       );
@@ -2005,8 +2007,8 @@ export function EntryPanel({
             const isEditing = editId === s.id;
             if (isEditing) {
               return (
-                <div key={s.id} style={{ background: "#e8f4ff", border: "2px solid #0077aa", borderRadius: 10, padding: 12 }}>
-                  <div style={{ fontWeight: 800, fontSize: 13, color: "#003366", marginBottom: 10 }}>
+                <div key={s.id} style={{ background: "#f8fafc", border: "1px solid #0f2d6e", borderRadius: 8, padding: 12 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: "#0f2d6e", marginBottom: 10 }}>
                     ✎ Editing: {s.name}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", marginBottom: 10, fontSize: 11, color: "#334155" }}>
@@ -2017,7 +2019,7 @@ export function EntryPanel({
                   {/* Subject scores grid */}
                   {subjects.length > 0 && (
                     <div>
-                      <div style={{ fontSize: 10, color: "#667", fontWeight: 700, marginBottom: 6 }}>Scores</div>
+                      <div style={{ fontSize: 10, color: "#667", fontWeight: 600, marginBottom: 6 }}>Scores</div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 10 }}>
                         {subjects.map((subj, si) => {
                           if (!isSubjectVisibleForStudent(editData, si)) {
@@ -2026,8 +2028,8 @@ export function EntryPanel({
                           const score = editData.grades?.[si]?.score ?? "";
                           const editGrade = editData.grades?.[si]?.grade ?? null;
                           return (
-                            <div key={si} style={{ display: "flex", alignItems: "center", gap: 5, background: "#fff", borderRadius: 5, padding: "4px 6px", border: "1px solid #d0dcf8" }}>
-                              <span style={{ fontSize: 9, fontWeight: 700, color: "#555", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={subj}>{subj.slice(0, 8)}</span>
+                            <div key={si} style={{ display: "flex", alignItems: "center", gap: 5, background: "#fff", borderRadius: 5, padding: "4px 6px", border: "1px solid #e2e8f0" }}>
+                              <span style={{ fontSize: 9, fontWeight: 600, color: "#555", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={subj}>{subj.slice(0, 8)}</span>
                               <input
                                 type="number"
                                 min="0"
@@ -2061,7 +2063,7 @@ export function EntryPanel({
                         background: "#fef2f2",
                         color: "#b91c1c",
                         fontSize: 12,
-                        fontWeight: 700,
+                        fontWeight: 600,
                       }}
                     >
                       {errors._form}
@@ -2072,7 +2074,7 @@ export function EntryPanel({
                     <button
                       onClick={handleSaveEdit}
                       disabled={editingLocked || savingEditStudent}
-                      style={{ padding: "7px 18px", background: editingLocked || savingEditStudent ? "#94a3b8" : "#0b6b3a", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: editingLocked || savingEditStudent ? "not-allowed" : "pointer" }}
+                      style={{ padding: "7px 18px", background: editingLocked || savingEditStudent ? "#94a3b8" : "#16a34a", color: "#fff", border: "none", borderRadius: 6, fontWeight: 600, fontSize: 12, cursor: editingLocked || savingEditStudent ? "not-allowed" : "pointer" }}
                     >
                       {savingEditStudent ? "Saving..." : "Save"}
                     </button>
@@ -2084,7 +2086,7 @@ export function EntryPanel({
                         setErrors({});
                       }}
                       disabled={savingEditStudent}
-                      style={{ padding: "7px 18px", background: savingEditStudent ? "#94a3b8" : "#888", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: 12, cursor: savingEditStudent ? "not-allowed" : "pointer" }}
+                      style={{ padding: "7px 18px", background: savingEditStudent ? "#94a3b8" : "#888", color: "#fff", border: "none", borderRadius: 6, fontWeight: 600, fontSize: 12, cursor: savingEditStudent ? "not-allowed" : "pointer" }}
                     >
                       Cancel
                     </button>
@@ -2104,14 +2106,14 @@ export function EntryPanel({
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
                     <span style={{ fontFamily: "monospace", fontSize: 10, color: "#888", flexShrink: 0 }}>{s.index_no || "—"}</span>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: "#003366", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</span>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: "#0f2d6e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</span>
                     <span style={{
-                      fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 999,
+                      fontSize: 9, fontWeight: 600, padding: "1px 5px", borderRadius: 4,
                       background: s.sex === "F" ? "#fce8f7" : "#e4eeff",
                       color: s.sex === "F" ? "#6b0055" : "#0b4f9e",
                     }}>{s.sex === "F" ? "F" : "M"}</span>
                     {s.status === "absent" && (
-                      <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 999, background: "#fff0f0", color: "#8b2500" }}>Absent</span>
+                      <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 5px", borderRadius: 4, background: "#fff0f0", color: "#dc2626" }}>Absent</span>
                     )}
                   </div>
                   {/* Actions */}
@@ -2119,19 +2121,19 @@ export function EntryPanel({
                     <button
                       onClick={() => handleEdit(s)}
                       disabled={editingLocked}
-                      style={{ padding: "4px 8px", background: editingLocked ? "#94a3b8" : "#0077aa", color: "#fff", border: "none", borderRadius: 5, cursor: editingLocked ? "not-allowed" : "pointer", fontSize: 11, fontWeight: 700 }}
+                      style={{ padding: "4px 8px", background: editingLocked ? "#94a3b8" : "#0f2d6e", color: "#fff", border: "none", borderRadius: 5, cursor: editingLocked ? "not-allowed" : "pointer", fontSize: 11, fontWeight: 600 }}
                       title="Edit student"
                     >Edit</button>
                     <button
                       onClick={() => onShowModal("report-card-export", s.id)}
-                      style={{ padding: "4px 8px", background: "#003366", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      style={{ padding: "4px 8px", background: "#0f2d6e", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: 600 }}
                       title="Export report card"
                     >Report</button>
                     {canDeleteStudents && (
                       <button
                         onClick={() => { if (!editingLocked && window.confirm(`Delete ${s.name || "this student"}?`)) onDeleteStudent(s.id); }}
                         disabled={editingLocked}
-                        style={{ padding: "4px 8px", background: editingLocked ? "#94a3b8" : "#8b2500", color: "#fff", border: "none", borderRadius: 5, cursor: editingLocked ? "not-allowed" : "pointer", fontSize: 11, fontWeight: 700 }}
+                        style={{ padding: "4px 8px", background: editingLocked ? "#94a3b8" : "#dc2626", color: "#fff", border: "none", borderRadius: 5, cursor: editingLocked ? "not-allowed" : "pointer", fontSize: 11, fontWeight: 600 }}
                         title="Delete student"
                       >Delete</button>
                     )}
@@ -2147,11 +2149,11 @@ export function EntryPanel({
                       if (score == null) return null;
                       return (
                         <span key={si} style={{
-                          background: "#f4f7ff", border: "1px solid #d0dcf8", borderRadius: 4,
+                          background: "#f4f7ff", border: "1px solid #e2e8f0", borderRadius: 4,
                           padding: "2px 5px", fontSize: 10, display: "inline-flex", gap: 3, alignItems: "center",
                         }}>
                           <span style={{ color: "#555", fontWeight: 600 }} title={subj}>{subj.slice(0, 4)}:</span>
-                          <span style={{ fontWeight: 700, color: "#003366" }}>{score}</span>
+                          <span style={{ fontWeight: 600, color: "#0f2d6e" }}>{score}</span>
                           {grade && <span style={gradeBadgeStyle(grade)}>{grade}</span>}
                         </span>
                       );
@@ -2163,16 +2165,16 @@ export function EntryPanel({
                 )}
                 {/* Summary row */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 12px", fontSize: 11 }}>
-                  <span>Total: <b style={{ color: "#003366" }}>{s.total ?? "—"}</b></span>
+                  <span>Total: <b style={{ color: "#0f2d6e" }}>{s.total ?? "—"}</b></span>
                   <span>Avg: <b>{s.avg ?? "—"}</b></span>
                   {hasStreamFilter && <span>Stream: <b>{s.stream || "-"}</b></span>}
                   {s.agrd && (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, color: "#334155" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, color: "#334155" }}>
                       Grade:
                       <span style={gradeBadgeStyle(s.agrd)}>{s.agrd}</span>
                     </span>
                   )}
-                  {s.div && <span style={{ fontWeight: 700, color: DIVISION_COLORS[s.div] }}>Div {s.div}</span>}
+                  {s.div && <span style={{ fontWeight: 600, color: DIVISION_COLORS[s.div] }}>Div {s.div}</span>}
                   {s.posn && <span style={{ color: "#888" }}>#{s.posn}</span>}
                   {s.remarks && <span style={{ color: "#555", fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 160 }} title={s.remarks}>{s.remarks}</span>}
                 </div>
@@ -2199,12 +2201,12 @@ export function EntryPanel({
                 { label: "Sex", align: "center" },
                 { label: "Status", align: "center", minWidth: 80 },
               ].map(({ label, align, minWidth }) => (
-                <th key={label} style={{ padding: "7px 8px", textAlign: align, fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.04em", minWidth }}>
+                <th key={label} style={{ padding: "7px 8px", textAlign: align, fontWeight: 600, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.04em", minWidth }}>
                   {label}
                 </th>
               ))}
               {hasStreamFilter && (
-                <th style={{ padding: "7px 8px", textAlign: "center", fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.04em", minWidth: 72 }}>
+                <th style={{ padding: "7px 8px", textAlign: "center", fontWeight: 600, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.04em", minWidth: 72 }}>
                   Stream
                 </th>
               )}
@@ -2214,7 +2216,7 @@ export function EntryPanel({
                   style={{
                     padding: "7px 4px",
                     textAlign: "center",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     fontSize: 10,
                     border: "1px solid rgba(255,255,255,0.12)",
                     maxWidth: 48,
@@ -2233,7 +2235,7 @@ export function EntryPanel({
                 { label: "Remarks", align: "left", minWidth: 80 },
                 { label: "Action", minWidth: 100 },
               ].map(({ label, align, minWidth }) => (
-                <th key={label} style={{ padding: "7px 8px", textAlign: align ?? "center", fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.04em", minWidth }}>
+                <th key={label} style={{ padding: "7px 8px", textAlign: align ?? "center", fontWeight: 600, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.04em", minWidth }}>
                   {label}
                 </th>
               ))}
@@ -2247,7 +2249,7 @@ export function EntryPanel({
                 <tr
                   style={{
                     background: isEditing
-                      ? "#e8f4ff"
+                      ? "#f8fafc"
                       : i % 2 === 0
                       ? "#fff"
                       : "#f8fafc",
@@ -2258,8 +2260,8 @@ export function EntryPanel({
                     style={{
                       padding: "4px 8px",
                       textAlign: "center",
-                      border: "1px solid #d2def5",
-                      fontWeight: 700,
+                      border: "1px solid #e2e8f0",
+                      fontWeight: 600,
                       fontSize: 11,
                       fontFamily: "monospace",
                       whiteSpace: "nowrap",
@@ -2271,7 +2273,7 @@ export function EntryPanel({
                     style={{
                       padding: "4px 8px",
                       textAlign: "left",
-                      border: "1px solid #d2def5",
+                      border: "1px solid #e2e8f0",
                       fontSize: 11,
                       fontWeight: 600,
                       color: "#1a2e4a",
@@ -2283,15 +2285,15 @@ export function EntryPanel({
                     style={{
                       padding: "4px 6px",
                       textAlign: "center",
-                      border: "1px solid #d2def5",
+                      border: "1px solid #e2e8f0",
                     }}
                   >
                     <span style={{
                       display: "inline-block",
                       padding: "1px 7px",
-                      borderRadius: 999,
+                      borderRadius: 4,
                       fontSize: 10,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       background: s.sex === "F" ? "#fce8f7" : "#e4eeff",
                       color: s.sex === "F" ? "#6b0055" : "#0b4f9e",
                     }}>{s.sex === "F" ? "F" : "M"}</span>
@@ -2300,17 +2302,17 @@ export function EntryPanel({
                     style={{
                       padding: "4px 6px",
                       textAlign: "center",
-                      border: "1px solid #d2def5",
+                      border: "1px solid #e2e8f0",
                     }}
                   >
                     <span style={{
                       display: "inline-block",
                       padding: "2px 8px",
-                      borderRadius: 999,
+                      borderRadius: 4,
                       fontSize: 10,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       background: s.status === "absent" ? "#fff0f0" : s.status === "incomplete" ? "#fff8e0" : "#e8f8ee",
-                      color: s.status === "absent" ? "#8b2500" : s.status === "incomplete" ? "#7a5800" : "#0b6b3a",
+                      color: s.status === "absent" ? "#dc2626" : s.status === "incomplete" ? "#7a5800" : "#16a34a",
                     }}>
                       {s.status === "absent" ? "Absent" : s.status === "incomplete" ? "Incomplete" : "Present"}
                     </span>
@@ -2320,8 +2322,8 @@ export function EntryPanel({
                       style={{
                         padding: "4px 6px",
                         textAlign: "center",
-                        border: "1px solid #d2def5",
-                        fontWeight: 700,
+                        border: "1px solid #e2e8f0",
+                        fontWeight: 600,
                         color: "#334155",
                       }}
                     >
@@ -2347,14 +2349,14 @@ export function EntryPanel({
                         style={{
                           padding: "4px 4px",
                           textAlign: "center",
-                          border: "1px solid #d2def5",
+                          border: "1px solid #e2e8f0",
                           minWidth: 55,
                           background: visible ? "transparent" : "#f8fafc",
                           color: visible ? "#334155" : "#94a3b8",
                         }}
                       >
                         {!visible ? (
-                          <span style={{ fontSize: 10, fontWeight: 700 }}>—</span>
+                          <span style={{ fontSize: 10, fontWeight: 600 }}>—</span>
                         ) : isEditing ? (
                           <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center" }}>
                             <input
@@ -2405,8 +2407,8 @@ export function EntryPanel({
                     style={{
                       padding: "4px 6px",
                       textAlign: "center",
-                      border: "1px solid #d2def5",
-                      fontWeight: 700,
+                      border: "1px solid #e2e8f0",
+                      fontWeight: 600,
                       fontSize: 11,
                     }}
                   >
@@ -2416,7 +2418,7 @@ export function EntryPanel({
                     style={{
                       padding: "4px 6px",
                       textAlign: "center",
-                      border: "1px solid #d2def5",
+                      border: "1px solid #e2e8f0",
                       fontSize: 11,
                     }}
                   >
@@ -2426,16 +2428,16 @@ export function EntryPanel({
                     style={{
                       padding: "4px 6px",
                       textAlign: "center",
-                      border: "1px solid #d2def5",
+                      border: "1px solid #e2e8f0",
                     }}
                   >
                     {s.agrd ? (
                       <span style={{
                         display: "inline-block",
                         padding: "1px 8px",
-                        borderRadius: 999,
+                        borderRadius: 4,
                         fontSize: 10,
-                        fontWeight: 800,
+                        fontWeight: 600,
                         background: GRADE_BACKGROUNDS[s.agrd],
                         color: GRADE_TEXT_COLOR,
                         border: "1px solid rgba(17, 24, 39, 0.08)",
@@ -2446,28 +2448,28 @@ export function EntryPanel({
                     style={{
                       padding: "4px 6px",
                       textAlign: "center",
-                      border: "1px solid #d2def5",
+                      border: "1px solid #e2e8f0",
                     }}
                   >
                     {s.div && s.div !== "0" ? (
                       <span style={{
                         display: "inline-block",
                         padding: "1px 8px",
-                        borderRadius: 999,
+                        borderRadius: 4,
                         fontSize: 10,
-                        fontWeight: 800,
+                        fontWeight: 600,
                         background: "#e4eeff",
                         color: DIVISION_COLORS[s.div],
                       }}>Div {s.div}</span>
                     ) : s.div === "0" ? (
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "#999" }}>Div 0</span>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: "#999" }}>Div 0</span>
                     ) : <span style={{ color: "#bbb", fontSize: 11 }}>–</span>}
                   </td>
                   <td
                     style={{
                       padding: "4px 6px",
                       textAlign: "left",
-                      border: "1px solid #d2def5",
+                      border: "1px solid #e2e8f0",
                       maxWidth: isMobile ? 140 : 200,
                     }}
                   >
@@ -2509,7 +2511,7 @@ export function EntryPanel({
                     style={{
                       padding: "4px 6px",
                       textAlign: "center",
-                      border: "1px solid #d2def5",
+                      border: "1px solid #e2e8f0",
                     }}
                   >
                     {isEditing ? (
@@ -2519,13 +2521,13 @@ export function EntryPanel({
                           disabled={editingLocked}
                           style={{
                             padding: "3px 6px",
-                            background: editingLocked ? "#94a3b8" : "#0b6b3a",
+                            background: editingLocked ? "#94a3b8" : "#16a34a",
                             color: "#fff",
                             border: "none",
                             borderRadius: 3,
                             cursor: editingLocked ? "not-allowed" : "pointer",
                             fontSize: 10,
-                            fontWeight: 700,
+                            fontWeight: 600,
                           }}
                         >
                           Save
@@ -2544,7 +2546,7 @@ export function EntryPanel({
                             borderRadius: 3,
                             cursor: "pointer",
                             fontSize: 10,
-                            fontWeight: 700,
+                            fontWeight: 600,
                           }}
                         >
                           Cancel
@@ -2557,13 +2559,13 @@ export function EntryPanel({
                           disabled={editingLocked}
                           style={{
                             padding: "3px 8px",
-                            background: editingLocked ? "#94a3b8" : "#0077aa",
+                            background: editingLocked ? "#94a3b8" : "#0f2d6e",
                             color: "#fff",
                             border: "none",
                             borderRadius: 4,
                             cursor: editingLocked ? "not-allowed" : "pointer",
                             fontSize: 10,
-                            fontWeight: 700,
+                            fontWeight: 600,
                             letterSpacing: "0.02em",
                           }}
                         >
@@ -2573,13 +2575,13 @@ export function EntryPanel({
                           onClick={() => onShowModal("report-card-export", s.id)}
                           style={{
                             padding: "3px 8px",
-                            background: "#003366",
+                            background: "#0f2d6e",
                             color: "#fff",
                             border: "none",
                             borderRadius: 4,
                             cursor: "pointer",
                             fontSize: 10,
-                            fontWeight: 700,
+                            fontWeight: 600,
                             letterSpacing: "0.02em",
                           }}
                         >
@@ -2594,13 +2596,13 @@ export function EntryPanel({
                           disabled={editingLocked || !canDeleteStudents}
                           style={{
                             padding: "3px 8px",
-                            background: editingLocked ? "#94a3b8" : "#8b2500",
+                            background: editingLocked ? "#94a3b8" : "#dc2626",
                             color: "#fff",
                             border: "none",
                             borderRadius: 4,
                             cursor: editingLocked || !canDeleteStudents ? "not-allowed" : "pointer",
                             fontSize: 10,
-                            fontWeight: 700,
+                            fontWeight: 600,
                             letterSpacing: "0.02em",
                             display: canDeleteStudents ? undefined : "none",
                           }}
