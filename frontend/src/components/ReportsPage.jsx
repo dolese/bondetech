@@ -21,10 +21,8 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import {
   displayFontStack,
-  glassPanelStyle,
-  pillStyle,
-  primaryButtonStyle,
-  secondaryButtonStyle,
+  fieldStyle,
+  premiumFontStack,
 } from "../utils/designSystem";
 import { buildFormWorkspace } from "../utils/formClassAggregation";
 
@@ -121,12 +119,12 @@ export function ReportsPage({
   const [exportError, setExportError] = useState("");
   const [template, setTemplate] = useState("official");
   const [switchingForm, setSwitchingForm] = useState(false);
-  const actionPanel = glassPanelStyle({
-    compact: isMobile || isTablet,
-    dense: isMobile,
+  const sectionStyle = {
+    background: "#fff",
+    borderRadius: 12,
+    border: "1px solid #e2e8f0",
     padding: isMobile ? 14 : 18,
-    radius: 22,
-  });
+  };
   const schoolInfo = classData.school_info ?? DEFAULT_SCHOOL;
   const present = (computed ?? [])
     .filter((student) => student.total !== null)
@@ -557,1111 +555,346 @@ export function ReportsPage({
     present.map((student) => Number(student.avg || 0)),
   );
 
-  const styles = {
-    panel: {
-      flex: 1,
-      overflowY: "auto",
-      padding: isMobile ? 10 : 14,
-      display: "flex",
-      flexDirection: "column",
-      gap: 12,
-      minHeight: 0,
-      background: "#f6f9ff",
-    },
-    section: {
-      background: "#fff",
-      borderRadius: 16,
-      border: "1px solid #e1e8f5",
-      boxShadow: "0 10px 28px rgba(0,51,102,0.06)",
-      padding: isMobile ? 14 : 18,
-    },
-    controlLabel: {
-      fontSize: 11,
-      fontWeight: 800,
-      color: "#516074",
-      textTransform: "uppercase",
-      letterSpacing: "0.07em",
-      marginBottom: 4,
-      display: "block",
-    },
-    select: {
-      width: "100%",
-      border: "1px solid #ced8eb",
-      borderRadius: 10,
-      padding: "10px 12px",
-      fontSize: 13,
-      background: "#fff",
-    },
-    metricCard: {
-      borderRadius: 14,
-      background: "linear-gradient(180deg, #f8fbff, #eef4ff)",
-      border: "1px solid #dbe7ff",
-      padding: 14,
-      display: "grid",
-      gap: 6,
-    },
-    viewBtn: {
-      padding: "4px 10px",
-      background: "#003366",
-      color: "#fff",
-      border: "none",
-      borderRadius: 5,
-      cursor: "pointer",
-      fontWeight: 700,
-      fontSize: 11,
-    },
-    empty: {
-      background: "#fff",
-      border: "1px dashed #c8d8f8",
-      borderRadius: 8,
-      padding: 24,
-      textAlign: "center",
-      color: "#666",
-      fontSize: 12,
-    },
-    formFilterWrap: {
-      display: "flex",
-      gap: 8,
-      flexWrap: "wrap",
-    },
-    formFilterChip: {
-      padding: "7px 12px",
-      borderRadius: 999,
-      border: "1px solid #cfe0ff",
-      background: "#fff",
-      color: "#33506d",
-      fontSize: 11,
-      fontWeight: 800,
-      cursor: "pointer",
-    },
-    classSectionCard: {
-      background: "#fff",
-      borderRadius: 16,
-      border: "1px solid #e1e8f5",
-      boxShadow: "0 10px 28px rgba(0,51,102,0.06)",
-      padding: isMobile ? 14 : 18,
-      display: "grid",
-      gap: 12,
-    },
-    classTileGrid: {
-      display: "grid",
-      gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))",
-      gap: 10,
-    },
-    classTile: {
-      borderRadius: 14,
-      border: "1px solid #dbe7ff",
-      background: "linear-gradient(180deg, #fbfdff, #f4f8ff)",
-      padding: 14,
-      display: "grid",
-      gap: 8,
-    },
-    classTileMeta: {
-      display: "flex",
-      gap: 10,
-      flexWrap: "wrap",
-      fontSize: 11,
-      color: "#64748b",
-    },
+  const selectStyle = { ...fieldStyle(), width: "100%" };
+
+  const filterBtn = (value, label) => {
+    const active = selectedForm === value;
+    return (
+      <button key={value} type="button" onClick={() => setSelectedForm(value)} style={{
+        padding: "5px 12px", fontSize: 12, fontWeight: active ? 600 : 400, borderRadius: 6,
+        border: active ? "1px solid #0f2d6e" : "1px solid #e2e8f0",
+        background: active ? "#0f2d6e" : "#fff", color: active ? "#fff" : "#475569", cursor: "pointer",
+      }}>{label}</button>
+    );
+  };
+
+  const actionBtn = (label, onClick, opts = {}) => {
+    const { primary, green, disabled: d } = opts;
+    return (
+      <button type="button" onClick={onClick} disabled={d} style={{
+        padding: "7px 14px", fontSize: 12, fontWeight: 600, borderRadius: 8, cursor: d ? "not-allowed" : "pointer",
+        border: primary || green ? "none" : "1px solid #e2e8f0", opacity: d ? 0.5 : 1,
+        background: green ? "#0b6b3a" : primary ? "#0f2d6e" : "#fff",
+        color: primary || green ? "#fff" : "#0f172a",
+        flex: isMobile ? "1 1 100%" : "0 0 auto",
+      }}>{label}</button>
+    );
   };
 
   return (
-    <div style={styles.panel}>
-      <div style={styles.classSectionCard}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 12,
-            alignItems: "flex-start",
-            flexWrap: "wrap",
-          }}
-        >
-          <div>
-            <div style={{ ...pillStyle({ tone: "amber" }), display: "inline-flex", marginBottom: 8 }}>
-              Form Reports
-            </div>
-            <div style={{ fontFamily: displayFontStack, fontSize: 22, fontWeight: 500, color: "#102a43" }}>
-              {t("reportsBrowseByForm", "Browse Reports by Form")}
-            </div>
-            <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.7 }}>
-              {t(
-                "reportsBrowseByFormSub",
-                "Open one report center per form and include all streams in the same ranking.",
-              )}
-            </div>
-          </div>
-          <div style={{ minWidth: isMobile ? "100%" : 240 }}>
-            <label style={styles.controlLabel}>
-              {t("reportsFormFilter", "Form Filter")}
-            </label>
-            <div style={styles.formFilterWrap}>
-              <button
-                type="button"
-                style={{
-                  ...styles.formFilterChip,
-                  background: selectedForm === "all" ? "#0b4f9e" : "#fff",
-                  color: selectedForm === "all" ? "#fff" : styles.formFilterChip.color,
-                  borderColor: selectedForm === "all" ? "#0b4f9e" : "#cfe0ff",
-                }}
-                onClick={() => setSelectedForm("all")}
-              >
-                {t("reportsAllForms", "All Forms")}
-              </button>
-              {formSections.map((section) => (
-                <button
-                  key={section.form}
-                  type="button"
-                  style={{
-                    ...styles.formFilterChip,
-                    background: selectedForm === section.form ? "#0b4f9e" : "#fff",
-                    color: selectedForm === section.form ? "#fff" : styles.formFilterChip.color,
-                    borderColor: selectedForm === section.form ? "#0b4f9e" : "#cfe0ff",
-                  }}
-                  onClick={() => setSelectedForm(section.form)}
-                >
-                  {section.form}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+    <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? "14px 12px 28px" : "20px 24px 32px", fontFamily: premiumFontStack, background: "#f8f9fb", minHeight: 0 }}>
+      <div style={{ maxWidth: 1060, margin: "0 auto", display: "grid", gap: isMobile ? 14 : 18 }}>
 
-        {visibleFormSections.length ? (
-          visibleFormSections.map((section) => (
-            <div key={section.form} style={{ display: "grid", gap: 10 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 10,
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
-                  {section.form}
-                </div>
-                <div style={{ fontSize: 11, color: "#64748b" }}>
-                  {t("reportsStreamCount", "{count} stream{suffix}", {
-                    count: section.streamCount,
-                    suffix: section.streamCount === 1 ? "" : "s",
-                  })}
-                </div>
-              </div>
-              <div style={styles.classTileGrid}>
-                {(() => {
-                  const active = isCurrentFormActive(section);
-                  return (
-                    <div
-                      key={section.form}
-                      style={{
-                        ...styles.classTile,
-                        borderColor: active ? "#0b4f9e" : "#dbe7ff",
-                        boxShadow: active ? "0 0 0 2px rgba(11,79,158,0.12)" : "none",
-                        background: active
-                          ? "linear-gradient(180deg, #f1f6ff, #e7f0ff)"
-                          : styles.classTile.background,
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: 8,
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
-                            {section.label}
-                          </div>
-                          <div style={{ fontSize: 11, color: "#64748b" }}>
-                            {section.exam}
-                          </div>
-                        </div>
-                        {active ? (
-                          <div style={{ ...pillStyle({ tone: "blue" }), fontSize: 10 }}>
-                            {t("reportsActiveForm", "Active")}
-                          </div>
-                        ) : null}
-                      </div>
-                      <div style={styles.classTileMeta}>
-                        <span>
-                          {t("reportsStudentsCount", "{count} students", {
-                            count: section.studentCount,
-                          })}
-                        </span>
-                        <span>
-                          {t("reportsStreamCount", "{count} stream{suffix}", {
-                            count: section.streamCount,
-                            suffix: section.streamCount === 1 ? "" : "s",
-                          })}
-                        </span>
-                        <span>
-                          {t("reportsRankedCount", "{count} ranked", {
-                            count: section.rankedCount,
-                          })}
-                        </span>
-                        <span>
-                          {t("reportsAvgShort", "Avg {avg}", {
-                            avg: section.avg ? section.avg.toFixed(1) : "0.0",
-                          })}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                        <button
-                          type="button"
-                          style={active ? secondaryButtonStyle({ compact: true }) : primaryButtonStyle({ compact: true })}
-                          disabled={!section.targetClassId || active}
-                          onClick={() => {
-                            if (!section.targetClassId || active) return;
-                            setSwitchingForm(true);
-                            onSelectClass?.(section.targetClassId, section.exam || DEFAULT_EXAM_TYPE);
-                          }}
-                        >
-                          {active
-                            ? t("reportsCurrentForm", "Current Form")
-                            : t("reportsOpenFormReports", "Open Reports")}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          ))
-        ) : (
-          <div style={styles.empty}>
-            {t("reportsNoFormsFound", "No form report sections are available yet.")}
-          </div>
-        )}
-      </div>
-
-      {switchingForm ? (
-        <div
-          style={{
-            ...actionPanel,
-            border: "1px solid #cfe0ff",
-            background: "linear-gradient(180deg, #f8fbff, #eef5ff)",
-            color: "#31507a",
-            fontSize: 13,
-            fontWeight: 700,
-          }}
-        >
-          {t("reportsLoadingForm", "Loading form reports...")}
-        </div>
-      ) : (
-      <>
-      <div style={{ ...actionPanel, display: "grid", gap: 16 }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
-          <div>
-            <div style={{ ...pillStyle({ tone: "amber" }), display: "inline-flex", marginBottom: 8 }}>
-              {t("reportCards", "Report Cards")}
-            </div>
-            <h3
-              style={{
-                margin: "0 0 6px",
-                fontFamily: displayFontStack,
-                fontSize: 22,
-                fontWeight: 500,
-                color: "#102a43",
-              }}
-            >
-              {t("reportsCenterTitle", "Report Card Center")}
-            </h3>
-            <div style={{ fontSize: 13, color: "#607086", lineHeight: 1.7 }}>
-              {schoolInfo.name} | {getClassLabel(classData)} |{" "}
-              {schoolInfo.exam || DEFAULT_EXAM_TYPE}
-            </div>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              flexWrap: "wrap",
-              width: isMobile ? "100%" : "auto",
-              justifyContent: isMobile ? "stretch" : "flex-end",
-              paddingLeft: isMobile ? "env(safe-area-inset-left, 0px)" : 0,
-              paddingRight: isMobile
-                ? "env(safe-area-inset-right, 0px)"
-                : 0,
-            }}
-          >
-            <button
-              style={{
-                ...secondaryButtonStyle({ compact: isMobile }),
-                cursor: !present.length ? "not-allowed" : "pointer",
-                flex: isMobile ? "1 1 100%" : "0 0 auto",
-              }}
-              onClick={previewPdf}
-              disabled={!present.length}
-            >
-              {t("reportsPreviewPdf", "Preview PDF")}
-            </button>
-            <button
-              style={{
-                ...primaryButtonStyle({ compact: isMobile }),
-                background: exportingZip ? "#9ca3af" : primaryButtonStyle({ compact: isMobile }).background,
-                cursor: exportingZip || !present.length ? "not-allowed" : "pointer",
-                flex: isMobile ? "1 1 100%" : "0 0 auto",
-              }}
-              onClick={exportAllPdf}
-              disabled={exportingZip || !present.length}
-            >
-              {exportingZip
-                ? t("reportsPreparingPdf", "Preparing PDF...")
-                : t("reportsDownloadAllPdfs", "Download all PDFs")}
-            </button>
-            <button
-              style={{
-                ...secondaryButtonStyle({ compact: isMobile }),
-                background: exportingZip ? "#9ca3af" : "#0b6b3a",
-                color: "#fff",
-                cursor: exportingZip || !present.length ? "not-allowed" : "pointer",
-                flex: isMobile ? "1 1 100%" : "0 0 auto",
-              }}
-              onClick={exportAllZip}
-              disabled={exportingZip || !present.length}
-            >
-              {exportingZip
-                ? t("reportsPreparingPdf", "Preparing PDF...")
-                : t("reportsExportAllZip", "Download ZIP")}
-            </button>
-          </div>
-        </div>
-
-        {exportError && (
-          <div
-            style={{
-              fontSize: 12,
-              color: "#8b2500",
-              background: "#fff1f1",
-              border: "1px solid #f5c2c2",
-              borderRadius: 8,
-              padding: "8px 10px",
-            }}
-          >
-            {exportError}
-          </div>
-        )}
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile
-              ? "repeat(2, minmax(0, 1fr))"
-              : "repeat(4, minmax(0, 1fr))",
-            gap: 12,
-          }}
-        >
-          <div style={styles.metricCard}>
-            <div
-              style={{
-                fontSize: 11,
-                color: "#516074",
-                fontWeight: 800,
-                textTransform: "uppercase",
-              }}
-            >
-              {t("reportsStudentsReported", "Students Reported")}
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#102a43" }}>
-              {present.length}
-            </div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>
-              {t(
-                "reportsStudentsReportedSub",
-                "Scored students in the selected form exam.",
-              )}
-            </div>
-          </div>
-          <div style={styles.metricCard}>
-            <div
-              style={{
-                fontSize: 11,
-                color: "#516074",
-                fontWeight: 800,
-                textTransform: "uppercase",
-              }}
-            >
-              {t("reportsClassAverage", "Class Average")}
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#102a43" }}>
-              {currentAvg.toFixed(1)}
-            </div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>
-              {t(
-                "reportsClassAverageSub",
-                "Average student mark for the current form exam.",
-              )}
-            </div>
-          </div>
-          <div style={styles.metricCard}>
-            <div
-              style={{
-                fontSize: 11,
-                color: "#516074",
-                fontWeight: 800,
-                textTransform: "uppercase",
-              }}
-            >
-              {t("reportsYearRank", "Year Rank")}
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#102a43" }}>
-              {classComparison.rank || "-"}
-            </div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>
-              {classComparison.best
-                ? t("reportsBestPeer", "Best peer: {name}", {
-                    name: classComparison.best.name,
-                  })
-                : t("reportsNoPeerComparison", "No peer comparison yet.")}
-            </div>
-          </div>
-          <div style={styles.metricCard}>
-            <div
-              style={{
-                fontSize: 11,
-                color: "#516074",
-                fontWeight: 800,
-                textTransform: "uppercase",
-              }}
-            >
-              {t("reportsTopPerformer", "Top Performer")}
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43" }}>
-              {present[0]?.name || "-"}
-            </div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>
-              {present[0]
-                ? t("reportsTopAverage", "Average {avg}", {
-                    avg: present[0].avg,
-                  })
-                : t("reportsNoRankingYet", "No completed ranking yet.")}
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile
-              ? "1fr"
-              : isTablet
-                ? "repeat(2, minmax(0, 1fr))"
-                : "repeat(3, minmax(0, 1fr))",
-            gap: 12,
-          }}
-        >
-          <div>
-            <label style={styles.controlLabel}>
-              {t("reportsTemplate", "Template")}
-            </label>
-            <select
-              value={template}
-              onChange={(event) => setTemplate(event.target.value)}
-              style={styles.select}
-            >
-              {TEMPLATE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={styles.controlLabel}>
-              {t("reportsPaperSize", "Paper Size")}
-            </label>
-            <div
-              style={{
-                ...styles.select,
-                background: "#eef4ff",
-                fontWeight: 700,
-                color: "#17324d",
-              }}
-            >
-              A4
-            </div>
-          </div>
-          <div>
-            <label style={styles.controlLabel}>
-              {t("reportsOrientation", "Orientation")}
-            </label>
-            <div
-              style={{
-                ...styles.select,
-                background: "#eef4ff",
-                fontWeight: 700,
-                color: "#17324d",
-              }}
-            >
-              {t("reportsPortrait", "Portrait")}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: isMobile || isTablet ? "1fr" : "1.1fr 0.9fr",
-          gap: 12,
-        }}
-      >
-        <div style={{ ...styles.section, display: "grid", gap: 14 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
+        {/* Form Reports Browser */}
+        <div style={{ ...sectionStyle, display: "grid", gap: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
-                {t("reportsRankingHistory", "Ranking History")}
-              </div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>
-                {t(
-                  "reportsRankingHistorySub",
-                  "Track rank changes across all recorded exam types in this class.",
-                )}
-              </div>
+              <h1 style={{ fontFamily: displayFontStack, fontSize: isMobile ? 20 : 24, fontWeight: 500, color: "#0f172a", margin: 0 }}>
+                {t("reportsBrowseByForm", "Browse Reports by Form")}
+              </h1>
+              <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>
+                {t("reportsBrowseByFormSub", "Open one report center per form and include all streams in the same ranking.")}
+              </p>
             </div>
-            <div style={{ minWidth: isMobile || isTablet ? "100%" : 220 }}>
-              <label style={styles.controlLabel}>
-                {t("reportsSelectedStudent", "Selected Student")}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {filterBtn("all", t("reportsAllForms", "All Forms"))}
+              {formSections.map((s) => filterBtn(s.form, s.form))}
+            </div>
+          </div>
+
+          {visibleFormSections.length ? visibleFormSections.map((section) => {
+            const active = isCurrentFormActive(section);
+            return (
+              <div key={section.form} style={{ display: "grid", gap: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>{section.form}</span>
+                  <span style={{ fontSize: 12, color: "#64748b" }}>
+                    {t("reportsStreamCount", "{count} stream{suffix}", { count: section.streamCount, suffix: section.streamCount === 1 ? "" : "s" })}
+                  </span>
+                </div>
+                <div style={{ border: active ? "1px solid #0f2d6e" : "1px solid #e2e8f0", borderRadius: 10, padding: 14, background: active ? "#f8faff" : "#fff", display: "grid", gap: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>{section.label}</div>
+                      <div style={{ fontSize: 12, color: "#64748b" }}>{section.exam}</div>
+                    </div>
+                    {active ? <span style={{ fontSize: 11, fontWeight: 500, color: "#10b981", background: "#ecfdf5", borderRadius: 4, padding: "2px 7px" }}>{t("reportsActiveForm", "Active")}</span> : null}
+                  </div>
+                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "#64748b" }}>
+                    <span>{t("reportsStudentsCount", "{count} students", { count: section.studentCount })}</span>
+                    <span>{t("reportsRankedCount", "{count} ranked", { count: section.rankedCount })}</span>
+                    <span>{t("reportsAvgShort", "Avg {avg}", { avg: section.avg ? section.avg.toFixed(1) : "0.0" })}</span>
+                  </div>
+                  {!active && section.targetClassId ? (
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <button type="button" onClick={() => { setSwitchingForm(true); onSelectClass?.(section.targetClassId, section.exam || DEFAULT_EXAM_TYPE); }} style={{
+                        padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 6, border: "none",
+                        background: "#0f2d6e", color: "#fff", cursor: "pointer",
+                      }}>{t("reportsOpenFormReports", "Open Reports")}</button>
+                    </div>
+                  ) : active ? (
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <span style={{ fontSize: 12, color: "#94a3b8" }}>{t("reportsCurrentForm", "Current Form")}</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            );
+          }) : (
+            <div style={{ padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
+              {t("reportsNoFormsFound", "No form report sections are available yet.")}
+            </div>
+          )}
+        </div>
+
+        {switchingForm ? (
+          <div style={{ ...sectionStyle, color: "#64748b", fontSize: 13, textAlign: "center", padding: 24 }}>
+            {t("reportsLoadingForm", "Loading form reports...")}
+          </div>
+        ) : (
+        <>
+        {/* Report Card Center */}
+        <div style={{ ...sectionStyle, display: "grid", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <h2 style={{ fontFamily: displayFontStack, fontSize: isMobile ? 18 : 22, fontWeight: 500, color: "#0f172a", margin: 0 }}>
+                {t("reportsCenterTitle", "Report Card Center")}
+              </h2>
+              <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>
+                {schoolInfo.name} &middot; {getClassLabel(classData)} &middot; {schoolInfo.exam || DEFAULT_EXAM_TYPE}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", width: isMobile ? "100%" : "auto", justifyContent: isMobile ? "stretch" : "flex-end" }}>
+              {actionBtn(t("reportsPreviewPdf", "Preview PDF"), previewPdf, { disabled: !present.length })}
+              {actionBtn(exportingZip ? t("reportsPreparingPdf", "Preparing PDF...") : t("reportsDownloadAllPdfs", "Download all PDFs"), exportAllPdf, { primary: true, disabled: exportingZip || !present.length })}
+              {actionBtn(exportingZip ? t("reportsPreparingPdf", "Preparing PDF...") : t("reportsExportAllZip", "Download ZIP"), exportAllZip, { green: true, disabled: exportingZip || !present.length })}
+            </div>
+          </div>
+
+          {exportError && (
+            <div style={{ fontSize: 12, color: "#b91c1c", background: "#fff1f2", border: "1px solid #fecaca", borderRadius: 8, padding: "8px 10px" }}>
+              {exportError}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: isMobile ? 12 : 20, flexWrap: "wrap", fontSize: 13, color: "#64748b" }}>
+            <span><strong style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>{present.length}</strong> students reported</span>
+            <span><strong style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>{currentAvg.toFixed(1)}</strong> class average</span>
+            <span><strong style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>{classComparison.rank || "-"}</strong> year rank</span>
+            {present[0] ? <span>Top: <strong style={{ fontWeight: 600, color: "#0f172a" }}>{present[0].name}</strong> ({present[0].avg})</span> : null}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 8 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4, display: "block" }}>
+                {t("reportsTemplate", "Template")}
               </label>
-              <select
-                value={selectedStudentId}
-                onChange={(event) => setSelectedStudentId(event.target.value)}
-                style={styles.select}
-              >
-                {present.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.name}
-                  </option>
-                ))}
+              <select value={template} onChange={(e) => setTemplate(e.target.value)} style={selectStyle}>
+                {TEMPLATE_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4, display: "block" }}>
+                {t("reportsPaperSize", "Paper Size")}
+              </label>
+              <div style={{ ...selectStyle, background: "#f8fafc", color: "#0f172a", fontWeight: 500 }}>A4</div>
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4, display: "block" }}>
+                {t("reportsOrientation", "Orientation")}
+              </label>
+              <div style={{ ...selectStyle, background: "#f8fafc", color: "#0f172a", fontWeight: 500 }}>{t("reportsPortrait", "Portrait")}</div>
+            </div>
           </div>
+        </div>
 
-          <div style={{ display: "grid", gap: 10 }}>
-            {rankingHistory.map((snapshot) => (
-              <div
-                key={snapshot.exam}
-                style={{
-                  border: "1px solid #e4ebf7",
-                  borderRadius: 12,
-                  padding: 12,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                    flexWrap: "wrap",
-                    marginBottom: 8,
-                  }}
-                >
-                  <div
-                    style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}
-                  >
-                    {snapshot.exam}
+        {/* Ranking History + Subject Trends */}
+        <div style={{ display: "grid", gridTemplateColumns: isMobile || isTablet ? "1fr" : "1.1fr 0.9fr", gap: isMobile ? 14 : 18 }}>
+          <div style={{ ...sectionStyle, display: "grid", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>{t("reportsRankingHistory", "Ranking History")}</div>
+                <div style={{ fontSize: 12, color: "#64748b" }}>{t("reportsRankingHistorySub", "Track rank changes across all recorded exam types in this class.")}</div>
+              </div>
+              <div style={{ minWidth: isMobile || isTablet ? "100%" : 220 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4, display: "block" }}>
+                  {t("reportsSelectedStudent", "Selected Student")}
+                </label>
+                <select value={selectedStudentId} onChange={(e) => setSelectedStudentId(e.target.value)} style={selectStyle}>
+                  {present.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gap: 8 }}>
+              {rankingHistory.map((snapshot) => (
+                <div key={snapshot.exam} style={{ border: "1px solid #f1f5f9", borderRadius: 8, padding: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{snapshot.exam}</span>
+                    <span style={{ fontSize: 12, color: "#94a3b8" }}>
+                      {t("reportsAvgTotalRanked", "Avg total {avg} • {count} ranked students", { avg: snapshot.avgTotal.toFixed(1), count: snapshot.completeCount })}
+                    </span>
                   </div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>
-                    {t(
-                      "reportsAvgTotalRanked",
-                      "Avg total {avg} • {count} ranked students",
-                      {
-                        avg: snapshot.avgTotal.toFixed(1),
-                        count: snapshot.completeCount,
-                      },
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {snapshot.leaders.length ? snapshot.leaders.map((leader) => (
+                      <span key={leader.id} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 8px", fontSize: 12, color: "#0f172a" }}>
+                        {t("reportsLeaderChip", "#{posn} {name} • Avg {avg}", { posn: leader.posn, name: leader.name, avg: leader.avg })}
+                      </span>
+                    )) : (
+                      <span style={{ fontSize: 12, color: "#94a3b8" }}>{t("reportsNoExamRankings", "No complete rankings for this exam yet.")}</span>
                     )}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {snapshot.leaders.length ? (
-                    snapshot.leaders.map((leader) => (
-                      <div
-                        key={leader.id}
-                        style={{
-                          background: "#f8fbff",
-                          border: "1px solid #dbe7ff",
-                          borderRadius: 999,
-                          padding: "6px 10px",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "#17324d",
-                        }}
-                      >
-                        {t("reportsLeaderChip", "#{posn} {name} • Avg {avg}", {
-                          posn: leader.posn,
-                          name: leader.name,
-                          avg: leader.avg,
-                        })}
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ fontSize: 12, color: "#94a3b8" }}>
-                      {t(
-                        "reportsNoExamRankings",
-                        "No complete rankings for this exam yet.",
-                      )}
-                    </div>
-                  )}
-                </div>
+              ))}
+            </div>
+
+            <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 8 }}>
+                {t("reportsSelectedStudentTrend", "Selected Student Trend")}
               </div>
-            ))}
-          </div>
-
-          <div style={{ borderTop: "1px solid #edf2fb", paddingTop: 8 }}>
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 800,
-                color: "#102a43",
-                marginBottom: 8,
-              }}
-            >
-              {t("reportsSelectedStudentTrend", "Selected Student Trend")}
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                gap: 10,
-              }}
-            >
-              {selectedStudentHistory.length ? (
-                selectedStudentHistory.map((entry) => (
-                  <div
-                    key={entry.exam}
-                    style={{
-                      background: "#f8fbff",
-                      borderRadius: 12,
-                      border: "1px solid #e0e8f7",
-                      padding: 12,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 800,
-                        color: "#516074",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {entry.exam}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 24,
-                        fontWeight: 800,
-                        color: "#102a43",
-                        marginTop: 4,
-                      }}
-                    >
-                      #{entry.posn}
-                    </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8 }}>
+                {selectedStudentHistory.length ? selectedStudentHistory.map((entry) => (
+                  <div key={entry.exam} style={{ background: "#f8fafc", borderRadius: 8, border: "1px solid #f1f5f9", padding: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>{entry.exam}</div>
+                    <div style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", marginTop: 2 }}>#{entry.posn}</div>
                     <div style={{ fontSize: 12, color: "#64748b" }}>
-                      {t("reportsAvgTotal", "Avg {avg} • Total {total}", {
-                        avg: entry.avg,
-                        total: entry.total,
-                      })}
+                      {t("reportsAvgTotal", "Avg {avg} • Total {total}", { avg: entry.avg, total: entry.total })}
                     </div>
                   </div>
-                ))
-              ) : (
-                <div style={{ fontSize: 12, color: "#94a3b8" }}>
-                  {t(
-                    "reportsNoStudentHistory",
-                    "The selected student has not completed enough exams to show history yet.",
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ ...styles.section, display: "grid", gap: 14 }}>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
-              {t("reportsSubjectTrends", "Subject Trends")}
-            </div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>
-              {t(
-                "reportsSubjectTrendsSub",
-                "See how one subject performs across the class exam history.",
-              )}
-            </div>
-          </div>
-          <div>
-            <label style={styles.controlLabel}>
-              {t("reportsSubject", "Subject")}
-            </label>
-            <select
-              value={selectedSubject}
-              onChange={(event) => setSelectedSubject(event.target.value)}
-              style={styles.select}
-            >
-              {(classData.subjects ?? []).map((subject) => (
-                <option key={subject} value={subject}>
-                  {subject}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ display: "grid", gap: 10 }}>
-            {subjectTrend.map((entry) => {
-              const width = Math.max(8, Math.min(100, entry.average));
-              return (
-                <div key={entry.exam} style={{ display: "grid", gap: 6 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 8,
-                      fontSize: 12,
-                      color: "#425466",
-                    }}
-                  >
-                    <span style={{ fontWeight: 700 }}>{entry.exam}</span>
-                    <span>
-                      {t("reportsAvgMarks", "Avg {avg} • {count} marks", {
-                        avg: entry.average.toFixed(1),
-                        count: entry.count,
-                      })}
-                    </span>
+                )) : (
+                  <div style={{ fontSize: 12, color: "#94a3b8" }}>
+                    {t("reportsNoStudentHistory", "The selected student has not completed enough exams to show history yet.")}
                   </div>
-                  <div
-                    style={{
-                      height: 10,
-                      borderRadius: 999,
-                      background: "#e6edf8",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${width}%`,
-                        height: "100%",
-                        background: "linear-gradient(90deg, #2563eb, #06b6d4)",
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                )}
+              </div>
+            </div>
           </div>
 
-          <div style={{ borderTop: "1px solid #edf2fb", paddingTop: 10 }}>
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 800,
-                color: "#102a43",
-                marginBottom: 8,
-              }}
-            >
-              {t("reportsClassComparison", "Class Comparison")}
+          <div style={{ ...sectionStyle, display: "grid", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>{t("reportsSubjectTrends", "Subject Trends")}</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>{t("reportsSubjectTrendsSub", "See how one subject performs across the class exam history.")}</div>
             </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4, display: "block" }}>
+                {t("reportsSubject", "Subject")}
+              </label>
+              <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} style={selectStyle}>
+                {(classData.subjects ?? []).map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+
             <div style={{ display: "grid", gap: 8 }}>
-              {classComparison.ordered.length ? (
-                classComparison.ordered.slice(0, 5).map((entry, index) => (
-                  <div
-                    key={entry.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 10,
-                      alignItems: "center",
-                      padding: "10px 12px",
-                      border: "1px solid #e2ebf7",
-                      borderRadius: 12,
-                      background:
-                        entry.id === classData.id ? "#eef5ff" : "#fff",
-                    }}
-                  >
+              {subjectTrend.map((entry) => {
+                const width = Math.max(8, Math.min(100, entry.average));
+                return (
+                  <div key={entry.exam} style={{ display: "grid", gap: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#475569" }}>
+                      <span style={{ fontWeight: 500 }}>{entry.exam}</span>
+                      <span>{t("reportsAvgMarks", "Avg {avg} • {count} marks", { avg: entry.average.toFixed(1), count: entry.count })}</span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 3, background: "#f1f5f9", overflow: "hidden" }}>
+                      <div style={{ width: `${width}%`, height: "100%", background: "#0f2d6e", borderRadius: 3 }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 8 }}>
+                {t("reportsClassComparison", "Class Comparison")}
+              </div>
+              <div style={{ display: "grid", gap: 6 }}>
+                {classComparison.ordered.length ? classComparison.ordered.slice(0, 5).map((entry, index) => (
+                  <div key={entry.id} style={{
+                    display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center",
+                    padding: "8px 12px", border: "1px solid #f1f5f9", borderRadius: 8,
+                    background: entry.id === classData.id ? "#f8faff" : "#fff",
+                  }}>
                     <div>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 800,
-                          color: "#102a43",
-                        }}
-                      >
-                        #{index + 1} {entry.name}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#64748b" }}>
-                        {t("reportsExamStudents", "{exam} • {count} students", {
-                          exam: entry.exam,
-                          count: entry.count,
-                        })}
-                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>#{index + 1} {entry.name}</div>
+                      <div style={{ fontSize: 11, color: "#64748b" }}>{t("reportsExamStudents", "{exam} • {count} students", { exam: entry.exam, count: entry.count })}</div>
                     </div>
-                    <div
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 800,
-                        color: "#17324d",
-                      }}
-                    >
-                      {entry.avg.toFixed(1)}
-                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>{entry.avg.toFixed(1)}</div>
                   </div>
-                ))
-              ) : (
-                <div style={{ fontSize: 12, color: "#94a3b8" }}>
-                  {t(
-                    "reportsNoPeerClasses",
-                    "No peer classes available for comparison in this year.",
-                  )}
-                </div>
-              )}
+                )) : (
+                  <div style={{ fontSize: 12, color: "#94a3b8" }}>{t("reportsNoPeerClasses", "No peer classes available for comparison in this year.")}</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {!present.length ? (
-        <div style={styles.empty}>
-          {t(
-            "reportsNoScoredStudents",
-            "No scored students yet. Enter student scores to generate report cards.",
-          )}
-        </div>
-      ) : (
-        <div style={{ ...styles.section, display: "grid", gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
-              {t("reportsPrintableTemplates", "Printable Report Templates")}
-            </div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>
-              {t(
-                "reportsPrintableTemplatesSub",
-                "Preview and export individual student cards using the selected template. Student report cards are fixed to A4 portrait.",
-              )}
-            </div>
+        {/* Printable Report Templates */}
+        {!present.length ? (
+          <div style={{ ...sectionStyle, padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
+            {t("reportsNoScoredStudents", "No scored students yet. Enter student scores to generate report cards.")}
           </div>
-
-          {isMobile ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {present.map((student, index) => (
-                <div
-                  key={student.id}
-                  style={{
-                    background: "#fff",
-                    borderRadius: 8,
-                    padding: "10px 12px",
-                    boxShadow: "0 1px 6px rgba(0,51,102,0.07)",
-                    border: "1px solid #e8eef8",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: 6,
-                    }}
-                  >
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 8 }}
-                    >
-                      <span
-                        style={{
-                          fontWeight: 800,
-                          fontSize: 12,
-                          color: index < 3 ? "#b8860b" : "#888",
-                          minWidth: 20,
-                        }}
-                      >
-                        #{student.posn ?? index + 1}
-                      </span>
-                      <span
-                        style={{
-                          fontWeight: 700,
-                          fontSize: 13,
-                          color: "#003366",
-                        }}
-                      >
-                        {student.name}
-                      </span>
-                    </div>
-                    <button
-                      style={styles.viewBtn}
-                      onClick={() => onOpenReportCard(student.id)}
-                    >
-                      {t("reportsView", "View")}
-                    </button>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: "3px 12px",
-                      fontSize: 11,
-                    }}
-                  >
-                    <span style={{ fontFamily: "monospace", color: "#555" }}>
-                      CNO: {student.index_no ?? student.indexNo ?? "-"}
-                    </span>
-                    <span>
-                      {t("reportsTotal", "Total")}:{" "}
-                      <b>{student.total ?? "-"}</b>
-                    </span>
-                    <span>
-                      {t("analysisAvg", "Avg")}: <b>{student.avg ?? "-"}</b>
-                    </span>
-                  </div>
-                </div>
-              ))}
+        ) : (
+          <div style={{ ...sectionStyle, display: "grid", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>{t("reportsPrintableTemplates", "Printable Report Templates")}</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>{t("reportsPrintableTemplatesSub", "Preview and export individual student cards using the selected template. Student report cards are fixed to A4 portrait.")}</div>
             </div>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontSize: 12,
-                }}
-              >
-                <thead>
-                  <tr>
-                    {[
-                      "#",
-                      "CNO",
-                      t("reportsName", "Name"),
-                      t("reportsSex", "Sex"),
-                      t("reportsTotal", "Total"),
-                      t("analysisAvg", "Avg"),
-                      t("reportsTemplate", "Template"),
-                      t("reportsReportCard", "Report Card"),
-                    ].map((label) => (
-                      <th
-                        key={label}
-                        style={{
-                          background: "#003366",
-                          color: "#fff",
-                          padding: "8px 10px",
-                          textAlign: "left",
-                          fontWeight: 700,
-                          fontSize: 11,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {present.map((student, index) => (
-                    <tr
-                      key={student.id}
-                      style={{
-                        background: index % 2 === 0 ? "#fff" : "#f7f9ff",
-                      }}
-                    >
-                      <td
-                        style={{
-                          padding: "7px 10px",
-                          borderBottom: "1px solid #e8eef8",
-                        }}
-                      >
-                        {student.posn ?? index + 1}
-                      </td>
-                      <td
-                        style={{
-                          padding: "7px 10px",
-                          borderBottom: "1px solid #e8eef8",
-                          fontFamily: "monospace",
-                        }}
-                      >
-                        {student.index_no ?? student.indexNo ?? ""}
-                      </td>
-                      <td
-                        style={{
-                          padding: "7px 10px",
-                          borderBottom: "1px solid #e8eef8",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {student.name}
-                      </td>
-                      <td
-                        style={{
-                          padding: "7px 10px",
-                          borderBottom: "1px solid #e8eef8",
-                        }}
-                      >
-                        {student.sex === "F" ? "F" : "M"}
-                      </td>
-                      <td
-                        style={{
-                          padding: "7px 10px",
-                          borderBottom: "1px solid #e8eef8",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {student.total ?? "-"}
-                      </td>
-                      <td
-                        style={{
-                          padding: "7px 10px",
-                          borderBottom: "1px solid #e8eef8",
-                        }}
-                      >
-                        {student.avg ?? "-"}
-                      </td>
-                      <td
-                        style={{
-                          padding: "7px 10px",
-                          borderBottom: "1px solid #e8eef8",
-                        }}
-                      >
-                        {(template === "compact"
-                          ? t("reportsTemplateCompact", "Compact")
-                          : t("reportsTemplateOfficial", "Official")) + " • A4"}
-                      </td>
-                      <td
-                        style={{
-                          padding: "7px 10px",
-                          borderBottom: "1px solid #e8eef8",
-                          textAlign: "center",
-                        }}
-                      >
-                        <button
-                          style={styles.viewBtn}
-                          onClick={() => onOpenReportCard(student.id)}
-                        >
-                          {t("reportsView", "View")}
-                        </button>
-                      </td>
+
+            {isMobile ? (
+              <div style={{ display: "grid", gap: 6 }}>
+                {present.map((student, index) => (
+                  <div key={student.id} style={{ border: "1px solid #f1f5f9", borderRadius: 8, padding: "8px 10px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", minWidth: 20 }}>#{student.posn ?? index + 1}</span>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: "#0f172a" }}>{student.name}</span>
+                      </div>
+                      <button onClick={() => onOpenReportCard(student.id)} style={{ padding: "3px 10px", background: "#0f2d6e", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500 }}>
+                        {t("reportsView", "View")}
+                      </button>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 10px", fontSize: 11, color: "#64748b" }}>
+                      <span style={{ fontFamily: "monospace" }}>CNO: {student.index_no ?? student.indexNo ?? "-"}</span>
+                      <span>{t("reportsTotal", "Total")}: <strong>{student.total ?? "-"}</strong></span>
+                      <span>{t("analysisAvg", "Avg")}: <strong>{student.avg ?? "-"}</strong></span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                  <thead>
+                    <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                      {["#", "CNO", t("reportsName", "Name"), t("reportsSex", "Sex"), t("reportsTotal", "Total"), t("analysisAvg", "Avg"), t("reportsTemplate", "Template"), t("reportsReportCard", "Report Card")].map((label) => (
+                        <th key={label} style={{ padding: "8px 10px", textAlign: "left", fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{label}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-      </>
-      )}
+                  </thead>
+                  <tbody>
+                    {present.map((student, index) => (
+                      <tr key={student.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "7px 10px", color: "#64748b" }}>{student.posn ?? index + 1}</td>
+                        <td style={{ padding: "7px 10px", fontFamily: "monospace", color: "#475569" }}>{student.index_no ?? student.indexNo ?? ""}</td>
+                        <td style={{ padding: "7px 10px", fontWeight: 500, color: "#0f172a" }}>{student.name}</td>
+                        <td style={{ padding: "7px 10px", color: "#64748b" }}>{student.sex === "F" ? "F" : "M"}</td>
+                        <td style={{ padding: "7px 10px", fontWeight: 600, color: "#0f172a" }}>{student.total ?? "-"}</td>
+                        <td style={{ padding: "7px 10px", color: "#475569" }}>{student.avg ?? "-"}</td>
+                        <td style={{ padding: "7px 10px", color: "#64748b" }}>{(template === "compact" ? t("reportsTemplateCompact", "Compact") : t("reportsTemplateOfficial", "Official")) + " · A4"}</td>
+                        <td style={{ padding: "7px 10px", textAlign: "center" }}>
+                          <button onClick={() => onOpenReportCard(student.id)} style={{ padding: "3px 10px", background: "#0f2d6e", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500 }}>
+                            {t("reportsView", "View")}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+        </>
+        )}
+      </div>
     </div>
   );
 }
