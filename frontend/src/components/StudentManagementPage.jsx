@@ -138,28 +138,6 @@ function attendanceTone(status = "") {
   return "amber";
 }
 
-function SignalCard({ label, value, note, tone = "slate" }) {
-  return (
-    <div style={{ ...softCardStyle({ padding: 14, radius: 12 }), display: "grid", gap: 5 }}>
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 600,
-          color: "#64748b",
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", lineHeight: 1.3 }}>{value}</div>
-      </div>
-      <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>{note}</div>
-    </div>
-  );
-}
-
 export function StudentManagementPage({
   classes = [],
   canDeleteStudents = false,
@@ -377,13 +355,6 @@ export function StudentManagementPage({
     }),
     [students],
   );
-  const scopeSummary = [
-    yearFilter || "All years",
-    formFilter || "All forms",
-    classFilter ? classOptions.find((entry) => entry.id === classFilter)?.label || "Selected class" : "All classes",
-    lifecycleFilter ? getEnrollmentLabel(lifecycleFilter) : "All statuses",
-  ];
-
   const selectedStudent = useMemo(
     () => students.find((student) => makeStudentKey(student) === selectedStudentKey) || null,
     [selectedStudentKey, students]
@@ -655,226 +626,131 @@ export function StudentManagementPage({
     >
       <section
         style={{
-          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 24 : 30 }),
+          border: "1px solid #e2e8f0",
+          borderRadius: 12,
+          background: "#ffffff",
+          padding: isMobile ? 14 : 20,
           display: "grid",
           gap: 14,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ display: "inline-flex", ...pillStyle({ tone: "amber" }) }}>School-wide records</div>
-            <div style={{ fontFamily: displayFontStack, fontSize: isMobile ? 24 : 28, fontWeight: 500, color: "#0f172a", lineHeight: 1.15, marginTop: 10 }}>
+            <div style={{ fontFamily: displayFontStack, fontSize: isMobile ? 22 : 26, fontWeight: 500, color: "#0f172a", lineHeight: 1.15 }}>
               Student Records
             </div>
-            <div style={{ fontSize: 14, color: "#64748b", marginTop: 6, maxWidth: 720 }}>
-              Manage student records across the school without changing the current class-based Student Entry workflow.
+            <div style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>
+              {stats.students} students across {stats.classes} classes
             </div>
           </div>
-          <button
-            type="button"
-            onClick={openAddModal}
-            style={primaryButtonStyle()}
-          >
-            + Add Student
-          </button>
+          <button type="button" onClick={openAddModal} style={primaryButtonStyle()}>+ Add Student</button>
         </div>
 
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(5, minmax(0, 1fr))",
-            gap: 12,
+            display: "flex",
+            gap: isMobile ? 12 : 20,
+            flexWrap: "wrap",
+            padding: "10px 0",
+            borderTop: "1px solid #f1f5f9",
+            borderBottom: "1px solid #f1f5f9",
           }}
         >
           {[
-            ["Students", stats.students, "All student records currently available."],
-            ["Active", stats.active, "Students currently marked as active in the school register."],
-            ["Classes", stats.classes, "Classes linked to student records."],
-            ["Guardians", stats.guardians, "Students with parent or guardian contact saved."],
-            ["Need Contact", stats.missingGuardian, "Students still missing guardian information."],
-          ].map(([label, value, note]) => (
-            <div
-              key={label}
-              style={{ ...softCardStyle({ padding: 14, radius: 12 }), display: "grid", gap: 4 }}
-            >
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                {label}
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 600, color: "#0f172a" }}>{value}</div>
-              <div style={{ fontSize: 12, color: "#94a3b8" }}>{note}</div>
+            ["Active", stats.active],
+            ["Guardians", stats.guardians],
+            ["Need contact", stats.missingGuardian],
+          ].map(([label, value]) => (
+            <div key={label} style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>{value}</span>
+              <span style={{ fontSize: 12, color: "#94a3b8" }}>{label}</span>
             </div>
           ))}
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
-            gap: 12,
-          }}
-        >
-          <SignalCard
-            label="Directory Scope"
-            value={scopeSummary.join(" • ")}
-            note="Filters define the school-wide directory view without changing the active class workspace."
-            tone="blue"
-          />
-          <SignalCard
-            label="Current Focus"
-            value={selectedStudent?.name || "No student selected"}
-            note={
-              selectedStudent
-                ? `${selectedStudent.classLabel || "Class"} • ${getEnrollmentLabel(selectedStudent.enrollmentStatus)}`
-                : "Select a learner from the directory to inspect the summary panel and continue to full profile."
-            }
-            tone="teal"
-          />
-          <SignalCard
-            label="Directory Mode"
-            value={`${viewMode === "grouped" ? "Grouped" : "Table"} • ${filteredStudents.length} visible`}
-            note="Use grouped view for registrar-style browsing and table view for faster scanning across many students."
-            tone="slate"
-          />
-        </div>
-      </section>
-
-      <section
-        style={{
-          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 24 : 30 }),
-          display: "grid",
-          gap: 12,
-        }}
-      >
-        <div style={{ display: "grid", gap: 4 }}>
-          <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>Academic Year Promotion</div>
-          <div style={{ fontSize: 13, color: "#64748b", maxWidth: 760, lineHeight: 1.6 }}>
-            Roll students into the next class while keeping their permanent identity, guardian details, and optional-subject setup aligned to the target class.
-          </div>
-        </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
-            gap: 12,
-            alignItems: "end",
-          }}
-        >
-          <label style={{ display: "grid", gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              Source Class
-            </span>
-            <select
-              value={promotionForm.sourceClassId}
-              onChange={(event) => setPromotionForm((prev) => ({ ...prev, sourceClassId: event.target.value }))}
-              style={fieldStyle()}
+        <details style={{ cursor: "default" }}>
+          <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#475569", userSelect: "none" }}>
+            Academic year promotion
+          </summary>
+          <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr auto",
+                gap: 10,
+                alignItems: "end",
+              }}
             >
-              <option value="">Select source class</option>
-              {allClassOptions.map((cls) => (
-                <option key={`source-${cls.id}`} value={cls.id}>
-                  {cls.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label style={{ display: "grid", gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              Target Class
-            </span>
-            <select
-              value={promotionForm.targetClassId}
-              onChange={(event) => setPromotionForm((prev) => ({ ...prev, targetClassId: event.target.value }))}
-              style={fieldStyle()}
-            >
-              <option value="">Select target class</option>
-              {allClassOptions
-                .filter((cls) => cls.id !== promotionForm.sourceClassId)
-                .map((cls) => (
-                  <option key={`target-${cls.id}`} value={cls.id}>
-                    {cls.label}
-                  </option>
-                ))}
-            </select>
-          </label>
-          <button type="button" onClick={handlePromotion} disabled={promotionSaving} style={primaryButtonStyle()}>
-            {promotionSaving ? "Running..." : "Promote / Rollover"}
-          </button>
-        </div>
-        <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
-          New class CNOs are generated in the target class. Existing target students with the same admission number are refreshed instead of duplicated.
-        </div>
-        {promotionError ? (
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#b42318" }}>{promotionError}</div>
-        ) : null}
-      </section>
-
-      <section
-        style={{
-          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 24 : 30 }),
-          display: "grid",
-          gap: 12,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
-        <div style={{ display: "grid", gap: 4 }}>
-          <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>Directory</div>
-          <div style={{ fontSize: 13, color: "#64748b" }}>
-              Search, filter, and maintain full student records from one place. Use the directory to find a learner, then continue from the focused student panel or full profile.
-          </div>
-        </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <div style={pillStyle({ tone: classFilter || formFilter || yearFilter || lifecycleFilter ? "teal" : "slate" })}>
-              {filteredStudents.length} visible
+              <label style={{ display: "grid", gap: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Source</span>
+                <select value={promotionForm.sourceClassId} onChange={(event) => setPromotionForm((prev) => ({ ...prev, sourceClassId: event.target.value }))} style={fieldStyle()}>
+                  <option value="">Select source class</option>
+                  {allClassOptions.map((cls) => <option key={`source-${cls.id}`} value={cls.id}>{cls.label}</option>)}
+                </select>
+              </label>
+              <label style={{ display: "grid", gap: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Target</span>
+                <select value={promotionForm.targetClassId} onChange={(event) => setPromotionForm((prev) => ({ ...prev, targetClassId: event.target.value }))} style={fieldStyle()}>
+                  <option value="">Select target class</option>
+                  {allClassOptions.filter((cls) => cls.id !== promotionForm.sourceClassId).map((cls) => <option key={`target-${cls.id}`} value={cls.id}>{cls.label}</option>)}
+                </select>
+              </label>
+              <button type="button" onClick={handlePromotion} disabled={promotionSaving} style={primaryButtonStyle()}>
+                {promotionSaving ? "Running..." : "Promote"}
+              </button>
             </div>
+            {promotionError ? <div style={{ fontSize: 12, fontWeight: 600, color: "#b42318" }}>{promotionError}</div> : null}
+          </div>
+        </details>
+      </section>
+
+      <section
+        style={{
+          border: "1px solid #e2e8f0",
+          borderRadius: 12,
+          background: "#ffffff",
+          padding: isMobile ? 14 : 20,
+          display: "grid",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 13, color: "#64748b" }}>{filteredStudents.length} of {students.length}</span>
             {(query || classFilter || formFilter || yearFilter || lifecycleFilter) && (
               <button
                 type="button"
                 onClick={() => { setQuery(""); setYearFilter(""); setFormFilter(""); setClassFilter(""); setLifecycleFilter(""); }}
-                style={{
-                  ...pillStyle({ tone: "slate" }),
-                  cursor: "pointer",
-                  border: "1px solid rgba(203,213,225,0.8)",
-                }}
+                style={{ background: "none", border: "none", fontSize: 12, color: "#3b82f6", cursor: "pointer", padding: 0 }}
               >
-                Clear filters
+                Clear
               </button>
             )}
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {[
-                ["grouped", "Grouped"],
-                ["table", "Table"],
-              ].map(([value, label]) => {
-                const active = viewMode === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setViewMode(value)}
-                    style={{
-                      ...(active ? pillStyle({ tone: "blue" }) : pillStyle({ tone: "slate" })),
-                      cursor: "pointer",
-                    }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+          </div>
+          <div style={{ display: "flex", gap: 4 }}>
+            {[
+              ["grouped", "Grouped"],
+              ["table", "Table"],
+            ].map(([value, label]) => {
+              const active = viewMode === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setViewMode(value)}
+                  style={{
+                    padding: "5px 12px", fontSize: 12, fontWeight: active ? 600 : 400,
+                    borderRadius: 6,
+                    border: active ? "1px solid #0f2d6e" : "1px solid #e2e8f0",
+                    background: active ? "#0f2d6e" : "#fff",
+                    color: active ? "#fff" : "#475569",
+                    cursor: "pointer",
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
         <div
@@ -882,126 +758,33 @@ export function StudentManagementPage({
             display: "grid",
             gridTemplateColumns: isMobile
               ? "1fr"
-              : "minmax(260px, 1.2fr) repeat(4, minmax(150px, 0.68fr))",
-            gap: 12,
+              : "minmax(240px, 1.2fr) repeat(4, minmax(130px, 0.65fr))",
+            gap: 8,
           }}
         >
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by admission no, student name, CNO, parent, or class"
+            placeholder="Search name, admission no, CNO..."
             style={fieldStyle()}
           />
           <select value={yearFilter} onChange={(event) => setYearFilter(event.target.value)} style={fieldStyle()}>
             <option value="">All Years</option>
-            {yearOptions.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
+            {yearOptions.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
           <select value={formFilter} onChange={(event) => setFormFilter(event.target.value)} style={fieldStyle()}>
             <option value="">All Forms</option>
-            {formOptions.map((formOption) => (
-              <option key={formOption} value={formOption}>
-                {formOption}
-              </option>
-            ))}
+            {formOptions.map((formOption) => <option key={formOption} value={formOption}>{formOption}</option>)}
           </select>
           <select value={classFilter} onChange={(event) => setClassFilter(event.target.value)} style={fieldStyle()}>
             <option value="">All Classes</option>
-            {classOptions.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.label}
-              </option>
-            ))}
+            {classOptions.map((cls) => <option key={cls.id} value={cls.id}>{cls.label}</option>)}
           </select>
           <select value={lifecycleFilter} onChange={(event) => setLifecycleFilter(event.target.value)} style={fieldStyle()}>
-            <option value="">All Lifecycle States</option>
-            {ENROLLMENT_STATUS_OPTIONS.map((entry) => (
-              <option key={entry.value} value={entry.value}>
-                {entry.label}
-              </option>
-            ))}
+            <option value="">All Statuses</option>
+            {ENROLLMENT_STATUS_OPTIONS.map((entry) => <option key={entry.value} value={entry.value}>{entry.label}</option>)}
           </select>
         </div>
-
-        {selectedStudent ? (
-          <div
-            style={{
-              ...softCardStyle({ padding: isMobile ? 14 : 18, radius: 22 }),
-              display: "grid",
-              gap: 12,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: 12,
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ display: "grid", gap: 4 }}>
-                <div style={{ display: "inline-flex", ...pillStyle({ tone: "teal" }) }}>Student Focus</div>
-                <div style={{ fontSize: isMobile ? 20 : 22, fontWeight: 600, color: "#0f172a" }}>
-                  {selectedStudent.name || "Unnamed Student"}
-                </div>
-                <div style={{ fontSize: 13, color: "#64748b" }}>
-                  {selectedStudent.classLabel} • {selectedStudent.sex || "-"} •{" "}
-                  {selectedStudent.admissionNo || selectedStudent.admission_no || "No admission number"}
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  onClick={() => openProfileForStudent(selectedStudent)}
-                  disabled={
-                    !(
-                      selectedStudent.admissionNo ||
-                      selectedStudent.admission_no ||
-                      selectedStudent.index_no ||
-                      selectedStudent.indexNo
-                    )
-                  }
-                  style={primaryButtonStyle({ compact: true })}
-                >
-                  Open Profile
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openEditModal(selectedStudent)}
-                  style={secondaryButtonStyle({ compact: true })}
-                >
-                  Edit Record
-                </button>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(0, 1fr))",
-                gap: 10,
-              }}
-            >
-              {[
-                ["Lifecycle", getEnrollmentLabel(selectedStudent.enrollmentStatus), getEnrollmentTone(selectedStudent.enrollmentStatus)],
-                ["CNO", selectedStudent.index_no || selectedStudent.indexNo || "-", "slate"],
-                ["Guardian", selectedStudent.parentName || "Missing", selectedStudent.parentName ? "blue" : "amber"],
-                ["Phone", selectedStudent.parentPhone || "Missing", selectedStudent.parentPhone ? "blue" : "amber"],
-              ].map(([label, value, tone]) => (
-                <div key={label} style={{ ...softCardStyle({ padding: 12, radius: 10 }), display: "grid", gap: 4 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                    {label}
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>{value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
 
         {viewMode === "table" ? (
           <div
