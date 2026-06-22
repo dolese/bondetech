@@ -317,11 +317,20 @@ function findStudentCommunicationContext(classes, studentRef) {
 export default function App() {
   const { t } = useI18n();
   const [page, setPageRaw] = useState(() => {
-    try { return sessionStorage.getItem("bonde-page") || "dashboard"; } catch { return "dashboard"; }
+    const hash = window.location.hash.replace("#", "");
+    return hash || "dashboard";
   });
   const setPage = useCallback((p) => {
     setPageRaw(p);
-    try { sessionStorage.setItem("bonde-page", p); } catch {}
+    window.history.replaceState(null, "", `#${p}`);
+  }, []);
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash) setPageRaw(hash);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
   const [accountInitialTab, setAccountInitialTab] = useState("profile");
   const [sideOpen, setSideOpen] = useState(() =>
