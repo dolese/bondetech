@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
       }
       return sendJson(res, 200, cls);
     } catch (err) {
-      const status = /class not found/i.test(err.message) ? 404 : 500;
+      const status = /class not found/i.test(err.message) ? 404 : /move all students/i.test(err.message) ? 409 : 500;
       return sendJson(res, status, { error: err.message });
     }
   }
@@ -87,6 +87,8 @@ module.exports = async (req, res) => {
       const status = /class not found/i.test(err.message)
         ? 404
         : /already exists/i.test(err.message)
+        ? 409
+        : /historical records/i.test(err.message)
         ? 409
         : 500;
       return sendJson(res, status, { error: err.message });

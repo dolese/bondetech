@@ -23,7 +23,11 @@ const palette = {
 };
 
 function classLabel(stream = {}) {
-  return [stream.form, stream.stream, stream.year].filter(Boolean).join(" ") || stream.name || "Stream";
+  return [stream.form, stream.stream || "Unlabelled", stream.year].filter(Boolean).join(" ") || stream.name || "Stream";
+}
+
+function hasValidStreamLetter(stream = {}) {
+  return /^[A-Z]$/.test(String(stream.stream || "").toUpperCase());
 }
 
 function studentKey(student = {}) {
@@ -158,12 +162,13 @@ function StreamCard({ stream, canManage, onOpen, onEdit, onRestore, onToggleStat
   const ratio = capacity > 0 ? Math.min(100, Math.round((count / capacity) * 100)) : 0;
   const inactive = stream.streamStatus === "inactive";
   const archived = Boolean(stream.archived);
+  const validLetter = hasValidStreamLetter(stream);
   return (
     <article style={{ border: `1px solid ${palette.line}`, borderRadius: 18, padding: 16, background: archived ? "#fffaf0" : "#fff", display: "grid", gap: 13, boxShadow: "0 4px 16px rgba(16,24,40,0.05)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
         <div>
           <div style={{ fontSize: 11, color: palette.muted, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>Stream</div>
-          <div style={{ fontFamily: displayFontStack, fontSize: 28, fontWeight: 650, color: palette.ink, marginTop: 2 }}>{stream.stream}</div>
+          <div style={{ fontFamily: displayFontStack, fontSize: validLetter ? 28 : 20, fontWeight: 650, color: palette.ink, marginTop: 2 }}>{validLetter ? stream.stream : "Unlabelled"}</div>
         </div>
         <span style={badge(archived ? "Archived" : inactive ? "Inactive" : "Active", archived ? "amber" : inactive ? "slate" : "green")}>
           {archived ? "Archived" : inactive ? "Inactive" : "Active"}
@@ -187,8 +192,8 @@ function StreamCard({ stream, canManage, onOpen, onEdit, onRestore, onToggleStat
         {archived ? (
           canManage ? (
             <>
-              <button type="button" onClick={() => onRestore(stream)} style={buttonStyle({ primary: true, compact: true })}>Restore</button>
-              <button type="button" onClick={() => onDelete(stream)} style={buttonStyle({ danger: true, compact: true })}>Delete</button>
+              {validLetter && count === 0 ? <button type="button" onClick={() => onRestore(stream)} style={buttonStyle({ primary: true, compact: true })}>Restore</button> : null}
+              {count === 0 ? <button type="button" onClick={() => onDelete(stream)} style={buttonStyle({ danger: true, compact: true })}>Delete</button> : null}
             </>
           ) : null
         ) : (
@@ -293,22 +298,25 @@ export function FormsStreamsPage({
   const formItems = useMemo(() => CLASS_FORMS.map((form) => overview.forms.find((item) => item.form === form) || { form, active: false, streamCount: 0, totalStudents: 0, unassignedCount: 0, streams: [] }), [overview.forms]);
   const selectedFormItem = formItems.find((item) => item.form === selectedForm) || formItems[0];
   const streams = useMemo(() => [...(selectedFormItem?.streams || [])].sort((a, b) => String(a.stream).localeCompare(String(b.stream))), [selectedFormItem]);
-  const activeStreams = useMemo(() => streams.filter((stream) => !stream.archived && stream.streamStatus !== "inactive"), [streams]);
-  const usedStreams = useMemo(() => new Set(streams.map((stream) => String(stream.stream || "").toUpperCase())), [streams]);
+  const currentStreams = useMemo(() => streams.filter((stream) => !stream.archived), [streams]);
+  const archivedStreams = useMemo(() => streams.filter((stream) => stream.archived), [streams]);
+  const rosterStreams = useMemo(() => currentStreams.filter((stream) => stream.streamStatus !== "inactive"), [currentStreams]);
+  const activeStreams = useMemo(() => rosterStreams.filter(hasValidStreamLetter), [rosterStreams]);
+  const usedStreams = useMemo(() => new Set(streams.filter(hasValidStreamLetter).map((stream) => String(stream.stream).toUpperCase())), [streams]);
   const nextStream = STREAM_LETTERS.find((letter) => !usedStreams.has(letter)) || "A";
 
   const loadRoster = useCallback(async () => {
-    if (!canAssignStreams || !activeStreams.length) { setRosterClasses([]); return; }
+    if (!canAssignStreams || !rosterStreams.length) { setRosterClasses([]); return; }
     setLoadingRoster(true);
     try {
-      const loaded = await Promise.all(activeStreams.map((stream) => API.getClass(stream.id)));
+      const loaded = await Promise.all(rosterStreams.map((stream) => API.getClass(stream.id)));
       setRosterClasses(loaded.map((item) => ({ ...item, students: Array.isArray(item.students) ? item.students : [] })));
     } catch (err) {
       showToast?.(err.message || "Unable to load stream rosters", "error");
     } finally {
       setLoadingRoster(false);
     }
-  }, [activeStreams, canAssignStreams, showToast]);
+  }, [rosterStreams, canAssignStreams, showToast]);
 
   useEffect(() => { loadRoster(); setSelectedStudents({}); setTargetClassId(""); setTargetForm(selectedForm); }, [loadRoster, selectedForm]);
 
@@ -403,7 +411,9 @@ export function FormsStreamsPage({
 
         <section style={{ border: `1px solid ${palette.line}`, borderRadius: 22, background: "#fff", padding: isMobile ? 15 : 21, boxShadow: "0 8px 26px rgba(16,24,40,0.05)", display: "grid", gap: 17 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}><div><span style={badge(selectedFormItem?.active ? "Active form" : "Inactive form", selectedFormItem?.active ? "green" : "slate")}>{selectedFormItem?.active ? "Active form" : "Inactive form"}</span><h2 style={{ margin: "9px 0 0", fontFamily: displayFontStack, fontSize: 27, fontWeight: 650, color: palette.ink }}>{selectedForm} streams</h2><div style={{ marginTop: 4, fontSize: 12, color: palette.muted }}>{selectedFormItem?.streamCount || 0} streams | {selectedFormItem?.totalStudents || 0} students</div></div>{canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>+ Add Stream</button> : null}</div>
-          {loading ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}><Skeleton height={250} /><Skeleton height={250} /></div> : streams.length ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{streams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} onOpen={onNavigateToClass} onEdit={openEdit} onRestore={async (item) => { const result = await onRestoreClass?.(item.id); if (result?.ok !== false) { showToast?.("Stream restored", "success"); await refreshAll(); } }} onToggleStatus={toggleStreamStatus} onDelete={deleteArchivedStream} />)}</div> : <EmptyState title={`No streams in ${selectedForm}`} body="Create the first stream and define its capacity before assigning students." action={canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>Add first stream</button> : null} />}
+          {Number(selectedFormItem?.invalidStreamCount || 0) ? <div style={{ border: "1px solid #f0c36a", borderRadius: 14, padding: "11px 13px", background: palette.amberSoft, color: "#7a4610", fontSize: 12, lineHeight: 1.55 }}><strong>{selectedFormItem.invalidStreamCount} current class needs a stream letter.</strong> Edit the Unlabelled card and assign A-Z before using it as an assignment target.</div> : null}
+          {loading ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}><Skeleton height={250} /><Skeleton height={250} /></div> : currentStreams.length ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{currentStreams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} onOpen={onNavigateToClass} onEdit={openEdit} onRestore={async (item) => { const result = await onRestoreClass?.(item.id); if (result?.ok !== false) { showToast?.("Stream restored", "success"); await refreshAll(); } }} onToggleStatus={toggleStreamStatus} onDelete={deleteArchivedStream} />)}</div> : <EmptyState title={`No streams in ${selectedForm}`} body="Create the first stream and define its capacity before assigning students." action={canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>Add first stream</button> : null} />}
+          {archivedStreams.length ? <details style={{ borderTop: `1px solid ${palette.line}`, paddingTop: 14 }}><summary style={{ cursor: "pointer", color: palette.muted, fontSize: 12, fontWeight: 800 }}>Archived history ({archivedStreams.length}) - excluded from current totals</summary><div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{archivedStreams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} onOpen={onNavigateToClass} onEdit={openEdit} onRestore={async (item) => { const result = await onRestoreClass?.(item.id); if (result?.ok !== false) { showToast?.("Stream restored", "success"); await refreshAll(); } }} onToggleStatus={toggleStreamStatus} onDelete={deleteArchivedStream} />)}</div></details> : null}
         </section>
 
         {canAssignStreams ? (

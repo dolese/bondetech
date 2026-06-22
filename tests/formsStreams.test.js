@@ -5,6 +5,7 @@ const test = require("node:test");
 const {
   createClassRecord,
   deleteClassRecord,
+  restoreClassRecord,
   updateClassRecord,
 } = require("../lib/classes");
 const {
@@ -83,6 +84,12 @@ test("streams with students cannot be disabled, undersized, or archived", async 
   await assert.rejects(updateClassRecord(db, "form1a", { streamStatus: "inactive" }), /move all students/i);
   await assert.rejects(updateClassRecord(db, "form1a", { streamCapacity: 0 }), /capacity/i);
   await assert.rejects(deleteClassRecord(db, "form1a"), /move all students/i);
+});
+
+test("historical archived classes with students cannot be restored", async () => {
+  const db = createPlacementDb();
+  await db.collection("classes").doc("form1a").update({ archived: true });
+  await assert.rejects(restoreClassRecord(db, "form1a"), /historical records/i);
 });
 
 test("bulk stream assignment moves the student and updates both counts", async () => {

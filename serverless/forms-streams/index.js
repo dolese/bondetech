@@ -14,11 +14,17 @@ function buildFormsPayload(classes, unassigned, year) {
     year,
     forms: ALLOWED_FORMS.map((form) => {
       const streams = classes.filter((cls) => cls.form === form);
+      const currentStreams = streams.filter((stream) => !stream.archived);
+      const activeStreams = currentStreams.filter((stream) => stream.streamStatus !== "inactive");
+      const archivedStreams = streams.filter((stream) => stream.archived);
       return {
         form,
-        active: streams.some((stream) => !stream.archived && stream.streamStatus !== "inactive"),
-        streamCount: streams.filter((stream) => !stream.archived).length,
-        totalStudents: streams.reduce((sum, stream) => sum + Number(stream.studentCount || 0), 0),
+        active: activeStreams.length > 0,
+        streamCount: currentStreams.length,
+        totalStudents: activeStreams.reduce((sum, stream) => sum + Number(stream.studentCount || 0), 0),
+        archivedCount: archivedStreams.length,
+        archivedStudentCount: archivedStreams.reduce((sum, stream) => sum + Number(stream.studentCount || 0), 0),
+        invalidStreamCount: currentStreams.filter((stream) => !/^[A-Z]$/.test(String(stream.stream || ""))).length,
         unassignedCount: unassigned.filter((student) => student.form === form).length,
         streams,
       };

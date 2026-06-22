@@ -82,7 +82,8 @@ router.get("/:id", requireRole(canReadClassData, "You do not have permission to 
     }
     res.json(cls);
   } catch (err) {
-    res.status(/class not found/i.test(err.message) ? 404 : 500).json({ error: err.message });
+    const status = /class not found/i.test(err.message) ? 404 : /move all students/i.test(err.message) ? 409 : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 
@@ -139,6 +140,8 @@ router.patch("/:id", requireRole(canManageClasses, "Only administrators can rest
     const status = /class not found/i.test(err.message)
       ? 404
       : /already exists/i.test(err.message)
+      ? 409
+      : /historical records/i.test(err.message)
       ? 409
       : 500;
     res.status(status).json({ error: err.message });
