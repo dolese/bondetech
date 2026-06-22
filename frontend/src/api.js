@@ -110,7 +110,7 @@ export const API = {
   getClass:       (id)          => get(`/classes/${id}`),
   createClass:    (data)        => post("/classes", data),
   updateClass:    (id, data)    => put(`/classes/${id}`, data),
-  deleteClass:    (id)          => del(`/classes/${id}`),
+  deleteClass:    (id, { permanent } = {}) => del(`/classes/${id}${permanent ? "?permanent=true" : ""}`),
   restoreClass:   (id)          => patch(`/classes/${id}`),
 
   // Publish
