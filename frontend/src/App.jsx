@@ -20,7 +20,6 @@ import { SubjectsPage } from "./components/SubjectsPage";
 import { ExamsPage } from "./components/ExamsPage";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
-import { ExamPickerScreen } from "./components/ExamPickerScreen";
 import { StudentProfilePage } from "./components/StudentProfilePage";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTopBar } from "./components/AppTopBar";
@@ -340,7 +339,6 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [modalType, setModalType] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [examPickerClass, setExamPickerClass] = useState(null);
   const [searchProfileTarget, setSearchProfileTarget] = useState(null);
   const [schoolSettings, setSchoolSettings] = useState(DEFAULT_SCHOOL);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -736,16 +734,12 @@ export default function App() {
     if (isMobile) setSideOpen(false);
   }, [isMobile]);
 
-  const handleExamPickerSelect = useCallback((exam) => {
-    const cls = examPickerClass;
-    setExamPickerClass(null);
+  const handlePickClass = useCallback((cls) => {
     if (!cls) return;
     setActiveId(cls.id);
-    setActiveExam(exam);
-    saveExamForClass(cls, exam);
     setPage("students");
     if (isMobile) setSideOpen(false);
-  }, [examPickerClass, isMobile, saveExamForClass, setActiveExam, setActiveId]);
+  }, [isMobile, setActiveId]);
 
   const handleConfirmDelete = useCallback(() => {
     if (!confirmDel) return;
@@ -853,7 +847,7 @@ export default function App() {
           onClose={closeSide}
           onToggleYear={toggleYear}
           onAddClass={addClass}
-          onPickClass={setExamPickerClass}
+          onPickClass={handlePickClass}
           onSetPage={setPage}
         />
       )}
@@ -1299,13 +1293,6 @@ export default function App() {
         />
       )}
 
-            {examPickerClass && (
-        <ExamPickerScreen
-          classData={examPickerClass}
-          onPick={handleExamPickerSelect}
-          onCancel={() => setExamPickerClass(null)}
-        />
-      )}
 
       <CommandPalette
         isOpen={isCommandPaletteOpen}

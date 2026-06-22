@@ -1253,7 +1253,7 @@ export function EntryPanel({
           {/* Row 1: Exam selector + Search (always full-width on mobile) */}
           <div style={{ ...styles.tlbGroup, flex: "1 1 100%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#003366", whiteSpace: "nowrap" }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", whiteSpace: "nowrap" }}>
                 Exam:
               </span>
               <select
@@ -1261,15 +1261,15 @@ export function EntryPanel({
                 onChange={e => onChangeExam && onChangeExam(e.target.value)}
                 style={{
                   padding: "6px 8px",
-                  borderRadius: 5,
-                  border: "2px solid #003366",
-                  height: 30,
-                  fontWeight: 700,
-                  fontSize: 11,
-                background: "#f0f5ff",
-                color: "#003366",
-                cursor: "pointer",
-                  minWidth: compactLayout ? 0 : 120,
+                  borderRadius: 6,
+                  border: "1px solid #e2e8f0",
+                  height: 32,
+                  fontWeight: 600,
+                  fontSize: 12,
+                  background: "#fff",
+                  color: "#0f172a",
+                  cursor: "pointer",
+                  minWidth: compactLayout ? 0 : 140,
                   width: compactLayout ? "100%" : "auto",
                 }}
               >
