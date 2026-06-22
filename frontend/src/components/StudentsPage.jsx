@@ -1,11 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { EntryPanel } from "./EntryPanel";
-import { DEFAULT_EXAM_TYPE, getCompositeEntry } from "../utils/constants";
-import { withPositions } from "../utils/grading";
-
-function makeMergedStudentId(classId, studentId) {
-  return `${String(classId || "").trim()}::${String(studentId || "").trim()}`;
-}
+import { buildFormWorkspace } from "../utils/formClassAggregation";
 
 export function StudentsPage({
   classData,
@@ -20,67 +15,26 @@ export function StudentsPage({
   activeExam,
   onChangeExam,
 }) {
-  const relatedClasses = useMemo(
-    () =>
-      (classes || []).filter(
-        (cls) =>
-          String(cls.year || "").trim() === String(classData?.year || "").trim() &&
-          String(cls.form || "").trim() === String(classData?.form || "").trim(),
-      ),
-    [classData?.form, classData?.year, classes],
+  const formWorkspace = useMemo(
+    () => buildFormWorkspace(classes, classData, activeExam),
+    [activeExam, classData, classes],
   );
-
-  const mergedClassData = useMemo(() => {
-    const students = relatedClasses.flatMap((cls) =>
-      (cls.students || []).map((student) => ({
-        ...student,
-        id: makeMergedStudentId(cls.id, student.id),
-        originalStudentId: student.id,
-        classId: cls.id,
-        stream: cls.stream || "",
-      })),
-    );
-
-    return {
-      ...classData,
-      id: `${classData?.year || ""}-${classData?.form || ""}-all-streams`,
-      name: [classData?.form, classData?.year, "All Streams"].filter(Boolean).join(" ").trim(),
-      stream: "All Streams",
-      students,
-    };
-  }, [classData, relatedClasses]);
-
-  const mergedComputed = useMemo(() => {
-    const subjects = Array.isArray(classData?.subjects) ? classData.subjects : [];
-    const effectiveExam = activeExam || classData?.school_info?.exam || DEFAULT_EXAM_TYPE;
-    const rows = relatedClasses.flatMap((cls) => {
-      const compositeEntry = getCompositeEntry(effectiveExam, cls.composite_config ?? {});
-      return (cls.students || []).map((student) => {
-        const examScores = student.examScores ?? {};
-        const currentScores = Array.isArray(examScores[effectiveExam]) ? examScores[effectiveExam] : student.scores ?? [];
-        const partnerScores = compositeEntry
-          ? Array.isArray(examScores[compositeEntry.partnerExam])
-            ? examScores[compositeEntry.partnerExam]
-            : []
-          : undefined;
-        return {
-          ...student,
-          id: makeMergedStudentId(cls.id, student.id),
-          originalStudentId: student.id,
-          classId: cls.id,
-          stream: cls.stream || "",
-          scores: currentScores,
-          ...(compositeEntry
-            ? {
-                partnerScores,
-                compositeExcludedSubjects: compositeEntry.excludedSubjects ?? [],
-              }
-            : {}),
-        };
-      });
-    });
-    return withPositions(rows, subjects);
-  }, [activeExam, classData?.school_info?.exam, classData?.subjects, relatedClasses]);
+  const mergedClassData = formWorkspace.classData || classData;
+  const mergedComputed = formWorkspace.computed || [];
+  const streamFilterOptions = useMemo(() => {
+    const streamValues = Array.from(
+      new Set(
+        mergedClassData.students
+          .map((student) => String(student.stream || "").trim().toUpperCase())
+          .filter(Boolean),
+      ),
+    ).sort((left, right) => left.localeCompare(right, "en"));
+    return [
+      { value: "all", label: "All Streams" },
+      ...streamValues.map((value) => ({ value, label: `Stream ${value}` })),
+      { value: "unassigned", label: "Unassigned" },
+    ];
+  }, [mergedClassData.students]);
 
   const handleShowModal = useCallback(
     (type, studentId = null) => {
@@ -143,6 +97,7 @@ export function StudentsPage({
       activeExam={activeExam}
       onChangeExam={onChangeExam}
       resultsLocked={classData.published}
+      streamFilterOptions={streamFilterOptions}
     />
   );
 }

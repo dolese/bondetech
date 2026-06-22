@@ -234,8 +234,9 @@ export function ReportCardPrint({
   const dimension = PAPER_DIMENSIONS[paperSize] ?? PAPER_DIMENSIONS.a4;
   const isLandscape = orientation === "landscape";
   const isCompact = template === "compact";
-  const totalStudents = (classData.students ?? []).length || null;
+  const totalStudents = Number(classData.rankTotalStudents || (classData.students ?? []).length) || null;
   const classLabel =
+    classData.classLabelOverride ||
     [classData.form, classData.stream].filter(Boolean).join(" ").trim() ||
     classData.form ||
     schoolInfo.form ||

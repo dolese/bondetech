@@ -35,6 +35,7 @@ import { useI18n } from "./i18n";
 import { DEFAULT_EXAM_TYPE, DEFAULT_SCHOOL } from "./utils/constants";
 import { mergeClassSchoolInfo, normalizeSchoolSettings } from "./utils/schoolSettings";
 import { premiumFontStack } from "./utils/designSystem";
+import { buildFormWorkspace } from "./utils/formClassAggregation";
 
 const CLASS_ACCESS_ROLES = new Set(["admin", "academic", "teacher"]);
 
@@ -519,10 +520,22 @@ export default function App() {
         : displayAllComputed,
     [displayAllComputed, role, teacherScopedClassIds]
   );
+  const activeFormWorkspace = useMemo(
+    () => buildFormWorkspace(visibleClasses, displayActiveClass, activeExam),
+    [activeExam, displayActiveClass, visibleClasses]
+  );
   const selectedStudentClassData = useMemo(() => {
     if (!selectedStudent?.classId) return displayActiveClass;
-    return visibleAllComputed.find((cls) => cls.id === selectedStudent.classId) || displayActiveClass;
-  }, [displayActiveClass, selectedStudent, visibleAllComputed]);
+    const realClass = visibleAllComputed.find((cls) => cls.id === selectedStudent.classId) || displayActiveClass;
+    return {
+      ...realClass,
+      rankTotalStudents:
+        activeFormWorkspace.classData?.rankTotalStudents ||
+        activeFormWorkspace.computed?.length ||
+        realClass?.students?.length ||
+        0,
+    };
+  }, [activeFormWorkspace.classData?.rankTotalStudents, activeFormWorkspace.computed, displayActiveClass, selectedStudent, visibleAllComputed]);
   const teacherPortalSummary = useMemo(
     () => (role === "teacher" ? buildTeacherPortalSummary(visibleClasses, currentUser) : null),
     [currentUser, role, visibleClasses]
@@ -660,12 +673,12 @@ export default function App() {
             .find((cls) => cls.id === classId)
             ?.computed?.find((student) => String(student.id || "").trim() === originalStudentId)
         : null;
-      setSelectedStudent(fromClass || studentTarget);
+      setSelectedStudent(fromClass ? { ...fromClass, ...studentTarget } : studentTarget);
       return;
     }
-    const found = activeComputed.find((student) => student.id === studentTarget) ?? null;
+    const found = activeFormWorkspace.computed.find((student) => student.id === studentTarget) ?? null;
     setSelectedStudent(found);
-  }, [activeComputed, visibleAllComputed]);
+  }, [activeFormWorkspace.computed, visibleAllComputed]);
 
   const onCloseModal = useCallback(() => {
     setModalType(null);
@@ -674,10 +687,10 @@ export default function App() {
 
   const onOpenReportCard = useCallback((studentId) => {
     if (!studentId) return;
-    const found = activeComputed.find((student) => student.id === studentId) ?? null;
+    const found = activeFormWorkspace.computed.find((student) => student.id === studentId) ?? null;
     setSelectedStudent(found);
     setModalType("report-card");
-  }, [activeComputed]);
+  }, [activeFormWorkspace.computed]);
 
   const handleOpenStudentProfile = useCallback((target) => {
     const ref = normalizeProfileTarget(target);
@@ -1072,8 +1085,8 @@ export default function App() {
           {page === "results" && (
             activeClass ? (
               <ResultsPage
-                classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
-                computed={activeComputed}
+                classData={{ ...(activeFormWorkspace.classData || displayActiveClass), school_info: { ...((activeFormWorkspace.classData || displayActiveClass)?.school_info ?? {}), exam: activeExam } }}
+                computed={activeFormWorkspace.computed}
                 onOpenReportCard={onOpenReportCard}
               />
             ) : (
@@ -1100,8 +1113,8 @@ export default function App() {
           {page === "reports" && (
             activeClass ? (
               <ReportsPage
-                classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
-                computed={activeComputed}
+                classData={{ ...(activeFormWorkspace.classData || displayActiveClass), school_info: { ...((activeFormWorkspace.classData || displayActiveClass)?.school_info ?? {}), exam: activeExam } }}
+                computed={activeFormWorkspace.computed}
                 allClasses={role === "teacher" ? visibleAllComputed : displayAllComputed}
                 onOpenReportCard={onOpenReportCard}
                 onSelectClass={(id, exam) => {

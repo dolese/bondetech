@@ -113,6 +113,7 @@ export function EntryPanel({
   activeExam,
   onChangeExam,
   resultsLocked = false,
+  streamFilterOptions = null,
 }) {
   const subjects = classData.subjects ?? [];
   const duplicateWarningMessage =
@@ -147,6 +148,7 @@ export function EntryPanel({
     (option, index, all) => all.findIndex((entry) => entry.value === option.value) === index
   );
   const [search, setSearch] = useState("");
+  const [streamFilter, setStreamFilter] = useState("all");
   const [sortBy, setSortBy] = useState("index");
   const [sortAsc, setSortAsc] = useState(true);
   const [editId, setEditId] = useState(null);
@@ -202,6 +204,7 @@ export function EntryPanel({
   const [duplicateSaveConfirmed, setDuplicateSaveConfirmed] = useState(false);
 
   useEffect(() => {
+    setStreamFilter("all");
     setClassYear(classData.year ?? "");
     setClassForm(classData.form ?? "Form I");
     setClassStream(classData.stream ?? "A");
@@ -216,6 +219,26 @@ export function EntryPanel({
     setShowExportMenu(false);
     setShowAdvancedMenu(false);
   }, [classData.id, classData.year, classData.form, classData.stream]);
+
+  const availableStreamFilters = Array.isArray(streamFilterOptions) && streamFilterOptions.length
+    ? streamFilterOptions
+    : [
+        { value: "all", label: "All Streams" },
+        ...Array.from(
+          new Set(
+            (classData.students ?? [])
+              .map((student) => String(student.stream || "").trim().toUpperCase())
+              .map((value) => value || "unassigned")
+              .filter(Boolean),
+          ),
+        )
+          .sort((left, right) => left.localeCompare(right, "en"))
+          .map((value) => ({
+            value,
+            label: value === "unassigned" ? "Unassigned" : `Stream ${value}`,
+          })),
+      ];
+  const hasStreamFilter = availableStreamFilters.some((entry) => entry.value !== "all");
 
   useEffect(() => {
     setSchoolInfo((prev) => (
@@ -314,6 +337,12 @@ export function EntryPanel({
         String(s.admissionNo || s.admission_no || "").toLowerCase().includes(query) ||
         String(s.status || "").toLowerCase().includes(query)
       );
+    })
+    .filter((s) => {
+      if (streamFilter === "all") return true;
+      const normalizedStream = String(s.stream || "").trim().toUpperCase();
+      if (streamFilter === "unassigned") return !normalizedStream;
+      return normalizedStream === streamFilter;
     })
     .sort((a, b) => {
       let aVal = sortBy === "index" ? a.index_no : a[sortBy];
@@ -1011,7 +1040,7 @@ export function EntryPanel({
               Marks Entry
             </div>
             <div style={{ fontSize: 11, color: "#667", marginTop: 4 }}>
-              Enter marks, manage the class roster, and handle imports for this class.
+              Enter marks, manage the class roster, and handle imports for this {hasStreamFilter ? "form" : "class"}.
             </div>
           </div>
 
@@ -1337,6 +1366,25 @@ export function EntryPanel({
               <option value="total">Sort: Total</option>
               <option value="agrd">Sort: Grade</option>
             </select>
+            {hasStreamFilter && (
+              <select
+                value={streamFilter}
+                onChange={e => setStreamFilter(e.target.value)}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius: 5,
+                  border: "1px solid #d0dcf8",
+                  height: 30,
+                  flexShrink: 0,
+                }}
+              >
+                {availableStreamFilters.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            )}
             <button
               onClick={() => setSortAsc(!sortAsc)}
               style={{
@@ -2117,6 +2165,7 @@ export function EntryPanel({
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 12px", fontSize: 11 }}>
                   <span>Total: <b style={{ color: "#003366" }}>{s.total ?? "—"}</b></span>
                   <span>Avg: <b>{s.avg ?? "—"}</b></span>
+                  {hasStreamFilter && <span>Stream: <b>{s.stream || "-"}</b></span>}
                   {s.agrd && (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, color: "#334155" }}>
                       Grade:
@@ -2154,6 +2203,11 @@ export function EntryPanel({
                   {label}
                 </th>
               ))}
+              {hasStreamFilter && (
+                <th style={{ padding: "7px 8px", textAlign: "center", fontWeight: 700, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.04em", minWidth: 72 }}>
+                  Stream
+                </th>
+              )}
               {subjects.map((subj, i) => (
                 <th
                   key={i}
@@ -2261,6 +2315,19 @@ export function EntryPanel({
                       {s.status === "absent" ? "Absent" : s.status === "incomplete" ? "Incomplete" : "Present"}
                     </span>
                   </td>
+                  {hasStreamFilter && (
+                    <td
+                      style={{
+                        padding: "4px 6px",
+                        textAlign: "center",
+                        border: "1px solid #d2def5",
+                        fontWeight: 700,
+                        color: "#334155",
+                      }}
+                    >
+                      {s.stream || "-"}
+                    </td>
+                  )}
 
                   {/* Score inputs */}
                   {(classData.subjects ?? []).map((subj, si) => {
@@ -2550,7 +2617,7 @@ export function EntryPanel({
             {!filtered.length && (
               <tr>
                 <td
-                  colSpan={17}
+                  colSpan={hasStreamFilter ? 18 : 17}
                   style={{
                     padding: 20,
                     textAlign: "center",
