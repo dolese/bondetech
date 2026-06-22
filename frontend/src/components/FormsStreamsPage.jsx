@@ -5,6 +5,7 @@ import { displayFontStack, premiumFontStack } from "../utils/designSystem";
 import { useViewport } from "../utils/useViewport";
 
 const STREAM_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const MAX_BULK_STREAM_STUDENTS = 200;
 
 const palette = {
   ink: "#172033",
@@ -12,8 +13,8 @@ const palette = {
   line: "#dde3ec",
   panel: "#ffffff",
   canvas: "#f3f5f8",
-  navy: "#173b70",
-  navySoft: "#edf3fb",
+  navy: "#0f2d6e",
+  navySoft: "#eef3fb",
   green: "#177b63",
   greenSoft: "#eaf7f2",
   amber: "#a76512",
@@ -47,14 +48,13 @@ function badge(label, tone = "navy") {
     display: "inline-flex",
     alignItems: "center",
     width: "fit-content",
-    padding: "5px 9px",
+    padding: "4px 10px",
     borderRadius: 999,
     background,
     color,
-    fontSize: 10,
-    fontWeight: 800,
-    letterSpacing: "0.07em",
-    textTransform: "uppercase",
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: "0.01em",
   };
 }
 
@@ -63,14 +63,14 @@ function buttonStyle({ primary = false, danger = false, disabled = false, compac
   const color = primary || danger ? "#fff" : palette.ink;
   return {
     border: primary || danger ? "1px solid transparent" : `1px solid ${palette.line}`,
-    borderRadius: 11,
-    padding: compact ? "8px 11px" : "10px 14px",
+    borderRadius: 10,
+    padding: compact ? "8px 12px" : "10px 14px",
     background: disabled ? "#e4e7ec" : background,
     color: disabled ? "#98a2b3" : color,
     fontSize: 12,
-    fontWeight: 800,
+    fontWeight: 600,
     cursor: disabled ? "not-allowed" : "pointer",
-    boxShadow: primary && !disabled ? "0 8px 18px rgba(23,59,112,0.18)" : "none",
+    boxShadow: "none",
   };
 }
 
@@ -125,12 +125,12 @@ function FormCard({ item, selected, onSelect }) {
       style={{
         textAlign: "left",
         border: selected ? `1px solid ${palette.navy}` : `1px solid ${palette.line}`,
-        borderRadius: 17,
-        background: selected ? "linear-gradient(145deg,#173b70,#24528f)" : palette.panel,
+        borderRadius: 14,
+        background: selected ? palette.navy : palette.panel,
         color: selected ? "#fff" : palette.ink,
         padding: 16,
         cursor: "pointer",
-        boxShadow: selected ? "0 14px 30px rgba(23,59,112,0.2)" : "0 3px 12px rgba(16,24,40,0.05)",
+        boxShadow: selected ? "0 6px 18px rgba(15,45,110,0.16)" : "0 1px 2px rgba(16,24,40,0.06)",
         minWidth: 0,
       }}
     >
@@ -140,15 +140,15 @@ function FormCard({ item, selected, onSelect }) {
       </div>
       <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 850 }}>{streamCount}</div>
-          <div style={{ fontSize: 10, opacity: 0.72, fontWeight: 750, textTransform: "uppercase", letterSpacing: "0.06em" }}>Streams</div>
+          <div style={{ fontSize: 20, fontWeight: 600 }}>{streamCount}</div>
+          <div style={{ fontSize: 11, opacity: 0.7, fontWeight: 500 }}>Streams</div>
         </div>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 850 }}>{students}</div>
-          <div style={{ fontSize: 10, opacity: 0.72, fontWeight: 750, textTransform: "uppercase", letterSpacing: "0.06em" }}>Students</div>
+          <div style={{ fontSize: 20, fontWeight: 600 }}>{students}</div>
+          <div style={{ fontSize: 11, opacity: 0.7, fontWeight: 500 }}>Students</div>
         </div>
       </div>
-      <div style={{ marginTop: 13, fontSize: 11, fontWeight: 750, opacity: 0.82 }}>
+      <div style={{ marginTop: 13, fontSize: 12, fontWeight: 500, opacity: 0.82 }}>
         {unassigned ? `${unassigned} need stream assignment` : "All students assigned"}
       </div>
     </button>
@@ -164,10 +164,10 @@ function StreamCard({ stream, canManage, onOpen, onEdit, onRestore, onToggleStat
   const archived = Boolean(stream.archived);
   const validLetter = hasValidStreamLetter(stream);
   return (
-    <article style={{ border: `1px solid ${palette.line}`, borderRadius: 18, padding: 16, background: archived ? "#fffaf0" : "#fff", display: "grid", gap: 13, boxShadow: "0 4px 16px rgba(16,24,40,0.05)" }}>
+    <article style={{ border: `1px solid ${palette.line}`, borderRadius: 14, padding: 16, background: archived ? "#fffaf0" : "#fff", display: "grid", gap: 13, boxShadow: "0 1px 2px rgba(16,24,40,0.05), 0 4px 14px rgba(16,24,40,0.05)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
         <div>
-          <div style={{ fontSize: 11, color: palette.muted, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>Stream</div>
+          <div style={{ fontSize: 12, color: palette.muted, fontWeight: 500 }}>Stream</div>
           <div style={{ fontFamily: displayFontStack, fontSize: validLetter ? 28 : 20, fontWeight: 650, color: palette.ink, marginTop: 2 }}>{validLetter ? stream.stream : "Unlabelled"}</div>
         </div>
         <span style={badge(archived ? "Archived" : inactive ? "Inactive" : "Active", archived ? "amber" : inactive ? "slate" : "green")}>
@@ -175,18 +175,18 @@ function StreamCard({ stream, canManage, onOpen, onEdit, onRestore, onToggleStat
         </span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <div><div style={{ fontSize: 20, fontWeight: 850, color: palette.ink }}>{count}</div><div style={{ fontSize: 11, color: palette.muted }}>Students</div></div>
-        <div><div style={{ fontSize: 20, fontWeight: 850, color: palette.ink }}>{capacity || "-"}</div><div style={{ fontSize: 11, color: palette.muted }}>Capacity</div></div>
+        <div><div style={{ fontSize: 19, fontWeight: 600, color: palette.ink }}>{count}</div><div style={{ fontSize: 11, color: palette.muted }}>Students</div></div>
+        <div><div style={{ fontSize: 19, fontWeight: 600, color: palette.ink }}>{capacity || "-"}</div><div style={{ fontSize: 11, color: palette.muted }}>Capacity</div></div>
       </div>
       {capacity > 0 ? (
         <div>
           <div style={{ height: 6, borderRadius: 999, background: "#edf0f4", overflow: "hidden" }}><div style={{ width: `${ratio}%`, height: "100%", background: ratio >= 95 ? palette.red : ratio >= 80 ? palette.amber : palette.green }} /></div>
-          <div style={{ fontSize: 10, color: palette.muted, marginTop: 5 }}>{available} place{available === 1 ? "" : "s"} available</div>
+          <div style={{ fontSize: 11, color: palette.muted, marginTop: 5 }}>{available} place{available === 1 ? "" : "s"} available</div>
         </div>
       ) : null}
       <div style={{ paddingTop: 10, borderTop: `1px solid ${palette.line}` }}>
-        <div style={{ fontSize: 10, color: palette.muted, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em" }}>Class teacher</div>
-        <div style={{ fontSize: 12, color: palette.ink, fontWeight: 750, marginTop: 4 }}>{stream.classTeacher || "Not assigned"}</div>
+        <div style={{ fontSize: 12, color: palette.muted, fontWeight: 500 }}>Class teacher</div>
+        <div style={{ fontSize: 13, color: palette.ink, fontWeight: 500, marginTop: 4 }}>{stream.classTeacher || "Not assigned"}</div>
       </div>
       <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
         {archived ? (
@@ -201,7 +201,7 @@ function StreamCard({ stream, canManage, onOpen, onEdit, onRestore, onToggleStat
             <button type="button" onClick={() => onOpen(stream)} style={buttonStyle({ compact: true })}>Open</button>
             {canManage ? <button type="button" onClick={() => onEdit(stream)} style={buttonStyle({ compact: true })}>Edit</button> : null}
             {canManage ? (
-              <button type="button" onClick={() => onToggleStatus(stream)} style={buttonStyle({ danger: !inactive, compact: true })}>
+              <button type="button" onClick={() => onToggleStatus(stream)} style={buttonStyle({ compact: true })}>
                 {inactive ? "Enable" : "Disable"}
               </button>
             ) : null}
@@ -222,7 +222,7 @@ function StreamEditor({ state, teachers, usedStreams, busy, onChange, onClose, o
           <div><span style={badge(editing ? "Edit stream" : "New stream", "navy")}>{editing ? "Edit stream" : "New stream"}</span><h2 style={{ fontFamily: displayFontStack, fontWeight: 650, fontSize: 27, margin: "10px 0 0", color: palette.ink }}>{state.form}</h2><p style={{ margin: "5px 0 0", fontSize: 12, color: palette.muted }}>Configure the stream before it becomes available for student placement.</p></div>
           <button type="button" onClick={onClose} style={buttonStyle({ compact: true })}>Close</button>
         </div>
-        <label style={{ display: "grid", gap: 6 }}><span style={{ fontSize: 11, fontWeight: 800, color: palette.muted }}>Stream letter</span><select value={state.stream} onChange={(event) => onChange("stream", event.target.value)} style={fieldStyle()}>{STREAM_LETTERS.map((letter) => <option key={letter} value={letter} disabled={!editing && usedStreams.has(letter)}>Stream {letter}{!editing && usedStreams.has(letter) ? " (used)" : ""}</option>)}</select></label>
+        <label style={{ display: "grid", gap: 6 }}><span style={{ fontSize: 11, fontWeight: 800, color: palette.muted }}>Stream letter</span><select value={state.stream} onChange={(event) => onChange("stream", event.target.value)} style={fieldStyle()}>{!state.stream ? <option value="">No available stream letter</option> : null}{STREAM_LETTERS.map((letter) => { const usedByAnother = usedStreams.has(letter) && letter !== state.originalStream; return <option key={letter} value={letter} disabled={usedByAnother}>Stream {letter}{usedByAnother ? " (used)" : ""}</option>; })}</select></label>
         <label style={{ display: "grid", gap: 6 }}><span style={{ fontSize: 11, fontWeight: 800, color: palette.muted }}>Capacity</span><input type="number" min="1" max="500" value={state.streamCapacity} onChange={(event) => onChange("streamCapacity", event.target.value)} style={fieldStyle()} /></label>
         <label style={{ display: "grid", gap: 6 }}><span style={{ fontSize: 11, fontWeight: 800, color: palette.muted }}>Class teacher (optional)</span><select value={state.classTeacher} onChange={(event) => onChange("classTeacher", event.target.value)} style={fieldStyle()}><option value="">Not assigned</option>{teachers.map((teacher) => <option key={teacher.id || teacher.username} value={teacher.displayName || teacher.username}>{teacher.displayName || teacher.username}</option>)}</select></label>
         <label style={{ display: "grid", gap: 6 }}><span style={{ fontSize: 11, fontWeight: 800, color: palette.muted }}>Status</span><select value={state.streamStatus} onChange={(event) => onChange("streamStatus", event.target.value)} style={fieldStyle()}><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
@@ -302,8 +302,8 @@ export function FormsStreamsPage({
   const archivedStreams = useMemo(() => streams.filter((stream) => stream.archived), [streams]);
   const rosterStreams = useMemo(() => currentStreams.filter((stream) => stream.streamStatus !== "inactive"), [currentStreams]);
   const activeStreams = useMemo(() => rosterStreams.filter(hasValidStreamLetter), [rosterStreams]);
-  const usedStreams = useMemo(() => new Set(streams.filter(hasValidStreamLetter).map((stream) => String(stream.stream).toUpperCase())), [streams]);
-  const nextStream = STREAM_LETTERS.find((letter) => !usedStreams.has(letter)) || "A";
+  const usedStreams = useMemo(() => new Set(currentStreams.filter(hasValidStreamLetter).map((stream) => String(stream.stream).toUpperCase())), [currentStreams]);
+  const nextStream = STREAM_LETTERS.find((letter) => !usedStreams.has(letter)) || "";
 
   const loadRoster = useCallback(async () => {
     if (!canAssignStreams || !rosterStreams.length) { setRosterClasses([]); return; }
@@ -333,8 +333,11 @@ export function FormsStreamsPage({
   const targetStreams = activeStreams.filter((stream) => stream.form === targetForm);
   const refreshAll = async () => { await Promise.all([loadOverview(), onReloadClasses?.()]); await loadRoster(); };
 
-  const openCreate = () => setEditor({ form: selectedForm, stream: nextStream, streamCapacity: 50, classTeacher: "", streamStatus: "active", error: "" });
-  const openEdit = (stream) => setEditor({ id: stream.id, form: stream.form, stream: stream.stream, streamCapacity: stream.streamCapacity || Math.max(50, Number(stream.studentCount || 0)), classTeacher: stream.classTeacher || "", streamStatus: stream.streamStatus || "active", error: "" });
+  const openCreate = () => setEditor({ form: selectedForm, stream: nextStream, originalStream: "", streamCapacity: 50, classTeacher: "", streamStatus: "active", error: "" });
+  const openEdit = (stream) => {
+    const originalStream = hasValidStreamLetter(stream) ? String(stream.stream).toUpperCase() : "";
+    setEditor({ id: stream.id, form: stream.form, stream: originalStream || nextStream, originalStream, streamCapacity: stream.streamCapacity || Math.max(50, Number(stream.studentCount || 0)), classTeacher: stream.classTeacher || "", streamStatus: stream.streamStatus || "active", error: "" });
+  };
   const saveStream = async () => {
     if (!editor || busy) return;
     const capacity = Number.parseInt(editor.streamCapacity, 10);
@@ -372,6 +375,19 @@ export function FormsStreamsPage({
   };
 
   const selectedRoster = filteredStudents.filter((student) => selectedStudents[studentKey(student)]);
+  const selectableStudents = filteredStudents.slice(0, MAX_BULK_STREAM_STUDENTS);
+  const allFilteredSelected = selectableStudents.length > 0 && selectableStudents.every((student) => selectedStudents[studentKey(student)]);
+  const toggleSelectAllFiltered = () => {
+    setSelectedStudents((current) => {
+      const next = { ...current };
+      selectableStudents.forEach((student) => {
+        const key = studentKey(student);
+        if (allFilteredSelected) delete next[key];
+        else next[key] = true;
+      });
+      return next;
+    });
+  };
   const selectedQueue = unassigned.filter((student) => selectedUnassigned[student.id]);
   const bulkMove = () => {
     if (!selectedRoster.length || !targetClassId) return;
@@ -409,7 +425,7 @@ export function FormsStreamsPage({
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: 12 }}>{formItems.map((item) => <FormCard key={item.form} item={item} selected={selectedForm === item.form} onSelect={() => { setSelectedForm(item.form); setQuery(""); setStreamFilter(""); setGenderFilter(""); }} />)}</div>
         )}
 
-        <section style={{ border: `1px solid ${palette.line}`, borderRadius: 22, background: "#fff", padding: isMobile ? 15 : 21, boxShadow: "0 8px 26px rgba(16,24,40,0.05)", display: "grid", gap: 17 }}>
+        <section style={{ border: `1px solid ${palette.line}`, borderRadius: 16, background: "#fff", padding: isMobile ? 16 : 22, boxShadow: "0 1px 2px rgba(16,24,40,0.05), 0 6px 20px rgba(16,24,40,0.04)", display: "grid", gap: 17 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}><div><span style={badge(selectedFormItem?.active ? "Active form" : "Inactive form", selectedFormItem?.active ? "green" : "slate")}>{selectedFormItem?.active ? "Active form" : "Inactive form"}</span><h2 style={{ margin: "9px 0 0", fontFamily: displayFontStack, fontSize: 27, fontWeight: 650, color: palette.ink }}>{selectedForm} streams</h2><div style={{ marginTop: 4, fontSize: 12, color: palette.muted }}>{selectedFormItem?.streamCount || 0} streams | {selectedFormItem?.totalStudents || 0} students</div></div>{canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>+ Add Stream</button> : null}</div>
           {Number(selectedFormItem?.invalidStreamCount || 0) ? <div style={{ border: "1px solid #f0c36a", borderRadius: 14, padding: "11px 13px", background: palette.amberSoft, color: "#7a4610", fontSize: 12, lineHeight: 1.55 }}><strong>{selectedFormItem.invalidStreamCount} current class needs a stream letter.</strong> Edit the Unlabelled card and assign A-Z before using it as an assignment target.</div> : null}
           {loading ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}><Skeleton height={250} /><Skeleton height={250} /></div> : currentStreams.length ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{currentStreams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} onOpen={onNavigateToClass} onEdit={openEdit} onRestore={async (item) => { const result = await onRestoreClass?.(item.id); if (result?.ok !== false) { showToast?.("Stream restored", "success"); await refreshAll(); } }} onToggleStatus={toggleStreamStatus} onDelete={deleteArchivedStream} />)}</div> : <EmptyState title={`No streams in ${selectedForm}`} body="Create the first stream and define its capacity before assigning students." action={canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>Add first stream</button> : null} />}
@@ -417,10 +433,22 @@ export function FormsStreamsPage({
         </section>
 
         {canAssignStreams ? (
-          <section style={{ border: `1px solid ${palette.line}`, borderRadius: 22, background: "#fff", padding: isMobile ? 15 : 21, boxShadow: "0 8px 26px rgba(16,24,40,0.05)", display: "grid", gap: 16 }}>
+          <section style={{ border: `1px solid ${palette.line}`, borderRadius: 16, background: "#fff", padding: isMobile ? 16 : 22, boxShadow: "0 1px 2px rgba(16,24,40,0.05), 0 6px 20px rgba(16,24,40,0.04)", display: "grid", gap: 16 }}>
             <div><span style={badge("Placement", "navy")}>Placement</span><h2 style={{ margin: "9px 0 0", fontFamily: displayFontStack, fontSize: 27, fontWeight: 650, color: palette.ink }}>Student-to-stream mapping</h2><p style={{ margin: "5px 0 0", fontSize: 12, color: palette.muted }}>Filter the current roster, select learners, then move them safely to another stream in {selectedForm}.</p></div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "minmax(240px,1.4fr) repeat(2,minmax(150px,0.6fr))", gap: 9 }}><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, admission number, or CNO" style={{ ...fieldStyle(), gridColumn: isMobile ? "1 / -1" : "auto" }} /><select value={streamFilter} onChange={(event) => setStreamFilter(event.target.value)} style={fieldStyle()}><option value="">All streams</option>{activeStreams.map((stream) => <option key={stream.id} value={stream.stream}>Stream {stream.stream}</option>)}</select><select value={genderFilter} onChange={(event) => setGenderFilter(event.target.value)} style={fieldStyle()}><option value="">All genders</option><option value="F">Female</option><option value="M">Male</option></select></div>
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr auto", gap: 10, padding: 12, borderRadius: 15, background: "#f8fafc", border: `1px solid ${palette.line}` }}><div><div style={{ fontSize: 13, fontWeight: 850, color: palette.ink }}>{selectedRoster.length ? `${selectedRoster.length} selected` : "Select students for bulk placement"}</div><div style={{ fontSize: 11, color: palette.muted, marginTop: 3 }}>Target form is locked to {selectedForm}; choose an active target stream.</div></div><div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}><select value={targetForm} onChange={(event) => { setTargetForm(event.target.value); setTargetClassId(""); }} style={{ ...fieldStyle(), width: 125 }} disabled><option>{selectedForm}</option></select><select value={targetClassId} onChange={(event) => setTargetClassId(event.target.value)} style={{ ...fieldStyle(), width: 150 }}><option value="">Target stream</option>{targetStreams.map((stream) => <option key={stream.id} value={stream.id}>Stream {stream.stream}</option>)}</select><button type="button" onClick={bulkMove} disabled={!selectedRoster.length || !targetClassId} style={buttonStyle({ primary: true, disabled: !selectedRoster.length || !targetClassId })}>Assign selected</button><button type="button" onClick={unassignSelected} disabled={!selectedRoster.length} style={buttonStyle({ danger: true, disabled: !selectedRoster.length })}>Mark unassigned</button></div></div>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr auto", gap: 10, padding: 12, borderRadius: 15, background: "#f8fafc", border: `1px solid ${palette.line}` }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 850, color: palette.ink }}>{selectedRoster.length ? `${selectedRoster.length} selected` : "Select students for bulk placement"}</div>
+                <div style={{ fontSize: 11, color: palette.muted, marginTop: 3 }}>{filteredStudents.length > MAX_BULK_STREAM_STUDENTS ? `Bulk actions are limited to the first ${MAX_BULK_STREAM_STUDENTS} filtered students.` : `Select all ${filteredStudents.length} students matching the current filters.`}</div>
+              </div>
+              <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+                <button type="button" onClick={toggleSelectAllFiltered} disabled={!selectableStudents.length} style={buttonStyle({ disabled: !selectableStudents.length })}>{allFilteredSelected ? "Clear filtered" : filteredStudents.length > MAX_BULK_STREAM_STUDENTS ? `Select first ${MAX_BULK_STREAM_STUDENTS}` : "Select all filtered"}</button>
+                <select value={targetForm} onChange={(event) => { setTargetForm(event.target.value); setTargetClassId(""); }} style={{ ...fieldStyle(), width: 125 }} disabled><option>{selectedForm}</option></select>
+                <select value={targetClassId} onChange={(event) => setTargetClassId(event.target.value)} style={{ ...fieldStyle(), width: 150 }}><option value="">Target stream</option>{targetStreams.map((stream) => <option key={stream.id} value={stream.id}>Stream {stream.stream}</option>)}</select>
+                <button type="button" onClick={bulkMove} disabled={!selectedRoster.length || !targetClassId} style={buttonStyle({ primary: true, disabled: !selectedRoster.length || !targetClassId })}>Assign selected</button>
+                <button type="button" onClick={unassignSelected} disabled={!selectedRoster.length} style={buttonStyle({ danger: true, disabled: !selectedRoster.length })}>Mark unassigned</button>
+              </div>
+            </div>
             {loadingRoster ? <div style={{ display: "grid", gap: 8 }}><Skeleton height={72} /><Skeleton height={72} /><Skeleton height={72} /></div> : !filteredStudents.length ? <EmptyState title="No students match these filters" body="Change the stream, gender, or search filters to review the roster." /> : (
               <div style={{ display: "grid", gap: 8 }}>{filteredStudents.map((student) => { const key = studentKey(student); const checked = Boolean(selectedStudents[key]); return <label key={key} style={{ display: "grid", gridTemplateColumns: isMobile ? "32px 1fr auto" : "32px minmax(200px,1.3fr) minmax(150px,0.8fr) 90px 110px", alignItems: "center", gap: 10, padding: "11px 12px", borderRadius: 14, border: `1px solid ${checked ? "#9ab5dc" : palette.line}`, background: checked ? "#f1f6fc" : "#fff", cursor: "pointer" }}><input type="checkbox" checked={checked} onChange={() => setSelectedStudents((current) => ({ ...current, [key]: !current[key] }))} /><div><div style={{ fontSize: 13, fontWeight: 850, color: palette.ink }}>{student.name || "Unnamed student"}</div><div style={{ fontSize: 10, color: palette.muted, marginTop: 3 }}>{student.admissionNo || student.indexNo || student.index_no || "No admission number"}</div></div>{!isMobile ? <div style={{ fontSize: 11, color: palette.muted }}>{student.classLabel}</div> : null}{!isMobile ? <div style={{ fontSize: 12, fontWeight: 800 }}>{student.sex}</div> : null}<span style={badge(`Stream ${student.stream}`, "navy")}>Stream {student.stream}</span></label>; })}</div>
             )}
