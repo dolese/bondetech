@@ -519,6 +519,10 @@ export default function App() {
         : displayAllComputed,
     [displayAllComputed, role, teacherScopedClassIds]
   );
+  const selectedStudentClassData = useMemo(() => {
+    if (!selectedStudent?.classId) return displayActiveClass;
+    return visibleAllComputed.find((cls) => cls.id === selectedStudent.classId) || displayActiveClass;
+  }, [displayActiveClass, selectedStudent, visibleAllComputed]);
   const teacherPortalSummary = useMemo(
     () => (role === "teacher" ? buildTeacherPortalSummary(visibleClasses, currentUser) : null),
     [currentUser, role, visibleClasses]
@@ -642,13 +646,26 @@ export default function App() {
     Promise.resolve(loadAuthLogs(12)).catch(() => {});
   }, [loadAuthLogs, loadUsers, loggedIn, role]);
 
-  const onShowModal = useCallback((type, studentId = null) => {
+  const onShowModal = useCallback((type, studentTarget = null) => {
     setModalType(type);
-    if (studentId) {
-      const found = activeComputed.find((student) => student.id === studentId) ?? null;
-      setSelectedStudent(found);
+    if (!studentTarget) {
+      setSelectedStudent(null);
+      return;
     }
-  }, [activeComputed]);
+    if (studentTarget && typeof studentTarget === "object") {
+      const classId = String(studentTarget.classId || "").trim();
+      const originalStudentId = String(studentTarget.originalStudentId || studentTarget.id || "").trim();
+      const fromClass = classId
+        ? visibleAllComputed
+            .find((cls) => cls.id === classId)
+            ?.computed?.find((student) => String(student.id || "").trim() === originalStudentId)
+        : null;
+      setSelectedStudent(fromClass || studentTarget);
+      return;
+    }
+    const found = activeComputed.find((student) => student.id === studentTarget) ?? null;
+    setSelectedStudent(found);
+  }, [activeComputed, visibleAllComputed]);
 
   const onCloseModal = useCallback(() => {
     setModalType(null);
@@ -917,10 +934,10 @@ export default function App() {
             activeClass ? (
               <StudentsPage
                 classData={activeClass}
-                computed={activeComputed}
+                classes={visibleClasses}
                 onShowModal={onShowModal}
-                onUpdateStudent={onUpdateStudent}
-                onDeleteStudent={onDeleteStudent}
+                onUpdateStudentInClass={onUpdateStudentInClass}
+                onDeleteStudentFromClass={onDeleteStudentFromClass}
                 onAddStudent={onAddStudent}
                 onReorderStudentCnos={role === "admin" ? onReorderStudentCnos : null}
                 canDeleteStudents={role === "admin" || role === "academic"}
@@ -1218,7 +1235,7 @@ export default function App() {
       {modalType === "report-card" && activeClass && (
         <ReportCardModal
           student={selectedStudent}
-          classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
+          classData={{ ...selectedStudentClassData, school_info: { ...(selectedStudentClassData?.school_info ?? {}), exam: activeExam } }}
           onClose={onCloseModal}
         />
       )}
@@ -1226,7 +1243,7 @@ export default function App() {
       {modalType === "report-card-export" && activeClass && (
         <ReportCardModal
           student={selectedStudent}
-          classData={{ ...displayActiveClass, school_info: { ...(displayActiveClass?.school_info ?? {}), exam: activeExam } }}
+          classData={{ ...selectedStudentClassData, school_info: { ...(selectedStudentClassData?.school_info ?? {}), exam: activeExam } }}
           onClose={onCloseModal}
           autoExport
           silent
