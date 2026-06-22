@@ -221,7 +221,6 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       : sw ? "Tovuti ya Matokeo" : "Results Portal");
 
   const schoolName = schoolSettings.name || "Bonde Secondary School";
-  const crestLetter = (schoolName.trim()[0] || "B").toUpperCase();
   const district = schoolSettings.district || "Muheza";
   const authority = schoolSettings.authority || "PMO-RALG";
 
@@ -339,8 +338,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       {/* NAV */}
       <nav>
         <button type="button" className="nav-brand" onClick={scrollToTop}>
-          <span className="nav-crest">{crestLetter}</span>
-          <span className="nav-name">{schoolName}</span>
+          <img className="nav-logo" src="/asset/bonde.png" alt={schoolName} />
+          <span className="nav-name">BONDE SS</span>
         </button>
         <div className="nav-links">
           {navLinks.map((link) => (
@@ -646,7 +645,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       {/* FOOTER */}
       <footer>
         <div className="footer-brand">
-          <span className="footer-crest">{crestLetter}</span>
+          <img className="footer-logo" src="/asset/bonde.png" alt="" />
           <span className="footer-copy">© {currentYear} {schoolName}. {sw ? "Haki zote zimehifadhiwa." : "All rights reserved."}</span>
         </div>
         <div className="footer-links">

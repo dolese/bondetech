@@ -40,6 +40,14 @@
   display: flex; align-items: center; gap: 10px;
   background: none; border: none; cursor: pointer; padding: 0;
 }
+.wa-home .nav-logo {
+  width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0;
+  object-fit: contain; background: var(--white);
+}
+.wa-home .footer-logo {
+  width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+  object-fit: contain; background: rgba(255,255,255,0.95); padding: 2px;
+}
 .wa-home .nav-crest {
   width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
   background: var(--navy); display: flex; align-items: center; justify-content: center;
