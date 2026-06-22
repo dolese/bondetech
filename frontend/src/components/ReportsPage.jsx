@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_SCHOOL,
   DEFAULT_EXAM_TYPE,
@@ -26,6 +26,7 @@ import {
   primaryButtonStyle,
   secondaryButtonStyle,
 } from "../utils/designSystem";
+import { buildFormWorkspace } from "../utils/formClassAggregation";
 
 const TEMPLATE_OPTIONS = [
   { label: "Official", value: "official" },
@@ -119,6 +120,7 @@ export function ReportsPage({
   const [exportingZip, setExportingZip] = useState(false);
   const [exportError, setExportError] = useState("");
   const [template, setTemplate] = useState("official");
+  const [switchingForm, setSwitchingForm] = useState(false);
   const actionPanel = glassPanelStyle({
     compact: isMobile || isTablet,
     dense: isMobile,
@@ -144,6 +146,7 @@ export function ReportsPage({
 
   useEffect(() => {
     setSelectedForm(classData.form || "all");
+    setSwitchingForm(false);
   }, [classData.form, classData.id]);
 
   useEffect(() => {
@@ -246,68 +249,72 @@ export function ReportsPage({
     [classData.subjects, examSnapshots, selectedSubject],
   );
 
-  const classComparison = useMemo(() => {
+  const formSections = useMemo(() => {
     const relevantClasses = (allClasses ?? []).filter(
       (entry) => entry.year === classData.year,
     );
-    const classStats = relevantClasses
-      .map((entry) => {
-        const activeStudents = (entry.computed ?? []).filter(
-          (student) => student.total !== null,
-        );
-        const avg = averageOf(
-          activeStudents.map((student) => Number(student.avg || 0)),
-        );
-        return {
-          id: entry.id,
-          name: entry.name,
-          exam: entry.school_info?.exam || DEFAULT_EXAM_TYPE,
-          avg,
-          count: activeStudents.length,
-        };
-      })
-      .sort((a, b) => b.avg - a.avg);
-    const current =
-      classStats.find((entry) => entry.id === classData.id) ?? null;
-    return {
-      ordered: classStats,
-      current,
-      rank: current
-        ? classStats.findIndex((entry) => entry.id === current.id) + 1
-        : null,
-      best: classStats[0] ?? null,
-    };
-  }, [allClasses, classData.id, classData.year]);
-
-  const formSections = useMemo(() => {
     const grouped = new Map();
-    (allClasses ?? []).forEach((entry) => {
+    relevantClasses.forEach((entry) => {
       const formKey = String(entry.form || "Other").trim() || "Other";
       if (!grouped.has(formKey)) grouped.set(formKey, []);
-      const activeStudents = (entry.computed ?? []).filter(
-        (student) => student.total !== null,
-      );
-      grouped.get(formKey).push({
-        ...entry,
-        label: getClassLabel(entry),
-        studentCount: entry.students?.length ?? 0,
-        rankedCount: activeStudents.length,
-        avg: averageOf(activeStudents.map((student) => Number(student.avg || 0))),
-        exam: entry.school_info?.exam || DEFAULT_EXAM_TYPE,
-      });
+      grouped.get(formKey).push(entry);
     });
     return Array.from(grouped.entries())
-      .map(([form, classes]) => ({
-        form,
-        classes: classes.sort((a, b) => a.label.localeCompare(b.label)),
-      }))
+      .map(([form, classes]) => {
+        const sortedClasses = classes
+          .slice()
+          .sort((a, b) => String(a.stream || "").localeCompare(String(b.stream || ""), undefined, { numeric: true }));
+        const anchor = sortedClasses[0] || null;
+        const workspace = anchor
+          ? buildFormWorkspace(sortedClasses, anchor, classData.school_info?.exam || DEFAULT_EXAM_TYPE)
+          : { classData: null, computed: [] };
+        const rankedStudents = (workspace.computed ?? []).filter((student) => student.total !== null);
+        return {
+          form,
+          year: anchor?.year || classData.year,
+          label: [form, anchor?.year].filter(Boolean).join(" ").trim(),
+          streamCount: sortedClasses.length,
+          studentCount: workspace.classData?.students?.length ?? 0,
+          rankedCount: rankedStudents.length,
+          avg: averageOf(rankedStudents.map((student) => Number(student.avg || 0))),
+          exam: anchor?.school_info?.exam || DEFAULT_EXAM_TYPE,
+          targetClassId: anchor?.id || "",
+        };
+      })
       .sort((a, b) => a.form.localeCompare(b.form, undefined, { numeric: true }));
-  }, [allClasses]);
+  }, [allClasses, classData.school_info?.exam, classData.year]);
+
+  const classComparison = useMemo(() => {
+    const ordered = formSections
+      .map((entry) => ({
+        id: entry.targetClassId,
+        name: entry.label,
+        exam: entry.exam,
+        avg: entry.avg,
+        count: entry.rankedCount,
+        form: entry.form,
+      }))
+      .sort((a, b) => b.avg - a.avg);
+    const current = ordered.find((entry) => entry.form === classData.form) ?? null;
+    return {
+      ordered,
+      current,
+      rank: current ? ordered.findIndex((entry) => entry.form === current.form) + 1 : null,
+      best: ordered[0] ?? null,
+    };
+  }, [classData.form, formSections]);
 
   const visibleFormSections = useMemo(() => {
     if (selectedForm === "all") return formSections;
     return formSections.filter((section) => section.form === selectedForm);
   }, [formSections, selectedForm]);
+
+  const isCurrentFormActive = useCallback(
+    (entry) =>
+      String(entry.form || "").trim() === String(classData.form || "").trim() &&
+      String(entry.year || "").trim() === String(classData.year || "").trim(),
+    [classData.form, classData.year],
+  );
 
   const waitForRender = () =>
     new Promise((resolve) =>
@@ -680,7 +687,7 @@ export function ReportsPage({
             <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.7 }}>
               {t(
                 "reportsBrowseByFormSub",
-                "Open a class report center from its form section instead of navigating class by class.",
+                "Open one report center per form and include all streams in the same ranking.",
               )}
             </div>
           </div>
@@ -736,21 +743,21 @@ export function ReportsPage({
                   {section.form}
                 </div>
                 <div style={{ fontSize: 11, color: "#64748b" }}>
-                  {t("reportsClassCount", "{count} class{suffix}", {
-                    count: section.classes.length,
-                    suffix: section.classes.length === 1 ? "" : "es",
+                  {t("reportsStreamCount", "{count} stream{suffix}", {
+                    count: section.streamCount,
+                    suffix: section.streamCount === 1 ? "" : "s",
                   })}
                 </div>
               </div>
               <div style={styles.classTileGrid}>
-                {section.classes.map((entry) => {
-                  const active = entry.id === classData.id;
+                {(() => {
+                  const active = isCurrentFormActive(section);
                   return (
                     <div
-                      key={entry.id}
+                      key={section.form}
                       style={{
                         ...styles.classTile,
-                        borderColor: active ? "#0b4f9e" : styles.classTile.border.split(" ").slice(-1)[0],
+                        borderColor: active ? "#0b4f9e" : "#dbe7ff",
                         boxShadow: active ? "0 0 0 2px rgba(11,79,158,0.12)" : "none",
                         background: active
                           ? "linear-gradient(180deg, #f1f6ff, #e7f0ff)"
@@ -767,32 +774,38 @@ export function ReportsPage({
                       >
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
-                            {entry.label}
+                            {section.label}
                           </div>
                           <div style={{ fontSize: 11, color: "#64748b" }}>
-                            {entry.exam}
+                            {section.exam}
                           </div>
                         </div>
                         {active ? (
                           <div style={{ ...pillStyle({ tone: "blue" }), fontSize: 10 }}>
-                            {t("reportsActiveClass", "Active")}
+                            {t("reportsActiveForm", "Active")}
                           </div>
                         ) : null}
                       </div>
                       <div style={styles.classTileMeta}>
                         <span>
                           {t("reportsStudentsCount", "{count} students", {
-                            count: entry.studentCount,
+                            count: section.studentCount,
+                          })}
+                        </span>
+                        <span>
+                          {t("reportsStreamCount", "{count} stream{suffix}", {
+                            count: section.streamCount,
+                            suffix: section.streamCount === 1 ? "" : "s",
                           })}
                         </span>
                         <span>
                           {t("reportsRankedCount", "{count} ranked", {
-                            count: entry.rankedCount,
+                            count: section.rankedCount,
                           })}
                         </span>
                         <span>
                           {t("reportsAvgShort", "Avg {avg}", {
-                            avg: entry.avg ? entry.avg.toFixed(1) : "0.0",
+                            avg: section.avg ? section.avg.toFixed(1) : "0.0",
                           })}
                         </span>
                       </div>
@@ -800,16 +813,21 @@ export function ReportsPage({
                         <button
                           type="button"
                           style={active ? secondaryButtonStyle({ compact: true }) : primaryButtonStyle({ compact: true })}
-                          onClick={() => onSelectClass?.(entry.id, entry.school_info?.exam || DEFAULT_EXAM_TYPE)}
+                          disabled={!section.targetClassId || active}
+                          onClick={() => {
+                            if (!section.targetClassId || active) return;
+                            setSwitchingForm(true);
+                            onSelectClass?.(section.targetClassId, section.exam || DEFAULT_EXAM_TYPE);
+                          }}
                         >
                           {active
-                            ? t("reportsCurrentClass", "Current Class")
-                            : t("reportsOpenClassReports", "Open Reports")}
+                            ? t("reportsCurrentForm", "Current Form")
+                            : t("reportsOpenFormReports", "Open Reports")}
                         </button>
                       </div>
                     </div>
                   );
-                })}
+                })()}
               </div>
             </div>
           ))
@@ -820,6 +838,21 @@ export function ReportsPage({
         )}
       </div>
 
+      {switchingForm ? (
+        <div
+          style={{
+            ...actionPanel,
+            border: "1px solid #cfe0ff",
+            background: "linear-gradient(180deg, #f8fbff, #eef5ff)",
+            color: "#31507a",
+            fontSize: 13,
+            fontWeight: 700,
+          }}
+        >
+          {t("reportsLoadingForm", "Loading form reports...")}
+        </div>
+      ) : (
+      <>
       <div style={{ ...actionPanel, display: "grid", gap: 16 }}>
         <div
           style={{
@@ -905,6 +938,7 @@ export function ReportsPage({
             </button>
           </div>
         </div>
+
         {exportError && (
           <div
             style={{
@@ -946,7 +980,7 @@ export function ReportsPage({
             <div style={{ fontSize: 12, color: "#64748b" }}>
               {t(
                 "reportsStudentsReportedSub",
-                "Scored students in the selected class exam.",
+                "Scored students in the selected form exam.",
               )}
             </div>
           </div>
@@ -967,7 +1001,7 @@ export function ReportsPage({
             <div style={{ fontSize: 12, color: "#64748b" }}>
               {t(
                 "reportsClassAverageSub",
-                "Average student mark for the current class exam.",
+                "Average student mark for the current form exam.",
               )}
             </div>
           </div>
@@ -1625,6 +1659,8 @@ export function ReportsPage({
             </div>
           )}
         </div>
+      )}
+      </>
       )}
     </div>
   );
