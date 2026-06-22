@@ -316,7 +316,13 @@ function findStudentCommunicationContext(classes, studentRef) {
 
 export default function App() {
   const { t } = useI18n();
-  const [page, setPage] = useState("dashboard");
+  const [page, setPageRaw] = useState(() => {
+    try { return sessionStorage.getItem("bonde-page") || "dashboard"; } catch { return "dashboard"; }
+  });
+  const setPage = useCallback((p) => {
+    setPageRaw(p);
+    try { sessionStorage.setItem("bonde-page", p); } catch {}
+  }, []);
   const [accountInitialTab, setAccountInitialTab] = useState("profile");
   const [sideOpen, setSideOpen] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth >= 720 : true
