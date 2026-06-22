@@ -148,7 +148,7 @@ export const API = {
   },
   createStream: (data) => post("/forms-streams", data),
   updateStream: (id, data) => put(`/forms-streams/${id}`, data),
-  disableStream: (id) => del(`/forms-streams/${id}`),
+  deleteStream: (id) => del(`/forms-streams/${id}`),
   bulkAssignStudentsToStream: (assignments, targetClassId) =>
     patch("/forms-streams", { action: "bulk-assign", assignments, targetClassId }),
   unassignStudentsFromStreams: (assignments) =>

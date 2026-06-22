@@ -67,8 +67,8 @@ module.exports = async (req, res) => {
       return sendJson(res, 200, await updateClassRecord(db, classId, body || {}));
     }
     if (req.method === "DELETE") {
-      if (!canManageClasses(user.role)) return sendJson(res, 403, { error: "Only administrators can disable streams" });
-      return sendJson(res, 200, await deleteClassRecord(db, classId));
+      if (!canManageClasses(user.role)) return sendJson(res, 403, { error: "Only administrators can delete streams" });
+      return sendJson(res, 200, await deleteClassRecord(db, classId, { permanent: true }));
     }
     if (req.method === "PATCH") {
       if (!canManageStudents(user.role)) return sendJson(res, 403, { error: "You do not have permission to assign students to streams" });

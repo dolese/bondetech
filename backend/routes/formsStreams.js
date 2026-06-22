@@ -104,10 +104,10 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   if (!canManageClasses(req.authUser.role)) {
-    return res.status(403).json({ error: "Only administrators can disable streams" });
+    return res.status(403).json({ error: "Only administrators can delete streams" });
   }
   try {
-    const result = await deleteClassRecord(getDb(), req.params.id);
+    const result = await deleteClassRecord(getDb(), req.params.id, { permanent: true });
     return res.json(result);
   } catch (err) {
     const status = /not found/i.test(err.message) ? 404 : /move all students/i.test(err.message) ? 409 : 500;

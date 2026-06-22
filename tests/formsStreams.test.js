@@ -79,6 +79,27 @@ test("stream creation stores metadata and prevents duplicate letters within one 
   assert.equal(otherForm.stream, "A");
 });
 
+test("an archived stream letter can be reused in the same form and year", async () => {
+  const db = new FakeFirestore();
+  const archived = await createClassRecord(db, { year: "2026", form: "Form II", stream: "A", streamCapacity: 50 });
+  await deleteClassRecord(db, archived.id);
+
+  const replacement = await createClassRecord(db, { year: "2026", form: "Form II", stream: "A", streamCapacity: 50 });
+  assert.equal(replacement.stream, "A");
+  await assert.rejects(restoreClassRecord(db, archived.id), /already exists/i);
+});
+
+test("a permanently deleted stream letter can be recreated immediately", async () => {
+  const db = new FakeFirestore();
+  const created = await createClassRecord(db, { year: "2026", form: "Form II", stream: "A", streamCapacity: 50 });
+  const deleted = await deleteClassRecord(db, created.id, { permanent: true });
+
+  assert.equal(deleted.deleted, true);
+  const replacement = await createClassRecord(db, { year: "2026", form: "Form II", stream: "A", streamCapacity: 40 });
+  assert.equal(replacement.stream, "A");
+  assert.equal(replacement.streamCapacity, 40);
+});
+
 test("streams with students cannot be disabled, undersized, or archived", async () => {
   const db = createPlacementDb();
   await assert.rejects(updateClassRecord(db, "form1a", { streamStatus: "inactive" }), /move all students/i);
