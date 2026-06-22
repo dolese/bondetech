@@ -117,25 +117,45 @@ function makeStudentKey(student = {}) {
   return `${student.classId || ""}:${student.id || ""}`;
 }
 
+function buildStudentAvatar(student = {}) {
+  const name = String(student.name || "").trim();
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("") || "S";
+  const palette = student.sex === "F"
+    ? { bg: "linear-gradient(135deg, #fdf2f8, #f5d0fe)", fg: "#a21caf" }
+    : { bg: "linear-gradient(135deg, #eff6ff, #dbeafe)", fg: "#1d4ed8" };
+  return { initials, ...palette };
+}
+
+function attendanceTone(status = "") {
+  const normalized = String(status || "").trim().toLowerCase();
+  if (normalized === "present") return "teal";
+  if (normalized === "absent") return "red";
+  return "amber";
+}
+
 function SignalCard({ label, value, note, tone = "slate" }) {
   return (
-    <div style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 5 }}>
+    <div style={{ ...softCardStyle({ padding: 14, radius: 12 }), display: "grid", gap: 5 }}>
       <div
         style={{
           fontSize: 10,
-          fontWeight: 800,
+          fontWeight: 600,
           color: "#64748b",
           textTransform: "uppercase",
-          letterSpacing: "0.1em",
+          letterSpacing: "0.06em",
         }}
       >
         {label}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>{value}</div>
-        <span style={pillStyle({ tone })}>{tone === "teal" ? "Live" : tone === "blue" ? "Focused" : "Ready"}</span>
+        <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", lineHeight: 1.3 }}>{value}</div>
       </div>
-      <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{note}</div>
+      <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>{note}</div>
     </div>
   );
 }
@@ -155,8 +175,10 @@ export function StudentManagementPage({
   const [formFilter, setFormFilter] = useState("");
   const [classFilter, setClassFilter] = useState("");
   const [lifecycleFilter, setLifecycleFilter] = useState("");
-  const [viewMode, setViewMode] = useState("grouped");
+  const [viewMode, setViewMode] = useState("table");
   const [selectedStudentKey, setSelectedStudentKey] = useState("");
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
   const [modalMode, setModalMode] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(makeEmptyForm());
@@ -300,6 +322,15 @@ export function StudentManagementPage({
       })
       .sort((left, right) => left.name.localeCompare(right.name, "en"));
   }, [classFilter, formFilter, lifecycleFilter, query, students, yearFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / perPage));
+  const safePage = Math.min(page, totalPages);
+  const paginatedStudents = useMemo(
+    () => filteredStudents.slice((safePage - 1) * perPage, safePage * perPage),
+    [filteredStudents, safePage, perPage],
+  );
+
+  React.useEffect(() => { setPage(1); }, [query, yearFilter, formFilter, classFilter, lifecycleFilter, perPage]);
 
   const groupedStudents = useMemo(() => {
     const years = new Map();
@@ -640,7 +671,7 @@ export function StudentManagementPage({
         >
           <div>
             <div style={{ display: "inline-flex", ...pillStyle({ tone: "amber" }) }}>School-wide records</div>
-            <div style={{ fontFamily: displayFontStack, fontSize: isMobile ? 28 : 32, fontWeight: 500, color: "#0f172a", lineHeight: 1.1, marginTop: 12 }}>
+            <div style={{ fontFamily: displayFontStack, fontSize: isMobile ? 24 : 28, fontWeight: 500, color: "#0f172a", lineHeight: 1.15, marginTop: 10 }}>
               Student Records
             </div>
             <div style={{ fontSize: 14, color: "#64748b", marginTop: 6, maxWidth: 720 }}>
@@ -672,13 +703,13 @@ export function StudentManagementPage({
           ].map(([label, value, note]) => (
             <div
               key={label}
-              style={{ ...softCardStyle({ padding: 15, radius: 20 }), display: "grid", gap: 6 }}
+              style={{ ...softCardStyle({ padding: 14, radius: 12 }), display: "grid", gap: 4 }}
             >
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.09em" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {label}
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: "#0f172a" }}>{value}</div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>{note}</div>
+              <div style={{ fontSize: 22, fontWeight: 600, color: "#0f172a" }}>{value}</div>
+              <div style={{ fontSize: 12, color: "#94a3b8" }}>{note}</div>
             </div>
           ))}
         </div>
@@ -723,7 +754,7 @@ export function StudentManagementPage({
         }}
       >
         <div style={{ display: "grid", gap: 4 }}>
-          <div style={{ fontSize: 20, fontWeight: 600, color: "#0f172a" }}>Academic Year Promotion</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>Academic Year Promotion</div>
           <div style={{ fontSize: 13, color: "#64748b", maxWidth: 760, lineHeight: 1.6 }}>
             Roll students into the next class while keeping their permanent identity, guardian details, and optional-subject setup aligned to the target class.
           </div>
@@ -801,7 +832,7 @@ export function StudentManagementPage({
           }}
         >
         <div style={{ display: "grid", gap: 4 }}>
-          <div style={{ fontSize: 20, fontWeight: 600, color: "#0f172a" }}>Directory</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>Directory</div>
           <div style={{ fontSize: 13, color: "#64748b" }}>
               Search, filter, and maintain full student records from one place. Use the directory to find a learner, then continue from the focused student panel or full profile.
           </div>
@@ -914,7 +945,7 @@ export function StudentManagementPage({
             >
               <div style={{ display: "grid", gap: 4 }}>
                 <div style={{ display: "inline-flex", ...pillStyle({ tone: "teal" }) }}>Student Focus</div>
-                <div style={{ fontSize: isMobile ? 22 : 24, fontWeight: 800, color: "#0f172a" }}>
+                <div style={{ fontSize: isMobile ? 20 : 22, fontWeight: 600, color: "#0f172a" }}>
                   {selectedStudent.name || "Unnamed Student"}
                 </div>
                 <div style={{ fontSize: 13, color: "#64748b" }}>
@@ -961,12 +992,11 @@ export function StudentManagementPage({
                 ["Guardian", selectedStudent.parentName || "Missing", selectedStudent.parentName ? "blue" : "amber"],
                 ["Phone", selectedStudent.parentPhone || "Missing", selectedStudent.parentPhone ? "blue" : "amber"],
               ].map(([label, value, tone]) => (
-                <div key={label} style={{ ...softCardStyle({ padding: 12, radius: 18 }), display: "grid", gap: 6 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <div key={label} style={{ ...softCardStyle({ padding: 12, radius: 10 }), display: "grid", gap: 4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                     {label}
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{value}</div>
-                  <div style={pillStyle({ tone })}>{label === "Lifecycle" ? value : "Record detail"}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>{value}</div>
                 </div>
               ))}
             </div>
@@ -977,122 +1007,167 @@ export function StudentManagementPage({
           <div
             style={{
               overflowX: "auto",
-              borderRadius: 22,
-              border: "1px solid rgba(214,226,245,0.92)",
-              background: "rgba(255,255,255,0.82)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.86)",
+              borderRadius: 12,
+              border: "1px solid #e2e8f0",
+              background: "#ffffff",
             }}
           >
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1020 }}>
+            <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, minWidth: 1060 }}>
             <thead>
               <tr>
-                {["Admission No", "CNO", "Student", "Sex", "Lifecycle", "Class", "Guardian", "Phone", "Actions"].map((label) => (
+                {["", "Student", "Admission No.", "Gender", "Class", "Status", "Attendance", "Actions"].map((label) => (
                   <th
                     key={label}
                     style={{
                       textAlign: "left",
-                      padding: "12px 10px",
+                      padding: "12px 14px",
                       fontSize: 11,
-                      fontWeight: 700,
-                      color: "#475569",
-                      borderBottom: "1px solid rgba(214,226,245,0.92)",
+                      fontWeight: 600,
+                      color: "#64748b",
+                      borderBottom: "1px solid #e2e8f0",
                       textTransform: "uppercase",
-                      letterSpacing: "0.08em",
+                      letterSpacing: "0.06em",
                       whiteSpace: "nowrap",
-                      background: "rgba(247,250,252,0.94)",
+                      background: "#f8fafc",
                     }}
                   >
-                    {label}
+                    {label || <input type="checkbox" aria-label="Select all students" style={{ width: 16, height: 16 }} />}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.map((student) => (
+              {paginatedStudents.map((student) => {
+                const avatar = buildStudentAvatar(student);
+                const hasId = !!(student.admissionNo || student.admission_no || student.index_no || student.indexNo);
+                return (
                 <tr
                   key={`${student.classId}-${student.id}`}
                   onClick={() => setSelectedStudentKey(makeStudentKey(student))}
                   style={{
                     background:
                       makeStudentKey(student) === selectedStudentKey
-                        ? "rgba(219,234,254,0.58)"
-                        : "rgba(255,255,255,0.52)",
+                        ? "#f8fbff"
+                        : "#ffffff",
                     cursor: "pointer",
+                    transition: "background 0.15s",
                   }}
                 >
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 600, color: "#0f172a" }}>
-                    {student.admissionNo || student.admission_no || "-"}
+                  <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9" }}>
+                    <input type="checkbox" aria-label={`Select ${student.name || "student"}`} style={{ width: 16, height: 16, accentColor: "#0f2d6e" }} onClick={(event) => event.stopPropagation()} />
                   </td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb", fontWeight: 600, color: "#0f172a" }}>
-                    {student.index_no || student.indexNo || "-"}
-                  </td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
-                    <div style={{ fontWeight: 600, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
-                    <div style={{ fontSize: 12, color: "#64748b" }}>
-                      {student.parentName ? `Guardian: ${student.parentName}` : "Student record"}
+                  <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: "50%",
+                          display: "grid",
+                          placeItems: "center",
+                          background: avatar.bg,
+                          color: avatar.fg,
+                          fontSize: 15,
+                          fontWeight: 600,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {avatar.initials}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, color: "#0f172a", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.01em" }}>
+                          {student.name || "Unnamed Student"}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+                          {student.index_no || student.indexNo || "No CNO"}
+                        </div>
+                      </div>
                     </div>
                   </td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.sex || "-"}</td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
-                    <span style={pillStyle({ tone: getEnrollmentTone(student.enrollmentStatus) })}>
+                  <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9", fontWeight: 500, color: "#334155", fontSize: 13, whiteSpace: "nowrap" }}>
+                    {student.admissionNo || student.admission_no || "-"}
+                  </td>
+                  <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9", color: "#334155", fontSize: 13 }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 15, color: student.sex === "F" ? "#ec4899" : "#3b82f6" }}>
+                        {student.sex === "F" ? "♀" : "♂"}
+                      </span>
+                      <span>{student.sex === "F" ? "Female" : student.sex === "M" ? "Male" : "-"}</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9", color: "#334155", fontSize: 13 }}>
+                    <div style={{ fontWeight: 600 }}>{student.form || "-"}</div>
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>
+                      {student.stream ? `Stream ${student.stream}` : "Unassigned"}
+                    </div>
+                  </td>
+                  <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 500, color: getEnrollmentTone(student.enrollmentStatus) === "teal" ? "#0d9488" : getEnrollmentTone(student.enrollmentStatus) === "red" ? "#dc2626" : "#475569", whiteSpace: "nowrap" }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: getEnrollmentTone(student.enrollmentStatus) === "teal" ? "#10b981" : getEnrollmentTone(student.enrollmentStatus) === "red" ? "#ef4444" : getEnrollmentTone(student.enrollmentStatus) === "blue" ? "#3b82f6" : getEnrollmentTone(student.enrollmentStatus) === "amber" ? "#f59e0b" : "#94a3b8" }} />
                       {getEnrollmentLabel(student.enrollmentStatus)}
                     </span>
                   </td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.classLabel}</td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.parentName || "-"}</td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>{student.parentPhone || "-"}</td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #edf2fb" }}>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} onClick={(event) => event.stopPropagation()}>
+                  <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 500, color: student.status === "absent" ? "#dc2626" : "#0d9488", whiteSpace: "nowrap" }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: student.status === "absent" ? "#ef4444" : "#10b981" }} />
+                      {student.status === "absent" ? "Absent" : student.status === "incomplete" ? "Incomplete" : "Present"}
+                    </span>
+                  </td>
+                  <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9" }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }} onClick={(event) => event.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => openProfileForStudent(student)}
-                        disabled={!(student.admissionNo || student.admission_no || student.index_no || student.indexNo)}
-                        title={
-                          student.admissionNo || student.admission_no || student.index_no || student.indexNo
-                            ? "Open academic profile"
-                            : "Student has no admission number or CNO yet"
-                        }
+                        disabled={!hasId}
+                        title={hasId ? "Open academic profile" : "No admission number or CNO yet"}
                         style={{
-                          ...primaryButtonStyle({ compact: true }),
-                          opacity:
-                            student.admissionNo || student.admission_no || student.index_no || student.indexNo ? 1 : 0.55,
-                          cursor:
-                            student.admissionNo || student.admission_no || student.index_no || student.indexNo
-                              ? "pointer"
-                              : "not-allowed",
+                          display: "inline-flex", alignItems: "center", gap: 5,
+                          padding: "5px 12px", fontSize: 12, fontWeight: 500,
+                          borderRadius: 6, border: "1px solid #3b82f6", background: "#ffffff",
+                          color: "#3b82f6", cursor: hasId ? "pointer" : "not-allowed",
+                          opacity: hasId ? 1 : 0.45, whiteSpace: "nowrap",
                         }}
                       >
-                        Profile
+                        <span style={{ fontSize: 13 }}>&#128100;</span> Profile
                       </button>
                       <button
                         type="button"
                         onClick={() => openEditModal(student)}
                         style={{
-                          ...secondaryButtonStyle({ compact: true }),
+                          display: "inline-flex", alignItems: "center", gap: 5,
+                          padding: "5px 12px", fontSize: 12, fontWeight: 500,
+                          borderRadius: 6, border: "1px solid #e2e8f0", background: "#ffffff",
+                          color: "#334155", cursor: "pointer", whiteSpace: "nowrap",
                         }}
                       >
-                        Edit
+                        <span style={{ fontSize: 13 }}>&#9998;</span> Edit
                       </button>
-                      {canDeleteStudents ? (
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(student)}
-                          style={{
-                            ...pillStyle({ tone: "red" }),
-                            cursor: "pointer",
-                          }}
-                        >
-                          Delete
-                        </button>
-                      ) : null}
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          const rect = event.currentTarget.getBoundingClientRect();
+                          const key = makeStudentKey(student);
+                          setSelectedStudentKey((prev) => prev === key ? "" : key);
+                        }}
+                        style={{
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          width: 28, height: 28, padding: 0, fontSize: 16,
+                          borderRadius: 6, border: "1px solid #e2e8f0", background: "#ffffff",
+                          color: "#64748b", cursor: "pointer",
+                        }}
+                        title="More actions"
+                      >
+                        &#8942;
+                      </button>
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
               {!filteredStudents.length ? (
                 <tr>
                   <td
-                    colSpan={10}
+                    colSpan={8}
                     style={{
                       padding: "24px 14px",
                       textAlign: "center",
@@ -1106,20 +1181,61 @@ export function StudentManagementPage({
               ) : null}
             </tbody>
             </table>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+                flexWrap: "wrap",
+                padding: "12px 18px",
+                borderTop: "1px solid #f1f5f9",
+                color: "#64748b",
+                fontSize: 13,
+                background: "#ffffff",
+              }}
+            >
+              <div>
+                Showing {filteredStudents.length ? (safePage - 1) * perPage + 1 : 0} to {Math.min(safePage * perPage, filteredStudents.length)} of {filteredStudents.length} students
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1} style={{ width: 32, height: 32, borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", color: safePage <= 1 ? "#cbd5e1" : "#334155", cursor: safePage <= 1 ? "default" : "pointer", fontSize: 14, display: "grid", placeItems: "center" }}>&lsaquo;</button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2)
+                  .reduce((acc, p, idx, arr) => {
+                    if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    item === "..." ? (
+                      <span key={`ellipsis-${idx}`} style={{ padding: "0 4px", color: "#94a3b8" }}>...</span>
+                    ) : (
+                      <button key={item} type="button" onClick={() => setPage(item)} style={{ minWidth: 32, height: 32, borderRadius: 6, border: item === safePage ? "1px solid #0f2d6e" : "1px solid #e2e8f0", background: item === safePage ? "#0f2d6e" : "#fff", color: item === safePage ? "#fff" : "#334155", cursor: "pointer", fontSize: 13, fontWeight: item === safePage ? 600 : 400 }}>{item}</button>
+                    )
+                  )}
+                <button type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages} style={{ width: 32, height: 32, borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", color: safePage >= totalPages ? "#cbd5e1" : "#334155", cursor: safePage >= totalPages ? "default" : "pointer", fontSize: 14, display: "grid", placeItems: "center" }}>&rsaquo;</button>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <select value={perPage} onChange={(event) => setPerPage(Number(event.target.value))} style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #e2e8f0", fontSize: 13, color: "#334155", background: "#fff", cursor: "pointer" }}>
+                  {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n} per page</option>)}
+                </select>
+              </div>
+            </div>
           </div>
         ) : (
           <div style={{ display: "grid", gap: 14 }}>
             {groupedStudents.map((yearGroup) => (
               <div key={yearGroup.year} style={{ display: "grid", gap: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{yearGroup.year}</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>{yearGroup.year}</div>
                   <div style={pillStyle({ tone: "blue" })}>
                     {yearGroup.forms.reduce((count, formEntry) => count + formEntry.classes.reduce((sum, cls) => sum + cls.students.length, 0), 0)} students
                   </div>
                 </div>
                 {yearGroup.forms.map((formEntry) => (
                   <div key={`${yearGroup.year}-${formEntry.formName}`} style={{ display: "grid", gap: 10 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>{formEntry.formName}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>{formEntry.formName}</div>
                     <div
                       style={{
                         display: "grid",
@@ -1137,7 +1253,7 @@ export function StudentManagementPage({
                           }}
                         >
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                            <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>{classEntry.classLabel}</div>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>{classEntry.classLabel}</div>
                             <div style={pillStyle({ tone: "slate" })}>{classEntry.students.length} students</div>
                           </div>
                           <div style={{ display: "grid", gap: 8 }}>
@@ -1167,7 +1283,7 @@ export function StudentManagementPage({
                               >
                                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
                                   <div>
-                                    <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{student.name || "Unnamed Student"}</div>
+                                    <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", textTransform: "uppercase" }}>{student.name || "Unnamed Student"}</div>
                                     <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
                                       {(student.admissionNo || student.admission_no || "No admission no")} | {(student.index_no || student.indexNo || "No CNO")}
                                     </div>
@@ -1268,7 +1384,7 @@ export function StudentManagementPage({
               <div style={{ display: "inline-flex", ...pillStyle({ tone: modalMode === "edit" ? "blue" : "teal" }) }}>
                 {modalMode === "edit" ? "Update record" : "Create record"}
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", marginTop: 10 }}>
+              <div style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", marginTop: 10 }}>
                 {modalMode === "edit" ? "Edit Student" : "Add Student"}
               </div>
               <div style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>

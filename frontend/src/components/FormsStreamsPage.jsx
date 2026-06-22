@@ -163,22 +163,57 @@ function StreamCard({ stream, canManage, isMobile = false, onOpen, onEdit, onTog
   const inactive = stream.streamStatus === "inactive";
   const archived = Boolean(stream.archived);
   const validLetter = hasValidStreamLetter(stream);
-  const actionCount = archived ? 1 : 1 + (canManage ? 2 + (count === 0 ? 1 : 0) : 0);
-  const compactButtonWidth = actionCount > 1 ? `repeat(${actionCount}, minmax(0,1fr))` : "1fr";
+
+  if (isMobile) {
+    return (
+      <article style={{ border: `1px solid ${palette.line}`, borderRadius: 12, padding: "10px 12px", background: archived ? "#fffaf0" : "#fff", display: "flex", flexDirection: "column", gap: 8, boxShadow: "0 1px 2px rgba(16,24,40,0.04)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ fontFamily: displayFontStack, fontSize: validLetter ? 20 : 15, fontWeight: 650, color: palette.ink, minWidth: 28 }}>{validLetter ? stream.stream : "?"}</div>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: palette.muted }}>
+            <span>{count} students</span>
+            <span style={{ color: palette.line }}>|</span>
+            <span>{capacity ? `${capacity} cap` : "No cap"}</span>
+            {capacity > 0 ? <><span style={{ color: palette.line }}>|</span><span style={{ color: ratio >= 95 ? palette.red : ratio >= 80 ? palette.amber : palette.green }}>{ratio}%</span></> : null}
+          </div>
+          <span style={badge(archived ? "Archived" : inactive ? "Inactive" : "Active", archived ? "amber" : inactive ? "slate" : "green")}>
+            {archived ? "Archived" : inactive ? "Inactive" : "Active"}
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <div style={{ fontSize: 11, color: palette.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {stream.classTeacher || "No teacher"}
+          </div>
+          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            {archived ? (
+              canManage && count === 0 ? <button type="button" onClick={() => onDeleteLegacy(stream)} style={buttonStyle({ danger: true, compact: true })}>Delete</button> : null
+            ) : (
+              <>
+                <button type="button" onClick={() => onOpen(stream)} style={buttonStyle({ compact: true })}>Open</button>
+                {canManage ? <button type="button" onClick={() => onEdit(stream)} style={buttonStyle({ compact: true })}>Edit</button> : null}
+                {canManage ? <button type="button" onClick={() => onToggleStatus(stream)} style={buttonStyle({ compact: true })}>{inactive ? "Enable" : "Disable"}</button> : null}
+                {canManage && count === 0 ? <button type="button" onClick={() => onDelete(stream)} style={buttonStyle({ danger: true, compact: true })}>Delete</button> : null}
+              </>
+            )}
+          </div>
+        </div>
+      </article>
+    );
+  }
+
   return (
-    <article style={{ border: `1px solid ${palette.line}`, borderRadius: 14, padding: isMobile ? 13 : 16, background: archived ? "#fffaf0" : "#fff", display: "grid", gap: isMobile ? 10 : 13, boxShadow: "0 1px 2px rgba(16,24,40,0.05), 0 4px 14px rgba(16,24,40,0.05)" }}>
+    <article style={{ border: `1px solid ${palette.line}`, borderRadius: 14, padding: 16, background: archived ? "#fffaf0" : "#fff", display: "grid", gap: 13, boxShadow: "0 1px 2px rgba(16,24,40,0.05), 0 4px 14px rgba(16,24,40,0.05)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
         <div>
           <div style={{ fontSize: 12, color: palette.muted, fontWeight: 500 }}>Stream</div>
-          <div style={{ fontFamily: displayFontStack, fontSize: validLetter ? (isMobile ? 24 : 28) : (isMobile ? 18 : 20), fontWeight: 650, color: palette.ink, marginTop: 2 }}>{validLetter ? stream.stream : "Unlabelled"}</div>
+          <div style={{ fontFamily: displayFontStack, fontSize: validLetter ? 28 : 20, fontWeight: 650, color: palette.ink, marginTop: 2 }}>{validLetter ? stream.stream : "Unlabelled"}</div>
         </div>
         <span style={badge(archived ? "Archived" : inactive ? "Inactive" : "Active", archived ? "amber" : inactive ? "slate" : "green")}>
           {archived ? "Archived" : inactive ? "Inactive" : "Active"}
         </span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: isMobile ? 8 : 10 }}>
-        <div><div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 600, color: palette.ink }}>{count}</div><div style={{ fontSize: 11, color: palette.muted }}>Students</div></div>
-        <div><div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 600, color: palette.ink }}>{capacity || "-"}</div><div style={{ fontSize: 11, color: palette.muted }}>Capacity</div></div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div><div style={{ fontSize: 19, fontWeight: 600, color: palette.ink }}>{count}</div><div style={{ fontSize: 11, color: palette.muted }}>Students</div></div>
+        <div><div style={{ fontSize: 19, fontWeight: 600, color: palette.ink }}>{capacity || "-"}</div><div style={{ fontSize: 11, color: palette.muted }}>Capacity</div></div>
       </div>
       {capacity > 0 ? (
         <div>
@@ -186,11 +221,11 @@ function StreamCard({ stream, canManage, isMobile = false, onOpen, onEdit, onTog
           <div style={{ fontSize: 11, color: palette.muted, marginTop: 5 }}>{available} place{available === 1 ? "" : "s"} available</div>
         </div>
       ) : null}
-      <div style={{ paddingTop: isMobile ? 8 : 10, borderTop: `1px solid ${palette.line}`, display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
+      <div style={{ paddingTop: 10, borderTop: `1px solid ${palette.line}`, display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
         <div style={{ fontSize: 12, color: palette.muted, fontWeight: 500 }}>Class teacher</div>
-        <div style={{ fontSize: 12, color: palette.ink, fontWeight: 600, marginTop: 0, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stream.classTeacher || "Not assigned"}</div>
+        <div style={{ fontSize: 12, color: palette.ink, fontWeight: 600, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stream.classTeacher || "Not assigned"}</div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? compactButtonWidth : undefined, gap: 7, flexWrap: isMobile ? undefined : "wrap" }}>
+      <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
         {archived ? (
           canManage && count === 0 ? <button type="button" onClick={() => onDeleteLegacy(stream)} style={buttonStyle({ danger: true, compact: true })}>Delete</button> : null
         ) : (
