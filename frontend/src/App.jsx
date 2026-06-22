@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useViewport } from "./utils/useViewport";
 import { Dashboard } from "./components/Dashboard";
 import { StudentsPage } from "./components/StudentsPage";
@@ -539,6 +539,29 @@ export default function App() {
     () => buildFormWorkspace(visibleClasses, displayActiveClass, activeExam),
     [activeExam, displayActiveClass, visibleClasses]
   );
+
+  const hydratedFormKeyRef = useRef("");
+  useEffect(() => {
+    if (!displayActiveClass || !["results", "reports"].includes(page)) return;
+    const form = String(displayActiveClass.form || "").trim();
+    const year = String(displayActiveClass.year || "").trim();
+    const formKey = `${year}::${form}`;
+    if (hydratedFormKeyRef.current === formKey) return;
+    const siblings = visibleClasses.filter(
+      (cls) =>
+        String(cls.year || "").trim() === year &&
+        String(cls.form || "").trim() === form &&
+        cls.id !== displayActiveClass.id &&
+        !(cls.students?.length),
+    );
+    if (!siblings.length) {
+      hydratedFormKeyRef.current = formKey;
+      return;
+    }
+    hydratedFormKeyRef.current = formKey;
+    refreshClassesWithStudents(siblings.map((cls) => cls.id)).catch(() => {});
+  }, [displayActiveClass, page, refreshClassesWithStudents, visibleClasses]);
+
   const selectedStudentClassData = useMemo(() => {
     if (!selectedStudent?.classId) return displayActiveClass;
     const realClass = visibleAllComputed.find((cls) => cls.id === selectedStudent.classId) || displayActiveClass;
