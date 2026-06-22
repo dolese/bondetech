@@ -155,7 +155,7 @@ function FormCard({ item, selected, onSelect }) {
   );
 }
 
-function StreamCard({ stream, canManage, onOpen, onEdit, onToggleStatus, onDelete, onDeleteLegacy }) {
+function StreamCard({ stream, canManage, isMobile = false, onOpen, onEdit, onToggleStatus, onDelete, onDeleteLegacy }) {
   const count = Number(stream.studentCount || 0);
   const capacity = Number(stream.streamCapacity || 0);
   const available = capacity > 0 ? Math.max(0, capacity - count) : null;
@@ -163,20 +163,22 @@ function StreamCard({ stream, canManage, onOpen, onEdit, onToggleStatus, onDelet
   const inactive = stream.streamStatus === "inactive";
   const archived = Boolean(stream.archived);
   const validLetter = hasValidStreamLetter(stream);
+  const actionCount = archived ? 1 : 1 + (canManage ? 2 + (count === 0 ? 1 : 0) : 0);
+  const compactButtonWidth = actionCount > 1 ? `repeat(${actionCount}, minmax(0,1fr))` : "1fr";
   return (
-    <article style={{ border: `1px solid ${palette.line}`, borderRadius: 14, padding: 16, background: archived ? "#fffaf0" : "#fff", display: "grid", gap: 13, boxShadow: "0 1px 2px rgba(16,24,40,0.05), 0 4px 14px rgba(16,24,40,0.05)" }}>
+    <article style={{ border: `1px solid ${palette.line}`, borderRadius: 14, padding: isMobile ? 13 : 16, background: archived ? "#fffaf0" : "#fff", display: "grid", gap: isMobile ? 10 : 13, boxShadow: "0 1px 2px rgba(16,24,40,0.05), 0 4px 14px rgba(16,24,40,0.05)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
         <div>
           <div style={{ fontSize: 12, color: palette.muted, fontWeight: 500 }}>Stream</div>
-          <div style={{ fontFamily: displayFontStack, fontSize: validLetter ? 28 : 20, fontWeight: 650, color: palette.ink, marginTop: 2 }}>{validLetter ? stream.stream : "Unlabelled"}</div>
+          <div style={{ fontFamily: displayFontStack, fontSize: validLetter ? (isMobile ? 24 : 28) : (isMobile ? 18 : 20), fontWeight: 650, color: palette.ink, marginTop: 2 }}>{validLetter ? stream.stream : "Unlabelled"}</div>
         </div>
         <span style={badge(archived ? "Archived" : inactive ? "Inactive" : "Active", archived ? "amber" : inactive ? "slate" : "green")}>
           {archived ? "Archived" : inactive ? "Inactive" : "Active"}
         </span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <div><div style={{ fontSize: 19, fontWeight: 600, color: palette.ink }}>{count}</div><div style={{ fontSize: 11, color: palette.muted }}>Students</div></div>
-        <div><div style={{ fontSize: 19, fontWeight: 600, color: palette.ink }}>{capacity || "-"}</div><div style={{ fontSize: 11, color: palette.muted }}>Capacity</div></div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: isMobile ? 8 : 10 }}>
+        <div><div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 600, color: palette.ink }}>{count}</div><div style={{ fontSize: 11, color: palette.muted }}>Students</div></div>
+        <div><div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 600, color: palette.ink }}>{capacity || "-"}</div><div style={{ fontSize: 11, color: palette.muted }}>Capacity</div></div>
       </div>
       {capacity > 0 ? (
         <div>
@@ -184,11 +186,11 @@ function StreamCard({ stream, canManage, onOpen, onEdit, onToggleStatus, onDelet
           <div style={{ fontSize: 11, color: palette.muted, marginTop: 5 }}>{available} place{available === 1 ? "" : "s"} available</div>
         </div>
       ) : null}
-      <div style={{ paddingTop: 10, borderTop: `1px solid ${palette.line}` }}>
+      <div style={{ paddingTop: isMobile ? 8 : 10, borderTop: `1px solid ${palette.line}`, display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
         <div style={{ fontSize: 12, color: palette.muted, fontWeight: 500 }}>Class teacher</div>
-        <div style={{ fontSize: 13, color: palette.ink, fontWeight: 500, marginTop: 4 }}>{stream.classTeacher || "Not assigned"}</div>
+        <div style={{ fontSize: 12, color: palette.ink, fontWeight: 600, marginTop: 0, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stream.classTeacher || "Not assigned"}</div>
       </div>
-      <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? compactButtonWidth : undefined, gap: 7, flexWrap: isMobile ? undefined : "wrap" }}>
         {archived ? (
           canManage && count === 0 ? <button type="button" onClick={() => onDeleteLegacy(stream)} style={buttonStyle({ danger: true, compact: true })}>Delete</button> : null
         ) : (
@@ -437,8 +439,8 @@ export function FormsStreamsPage({
         <section style={{ border: `1px solid ${palette.line}`, borderRadius: 16, background: "#fff", padding: isMobile ? 16 : 22, boxShadow: "0 1px 2px rgba(16,24,40,0.05), 0 6px 20px rgba(16,24,40,0.04)", display: "grid", gap: 17 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}><div><span style={badge(selectedFormItem?.active ? "Active form" : "Inactive form", selectedFormItem?.active ? "green" : "slate")}>{selectedFormItem?.active ? "Active form" : "Inactive form"}</span><h2 style={{ margin: "9px 0 0", fontFamily: displayFontStack, fontSize: 27, fontWeight: 650, color: palette.ink }}>{selectedForm} streams</h2><div style={{ marginTop: 4, fontSize: 12, color: palette.muted }}>{selectedFormItem?.streamCount || 0} streams | {selectedFormItem?.totalStudents || 0} students</div></div>{canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>+ Add Stream</button> : null}</div>
           {Number(selectedFormItem?.invalidStreamCount || 0) ? <div style={{ border: "1px solid #f0c36a", borderRadius: 14, padding: "11px 13px", background: palette.amberSoft, color: "#7a4610", fontSize: 12, lineHeight: 1.55 }}><strong>{selectedFormItem.invalidStreamCount} current class needs a stream letter.</strong> Edit the Unlabelled card and assign A-Z before using it as an assignment target.</div> : null}
-          {loading ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}><Skeleton height={250} /><Skeleton height={250} /></div> : currentStreams.length ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{currentStreams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} onOpen={onNavigateToClass} onEdit={openEdit} onToggleStatus={toggleStreamStatus} onDelete={deleteStream} onDeleteLegacy={deleteLegacyStream} />)}</div> : <EmptyState title={`No streams in ${selectedForm}`} body="Create the first stream and define its capacity before assigning students." action={canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>Add first stream</button> : null} />}
-          {archivedStreams.length ? <details style={{ borderTop: `1px solid ${palette.line}`, paddingTop: 14 }}><summary style={{ cursor: "pointer", color: palette.muted, fontSize: 12, fontWeight: 800 }}>Legacy archived records ({archivedStreams.length})</summary><div style={{ marginTop: 6, fontSize: 12, color: palette.muted, lineHeight: 1.55 }}>These are old history-only records from the previous archive workflow. New stream actions now use permanent delete for empty streams and do not create new archived duplicates.</div><div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{archivedStreams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} onOpen={onNavigateToClass} onEdit={openEdit} onToggleStatus={toggleStreamStatus} onDelete={deleteStream} onDeleteLegacy={deleteLegacyStream} />)}</div></details> : null}
+          {loading ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}><Skeleton height={250} /><Skeleton height={250} /></div> : currentStreams.length ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{currentStreams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} isMobile={isMobile} onOpen={onNavigateToClass} onEdit={openEdit} onToggleStatus={toggleStreamStatus} onDelete={deleteStream} onDeleteLegacy={deleteLegacyStream} />)}</div> : <EmptyState title={`No streams in ${selectedForm}`} body="Create the first stream and define its capacity before assigning students." action={canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>Add first stream</button> : null} />}
+          {archivedStreams.length ? <details style={{ borderTop: `1px solid ${palette.line}`, paddingTop: 14 }}><summary style={{ cursor: "pointer", color: palette.muted, fontSize: 12, fontWeight: 800 }}>Legacy archived records ({archivedStreams.length})</summary><div style={{ marginTop: 6, fontSize: 12, color: palette.muted, lineHeight: 1.55 }}>These are old history-only records from the previous archive workflow. New stream actions now use permanent delete for empty streams and do not create new archived duplicates.</div><div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{archivedStreams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} isMobile={isMobile} onOpen={onNavigateToClass} onEdit={openEdit} onToggleStatus={toggleStreamStatus} onDelete={deleteStream} onDeleteLegacy={deleteLegacyStream} />)}</div></details> : null}
         </section>
 
         {canAssignStreams ? (
