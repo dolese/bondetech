@@ -12,7 +12,6 @@ import {
   normalizeTimetableSettings,
 } from "../../utils/timetable";
 
-import { StatsPanel } from "./StatsPanel";
 import { ConflictWarnings } from "./ConflictWarnings";
 import { TimetableSettings } from "./TimetableSettings";
 import { TimetableGrid } from "./TimetableGrid";
@@ -674,18 +673,18 @@ export function TimetablePage({
     }
   };
 
-  const statsProps = {
-    days: days.length,
-    lessonPeriods: periods.filter((period) => period.type === "lesson").length,
-    teachers: teacherDirectoryRows.length,
-    rooms: roomDirectoryRows.length,
-    streams: streamRows.length,
-    conflicts:
-      teacherConflicts.length +
-      roomConflicts.length +
-      availabilityConflicts.length,
-    unmetTargets: unmetSubjectTargets.length,
-  };
+  const [activeTab, setActiveTab] = useState("class");
+
+  const conflictCount = teacherConflicts.length + roomConflicts.length + availabilityConflicts.length;
+  const lessonPeriodCount = periods.filter((p) => p.type === "lesson").length;
+
+  const tabs = [
+    { id: "class", label: t("ttTabClass", "Class Timetable") },
+    { id: "master", label: t("ttTabMaster", "Master View") },
+    { id: "teachers", label: t("ttTabTeachers", "Teachers") },
+    { id: "rooms", label: t("ttTabRooms", "Rooms") },
+    { id: "settings", label: t("ttTabSettings", "Settings") },
+  ];
 
   return (
     <div className="tt-page">
@@ -693,13 +692,12 @@ export function TimetablePage({
         <div className="tt-header-row">
           <div className="tt-title-block">
             <div className="tt-title">
-              {t("ttSetupTitle", "Timetable Setup")}
+              {t("ttSetupTitle", "Timetable")}
             </div>
             <div className="tt-sub">
-              {t(
-                "ttSetupSub",
-                "Clean timetable workflow: define periods and active days, review teachers and streams, set subject targets, then build the class timetable from one shared structure.",
-              )}
+              {days.length} days &middot; {lessonPeriodCount} periods &middot; {streamRows.length} streams &middot; {teacherDirectoryRows.length} teachers
+              {conflictCount > 0 ? <span style={{ color: "#b45309" }}> &middot; {conflictCount} conflict{conflictCount === 1 ? "" : "s"}</span> : null}
+              {unmetSubjectTargets.length > 0 ? <span style={{ color: "#b45309" }}> &middot; {unmetSubjectTargets.length} unmet target{unmetSubjectTargets.length === 1 ? "" : "s"}</span> : null}
             </div>
           </div>
           <div className="tt-action-row">
@@ -730,70 +728,91 @@ export function TimetablePage({
           </div>
         </div>
 
-        <StatsPanel stats={statsProps} />
+        <div className="tt-tab-bar">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`tt-tab${activeTab === tab.id ? " tt-tab--active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </section>
 
-      <TimetableSettings
-        canEditGlobal={canEditGlobal}
-        normalizedGlobalTimetable={normalizedGlobalTimetable}
-        toggleDay={toggleDay}
-        updatePeriod={updatePeriod}
-        addPeriod={addPeriod}
-        removePeriod={removePeriod}
-        teacherDirectoryRows={teacherDirectoryRows}
-        roomDirectoryRows={roomDirectoryRows}
-        updateRoom={updateRoom}
-        addRoom={addRoom}
-        removeRoom={removeRoom}
-        streamRows={streamRows}
-      />
+      {activeTab === "class" ? (
+        <>
+          <ConflictWarnings
+            teacherConflicts={teacherConflicts}
+            roomConflicts={roomConflicts}
+            availabilityConflicts={availabilityConflicts}
+          />
+          <TimetableGrid
+            activeClassLabel={activeClassLabel}
+            canEditClass={canEditClass}
+            classTimetable={classTimetable}
+            classData={classData}
+            subjectLoadSummary={subjectLoadSummary}
+            teacherSuggestionId={teacherSuggestionId}
+            teacherSuggestions={teacherSuggestions}
+            roomSuggestionId={roomSuggestionId}
+            roomDirectoryRows={roomDirectoryRows}
+            updateSubjectTarget={updateSubjectTarget}
+            updateClassEntry={updateClassEntry}
+            days={days}
+            periods={periods}
+          />
+        </>
+      ) : null}
 
-      <ConflictWarnings
-        teacherConflicts={teacherConflicts}
-        roomConflicts={roomConflicts}
-        availabilityConflicts={availabilityConflicts}
-      />
+      {activeTab === "master" ? (
+        <MasterTimetable masterRows={masterRows} periods={periods} />
+      ) : null}
 
-      <TimetableGrid
-        activeClassLabel={activeClassLabel}
-        canEditClass={canEditClass}
-        classTimetable={classTimetable}
-        classData={classData}
-        subjectLoadSummary={subjectLoadSummary}
-        teacherSuggestionId={teacherSuggestionId}
-        teacherSuggestions={teacherSuggestions}
-        roomSuggestionId={roomSuggestionId}
-        roomDirectoryRows={roomDirectoryRows}
-        updateSubjectTarget={updateSubjectTarget}
-        updateClassEntry={updateClassEntry}
-        days={days}
-        periods={periods}
-      />
+      {activeTab === "teachers" ? (
+        <TeacherViews
+          canEditGlobal={canEditGlobal}
+          days={days}
+          periods={periods}
+          teacherDirectoryRows={teacherDirectoryRows}
+          selectedTeacherKey={selectedTeacherKey}
+          setSelectedTeacherKey={setSelectedTeacherKey}
+          selectedTeacherRow={selectedTeacherRow}
+          selectedTeacherUnavailable={selectedTeacherUnavailable}
+          toggleTeacherUnavailableSlot={toggleTeacherUnavailableSlot}
+          selectedTeacherSchedule={selectedTeacherSchedule}
+        />
+      ) : null}
 
-      <TeacherViews
-        canEditGlobal={canEditGlobal}
-        days={days}
-        periods={periods}
-        teacherDirectoryRows={teacherDirectoryRows}
-        selectedTeacherKey={selectedTeacherKey}
-        setSelectedTeacherKey={setSelectedTeacherKey}
-        selectedTeacherRow={selectedTeacherRow}
-        selectedTeacherUnavailable={selectedTeacherUnavailable}
-        toggleTeacherUnavailableSlot={toggleTeacherUnavailableSlot}
-        selectedTeacherSchedule={selectedTeacherSchedule}
-      />
+      {activeTab === "rooms" ? (
+        <RoomViews
+          days={days}
+          periods={periods}
+          roomDirectoryRows={roomDirectoryRows}
+          selectedRoomKey={selectedRoomKey}
+          setSelectedRoomKey={setSelectedRoomKey}
+          selectedRoomRow={selectedRoomRow}
+          selectedRoomSchedule={selectedRoomSchedule}
+        />
+      ) : null}
 
-      <RoomViews
-        days={days}
-        periods={periods}
-        roomDirectoryRows={roomDirectoryRows}
-        selectedRoomKey={selectedRoomKey}
-        setSelectedRoomKey={setSelectedRoomKey}
-        selectedRoomRow={selectedRoomRow}
-        selectedRoomSchedule={selectedRoomSchedule}
-      />
-
-      <MasterTimetable masterRows={masterRows} periods={periods} />
+      {activeTab === "settings" ? (
+        <TimetableSettings
+          canEditGlobal={canEditGlobal}
+          normalizedGlobalTimetable={normalizedGlobalTimetable}
+          toggleDay={toggleDay}
+          updatePeriod={updatePeriod}
+          addPeriod={addPeriod}
+          removePeriod={removePeriod}
+          teacherDirectoryRows={teacherDirectoryRows}
+          roomDirectoryRows={roomDirectoryRows}
+          updateRoom={updateRoom}
+          addRoom={addRoom}
+          removeRoom={removeRoom}
+          streamRows={streamRows}
+        />
+      ) : null}
     </div>
   );
 }

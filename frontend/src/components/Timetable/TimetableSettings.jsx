@@ -233,7 +233,7 @@ export function TimetableSettings({
                   teacherDirectoryRows.map((teacher) => (
                     <tr key={teacher.key}>
                       <td className="tt-body-cell">
-                        <div style={{ fontWeight: 800 }}>{teacher.label}</div>
+                        <div style={{ fontWeight: 600 }}>{teacher.label}</div>
                         <div className="tt-note">
                           {teacher.subtitle || teacher.badge}
                         </div>
@@ -307,7 +307,7 @@ export function TimetableSettings({
                             />
                           ) : (
                             <>
-                              <div style={{ fontWeight: 800 }}>{room.name}</div>
+                              <div style={{ fontWeight: 600 }}>{room.name}</div>
                               <div className="tt-note">
                                 {t(
                                   "ttInferredFromData",

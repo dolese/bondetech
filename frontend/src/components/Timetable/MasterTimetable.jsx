@@ -97,7 +97,7 @@ export function MasterTimetable({ masterRows, periods }) {
                         >
                           {entry?.subject ? (
                             <>
-                              <div style={{ fontWeight: 800 }}>
+                              <div style={{ fontWeight: 600 }}>
                                 {entry.subject}
                               </div>
                               <div className="tt-note">

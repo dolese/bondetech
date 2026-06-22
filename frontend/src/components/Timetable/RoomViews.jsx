@@ -93,7 +93,7 @@ export function RoomViews({
                                     background: "#f8fafc",
                                   }}
                                 >
-                                  <div style={{ fontWeight: 800, color: "#0f172a" }}>{entry.subject || "Assigned"}</div>
+                                  <div style={{ fontWeight: 600, color: "#0f172a" }}>{entry.subject || "Assigned"}</div>
                                   <div className="tt-note">{entry.classLabel}</div>
                                   {entry.teacherName ? (
                                     <div className="tt-note">{entry.teacherName}</div>
