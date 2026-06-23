@@ -1151,6 +1151,7 @@ export default function App() {
                   setActiveId(id);
                   setActiveExam(exam || DEFAULT_EXAM_TYPE);
                 }}
+                onHydrateClasses={refreshClassesWithStudents}
               />
             ) : (
               noClassBlock

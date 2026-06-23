@@ -112,6 +112,7 @@ export function ReportsPage({
   allClasses = [],
   onOpenReportCard,
   onSelectClass,
+  onHydrateClasses,
 }) {
   const { isMobile, isTablet } = useViewport();
   const { t } = useI18n();
@@ -170,6 +171,34 @@ export function ReportsPage({
     );
     setLocalFormWorkspace(workspace);
   }, [selectedForm, classData.year, allClasses]);
+
+  // Hydrate all forms on mount or when allClasses changes
+  useEffect(() => {
+    if (!onHydrateClasses || !allClasses?.length) return;
+    
+    const targetYear = String(classData.year || "").trim();
+    if (!targetYear) return;
+    
+    // Find all classes in this year that don't have students loaded
+    const needsHydration = allClasses.filter(
+      (cls) =>
+        String(cls.year || "").trim() === targetYear &&
+        !(cls.students?.length),
+    );
+    
+    if (!needsHydration.length) {
+      console.log("[ReportsPage] All forms already hydrated for year", targetYear);
+      return;
+    }
+    
+    console.log("[ReportsPage] Hydrating forms for year", targetYear, {
+      classesNeedingHydration: needsHydration.map(c => ({ id: c.id, form: c.form, stream: c.stream })),
+    });
+    
+    onHydrateClasses(needsHydration.map((cls) => cls.id)).catch((err) => {
+      console.error("[ReportsPage] Hydration error:", err);
+    });
+  }, [allClasses, classData.year, onHydrateClasses]);
 
   useEffect(() => {
     setSelectedSubject(activeClassData.subjects?.[0] ?? "");
@@ -291,6 +320,18 @@ export function ReportsPage({
           ? buildFormWorkspace(sortedClasses, anchor, classData.school_info?.exam || DEFAULT_EXAM_TYPE)
           : { classData: null, computed: [] };
         const rankedStudents = (workspace.computed ?? []).filter((student) => student.total !== null);
+        
+        // DEBUG: Log form section data
+        console.log(`[ReportsPage] Form Section: ${form}`, {
+          form,
+          streamCount: sortedClasses.length,
+          classesInForm: sortedClasses.map(c => ({ id: c.id, stream: c.stream, studentCount: c.students?.length ?? 0 })),
+          selectedExam: classData.school_info?.exam || DEFAULT_EXAM_TYPE,
+          totalMergedStudents: workspace.classData?.students?.length ?? 0,
+          computedRows: workspace.computed?.length ?? 0,
+          rankedStudents: rankedStudents.length,
+        });
+        
         return {
           form,
           year: anchor?.year || classData.year,
