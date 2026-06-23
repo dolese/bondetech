@@ -13,41 +13,49 @@ function tableCellText(value) {
   return text || "-";
 }
 
+function sharedCellModifier(period) {
+  const t = String(period?.type || "").toLowerCase();
+  if (t === "break") return "mt-shared--break";
+  if (t === "shared") return "mt-shared--activity";
+  return "";
+}
+
 export function MasterTimetable({ masterRows, periods }) {
   const { t } = useI18n();
   return (
-    <section className="tt-section">
-      <div className="tt-title-block">
-        <div className="tt-title">
+    <section className="tt-section mt-section">
+      <div className="mt-title-bar">
+        <div className="mt-title">
           {t("ttSchoolGeneralTimetable", "School General Timetable")}
         </div>
-        <div className="tt-sub">
+        <div className="mt-sub">
           {t(
             "ttSchoolGeneralTimetableSub",
-            "Master table grouped by day, form, and stream using the same school-wide structure.",
+            "Master table grouped by day, form, and stream.",
           )}
         </div>
       </div>
 
-      <div className="tt-table-wrap">
-        <table className="tt-table">
+      <div className="tt-table-wrap mt-table-wrap">
+        <table className="tt-table mt-table">
           <thead>
             <tr>
-              <th className="tt-head-cell">{t("ttDay", "Day")}</th>
-              <th className="tt-head-cell">{t("settingsForm", "Form")}</th>
-              <th className="tt-head-cell">{t("ttStream", "Stream")}</th>
+              <th className="mt-head-cell">{t("ttDay", "Day")}</th>
+              <th className="mt-head-cell">{t("settingsForm", "Form")}</th>
+              <th className="mt-head-cell">{t("ttStream", "Stream")}</th>
               {periods.map((period) => (
-                <th key={`head-${period.id}`} className="tt-head-cell">
+                <th key={`head-${period.id}`} className="mt-head-cell">
                   {slotRange(period)}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {masterRows.flatMap((day) => {
+            {masterRows.flatMap((day, dayIndex) => {
               let dayRendered = false;
               let previousForm = "";
               let remainingFormRows = 0;
+              const bandClass = dayIndex % 2 === 0 ? "mt-row--even" : "mt-row--odd";
               return day.classes.map((cls, index) => {
                 const firstDayRow = !dayRendered;
                 const firstFormRow =
@@ -60,21 +68,21 @@ export function MasterTimetable({ masterRows, periods }) {
                 dayRendered = true;
 
                 return (
-                  <tr key={`${day.id}-${cls.id || index}`}>
+                  <tr key={`${day.id}-${cls.id || index}`} className={bandClass}>
                     {firstDayRow ? (
-                      <td className="tt-axis-cell" rowSpan={day.rowCount}>
-                        {day.label}
+                      <td className="mt-day-cell" rowSpan={day.rowCount}>
+                        <span className="mt-day-label">{day.label}</span>
                       </td>
                     ) : null}
                     {firstFormRow ? (
                       <td
-                        className="tt-axis-cell"
+                        className="mt-form-cell"
                         rowSpan={day.formCounts[cls.form] || 1}
                       >
                         {tableCellText(cls.form)}
                       </td>
                     ) : null}
-                    <td className="tt-axis-cell">{tableCellText(cls.stream)}</td>
+                    <td className="mt-stream-cell">{tableCellText(cls.stream)}</td>
                     {periods.map((period) => {
                       const slotKey = buildSlotKey(day.id, period.id);
                       if (isSharedTimetablePeriod(period)) {
@@ -82,10 +90,10 @@ export function MasterTimetable({ masterRows, periods }) {
                         return (
                           <td
                             key={`${day.id}-${period.id}`}
-                            className="tt-shared-cell"
+                            className={`mt-shared-cell ${sharedCellModifier(period)}`}
                             rowSpan={day.rowCount}
                           >
-                            {tableCellText(period.label)}
+                            <span className="mt-shared-label">{period.label}</span>
                           </td>
                         );
                       }
@@ -93,14 +101,14 @@ export function MasterTimetable({ masterRows, periods }) {
                       return (
                         <td
                           key={`${cls.id}-${slotKey}`}
-                          className="tt-body-cell"
+                          className="mt-body-cell"
                         >
                           {entry?.subject ? (
                             <>
-                              <div style={{ fontWeight: 600 }}>
+                              <div className="mt-subject">
                                 {entry.subject}
                               </div>
-                              <div className="tt-note">
+                              <div className="mt-note">
                                 {[
                                   entry.teacherName || entry.teacherUsername,
                                   entry.room,
@@ -110,7 +118,7 @@ export function MasterTimetable({ masterRows, periods }) {
                               </div>
                             </>
                           ) : (
-                            "-"
+                            <span className="mt-empty">—</span>
                           )}
                         </td>
                       );

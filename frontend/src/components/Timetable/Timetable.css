@@ -338,3 +338,201 @@
     grid-template-columns: 1.05fr 0.95fr;
   }
 }
+
+/* ========== Master Timetable — styled to match printed xlsx ========== */
+
+.mt-section {
+  border: none;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(15, 45, 110, 0.08);
+}
+
+.mt-title-bar {
+  background: linear-gradient(135deg, #1f3864 0%, #2e5496 100%);
+  padding: 16px 20px;
+  display: grid;
+  gap: 2px;
+}
+.mt-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.mt-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.5;
+}
+
+.mt-table-wrap {
+  border: none;
+  border-radius: 0;
+}
+
+.mt-table {
+  min-width: 860px;
+}
+
+/* Header */
+.mt-head-cell {
+  background: #2e5496;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 9px 8px;
+  text-align: center;
+  white-space: nowrap;
+  border-bottom: 2px solid #1f3864;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+.mt-head-cell:last-child {
+  border-right: none;
+}
+
+/* Day axis — vertical label */
+.mt-day-cell {
+  background: #f0f4fa;
+  border-right: 2px solid #2e5496;
+  border-bottom: 2px solid #cbd5e1;
+  vertical-align: middle;
+  text-align: center;
+  padding: 6px 4px;
+  min-width: 28px;
+  width: 28px;
+  max-width: 36px;
+}
+.mt-day-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 12px;
+  font-weight: 800;
+  color: #1f3864;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Form axis */
+.mt-form-cell {
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f3864;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Stream axis */
+.mt-stream-cell {
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Body cells */
+.mt-body-cell {
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  padding: 4px 6px;
+  font-size: 11px;
+  color: #0f172a;
+  text-align: center;
+  vertical-align: middle;
+}
+.mt-body-cell:last-child {
+  border-right: none;
+}
+
+.mt-subject {
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #0f172a;
+}
+.mt-note {
+  font-size: 9px;
+  color: #64748b;
+  line-height: 1.3;
+  margin-top: 1px;
+}
+.mt-empty {
+  color: #cbd5e1;
+  font-size: 11px;
+}
+
+/* Shared cells — break / lunch / activities — vertical label */
+.mt-shared-cell {
+  text-align: center;
+  vertical-align: middle;
+  padding: 6px 2px;
+  min-width: 26px;
+  width: 26px;
+  max-width: 34px;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 2px solid #cbd5e1;
+}
+.mt-shared-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Break / Lunch — amber */
+.mt-shared--break {
+  background: #fef3c7;
+  border-right-color: #f59e0b;
+}
+.mt-shared--break .mt-shared-label {
+  color: #92400e;
+}
+
+/* Activities — green */
+.mt-shared--activity {
+  background: #dcfce7;
+  border-right-color: #22c55e;
+}
+.mt-shared--activity .mt-shared-label {
+  color: #166534;
+}
+
+/* Day banding */
+.mt-row--even .mt-body-cell {
+  background: #ffffff;
+}
+.mt-row--odd .mt-body-cell {
+  background: #f8fafc;
+}
+
+/* Day separation border */
+.mt-row--even + .mt-row--odd > .mt-stream-cell,
+.mt-row--even + .mt-row--odd > .mt-body-cell,
+.mt-row--odd + .mt-row--even > .mt-stream-cell,
+.mt-row--odd + .mt-row--even > .mt-body-cell {
+  border-top: 2px solid #cbd5e1;
+}
+
+@media (max-width: 768px) {
+  .mt-title-bar {
+    padding: 12px 14px;
+  }
+  .mt-title {
+    font-size: 15px;
+  }
+}
