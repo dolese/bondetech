@@ -214,4 +214,14 @@ export const API = {
   createUser:      (data)       => post("/auth/users", data),
   updateUser:      (username, data) => put(`/auth/users/${encodeURIComponent(username)}`, data),
   getAuthLogs:     (limit)      => get(`/auth/logs${limit ? `?limit=${limit}` : ""}`),
+
+  // Content Management
+  getContent:      ()           => get("/content?action=all"),
+  createNews:      (data)       => post("/content?action=news-create", data),
+  updateNews:      (id, data)   => put(`/content?action=news-update&id=${id}`, data),
+  deleteNews:      (id)         => del(`/content?action=news-delete&id=${id}`),
+  createGallery:   (data)       => post("/content?action=gallery-create", data),
+  updateGallery:   (id, data)   => put(`/content?action=gallery-update&id=${id}`, data),
+  deleteGallery:   (id)         => del(`/content?action=gallery-delete&id=${id}`),
 };
+

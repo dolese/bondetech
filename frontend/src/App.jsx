@@ -18,6 +18,7 @@ import { AiAssistantPage } from "./components/AiAssistantPage";
 import { FormsStreamsPage } from "./components/FormsStreamsPage";
 import { SubjectsPage } from "./components/SubjectsPage";
 import { ExamsPage } from "./components/ExamsPage";
+import { ContentManagementPage } from "./components/ContentManagementPage/ContentManagementPage";
 import { Splash } from "./components/Splash";
 import { Landing } from "./components/Landing";
 import { StudentProfilePage } from "./components/StudentProfilePage";
@@ -423,6 +424,9 @@ export default function App() {
           { key: "parents", label: t("parents"), requiresClass: false },
         ]
       : []),
+    ...(canViewSettings
+      ? [{ key: "content-management", label: "Content Management", requiresClass: false }]
+      : []),
   ];
 
   const {
@@ -804,6 +808,7 @@ export default function App() {
     if (page === "forms-streams") return "Forms & Streams";
     if (page === "subjects") return "Subjects";
     if (page === "exams") return "Exams";
+    if (page === "content-management") return "Content Management";
     if (page === "reports") return t("reportCards", "Report Cards");
     if (!activeClass) return "";
     const parts = [];
@@ -1143,6 +1148,10 @@ export default function App() {
                 setPage("sms");
               }}
             />
+          )}
+
+          {page === "content-management" && canViewSettings && (
+            <ContentManagementPage showToast={showToast} />
           )}
 
           {page === "results" && (

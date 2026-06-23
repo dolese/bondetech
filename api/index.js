@@ -12,6 +12,7 @@ const studentSearch = require("../serverless/students/search.js");
 const studentProfile = require("../serverless/students/[indexNo].js");
 const aiIndex = require("../serverless/ai/index.js");
 const authIndex = require("../serverless/auth/index.js");
+const contentIndex = require("../serverless/content/index.js");
 const { sendJson } = require("../lib/http");
 
 function withQuery(req, extraQuery = {}) {
@@ -105,6 +106,8 @@ module.exports = async (req, res) => {
           sms: req.query?.sms,
         });
         return statsIndex(req, res);
+      case "content":
+        return contentIndex(req, res);
       default:
         return sendJson(res, 404, { error: "API route not found" });
     }
