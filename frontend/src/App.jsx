@@ -718,12 +718,43 @@ export default function App() {
     setSelectedStudent(null);
   }, []);
 
-  const onOpenReportCard = useCallback((studentId) => {
+  const onOpenReportCard = useCallback((studentTarget) => {
+    if (!studentTarget) return;
+
+    const studentId = String(
+      typeof studentTarget === "object"
+        ? studentTarget.id || studentTarget.originalStudentId || ""
+        : studentTarget,
+    ).trim();
     if (!studentId) return;
-    const found = activeFormWorkspace.computed.find((student) => student.id === studentId) ?? null;
-    setSelectedStudent(found);
+
+    const activeMatch = activeFormWorkspace.computed.find(
+      (student) => String(student.id || "").trim() === studentId,
+    );
+    if (activeMatch) {
+      setSelectedStudent(activeMatch);
+      setModalType("report-card");
+      return;
+    }
+
+    const matched = visibleAllComputed
+      .flatMap((cls) =>
+        (cls.computed ?? []).map((student) => ({
+          ...student,
+          classId: cls.id,
+          originalStudentId: student.id,
+        })),
+      )
+      .find((student) => String(student.id || "").trim() === studentId);
+
+    if (!matched) {
+      console.warn("[App] Report card student not found", { studentTarget });
+      return;
+    }
+
+    setSelectedStudent(matched);
     setModalType("report-card");
-  }, [activeFormWorkspace.computed]);
+  }, [activeFormWorkspace.computed, visibleAllComputed]);
 
   const handleOpenStudentProfile = useCallback((target) => {
     const ref = normalizeProfileTarget(target);
