@@ -257,10 +257,12 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
           top: 18px;
           left: 18px;
           z-index: 2;
-          background: rgba(4,18,35,0.42);
-          border: 1px solid rgba(255,255,255,0.16);
+          background: rgba(255,255,255,0.12);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.22);
           border-radius: 999px;
-          padding: 10px 16px;
+          padding: 10px 18px;
           color: #fff;
           font-size: 13px;
           font-weight: 600;
@@ -269,48 +271,71 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
           align-items: center;
           gap: 6px;
           font-family: inherit;
-          transition: background 0.18s, transform 0.18s;
+          transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
         }
         .login-back-btn:hover {
-          background: rgba(4,18,35,0.58);
+          background: rgba(255,255,255,0.22);
           transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .login-submit-btn {
           width: 100%;
-          background: #0f2d6e;
+          background: linear-gradient(135deg, #0f2d6e 0%, #1d4ed8 100%);
           color: #fff;
           border: none;
-          border-radius: 10px;
+          border-radius: 12px;
           padding: 15px 0;
           font-size: 14px;
           font-weight: 800;
           letter-spacing: 0.18em;
           cursor: pointer;
           font-family: inherit;
-          box-shadow: 0 4px 12px rgba(15,45,110,0.22);
-          transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+          box-shadow: 0 4px 14px rgba(15,45,110,0.28);
+          transition: background 0.22s, transform 0.22s, box-shadow 0.22s;
         }
         .login-submit-btn:hover {
-          background: #1d4ed8;
-          transform: translateY(-1px);
-          box-shadow: 0 6px 16px rgba(29,78,216,0.28);
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(29,78,216,0.35);
+        }
+        .login-submit-btn:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 8px rgba(15,45,110,0.22);
         }
         .login-card-inner {
           padding: 22px 20px 18px;
           width: 100%;
           box-sizing: border-box;
-          border-radius: 16px;
+          border-radius: 18px;
           background: #ffffff;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 12px 40px rgba(4,18,35,0.24);
+          border: 1px solid rgba(255,255,255,0.18);
+          box-shadow:
+            0 20px 60px rgba(4,18,35,0.32),
+            0 2px 8px rgba(4,18,35,0.12),
+            inset 0 1px 0 rgba(255,255,255,0.9);
           overflow: hidden;
+          position: relative;
+        }
+        .login-card-inner::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, #1f3864 0%, #2e5496 40%, #f59e0b 100%);
+          border-radius: 18px 18px 0 0;
         }
         .login-footer-section {
           width: 100%;
           box-sizing: border-box;
         }
         .login-card-glow {
-          display: none;
+          position: absolute;
+          border-radius: 50%;
+          pointer-events: none;
+          filter: blur(12px);
+          opacity: 0.5;
         }
         .login-meta-chip {
           display: inline-flex;
@@ -421,7 +446,8 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
       <div className="login-overlay" />
 
       <button className="login-back-btn" onClick={onBack}>
-        {"<-"} {t("back")}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        {t("back")}
       </button>
 
       <div
