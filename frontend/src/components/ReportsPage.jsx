@@ -118,7 +118,6 @@ export function ReportsPage({
   const [exportingZip, setExportingZip] = useState(false);
   const [exportError, setExportError] = useState("");
   const [template, setTemplate] = useState("official");
-  const [switchingForm, setSwitchingForm] = useState(false);
   const sectionStyle = {
     background: "#fff",
     borderRadius: 12,
@@ -126,13 +125,19 @@ export function ReportsPage({
     padding: isMobile ? 14 : 18,
   };
   const schoolInfo = classData.school_info ?? DEFAULT_SCHOOL;
-  const present = (computed ?? [])
+  const [selectedForm, setSelectedForm] = useState("all");
+  const [localFormWorkspace, setLocalFormWorkspace] = useState(null);
+
+  const activeWorkspace = localFormWorkspace || { classData, computed };
+  const activeClassData = activeWorkspace.classData || classData;
+  const activeComputed = activeWorkspace.computed || computed;
+  const present = (activeComputed ?? [])
     .filter((student) => student.total !== null)
     .sort((a, b) => (a.posn ?? Infinity) - (b.posn ?? Infinity));
 
   const examOptions = useMemo(
-    () => normalizeExamList(classData, computed),
-    [classData, computed],
+    () => normalizeExamList(activeClassData, activeComputed),
+    [activeClassData, activeComputed],
   );
   const [selectedSubject, setSelectedSubject] = useState(
     () => classData.subjects?.[0] ?? "",
@@ -140,16 +145,35 @@ export function ReportsPage({
   const [selectedStudentId, setSelectedStudentId] = useState(
     () => present[0]?.id ?? "",
   );
-  const [selectedForm, setSelectedForm] = useState(() => classData.form || "all");
 
   useEffect(() => {
-    setSelectedForm(classData.form || "all");
-    setSwitchingForm(false);
-  }, [classData.form, classData.id]);
+    if (selectedForm === "all" || !allClasses?.length) {
+      setLocalFormWorkspace(null);
+      return;
+    }
+    const targetForm = String(selectedForm).trim();
+    const targetYear = String(classData.year || "").trim();
+    const formClasses = allClasses.filter(
+      (cls) =>
+        String(cls.year || "").trim() === targetYear &&
+        String(cls.form || "").trim() === targetForm
+    );
+    if (formClasses.length === 0) {
+      setLocalFormWorkspace(null);
+      return;
+    }
+    const anchorClass = formClasses[0];
+    const workspace = buildFormWorkspace(
+      formClasses,
+      anchorClass,
+      anchorClass.school_info?.exam || DEFAULT_EXAM_TYPE
+    );
+    setLocalFormWorkspace(workspace);
+  }, [selectedForm, classData.year, allClasses]);
 
   useEffect(() => {
-    setSelectedSubject(classData.subjects?.[0] ?? "");
-  }, [classData.id, classData.subjects]);
+    setSelectedSubject(activeClassData.subjects?.[0] ?? "");
+  }, [activeClassData.id, activeClassData.subjects]);
 
   useEffect(() => {
     if (!present.length) {
@@ -165,9 +189,9 @@ export function ReportsPage({
     () =>
       examOptions.map((exam) => {
         const examComputed = buildExamComputed(
-          classData,
+          activeClassData,
           exam,
-          classData.students ?? [],
+          activeClassData.students ?? [],
         );
         const presentStudents = examComputed.filter(
           (student) => student.total !== null,
@@ -186,7 +210,7 @@ export function ReportsPage({
           topper: ordered[0] ?? null,
         };
       }),
-    [classData, examOptions],
+    [activeClassData, examOptions],
   );
 
   const rankingHistory = useMemo(
@@ -228,7 +252,7 @@ export function ReportsPage({
   const subjectTrend = useMemo(
     () =>
       examSnapshots.map((snapshot) => {
-        const subjectIndex = (classData.subjects ?? []).findIndex(
+        const subjectIndex = (activeClassData.subjects ?? []).findIndex(
           (subject) => subject === selectedSubject,
         );
         const scores = snapshot.students
@@ -244,7 +268,7 @@ export function ReportsPage({
           peak: scores.length ? Math.max(...scores) : 0,
         };
       }),
-    [classData.subjects, examSnapshots, selectedSubject],
+    [activeClassData.subjects, examSnapshots, selectedSubject],
   );
 
   const formSections = useMemo(() => {
@@ -293,14 +317,14 @@ export function ReportsPage({
         form: entry.form,
       }))
       .sort((a, b) => b.avg - a.avg);
-    const current = ordered.find((entry) => entry.form === classData.form) ?? null;
+    const current = ordered.find((entry) => entry.form === activeClassData.form) ?? null;
     return {
       ordered,
       current,
       rank: current ? ordered.findIndex((entry) => entry.form === current.form) + 1 : null,
       best: ordered[0] ?? null,
     };
-  }, [classData.form, formSections]);
+  }, [activeClassData.form, formSections]);
 
   const visibleFormSections = useMemo(() => {
     if (selectedForm === "all") return formSections;
@@ -309,9 +333,9 @@ export function ReportsPage({
 
   const isCurrentFormActive = useCallback(
     (entry) =>
-      String(entry.form || "").trim() === String(classData.form || "").trim() &&
-      String(entry.year || "").trim() === String(classData.year || "").trim(),
-    [classData.form, classData.year],
+      String(entry.form || "").trim() === String(activeClassData.form || "").trim() &&
+      String(entry.year || "").trim() === String(activeClassData.year || "").trim(),
+    [activeClassData.form, activeClassData.year],
   );
 
   const waitForRender = () =>
@@ -321,7 +345,7 @@ export function ReportsPage({
 
   const buildClassReportFileName = () => {
     const safeClass =
-      (classData.name || t("reportsClassFallback", "class"))
+      (activeClassData.name || t("reportsClassFallback", "class"))
         .replace(/[^a-z0-9-_ ]/gi, "")
         .trim() || t("reportsClassFallback", "class");
     return `${safeClass}-report-cards.pdf`;
@@ -369,7 +393,7 @@ export function ReportsPage({
             >
               <ReportCardPrint
                 student={student}
-                classData={classData}
+                classData={activeClassData}
                 template={template}
                 paperSize={REPORT_CARD_PAPER_SIZE}
                 orientation={REPORT_CARD_ORIENTATION}
@@ -437,7 +461,7 @@ export function ReportsPage({
                 <div className="report-card-page">
                   <ReportCardPrint
                     student={student}
-                    classData={classData}
+                    classData={activeClassData}
                     template={template}
                     paperSize={REPORT_CARD_PAPER_SIZE}
                     orientation={REPORT_CARD_ORIENTATION}
@@ -466,7 +490,7 @@ export function ReportsPage({
           if (container?.parentNode) container.parentNode.removeChild(container);
         }
       }
-      const classSlug = getClassLabel(classData)
+      const classSlug = getClassLabel(activeClassData)
         .replace(/[^\w.-]+/g, "-")
         .replace(/^-+|-+$/g, "")
         .toLowerCase();
@@ -590,26 +614,26 @@ export function ReportsPage({
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
             <div>
               <h1 style={{ fontFamily: displayFontStack, fontSize: isMobile ? 20 : 24, fontWeight: 500, color: "#0f172a", margin: 0 }}>
-                {t("reportsBrowseByForm", "Browse Reports by Form")}
+                Browse Report Cards by Form
               </h1>
               <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>
-                {t("reportsBrowseByFormSub", "Open one report center per form and include all streams in the same ranking.")}
+                Select a form to view all students and their report cards. Includes all streams in the same ranking.
               </p>
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {filterBtn("all", t("reportsAllForms", "All Forms"))}
+              {filterBtn("all", "All Forms")}
               {formSections.map((s) => filterBtn(s.form, s.form))}
             </div>
           </div>
 
           {visibleFormSections.length ? visibleFormSections.map((section) => {
-            const active = isCurrentFormActive(section);
+            const active = selectedForm === section.form;
             return (
               <div key={section.form} style={{ display: "grid", gap: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>{section.form}</span>
                   <span style={{ fontSize: 12, color: "#64748b" }}>
-                    {t("reportsStreamCount", "{count} stream{suffix}", { count: section.streamCount, suffix: section.streamCount === 1 ? "" : "s" })}
+                    {section.streamCount} stream{section.streamCount === 1 ? "" : "s"}
                   </span>
                 </div>
                 <div style={{ border: active ? "1px solid #0f2d6e" : "1px solid #e2e8f0", borderRadius: 10, padding: 14, background: active ? "#f8faff" : "#fff", display: "grid", gap: 8 }}>
@@ -618,23 +642,23 @@ export function ReportsPage({
                       <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>{section.label}</div>
                       <div style={{ fontSize: 12, color: "#64748b" }}>{section.exam}</div>
                     </div>
-                    {active ? <span style={{ fontSize: 11, fontWeight: 500, color: "#10b981", background: "#ecfdf5", borderRadius: 4, padding: "2px 7px" }}>{t("reportsActiveForm", "Active")}</span> : null}
+                    {active ? <span style={{ fontSize: 11, fontWeight: 500, color: "#10b981", background: "#ecfdf5", borderRadius: 4, padding: "2px 7px" }}>Selected</span> : null}
                   </div>
                   <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "#64748b" }}>
-                    <span>{t("reportsStudentsCount", "{count} students", { count: section.studentCount })}</span>
-                    <span>{t("reportsRankedCount", "{count} ranked", { count: section.rankedCount })}</span>
-                    <span>{t("reportsAvgShort", "Avg {avg}", { avg: section.avg ? section.avg.toFixed(1) : "0.0" })}</span>
+                    <span>{section.studentCount} students</span>
+                    <span>{section.rankedCount} ranked</span>
+                    <span>Avg {section.avg ? section.avg.toFixed(1) : "0.0"}</span>
                   </div>
                   {!active && section.targetClassId ? (
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                      <button type="button" onClick={() => { setSwitchingForm(true); onSelectClass?.(section.targetClassId, section.exam || DEFAULT_EXAM_TYPE); }} style={{
+                      <button type="button" onClick={() => setSelectedForm(section.form)} style={{
                         padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 6, border: "none",
                         background: "#0f2d6e", color: "#fff", cursor: "pointer",
-                      }}>{t("reportsOpenFormReports", "Open Reports")}</button>
+                      }}>View Report Cards</button>
                     </div>
                   ) : active ? (
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                      <span style={{ fontSize: 12, color: "#94a3b8" }}>{t("reportsCurrentForm", "Current Form")}</span>
+                      <span style={{ fontSize: 12, color: "#94a3b8" }}>Currently viewing</span>
                     </div>
                   ) : null}
                 </div>
@@ -642,14 +666,14 @@ export function ReportsPage({
             );
           }) : (
             <div style={{ padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
-              {t("reportsNoFormsFound", "No form report sections are available yet.")}
+              No form report sections are available yet.
             </div>
           )}
         </div>
 
-        {switchingForm ? (
+        {selectedForm === "all" ? (
           <div style={{ ...sectionStyle, color: "#64748b", fontSize: 13, textAlign: "center", padding: 24 }}>
-            {t("reportsLoadingForm", "Loading form reports...")}
+            Select a form above to view report cards.
           </div>
         ) : (
         <>
@@ -661,7 +685,7 @@ export function ReportsPage({
                 {t("reportsCenterTitle", "Report Card Center")}
               </h2>
               <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>
-                {schoolInfo.name} &middot; {getClassLabel(classData)} &middot; {schoolInfo.exam || DEFAULT_EXAM_TYPE}
+                {schoolInfo.name} &middot; {getClassLabel(activeClassData)} &middot; {schoolInfo.exam || DEFAULT_EXAM_TYPE}
               </p>
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", width: isMobile ? "100%" : "auto", justifyContent: isMobile ? "stretch" : "flex-end" }}>
@@ -780,7 +804,7 @@ export function ReportsPage({
                 {t("reportsSubject", "Subject")}
               </label>
               <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} style={selectStyle}>
-                {(classData.subjects ?? []).map((s) => <option key={s} value={s}>{s}</option>)}
+                {(activeClassData.subjects ?? []).map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
 
@@ -810,7 +834,7 @@ export function ReportsPage({
                   <div key={entry.id} style={{
                     display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center",
                     padding: "8px 12px", border: "1px solid #f1f5f9", borderRadius: 8,
-                    background: entry.id === classData.id ? "#f8faff" : "#fff",
+                    background: entry.id === activeClassData.id ? "#f8faff" : "#fff",
                   }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>#{index + 1} {entry.name}</div>

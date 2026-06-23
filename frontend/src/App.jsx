@@ -772,6 +772,7 @@ export default function App() {
     if (page === "forms-streams") return "Forms & Streams";
     if (page === "subjects") return "Subjects";
     if (page === "exams") return "Exams";
+    if (page === "reports") return t("reportCards", "Report Cards");
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
