@@ -196,10 +196,10 @@
   display: flex; gap: 6px; z-index: 10;
 }
 .wa-home .dot {
-  width: 8px; height: 8px; border-radius: 4px; border: none; padding: 0;
+  width: 10px; height: 10px; border-radius: 50%; border: none; padding: 0;
   background: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.3s;
 }
-.wa-home .dot.active { background: #fff; width: 24px; }
+.wa-home .dot.active { background: #fff; width: 10px; height: 10px; transform: scale(1.2); }
 
 /* SHARED SECTION HEADING */
 .wa-home .section-eyebrow {

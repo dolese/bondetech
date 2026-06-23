@@ -1,0 +1,235 @@
+.news-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.news-header-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.news-header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a2b4a;
+  margin-bottom: 4px;
+}
+
+.news-header-desc {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.news-stats-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999;
+  padding: 8px 14px;
+  background: rgba(15, 139, 141, 0.12);
+  border: 1px solid rgba(15, 139, 141, 0.18);
+  color: #0f8b8d;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.news-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.news-search-input {
+  flex: 1;
+  min-width: 200px;
+  font-size: 14px;
+  color: #1a2b4a;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.news-search-input:focus {
+  border-color: #2d4270;
+  box-shadow: 0 0 0 3px rgba(45, 66, 112, 0.12);
+}
+
+.news-category-filter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.news-cat-btn {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.news-cat-btn:hover {
+  background: #f1f5f9;
+  color: #1a2b4a;
+}
+
+.news-cat-btn.active {
+  background: #0f2d6e;
+  color: #fff;
+  border-color: #0f2d6e;
+}
+
+.news-empty-state {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 60px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.news-empty-text {
+  font-size: 15px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.news-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transition: box-shadow 0.25s, transform 0.25s;
+}
+
+.news-card:hover {
+  box-shadow: 0 8px 28px rgba(26, 43, 74, 0.09);
+  transform: translateY(-3px);
+}
+
+.news-card-bar {
+  height: 4px;
+}
+
+.news-card-bar-navy { background: #1a2b4a; }
+.news-card-bar-gold { background: #b89a3e; }
+.news-card-bar-teal { background: #0f8b8d; }
+
+.news-card-body {
+  padding: 20px;
+}
+
+.news-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.news-card-category {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #b89a3e;
+  background: #f5efd6;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.news-card-date {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.news-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a2b4a;
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+}
+
+.news-card-excerpt {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.7;
+  margin: 0 0 12px 0;
+}
+
+.news-card-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.news-card-badge-info {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.news-card-badge-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.news-card-badge-warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+@media (max-width: 768px) {
+  .news-page-container {
+    padding: 16px;
+  }
+
+  .news-header-card {
+    padding: 16px;
+  }
+
+  .news-header-title {
+    font-size: 22px;
+  }
+
+  .news-controls {
+    flex-direction: column;
+  }
+
+  .news-grid {
+    grid-template-columns: 1fr;
+  }
+}

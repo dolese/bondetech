@@ -7,6 +7,8 @@ import { StudentProfilePage } from "../StudentProfilePage";
 import { useI18n } from "../../i18n";
 import { LanguageToggle } from "../LanguageToggle";
 import { HomeIcon } from "./HomeIcons";
+import { NewsPage } from "../NewsPage/NewsPage";
+import { GalleryPage } from "../GalleryPage/GalleryPage";
 import "./Home.css";
 
 const DEFAULT_HERO_SLIDES = [
@@ -99,6 +101,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   const { isMobile } = useViewport();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [publicPage, setPublicPage] = useState("home");
   const [searchAdmission, setSearchAdmission] = useState("");
   const [searchForm, setSearchForm] = useState("");
   const [searchYear, setSearchYear] = useState("");
@@ -324,11 +327,12 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   ];
 
   const navLinks = [
-    { label: sw ? "Mwanzo" : "Home", onClick: scrollToTop },
+    { label: sw ? "Mwanzo" : "Home", onClick: () => setPublicPage("home") },
     { label: sw ? "Shule Yetu" : "Our School", onClick: () => onOpenSchool?.() },
-    { label: sw ? "Matokeo" : "Results", onClick: () => scrollTo(searchSectionRef) },
-    { label: sw ? "Habari" : "News", onClick: () => scrollTo(newsSectionRef) },
-    { label: sw ? "Programu" : "Programmes", onClick: () => scrollTo(aboutSectionRef) },
+    { label: sw ? "Matokeo" : "Results", onClick: () => { setPublicPage("home"); setTimeout(() => scrollTo(searchSectionRef), 100); } },
+    { label: sw ? "Habari" : "News", onClick: () => setPublicPage("news") },
+    { label: sw ? "Picha" : "Gallery", onClick: () => setPublicPage("gallery") },
+    { label: sw ? "Programu" : "Programmes", onClick: () => { setPublicPage("home"); setTimeout(() => scrollTo(aboutSectionRef), 100); } },
   ];
 
   const newsBars = ["b1", "b2", "b3"];
@@ -386,6 +390,9 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         </div>
       )}
 
+      {/* HOME PAGE CONTENT */}
+      {publicPage === "home" && (
+        <>
       {/* HERO */}
       <div className="hero-wrap">
         <div className="hero">
@@ -641,6 +648,22 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           </div>
         </div>
       </section>
+        </>
+      )}
+
+      {/* NEWS PAGE */}
+      {publicPage === "news" && (
+        <div style={{ padding: "3rem 3rem 5rem", maxWidth: "1200px", margin: "0 auto" }}>
+          <NewsPage announcements={homepageData?.announcements || []} />
+        </div>
+      )}
+
+      {/* GALLERY PAGE */}
+      {publicPage === "gallery" && (
+        <div style={{ padding: "3rem 3rem 5rem", maxWidth: "1200px", margin: "0 auto" }}>
+          <GalleryPage images={homepageData?.images || []} />
+        </div>
+      )}
 
       {/* FOOTER */}
       <footer>
