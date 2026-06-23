@@ -31,10 +31,14 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
   );
 
   const effectiveExam = activeExam || baseClass?.school_info?.exam || DEFAULT_EXAM_TYPE;
-  const subjects = Array.isArray(baseClass?.subjects) ? baseClass.subjects : [];
+  const subjects = Array.from(
+    new Set(
+      relatedClasses.flatMap((cls) => (Array.isArray(cls.subjects) ? cls.subjects : [])),
+    ),
+  );
   const rows = relatedClasses.flatMap((cls) => {
     const compositeEntry = getCompositeEntry(effectiveExam, cls.composite_config ?? {});
-    return (cls.students || []).map((student) => {
+    const computedRows = (cls.students || []).map((student) => {
       const examScores = student.examScores ?? {};
       const currentScores = Array.isArray(examScores[effectiveExam]) ? examScores[effectiveExam] : student.scores ?? [];
       const partnerScores = compositeEntry
@@ -57,7 +61,17 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
           : {}),
       };
     });
+    return withPositions(computedRows, cls.subjects ?? []);
   });
+
+  const ranked = [...rows]
+    .filter((student) => student.total !== null)
+    .sort((left, right) => right.total - left.total);
+  const positionMap = new Map(ranked.map((student, index) => [student.id, index + 1]));
+  const computed = rows.map((student) => ({
+    ...student,
+    posn: positionMap.get(student.id) ?? null,
+  }));
 
   return {
     relatedClasses,
@@ -69,7 +83,8 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
       students: mergedStudents,
       rankTotalStudents: mergedStudents.length,
       classLabelOverride: baseClass?.form || baseClass?.name || "",
+      subjects,
     },
-    computed: withPositions(rows, subjects),
+    computed,
   };
 }

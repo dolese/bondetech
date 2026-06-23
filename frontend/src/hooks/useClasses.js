@@ -653,35 +653,58 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, refreshClass, showToast]);
 
-  const onApplySubjectMaster = useCallback(async ({
+  const onUpdateSubjectAssignments = useCallback(async ({
     classIds = [],
     subjectName,
     subjectType = "compulsory",
+    defaultAssigned = false,
+    assignments = [],
   } = {}) => {
     const normalizedName = normalizeSubjectName(subjectName);
     if (!normalizedName) {
       throw new Error("Subject name is required");
     }
+
     const normalizedType = subjectType === "optional" ? "optional" : "compulsory";
     const targetClasses = classes.filter((cls) => classIds.includes(cls.id));
     if (!targetClasses.length) {
       throw new Error("No target classes selected");
     }
 
+    const assignmentMap = new Map(
+      (Array.isArray(assignments) ? assignments : []).map((entry) => [
+        String(entry?.classId || "").trim(),
+        Boolean(entry?.assigned),
+      ]),
+    );
+
     const successes = [];
     const failures = [];
 
     for (const cls of targetClasses) {
+      const assigned = assignmentMap.has(cls.id) ? assignmentMap.get(cls.id) : defaultAssigned;
       const existingSubjects = Array.isArray(cls.subjects) ? cls.subjects : DEFAULT_SUBJECTS;
       const subjectExists = existingSubjects.some(
-        (entry) => entry.toLowerCase() === normalizedName.toLowerCase(),
+        (entry) => String(entry || "").toLowerCase() === normalizedName.toLowerCase(),
       );
-      const nextSubjects = subjectExists ? existingSubjects : [...existingSubjects, normalizedName];
+
+      const nextSubjects = assigned
+        ? (subjectExists ? existingSubjects : [...existingSubjects, normalizedName])
+        : existingSubjects.filter((entry) => String(entry || "").toLowerCase() !== normalizedName.toLowerCase());
+
       const nextMetadata = buildSubjectMetadataWithOverrides(
         nextSubjects,
         cls.subject_metadata ?? cls.subjectMetadata ?? [],
-        { [normalizedName]: normalizedType },
+        assigned ? { [normalizedName]: normalizedType } : {},
       );
+
+      const changed = JSON.stringify(existingSubjects) !== JSON.stringify(nextSubjects);
+      const existingMetadata = JSON.stringify(cls.subject_metadata ?? cls.subjectMetadata ?? []);
+      const nextMetadataJson = JSON.stringify(nextMetadata);
+      if (!changed && existingMetadata === nextMetadataJson) {
+        successes.push(cls.id);
+        continue;
+      }
 
       try {
         await API.updateClass(cls.id, {
@@ -708,7 +731,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
       );
     } else if (successes.length) {
       showToast?.(
-        `${normalizedName} applied to ${successes.length} class${successes.length === 1 ? "" : "es"}`,
+        `${normalizedName} updated across ${successes.length} class${successes.length === 1 ? "" : "es"}`,
       );
     }
 
@@ -718,6 +741,24 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
 
     return { updated: successes.length };
   }, [classes, refreshClass, showToast]);
+
+  const onApplySubjectMaster = useCallback(async ({
+    classIds = [],
+    subjectName,
+    subjectType = "compulsory",
+  } = {}) => {
+    const normalizedName = normalizeSubjectName(subjectName);
+    if (!normalizedName) {
+      throw new Error("Subject name is required");
+    }
+
+    return onUpdateSubjectAssignments({
+      classIds,
+      subjectName: normalizedName,
+      subjectType,
+      defaultAssigned: true,
+    });
+  }, [onUpdateSubjectAssignments]);
 
   const onUpdateMonthlyExams = useCallback(async (monthlyExams) => {
     if (!activeClass) return;
@@ -1040,6 +1081,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onReorderStudentCnos,
     onUpdateSchool,
     onUpdateSubjects,
+    onUpdateSubjectAssignments,
     onApplySubjectMaster,
     onUpdateMonthlyExams,
     onUpdateClassMeta,

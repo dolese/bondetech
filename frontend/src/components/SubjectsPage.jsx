@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CLASS_FORMS } from "../hooks/useClasses";
 import { displayFontStack, fieldStyle, premiumFontStack } from "../utils/designSystem";
 import { DEFAULT_SUBJECTS } from "../utils/constants";
@@ -115,6 +115,12 @@ function SubjectRow({ entry, expanded, onToggle, onNavigate, canManage, totalCla
                   }}>
                     {busyKey === `missing-${entry.key}` ? "Applying..." : missingCount > 0 ? `Add to ${missingCount} missing` : "In all classes"}
                   </button>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); onNavigate?.({ mode: "manage", entry }); }} style={{
+                    border: "1px solid #c7d2fe", borderRadius: 6, padding: "5px 10px", background: "#eef2ff",
+                    color: "#3730a3", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                  }}>
+                    Manage Forms & Streams
+                  </button>
                   <button type="button" disabled={busyKey === `sync-${entry.key}-compulsory`} onClick={(e) => { e.stopPropagation(); onSyncType(entry, "compulsory"); }} style={{
                     border: "1px solid #dbeafe", borderRadius: 6, padding: "5px 10px",
                     background: teachingTypeLabel === "compulsory" ? "#eff6ff" : "#fff", color: "#1d4ed8", fontSize: 12, fontWeight: 500, cursor: "pointer",
@@ -137,7 +143,142 @@ function SubjectRow({ entry, expanded, onToggle, onNavigate, canManage, totalCla
   );
 }
 
-export function SubjectsPage({ classes = [], canManage = false, onNavigateToClass, onApplySubjectMaster }) {
+function SubjectAssignmentModal({ classes = [], subjectName, subjectType = "compulsory", assignedIds = [], busy = false, onClose, onSave }) {
+  const [selectedIds, setSelectedIds] = useState(() => new Set(assignedIds));
+
+  useEffect(() => {
+    setSelectedIds(new Set(assignedIds));
+  }, [assignedIds, subjectName]);
+
+  const grouped = useMemo(() => {
+    const yearMap = new Map();
+    classes.forEach((cls) => {
+      const year = String(cls.year || "").trim() || "No Year";
+      const form = String(cls.form || "").trim() || "Unassigned Form";
+      const stream = String(cls.stream || "").trim().toUpperCase() || "?";
+      const yearEntry = yearMap.get(year) || { year, forms: new Map() };
+      const formEntry = yearEntry.forms.get(form) || { form, classes: [] };
+      formEntry.classes.push({ id: cls.id, stream, label: [form, stream, year].filter(Boolean).join(" ").trim() });
+      yearEntry.forms.set(form, formEntry);
+      yearMap.set(year, yearEntry);
+    });
+    return Array.from(yearMap.values())
+      .sort((left, right) => Number(right.year) - Number(left.year))
+      .map((entry) => ({
+        ...entry,
+        forms: Array.from(entry.forms.values()).sort(
+          (left, right) => CLASS_FORMS.indexOf(left.form) - CLASS_FORMS.indexOf(right.form),
+        ).map((formEntry) => ({
+          ...formEntry,
+          classes: formEntry.classes.sort((left, right) => left.stream.localeCompare(right.stream, "en")),
+        })),
+      }));
+  }, [classes]);
+
+  const setForm = (ids, nextValue) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      ids.forEach((id) => {
+        if (nextValue) next.add(id);
+        else next.delete(id);
+      });
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    await onSave?.(Array.from(selectedIds));
+  };
+
+  if (!subjectName) return null;
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(15,23,42,0.52)", display: "grid", placeItems: "center", padding: 16 }}>
+      <div onClick={(event) => event.stopPropagation()} style={{ width: "min(980px, 100%)", maxHeight: "92vh", overflow: "hidden", background: "#fff", borderRadius: 18, boxShadow: "0 24px 70px rgba(15,23,42,0.28)", display: "grid", gridTemplateRows: "auto 1fr auto" }}>
+        <div style={{ padding: "16px 18px", background: "linear-gradient(135deg, #0f2d6e, #1d4ed8)", color: "#fff", display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.8 }}>Manage Forms & Streams</div>
+            <div style={{ fontSize: 19, fontWeight: 800, marginTop: 3 }}>{subjectName}</div>
+            <div style={{ fontSize: 12, opacity: 0.84, marginTop: 4 }}>{subjectType === "optional" ? "Optional subject" : "Compulsory subject"}</div>
+          </div>
+          <button type="button" onClick={onClose} style={{ border: "none", borderRadius: 8, padding: "8px 12px", background: "rgba(255,255,255,0.14)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Close</button>
+        </div>
+
+        <div style={{ overflow: "auto", padding: 18, background: "#f8fafc" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+            <button type="button" onClick={() => setSelectedIds(new Set(classes.map((cls) => cls.id)))} style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 999, padding: "7px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Select all streams in all Forms</button>
+            <button type="button" onClick={() => setSelectedIds(new Set())} style={{ border: "1px solid #e2e8f0", background: "#fff", color: "#475569", borderRadius: 999, padding: "7px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Clear all</button>
+          </div>
+
+          <div style={{ display: "grid", gap: 14 }}>
+            {grouped.length ? (
+              grouped.map((yearGroup) => (
+                <div key={yearGroup.year} style={{ border: "1px solid #e2e8f0", borderRadius: 14, background: "#fff", overflow: "hidden" }}>
+                  <div style={{ padding: "12px 14px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>{yearGroup.year}</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <button type="button" onClick={() => setForm(yearGroup.forms.flatMap((formEntry) => formEntry.classes.map((entry) => entry.id)), true)} style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 999, padding: "6px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Select all streams in this year</button>
+                      <button type="button" onClick={() => setForm(yearGroup.forms.flatMap((formEntry) => formEntry.classes.map((entry) => entry.id)), false)} style={{ border: "1px solid #e2e8f0", background: "#fff", color: "#475569", borderRadius: 999, padding: "6px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Clear this year</button>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gap: 12, padding: 14 }}>
+                    {yearGroup.forms.map((formEntry) => {
+                      const formIds = formEntry.classes.map((entry) => entry.id);
+                      const selectedCount = formIds.filter((id) => selectedIds.has(id)).length;
+                      return (
+                        <div key={`${yearGroup.year}-${formEntry.form}`} style={{ border: "1px solid #eef2f7", borderRadius: 12, padding: 12, background: selectedCount ? "#fbfdff" : "#fff" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>{formEntry.form}</div>
+                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                              <button type="button" onClick={() => setForm(formIds, true)} style={{ border: "1px solid #c7d2fe", background: "#eef2ff", color: "#3730a3", borderRadius: 999, padding: "5px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Select all streams in this Form</button>
+                              <button type="button" onClick={() => setForm(formIds, false)} style={{ border: "1px solid #e2e8f0", background: "#fff", color: "#475569", borderRadius: 999, padding: "5px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Clear this Form</button>
+                            </div>
+                          </div>
+
+                          <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                            {formEntry.classes.map((entry) => {
+                              const checked = selectedIds.has(entry.id);
+                              return (
+                                <label key={entry.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 10px", borderRadius: 10, border: `1px solid ${checked ? "#c7d2fe" : "#e2e8f0"}`, background: checked ? "#eef2ff" : "#fff", cursor: "pointer" }}>
+                                  <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                    <input type="checkbox" checked={checked} onChange={() => setSelectedIds((current) => {
+                                      const next = new Set(current);
+                                      if (next.has(entry.id)) next.delete(entry.id); else next.add(entry.id);
+                                      return next;
+                                    })} />
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{entry.label}</span>
+                                  </span>
+                                  <span style={{ fontSize: 11, color: checked ? "#3730a3" : "#64748b", fontWeight: 700 }}>{checked ? "Assigned" : "Not assigned"}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: 20, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>No streams are available for assignment.</div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ padding: 16, borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ fontSize: 12, color: "#64748b" }}>{selectedIds.size} stream{selectedIds.size === 1 ? "" : "s"} selected</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button type="button" onClick={onClose} disabled={busy} style={{ border: "1px solid #e2e8f0", background: "#fff", color: "#475569", borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Cancel</button>
+            <button type="button" onClick={handleSave} disabled={busy} style={{ border: "none", background: busy ? "#93c5fd" : "#0f2d6e", color: "#fff", borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{busy ? "Saving..." : "Save assignments"}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function SubjectsPage({ classes = [], canManage = false, onNavigateToClass, onApplySubjectMaster, onUpdateSubjectAssignments }) {
   const { isMobile, isXs } = useViewport();
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -152,6 +293,7 @@ export function SubjectsPage({ classes = [], canManage = false, onNavigateToClas
   const [actionError, setActionError] = useState("");
   const [masterBusy, setMasterBusy] = useState(false);
   const [rowBusyKey, setRowBusyKey] = useState("");
+  const [assignmentEditor, setAssignmentEditor] = useState(null);
 
   const years = useMemo(() => {
     const values = new Set(classes.map((cls) => String(cls.year || "").trim()).filter(Boolean));
@@ -227,6 +369,29 @@ export function SubjectsPage({ classes = [], canManage = false, onNavigateToClas
     setActionError("");
     try { await onApplySubjectMaster?.({ classIds: targetIds, subjectName: entry.name, subjectType: nextType }); }
     catch (error) { setActionError(error.message); } finally { setRowBusyKey(""); }
+  };
+
+  const openAssignmentEditor = (entry) => {
+    if (!entry) return;
+    setAssignmentEditor({
+      subjectName: entry.name,
+      subjectType: entry.type,
+      assignedIds: classes.filter((cls) => (Array.isArray(cls.subjects) ? cls.subjects : []).some((subject) => String(subject || "").trim().toLowerCase() === entry.key)).map((cls) => cls.id),
+    });
+  };
+
+  const saveAssignmentEditor = async (assignedIds) => {
+    if (!assignmentEditor) return;
+    const classIds = classes.map((cls) => cls.id);
+    const selected = new Set((Array.isArray(assignedIds) ? assignedIds : []).map((id) => String(id || "").trim()).filter(Boolean));
+    await onUpdateSubjectAssignments?.({
+      classIds,
+      subjectName: assignmentEditor.subjectName,
+      subjectType: assignmentEditor.subjectType,
+      assignments: classIds.map((classId) => ({ classId, assigned: selected.has(classId) })),
+      defaultAssigned: false,
+    });
+    setAssignmentEditor(null);
   };
 
   const scopeBtn = (value, label) => {
@@ -365,13 +530,25 @@ export function SubjectsPage({ classes = [], canManage = false, onNavigateToClas
                 </thead>
                 <tbody>
                   {filtered.map((entry) => (
-                    <SubjectRow key={entry.key} entry={entry} expanded={expandedSubject === entry.key} onToggle={() => setExpandedSubject((c) => (c === entry.key ? null : entry.key))} onNavigate={onNavigateToClass} canManage={canManage} totalClasses={classes.length} onApplyMissing={handleApplyMissing} onSyncType={handleSyncType} busyKey={rowBusyKey} />
+                    <SubjectRow key={entry.key} entry={entry} expanded={expandedSubject === entry.key} onToggle={() => setExpandedSubject((c) => (c === entry.key ? null : entry.key))} onNavigate={canManage ? (payload) => { if (payload?.mode === "manage") openAssignmentEditor(entry); else onNavigateToClass?.(payload); } : onNavigateToClass} canManage={canManage} totalClasses={classes.length} onApplyMissing={handleApplyMissing} onSyncType={handleSyncType} busyKey={rowBusyKey} />
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
         )}
+
+        {assignmentEditor ? (
+          <SubjectAssignmentModal
+            classes={classes}
+            subjectName={assignmentEditor.subjectName}
+            subjectType={assignmentEditor.subjectType}
+            assignedIds={assignmentEditor.assignedIds}
+            busy={busy}
+            onClose={() => setAssignmentEditor(null)}
+            onSave={saveAssignmentEditor}
+          />
+        ) : null}
 
         <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>
           The catalogue is built from visible classes. Use the master actions above to roll out subjects consistently.
