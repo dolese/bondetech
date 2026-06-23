@@ -315,19 +315,21 @@ export function AppSidebar({
 
   const navButtonStyle = (active, disabled, hasSubtitle = false) => ({
     border: "none",
-    borderRadius: active ? 20 : 18,
-    padding: hasSubtitle ? "12px 14px" : "10px 12px",
+    borderRadius: 14,
+    padding: hasSubtitle ? "10px 12px" : "7px 10px",
     textAlign: "left",
     cursor: disabled ? "not-allowed" : "pointer",
     opacity: disabled ? 0.46 : 1,
-    background: active ? "linear-gradient(135deg, #edf4ff, #f5f9ff)" : "transparent",
-    color: active ? "#2563eb" : "#0f172a",
+    background: active ? "linear-gradient(135deg, #e8f1ff, #f3f8ff)" : "transparent",
+    color: active ? "#2563eb" : "#334155",
     display: "flex",
     alignItems: "center",
-    gap: 12,
+    gap: 11,
     width: "100%",
-    boxShadow: active ? "0 14px 30px rgba(37,99,235,0.10), inset 0 1px 0 rgba(255,255,255,0.92)" : "none",
-    transition: "background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
+    boxShadow: active
+      ? "inset 3px 0 0 #2563eb, 0 8px 20px rgba(37,99,235,0.10)"
+      : "none",
+    transition: "background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease",
   });
 
   const renderNavButton = (item) => {
@@ -349,15 +351,17 @@ export function AppSidebar({
       >
         <span
           style={{
-            width: 42,
-            height: 42,
-            borderRadius: 14,
+            width: 34,
+            height: 34,
+            borderRadius: 10,
             display: "grid",
             placeItems: "center",
-            color: "#2563eb",
-            background: active ? "rgba(37,99,235,0.10)" : "linear-gradient(180deg, #f8fbff, #f1f5ff)",
-            border: "1px solid rgba(226,232,240,0.72)",
-            boxShadow: "0 10px 24px rgba(15,23,42,0.04)",
+            color: active ? "#ffffff" : "#64748b",
+            background: active
+              ? "linear-gradient(135deg, #2563eb, #3b82f6)"
+              : "#f1f5f9",
+            border: active ? "none" : "1px solid rgba(226,232,240,0.8)",
+            boxShadow: active ? "0 6px 14px rgba(37,99,235,0.28)" : "none",
             flexShrink: 0,
           }}
         >
@@ -369,9 +373,9 @@ export function AppSidebar({
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: active ? 700 : 600,
-              color: active ? "#2563eb" : "#0f172a",
+              color: active ? "#2563eb" : "#334155",
             }}
           >
             {item.key === "dashboard" ? t("dashboard") : item.label}
@@ -507,11 +511,10 @@ export function AppSidebar({
                     </span>
                   </button>
                   {!collapsedSections[section.id] ? (
-                    <div style={{ display: "grid", gap: 6 }}>
+                    <div style={{ display: "grid", gap: 2 }}>
                       {section.items.map(renderNavButton)}
                     </div>
                   ) : null}
-                  <div style={{ height: 1, background: "linear-gradient(90deg, rgba(226,232,240,0), rgba(226,232,240,1), rgba(226,232,240,0))" }} />
                 </div>
               ))}
             </div>
