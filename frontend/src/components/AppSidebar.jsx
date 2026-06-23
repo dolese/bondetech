@@ -480,7 +480,7 @@ export function AppSidebar({
             </div>
           </div>
 
-          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: 2 }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: 2, paddingBottom: 8 }}>
             <div style={{ display: "grid", gap: 4 }}>
               {renderNavButton({ key: "dashboard", label: t("dashboard"), requiresClass: false })}
             </div>
