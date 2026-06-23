@@ -400,7 +400,7 @@ export default function App() {
   const role = currentUser?.role || "";
   const canAccessClassData = CLASS_ACCESS_ROLES.has(role);
   const canManageUsers = role === "admin";
-  const canViewSettings = role === "admin";
+  const canViewSettings = role === "admin" || role === "academic";
   const canManageStudentsGlobally = role === "admin" || role === "academic";
   const canUseSms = CLASS_ACCESS_ROLES.has(role);
   const canUseAi = CLASS_ACCESS_ROLES.has(role);

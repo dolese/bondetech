@@ -3,6 +3,10 @@ const { readJsonBody, sendJson } = require("../../lib/http");
 const { resolveSessionUser, canManageClasses } = require("../../lib/auth");
 const { getHomepageContentEditor, saveHomepageContent } = require("../../lib/homepageOverview");
 
+function canManageContent(role) {
+  return role === "admin" || role === "academic";
+}
+
 function normalizeText(value, fallback = "", maxLength = 240) {
   const text = String(value || "").trim();
   if (!text) return fallback;
@@ -68,8 +72,8 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === "POST") {
-      if (!canManageClasses(user.role)) {
-        return sendJson(res, 403, { error: "Only administrators can manage content" });
+      if (!canManageContent(user.role)) {
+        return sendJson(res, 403, { error: "Only administrators and academic staff can manage content" });
       }
 
       const body = await readJsonBody(req);
@@ -93,8 +97,8 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === "PUT") {
-      if (!canManageClasses(user.role)) {
-        return sendJson(res, 403, { error: "Only administrators can manage content" });
+      if (!canManageContent(user.role)) {
+        return sendJson(res, 403, { error: "Only administrators and academic staff can manage content" });
       }
 
       const body = await readJsonBody(req);
@@ -128,8 +132,8 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === "DELETE") {
-      if (!canManageClasses(user.role)) {
-        return sendJson(res, 403, { error: "Only administrators can manage content" });
+      if (!canManageContent(user.role)) {
+        return sendJson(res, 403, { error: "Only administrators and academic staff can manage content" });
       }
 
       const itemId = String(req.query?.id || "").trim();
