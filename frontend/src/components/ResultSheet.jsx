@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { createRoot } from "react-dom/client";
@@ -87,6 +87,32 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     [classData.composite_config, classData.school_info?.exam]
   );
 
+  const viewportRef = useRef(null);
+  const contentRef = useRef(null);
+  const [fitScale, setFitScale] = useState(1);
+  const [naturalHeight, setNaturalHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    const recompute = () => {
+      const viewport = viewportRef.current;
+      const content = contentRef.current;
+      if (!viewport || !content) return;
+      // offsetWidth/Height are layout sizes and are unaffected by CSS transforms,
+      // so they always report the sheet's natural (unscaled) dimensions.
+      const available = viewport.clientWidth;
+      const natural = content.offsetWidth;
+      setNaturalHeight(content.offsetHeight);
+      setFitScale(natural > 0 ? Math.min(1, available / natural) : 1);
+    };
+    recompute();
+    const observer = new ResizeObserver(recompute);
+    if (viewportRef.current) observer.observe(viewportRef.current);
+    if (contentRef.current) observer.observe(contentRef.current);
+    return () => observer.disconnect();
+  }, [model, pageSize, isMobile]);
+
+  const fitToWidth = fitScale < 0.999;
+
   const exportPdf = async () => {
     const date = new Date().toISOString().slice(0, 10);
     const name = `${classData.name || "class"}-results-${pageSize}-${date}.pdf`;
@@ -158,13 +184,9 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     sheetViewport: {
       width: "100%",
       maxWidth: "100%",
-      overflowX: "auto",
+      overflowX: "hidden",
       overflowY: "visible",
       paddingBottom: 4,
-      display: "flex",
-      justifyContent: "center",
-      WebkitOverflowScrolling: "touch",
-      overscrollBehaviorX: "contain",
     },
     actions: {
       display: "flex",
@@ -269,24 +291,43 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
         </div>
       )}
 
-      <div style={styles.sheetViewport}>
-        {!model.students.length ? (
+      <div ref={viewportRef} style={styles.sheetViewport}>
+        <div
+          style={{
+            height: fitToWidth ? Math.ceil(naturalHeight * fitScale) : undefined,
+            overflow: fitToWidth ? "hidden" : "visible",
+            display: fitToWidth ? "block" : "flex",
+            justifyContent: fitToWidth ? undefined : "center",
+          }}
+        >
           <div
+            ref={contentRef}
             style={{
-              background: "#f7f9ff",
-              border: "1px dashed #c8d8f8",
-              borderRadius: 8,
-              padding: 18,
-              textAlign: "center",
-              color: "#666",
-              fontSize: 12,
+              width: "max-content",
+              margin: fitToWidth ? 0 : "0 auto",
+              transform: fitToWidth ? `scale(${fitScale})` : undefined,
+              transformOrigin: "top left",
             }}
           >
-            No results yet. Enter student scores to generate the result sheet.
+            {!model.students.length ? (
+              <div
+                style={{
+                  background: "#f7f9ff",
+                  border: "1px dashed #c8d8f8",
+                  borderRadius: 8,
+                  padding: 18,
+                  textAlign: "center",
+                  color: "#666",
+                  fontSize: 12,
+                }}
+              >
+                No results yet. Enter student scores to generate the result sheet.
+              </div>
+            ) : (
+              <ResultSheetPreview model={model} isMobile={isMobile} onPagesChange={setPageRanges} pageSize={pageSize} />
+            )}
           </div>
-        ) : (
-          <ResultSheetPreview model={model} isMobile={isMobile} onPagesChange={setPageRanges} pageSize={pageSize} />
-        )}
+        </div>
       </div>
 
       {false && (
