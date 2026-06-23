@@ -1145,7 +1145,7 @@ export default function App() {
               <ReportsPage
                 classData={{ ...(activeFormWorkspace.classData || displayActiveClass), school_info: { ...((activeFormWorkspace.classData || displayActiveClass)?.school_info ?? {}), exam: activeExam } }}
                 computed={activeFormWorkspace.computed}
-                allClasses={role === "teacher" ? visibleAllComputed : displayAllComputed}
+                allClasses={visibleClasses}
                 onOpenReportCard={onOpenReportCard}
                 onSelectClass={(id, exam) => {
                   setActiveId(id);
