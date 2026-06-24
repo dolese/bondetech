@@ -554,35 +554,26 @@ export function PeopleDirectoryPage({
                   <div className="dir-parent-mobile-list">
                     {pageEntries.map((entry, index) => (
                       <div key={entry.key} className="dir-parent-mobile-card">
-                        <div className="dir-parent-mobile-head">
-                          <div className="dir-parent-cell-main">
-                            <div className="dir-parent-avatar" style={{ background: getAvatarGradient(entry.name) }}>
-                              {getInitials(entry.name)}
-                            </div>
-                            <div className="dir-parent-identity">
-                              <div className="dir-parent-name">{entry.name || "Unnamed guardian"}</div>
-                              <div className="dir-parent-subtitle">{entry.relationship || "Guardian"}</div>
-                            </div>
+                        <div className="dir-parent-cell-main">
+                          <div className="dir-parent-avatar" style={{ background: getAvatarGradient(entry.name) }}>
+                            {getInitials(entry.name)}
                           </div>
-                          <button type="button" className="dir-parent-profile-btn" onClick={() => {
-                            const firstStudent = entry.students?.[0] || null;
-                            if (!firstStudent || !onOpenStudentProfile) return;
-                            onOpenStudentProfile({ admissionNo: firstStudent.admissionNo || "", indexNo: firstStudent.indexNo || "" });
-                          }}>
-                            View Profile
-                          </button>
+                          <div className="dir-parent-identity">
+                            <div className="dir-parent-name">{entry.name || "Unnamed guardian"}</div>
+                            <div className="dir-parent-subtitle">{entry.relationship || "Guardian"}</div>
+                          </div>
                         </div>
                         <div className="dir-parent-mobile-meta">
                           <span>#{(safePage - 1) * perPage + index + 1}</span>
                           <span>{entry.phone || "Not set"}</span>
-                          <span>{entry.address || "Not set"}</span>
+                          <span>{entry.students?.length || 0} students</span>
                         </div>
                         <div className="dir-parent-mobile-links">
                           <button type="button" className="dir-parent-link-btn" onClick={() => openStudents(entry)}>
-                            {entry.students?.length || 0} linked students
+                            View
                           </button>
                           <button type="button" className="dir-parent-link-btn" onClick={() => openEdit(entry)}>
-                            Edit Parent
+                            Edit
                           </button>
                           <button type="button" className="dir-parent-link-btn dir-parent-link-danger" onClick={async () => {
                             const confirmed = window.confirm(`Delete this parent record from ${entry.students?.length || 0} linked student${(entry.students?.length || 0) === 1 ? "" : "s"}?`);

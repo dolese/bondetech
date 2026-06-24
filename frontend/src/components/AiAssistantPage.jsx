@@ -164,6 +164,67 @@ const PlusIcon = () => (
   </svg>
 );
 
+const MenuIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="12" x2="21" y2="12"></line>
+    <line x1="3" y1="6" x2="21" y2="6"></line>
+    <line x1="3" y1="18" x2="21" y2="18"></line>
+  </svg>
+);
+
+const DocumentIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    <polyline points="14 2 14 8 20 8"></polyline>
+  </svg>
+);
+
+const CameraIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+    <circle cx="12" cy="13" r="4"></circle>
+  </svg>
+);
+
+const UserIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+);
+
+const ChartIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10"></line>
+    <line x1="12" y1="20" x2="12" y2="4"></line>
+    <line x1="6" y1="20" x2="6" y2="14"></line>
+  </svg>
+);
+
+const FileTextIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    <polyline points="14 2 14 8 20 8"></polyline>
+    <line x1="16" y1="13" x2="8" y2="13"></line>
+    <line x1="16" y1="17" x2="8" y2="17"></line>
+    <polyline points="10 9 9 9 8 9"></polyline>
+  </svg>
+);
+
+const BookOpenIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+  </svg>
+);
+
+const BellIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+  </svg>
+);
+
 /* ─────────────────────────────────────────────
    Helpers
    ───────────────────────────────────────────── */
@@ -327,6 +388,7 @@ export function AiAssistantPage({
   const [likedIndex, setLikedIndex] = useState(null);
   const [dislikedIndex, setDislikedIndex] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -555,10 +617,20 @@ export function AiAssistantPage({
       {/* Main Chat Area */}
       <main className="ai-main">
         <header className="ai-chat-header">
-          <div>
-            <div className="ai-chat-title">AI Assistant</div>
-            <div className="ai-chat-subtitle">
-              {selectedClass ? `${selectedClass.form} ${selectedClass.stream}` : "All Classes"}
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            {isMobile && (
+              <button 
+                className="ai-mobile-sidebar-toggle" 
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+              >
+                <MenuIcon />
+              </button>
+            )}
+            <div>
+              <div className="ai-chat-title">AI Assistant</div>
+              <div className="ai-chat-subtitle">
+                {selectedClass ? `${selectedClass.form} ${selectedClass.stream}` : "All Classes"}
+              </div>
             </div>
           </div>
           <div className="ai-chat-controls">
@@ -649,12 +721,51 @@ export function AiAssistantPage({
           <div className="ai-input-wrapper">
             <div className="ai-input-box">
               <div className="ai-input-actions">
-                <button className="ai-input-btn" title="Attach file">
-                  <AttachmentIcon />
-                </button>
-                <button className="ai-input-btn" title="Add image">
-                  <ImageIcon />
-                </button>
+                <div style={{ position: "relative" }}>
+                  <button 
+                    className="ai-input-btn" 
+                    title="Tools"
+                    onClick={() => setToolsMenuOpen(!toolsMenuOpen)}
+                  >
+                    <PlusIcon />
+                  </button>
+                  {toolsMenuOpen && (
+                    <div className="ai-tools-menu open">
+                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                        <DocumentIcon />
+                        Upload Document
+                      </button>
+                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                        <ImageIcon />
+                        Upload Image
+                      </button>
+                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                        <CameraIcon />
+                        Take Photo
+                      </button>
+                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                        <UserIcon />
+                        Attach Student
+                      </button>
+                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                        <ChartIcon />
+                        Analyze Results
+                      </button>
+                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                        <FileTextIcon />
+                        Generate Report SMS
+                      </button>
+                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                        <BookOpenIcon />
+                        Create Lesson Plan
+                      </button>
+                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                        <BellIcon />
+                        Create Notice
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <button className="ai-input-btn" title="Voice input">
                   <MicIcon />
                 </button>
@@ -670,9 +781,6 @@ export function AiAssistantPage({
                 disabled={isSending}
               />
               <div className="ai-input-actions">
-                <button className="ai-input-btn ai-sparkle" title="AI enhance">
-                  <SparkleIcon />
-                </button>
                 <button
                   className="ai-input-btn send"
                   onClick={() => sendMessage(draft)}
