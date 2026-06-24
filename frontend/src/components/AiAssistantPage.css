@@ -445,10 +445,10 @@
 }
 
 .ai-input-box {
-  display: grid;
-  gap: 14px;
-  padding: 16px 18px 16px 18px;
-  border-radius: 36px;
+  position: relative;
+  display: block;
+  padding: 14px 16px 14px 16px;
+  border-radius: 30px;
   border: 1px solid rgba(226, 232, 240, 0.96);
   background: rgba(255, 255, 255, 0.96);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
@@ -465,34 +465,11 @@
     0 0 0 4px rgba(59, 130, 246, 0.08);
 }
 
-.ai-input-head,
 .ai-input-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.ai-input-context {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.ai-input-corner-btn {
-  border: none;
-  background: transparent;
-  color: #94a3b8;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0 4px;
-}
-
-.ai-input-corner-btn:hover {
-  color: #475569;
 }
 
 .ai-input-leading,
@@ -513,15 +490,7 @@
 }
 
 .ai-input-center {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: flex-start;
-  padding: 2px 0;
-}
-
-.ai-input-center-card {
-  min-height: 150px;
+  padding: 0 0 54px;
 }
 
 .ai-input-btn {
@@ -596,19 +565,23 @@
   font-size: 17px;
   color: #0f172a;
   resize: none;
-  min-height: 124px;
-  max-height: 260px;
+  min-height: 24px;
+  max-height: 140px;
   line-height: 1.55;
   font-family: inherit;
   padding: 0;
   overflow-y: auto;
   width: 100%;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .ai-input-field:focus,
 .ai-input-field:focus-visible {
-  outline: none;
-  box-shadow: none;
+  outline: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
 }
 
 .ai-input-field::placeholder {
@@ -624,6 +597,13 @@
   color: #94a3b8;
   margin-top: 12px;
   font-weight: 600;
+}
+
+.ai-input-footer {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 10px;
 }
 
 /* Mobile Sidebar Toggle */
@@ -784,9 +764,8 @@
   }
 
   .ai-input-box {
-    padding: 14px 14px 14px 14px;
-    border-radius: 28px;
-    gap: 10px;
+    padding: 12px 12px 12px 12px;
+    border-radius: 24px;
   }
 
   .ai-input-btn {
@@ -801,22 +780,24 @@
 
   .ai-input-field {
     font-size: 15px;
-    min-height: 100px;
-    max-height: 220px;
-  }
-
-  .ai-input-center-card {
-    min-height: 112px;
-  }
-
-  .ai-input-context {
-    font-size: 10px;
+    min-height: 22px;
+    max-height: 140px;
   }
 
   .ai-disclaimer {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+
+  .ai-input-center {
+    padding-bottom: 48px;
+  }
+
+  .ai-input-footer {
+    left: 10px;
+    right: 10px;
+    bottom: 8px;
   }
 
   .ai-message.user .ai-message-bubble {

@@ -935,27 +935,7 @@ export function AiAssistantPage({
             ) : null}
 
             <div className="ai-input-box">
-              <div className="ai-input-head">
-                <div className="ai-input-context">
-                  {getClassLabel(selectedClass)}{activeExam ? ` · ${activeExam}` : ""}
-                </div>
-                <button
-                  type="button"
-                  className="ai-input-corner-btn"
-                  onClick={() => {
-                    if (textareaRef.current) {
-                      textareaRef.current.style.height = "auto";
-                      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 240)}px`;
-                      textareaRef.current.focus();
-                    }
-                  }}
-                  title="Expand writing area"
-                >
-                  ⤢
-                </button>
-              </div>
-
-              <div className="ai-input-center ai-input-center-card">
+              <div className="ai-input-center">
                 <textarea
                   ref={textareaRef}
                   value={draft}
@@ -963,7 +943,7 @@ export function AiAssistantPage({
                   onKeyDown={handleKeyDown}
                   placeholder="Ask about students, classes, results, timetables, or guardian follow-up..."
                   className="ai-input-field"
-                  rows={4}
+                  rows={1}
                   disabled={isSending}
                 />
               </div>

@@ -241,11 +241,12 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
         }
         .login-input {
           flex: 1;
-          border: none;
-          outline: none;
-          box-shadow: none;
+          border: 0 !important;
+          outline: none !important;
+          box-shadow: none !important;
           appearance: none;
           -webkit-appearance: none;
+          -webkit-tap-highlight-color: transparent;
           font-size: 15px;
           color: #17324d;
           background: transparent;
@@ -254,8 +255,9 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
         }
         .login-input:focus,
         .login-input:focus-visible {
-          outline: none;
-          box-shadow: none;
+          border: 0 !important;
+          outline: none !important;
+          box-shadow: none !important;
         }
         .login-input::placeholder {
           color: #7890a7;
