@@ -243,11 +243,19 @@ export function LoginPage({ onBack, onLogin, onOpenTerms, onOpenPrivacy }) {
           flex: 1;
           border: none;
           outline: none;
+          box-shadow: none;
+          appearance: none;
+          -webkit-appearance: none;
           font-size: 15px;
           color: #17324d;
           background: transparent;
           font-family: inherit;
           padding: 0;
+        }
+        .login-input:focus,
+        .login-input:focus-visible {
+          outline: none;
+          box-shadow: none;
         }
         .login-input::placeholder {
           color: #7890a7;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // REUSABLE FORM COMPONENTS
@@ -18,6 +18,7 @@ export function TextInput({
   width = "100%",
   required = false,
 }) {
+  const [focused, setFocused] = useState(false);
   const styles = {
     wrapper: {
       display: "flex",
@@ -35,17 +36,34 @@ export function TextInput({
       color: "#dc2626",
       marginLeft: 4,
     },
-    input: {
-      border: error ? "1.5px solid #dc2626" : "1px solid rgba(214,226,245,0.92)",
+    field: {
+      display: "flex",
+      alignItems: "center",
+      border: error ? "1.5px solid #dc2626" : focused ? "1px solid #2563eb" : "1px solid rgba(214,226,245,0.92)",
       borderRadius: 10,
-      padding: "6px 10px",
-      fontSize: 12,
-      outline: "none",
+      padding: "0 10px",
       width,
       background: disabled ? "#f0f4ff" : "#fff",
+      boxShadow: focused
+        ? error
+          ? "0 0 0 3px rgba(220,38,38,0.12)"
+          : "0 0 0 3px rgba(37,99,235,0.12)"
+        : "none",
+      transition: "border-color 0.2s, box-shadow 0.2s",
+    },
+    input: {
+      border: "none",
+      outline: "none",
+      boxShadow: "none",
+      appearance: "none",
+      WebkitAppearance: "none",
+      borderRadius: 0,
+      padding: "6px 0",
+      fontSize: 12,
+      width: "100%",
+      background: "transparent",
       color: disabled ? "#999" : "#000",
       cursor: disabled ? "not-allowed" : "auto",
-      transition: "border-color 0.2s",
     },
     errorMsg: {
       fontSize: 10,
@@ -60,17 +78,23 @@ export function TextInput({
         {label}
         {required && <span style={styles.labelRequired}>*</span>}
       </label>
-      <input
-        type={type}
-        value={value ?? ""}
-        onChange={e => onChange?.(e.target.value)}
-        onBlur={e => onBlur?.(e.target.value)}
-        placeholder={placeholder}
-        inputMode={inputMode}
-        autoComplete={autoComplete}
-        disabled={disabled}
-        style={styles.input}
-      />
+      <div style={styles.field}>
+        <input
+          type={type}
+          value={value ?? ""}
+          onChange={e => onChange?.(e.target.value)}
+          onBlur={e => {
+            setFocused(false);
+            onBlur?.(e.target.value);
+          }}
+          onFocus={() => setFocused(true)}
+          placeholder={placeholder}
+          inputMode={inputMode}
+          autoComplete={autoComplete}
+          disabled={disabled}
+          style={styles.input}
+        />
+      </div>
       {error && <div style={styles.errorMsg}>{error}</div>}
     </div>
   );
@@ -91,6 +115,7 @@ export function NumberInput({
   width = "80px",
   required = false,
 }) {
+  const [focused, setFocused] = useState(false);
   const styles = {
     wrapper: {
       display: "flex",
@@ -108,18 +133,36 @@ export function NumberInput({
       color: "#dc2626",
       marginLeft: 4,
     },
-    input: {
-      border: error ? "1.5px solid #dc2626" : "1px solid rgba(214,226,245,0.92)",
+    field: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      border: error ? "1.5px solid #dc2626" : focused ? "1px solid #2563eb" : "1px solid rgba(214,226,245,0.92)",
       borderRadius: 10,
-      padding: "6px 10px",
-      fontSize: 12,
-      outline: "none",
+      padding: "0 10px",
       width,
-      textAlign: "center",
       background: disabled ? "#f0f4ff" : "#fff",
+      boxShadow: focused
+        ? error
+          ? "0 0 0 3px rgba(220,38,38,0.12)"
+          : "0 0 0 3px rgba(37,99,235,0.12)"
+        : "none",
+      transition: "border-color 0.2s, box-shadow 0.2s",
+    },
+    input: {
+      border: "none",
+      outline: "none",
+      boxShadow: "none",
+      appearance: "none",
+      WebkitAppearance: "none",
+      borderRadius: 0,
+      padding: "6px 0",
+      fontSize: 12,
+      width: "100%",
+      textAlign: "center",
+      background: "transparent",
       color: disabled ? "#999" : "#000",
       cursor: disabled ? "not-allowed" : "auto",
-      transition: "border-color 0.2s",
     },
     errorMsg: {
       fontSize: 10,
@@ -134,15 +177,19 @@ export function NumberInput({
         {label}
         {required && <span style={styles.labelRequired}>*</span>}
       </label>
-      <input
-        type="number"
-        value={value ?? ""}
-        onChange={e => onChange?.(e.target.value)}
-        min={min}
-        max={max}
-        disabled={disabled}
-        style={styles.input}
-      />
+      <div style={styles.field}>
+        <input
+          type="number"
+          value={value ?? ""}
+          onChange={e => onChange?.(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          min={min}
+          max={max}
+          disabled={disabled}
+          style={styles.input}
+        />
+      </div>
       {error && <div style={styles.errorMsg}>{error}</div>}
     </div>
   );
@@ -162,6 +209,7 @@ export function SelectInput({
   width = "100%",
   required = false,
 }) {
+  const [focused, setFocused] = useState(false);
   const styles = {
     wrapper: {
       display: "flex",
@@ -179,17 +227,34 @@ export function SelectInput({
       color: "#dc2626",
       marginLeft: 4,
     },
-    select: {
-      border: error ? "1.5px solid #dc2626" : "1px solid rgba(214,226,245,0.92)",
+    field: {
+      display: "flex",
+      alignItems: "center",
+      border: error ? "1.5px solid #dc2626" : focused ? "1px solid #2563eb" : "1px solid rgba(214,226,245,0.92)",
       borderRadius: 10,
-      padding: "6px 10px",
-      fontSize: 12,
-      outline: "none",
+      padding: "0 10px",
       width,
       background: "#fff",
+      boxShadow: focused
+        ? error
+          ? "0 0 0 3px rgba(220,38,38,0.12)"
+          : "0 0 0 3px rgba(37,99,235,0.12)"
+        : "none",
+      transition: "border-color 0.2s, box-shadow 0.2s",
+    },
+    select: {
+      border: "none",
+      outline: "none",
+      boxShadow: "none",
+      appearance: "none",
+      WebkitAppearance: "none",
+      borderRadius: 0,
+      padding: "6px 0",
+      fontSize: 12,
+      width: "100%",
+      background: "transparent",
       color: "#000",
       cursor: disabled ? "not-allowed" : "auto",
-      transition: "border-color 0.2s",
     },
     errorMsg: {
       fontSize: 10,
@@ -204,19 +269,23 @@ export function SelectInput({
         {label}
         {required && <span style={styles.labelRequired}>*</span>}
       </label>
-      <select
-        value={value ?? ""}
-        onChange={e => onChange?.(e.target.value)}
-        disabled={disabled}
-        style={styles.select}
-      >
-        <option value="">-- Select {label} --</option>
-        {options.map(opt => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      <div style={styles.field}>
+        <select
+          value={value ?? ""}
+          onChange={e => onChange?.(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          disabled={disabled}
+          style={styles.select}
+        >
+          <option value="">-- Select {label} --</option>
+          {options.map(opt => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
       {error && <div style={styles.errorMsg}>{error}</div>}
     </div>
   );
@@ -235,6 +304,7 @@ export function TextAreaInput({
   rows = 4,
   required = false,
 }) {
+  const [focused, setFocused] = useState(false);
   const styles = {
     wrapper: {
       display: "flex",
@@ -252,17 +322,34 @@ export function TextAreaInput({
       color: "#dc2626",
       marginLeft: 4,
     },
-    textarea: {
-      border: error ? "1.5px solid #dc2626" : "1px solid rgba(214,226,245,0.92)",
+    field: {
+      display: "flex",
+      alignItems: "stretch",
+      border: error ? "1.5px solid #dc2626" : focused ? "1px solid #2563eb" : "1px solid rgba(214,226,245,0.92)",
       borderRadius: 10,
       padding: "8px 10px",
-      fontSize: 12,
+      background: "#fff",
+      boxShadow: focused
+        ? error
+          ? "0 0 0 3px rgba(220,38,38,0.12)"
+          : "0 0 0 3px rgba(37,99,235,0.12)"
+        : "none",
+      transition: "border-color 0.2s, box-shadow 0.2s",
+    },
+    textarea: {
+      border: "none",
       outline: "none",
+      boxShadow: "none",
+      appearance: "none",
+      WebkitAppearance: "none",
+      borderRadius: 0,
+      padding: 0,
+      fontSize: 12,
       fontFamily: "inherit",
       resize: "vertical",
-      background: "#fff",
+      background: "transparent",
       color: "#000",
-      transition: "border-color 0.2s",
+      width: "100%",
     },
     errorMsg: {
       fontSize: 10,
@@ -277,13 +364,17 @@ export function TextAreaInput({
         {label}
         {required && <span style={styles.labelRequired}>*</span>}
       </label>
-      <textarea
-        value={value ?? ""}
-        onChange={e => onChange?.(e.target.value)}
-        placeholder={placeholder}
-        rows={rows}
-        style={styles.textarea}
-      />
+      <div style={styles.field}>
+        <textarea
+          value={value ?? ""}
+          onChange={e => onChange?.(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          rows={rows}
+          style={styles.textarea}
+        />
+      </div>
       {error && <div style={styles.errorMsg}>{error}</div>}
     </div>
   );
