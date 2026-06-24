@@ -110,6 +110,9 @@ function buildParentDirectory(classes) {
         name: student.name || "Unnamed Student",
         indexNo: student.index_no || student.indexNo || "",
         admissionNo: student.admissionNo || student.admission_no || "",
+        form: cls.form || "",
+        stream: cls.stream || "",
+        year: cls.year || "",
         classLabel: getClassDisplayLabel(cls),
       });
       parentMap.set(key, existing);
@@ -765,6 +768,11 @@ export default function App() {
     if (!loggedIn || !canManageStudentsGlobally || page !== "student-management") return;
     Promise.resolve(hydrateAllClassesWithStudents()).catch(() => {});
   }, [canManageStudentsGlobally, hydrateAllClassesWithStudents, loggedIn, page]);
+
+  useEffect(() => {
+    if (!loggedIn || !canManageUsers || page !== "parents") return;
+    Promise.resolve(hydrateAllClassesWithStudents()).catch(() => {});
+  }, [canManageUsers, hydrateAllClassesWithStudents, loggedIn, page]);
 
   useEffect(() => {
     if (page === "sms" && !canUseSms) {
