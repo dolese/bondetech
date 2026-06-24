@@ -388,28 +388,17 @@ export function PeopleDirectoryPage({
   return (
     <div className="dir-page-container">
       <div className="dir-header-card">
-        <div>
-          <div className="dir-header-title">{title}</div>
-          <div className="dir-header-desc">{description}</div>
-        </div>
-        {!tableMode ? (
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              borderRadius: 999,
-              padding: "9px 14px",
-              background: palette.soft,
-              border: `1px solid ${palette.border}`,
-              color: palette.accent,
-              fontWeight: 800,
-              fontSize: 13,
-            }}
-          >
-            {filtered.length} record{filtered.length === 1 ? "" : "s"}
+        <div className="dir-header-content">
+          <div>
+            <div className="dir-header-title">{title}</div>
+            <div className="dir-header-desc">{description}</div>
           </div>
-        ) : null}
+          {!tableMode ? (
+            <div className="dir-header-badge">
+              {filtered.length} record{filtered.length === 1 ? "" : "s"}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {!tableMode ? (
@@ -488,46 +477,62 @@ export function PeopleDirectoryPage({
                 placeholder="Search parent name, phone or student..."
               />
             </div>
-            <select className="dir-parent-select" value={formFilter} onChange={(event) => { setFormFilter(event.target.value); setPage(1); }}>
-              <option value="all">All Forms</option>
-              {formOptions.map((form) => (
-                <option key={form} value={form}>{form}</option>
-              ))}
-            </select>
-            <select className="dir-parent-select" value={streamFilter} onChange={(event) => { setStreamFilter(event.target.value); setPage(1); }}>
-              <option value="all">All Streams</option>
-              {streamOptions.map((stream) => (
-                <option key={stream} value={stream}>{stream}</option>
-              ))}
-            </select>
-            <select className="dir-parent-select" value={relationshipFilter} onChange={(event) => { setRelationshipFilter(event.target.value); setPage(1); }}>
-              <option value="all">All Relationships</option>
-              {relationshipOptions.map((relationship) => (
-                <option key={relationship} value={relationship}>{relationship}</option>
-              ))}
-            </select>
-            <button type="button" className="dir-parent-filter-btn" onClick={resetFilters}>
-              <FilterIcon /> Filters
-            </button>
+            <div className="dir-parent-filters">
+              <select className="dir-parent-select" value={formFilter} onChange={(event) => { setFormFilter(event.target.value); setPage(1); }}>
+                <option value="all">All Forms</option>
+                {formOptions.map((form) => (
+                  <option key={form} value={form}>{form}</option>
+                ))}
+              </select>
+              <select className="dir-parent-select" value={streamFilter} onChange={(event) => { setStreamFilter(event.target.value); setPage(1); }}>
+                <option value="all">All Streams</option>
+                {streamOptions.map((stream) => (
+                  <option key={stream} value={stream}>{stream}</option>
+                ))}
+              </select>
+              <select className="dir-parent-select" value={relationshipFilter} onChange={(event) => { setRelationshipFilter(event.target.value); setPage(1); }}>
+                <option value="all">All Relationships</option>
+                {relationshipOptions.map((relationship) => (
+                  <option key={relationship} value={relationship}>{relationship}</option>
+                ))}
+              </select>
+              <button type="button" className="dir-parent-filter-btn" onClick={resetFilters}>
+                <FilterIcon /> Reset
+              </button>
+            </div>
           </div>
 
           <div className="dir-parent-table-card">
-            <div className="dir-parent-table-actions">
-              <div className="dir-parent-total">Total Parents: {filtered.length}</div>
+            <div className="dir-parent-table-header">
+              <div className="dir-parent-table-title">
+                <h2>Parent Directory</h2>
+                <span>{filtered.length} parent{filtered.length === 1 ? "" : "s"}</span>
+              </div>
               <div className="dir-parent-bulk-actions">
                 <button type="button" className="dir-parent-export-btn" onClick={() => exportParentCsv(filtered)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
                   Export
                 </button>
                 <button type="button" className="dir-parent-sms-btn" onClick={() => {
                   const phones = filtered.map((entry) => entry.phone).filter(Boolean).join(", ");
                   if (phones) window.location.href = `sms:?&addresses=${encodeURIComponent(phones)}`;
                 }}>
-                  Send SMS
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  SMS
                 </button>
                 <button type="button" className="dir-parent-wa-btn" onClick={() => {
                   const firstPhone = filtered.find((entry) => entry.phone)?.phone || "";
                   if (firstPhone) window.open(`https://wa.me/${String(firstPhone).replace(/[^\d]/g, "")}`, "_blank", "noopener,noreferrer");
                 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20.5 11.5a8.5 8.5 0 1 1-15.2 5.3L4 21l4.3-1.1a8.5 8.5 0 0 1 12.2-8.4z"></path>
+                  </svg>
                   WhatsApp
                 </button>
               </div>
