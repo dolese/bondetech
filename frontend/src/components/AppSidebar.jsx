@@ -43,6 +43,16 @@ function PlusIcon() {
   );
 }
 
+function MenuIcon() {
+  return (
+    <SvgIcon width={18} height={18} strokeWidth={2.3}>
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </SvgIcon>
+  );
+}
+
 function navIcon(key) {
   switch (key) {
     case "dashboard":
@@ -248,6 +258,7 @@ export function AppSidebar({
   sideOpen,
   topBarHeight,
   sidebarWidth,
+  collapsedWidth = 72,
   page,
   activeId,
   activeClass,
@@ -263,6 +274,7 @@ export function AppSidebar({
   canCreateClasses = false,
   classesHeading,
   onClose,
+  onToggleSidebar,
   onToggleYear,
   onAddClass,
   onPickClass,
@@ -414,6 +426,102 @@ export function AppSidebar({
       [sectionId]: !current[sectionId],
     }));
   };
+
+  if (!isMobile && !sideOpen) {
+    return (
+      <div
+        style={{
+          width: collapsedWidth,
+          background: "linear-gradient(180deg, #ffffff 0%, #fbfdff 100%)",
+          borderRight: "1px solid rgba(226,232,240,0.9)",
+          boxShadow: "0 24px 54px rgba(15,23,42,0.08)",
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "18px 10px 16px",
+          boxSizing: "border-box",
+        }}
+      >
+        <div style={{ display: "grid", gap: 14, width: "100%", justifyItems: "center" }}>
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            title={t("toggleMenu")}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              border: "1px solid rgba(226,232,240,0.9)",
+              background: "#ffffff",
+              color: "#0f172a",
+              cursor: "pointer",
+              display: "grid",
+              placeItems: "center",
+              boxShadow: "0 8px 18px rgba(15,23,42,0.08)",
+            }}
+          >
+            <MenuIcon />
+          </button>
+
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              background: page === "dashboard" ? "linear-gradient(135deg, #2563eb, #3b82f6)" : "#f8fafc",
+              color: page === "dashboard" ? "#ffffff" : "#64748b",
+              border: page === "dashboard" ? "none" : "1px solid rgba(226,232,240,0.9)",
+              display: "grid",
+              placeItems: "center",
+              boxShadow: page === "dashboard" ? "0 10px 20px rgba(37,99,235,0.22)" : "none",
+            }}
+            title={t("dashboard")}
+          >
+            {navIcon("dashboard")}
+          </div>
+
+          {page !== "dashboard" ? (
+            <div
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 12,
+                background: "linear-gradient(135deg, #e8f1ff, #f3f8ff)",
+                color: "#2563eb",
+                border: "1px solid rgba(191,219,254,0.9)",
+                display: "grid",
+                placeItems: "center",
+              }}
+              title={navItems.find((item) => item.key === page)?.label || page}
+            >
+              {navIcon(page)}
+            </div>
+          ) : null}
+        </div>
+
+        <div
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            overflow: "hidden",
+            border: "1px solid rgba(226,232,240,0.9)",
+            background: "#ffffff",
+            boxShadow: "0 8px 16px rgba(15,23,42,0.06)",
+          }}
+          title={accountLabel}
+        >
+          <img
+            src="/asset/bonde.png"
+            alt="Bonde Secondary School logo"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

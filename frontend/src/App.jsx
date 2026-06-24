@@ -934,6 +934,7 @@ export default function App() {
   if (canAccessClassData && error) return <Splash text={error} isError />;
 
   const sidebarWidth = 248;
+  const sidebarCollapsedWidth = 72;
   const isClassPage = canAccessClassData && ["students", "results", "timetable", "reports", "settings"].includes(page);
   const accountLabel = currentUser?.displayName || currentUser?.username || t("account");
   const accountSubtitle = currentUser?.email || currentUser?.username || "";
@@ -1007,6 +1008,7 @@ export default function App() {
           sideOpen={sideOpen}
           topBarHeight={topBarHeight}
           sidebarWidth={sidebarWidth}
+          collapsedWidth={sidebarCollapsedWidth}
           page={page}
           activeId={activeId}
           activeClass={activeClass}
@@ -1023,6 +1025,7 @@ export default function App() {
           classesHeading={role === "teacher" ? "MY CLASSES" : undefined}
           styles={S}
           onClose={closeSide}
+          onToggleSidebar={() => setSideOpen((prev) => !prev)}
           onToggleYear={toggleYear}
           onAddClass={addClass}
           onPickClass={handlePickClass}
