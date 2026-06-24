@@ -69,6 +69,16 @@ function formatDateLabel(value, language) {
   });
 }
 
+function MobileDrawerIcon({ path }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {Array.isArray(path)
+        ? path.map((d) => <path key={d} d={d} />)
+        : <path d={path} />}
+    </svg>
+  );
+}
+
 function createFallbackOverview(t) {
   return {
     stats: {
@@ -226,9 +236,26 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   const schoolName = schoolSettings.name || "Bonde Secondary School";
   const district = schoolSettings.district || "Muheza";
   const authority = schoolSettings.authority || "PMO-RALG";
+  const schoolEmail = schoolSettings.email || DEFAULT_SCHOOL.email;
+  const schoolAddress = schoolSettings.address || DEFAULT_SCHOOL.address;
+  const schoolPhone =
+    schoolSettings.academicPhone ||
+    schoolSettings.headmasterPhone ||
+    schoolSettings.academicPhones?.[0] ||
+    schoolSettings.headmasterPhones?.[0] ||
+    "";
 
   const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+
+  const navigateHomeSection = useCallback((handler) => {
+    setPublicPage("home");
+    window.setTimeout(() => {
+      handler?.();
+    }, 90);
+  }, []);
 
   const handleSearch = useCallback(
     async (e) => {
@@ -327,13 +354,92 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   ];
 
   const navLinks = [
-    { label: sw ? "Mwanzo" : "Home", onClick: () => setPublicPage("home") },
-    { label: sw ? "Shule Yetu" : "Our School", onClick: () => onOpenSchool?.() },
-    { label: sw ? "Matokeo" : "Results", onClick: () => { setPublicPage("home"); setTimeout(() => scrollTo(searchSectionRef), 100); } },
-    { label: sw ? "Habari" : "News", onClick: () => setPublicPage("news") },
-    { label: sw ? "Picha" : "Gallery", onClick: () => setPublicPage("gallery") },
-    { label: sw ? "Programu" : "Programmes", onClick: () => { setPublicPage("home"); setTimeout(() => scrollTo(aboutSectionRef), 100); } },
+    { key: "home", label: sw ? "Mwanzo" : "Home", onClick: () => { setPublicPage("home"); scrollToTop(); } },
+    { key: "school", label: sw ? "Shule Yetu" : "Our School", onClick: () => onOpenSchool?.() },
+    { key: "results", label: sw ? "Matokeo" : "Results", onClick: () => navigateHomeSection(() => scrollTo(searchSectionRef)) },
+    { key: "news", label: sw ? "Habari" : "News", onClick: () => setPublicPage("news") },
+    { key: "gallery", label: sw ? "Picha" : "Gallery", onClick: () => setPublicPage("gallery") },
+    { key: "programmes", label: sw ? "Programu" : "Programmes", onClick: () => navigateHomeSection(() => scrollTo(aboutSectionRef)) },
   ];
+
+  const currentNavKey = publicPage === "news" || publicPage === "gallery" ? publicPage : "home";
+
+  const mobilePrimaryLinks = [
+    {
+      key: "home",
+      label: sw ? "Home" : "Home",
+      meta: sw ? "Kurasa kuu ya portal" : "Portal overview",
+      icon: "M3 12h18M12 3v18",
+      onClick: () => {
+        setPublicPage("home");
+        scrollToTop();
+      },
+    },
+    {
+      key: "results",
+      label: sw ? "Check Results" : "Check Results",
+      meta: sw ? "Nenda dawati la matokeo" : "Open the public results desk",
+      icon: "M4 6h16M4 12h16M4 18h10",
+      onClick: () => navigateHomeSection(() => scrollTo(searchSectionRef)),
+    },
+    {
+      key: "news",
+      label: sw ? "Announcements" : "Announcements",
+      meta: sw ? "Habari na taarifa za shule" : "School notices and updates",
+      icon: ["M12 3l8 4v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V7l8-4Z", "M9 12h6", "M9 16h4"],
+      onClick: () => setPublicPage("news"),
+    },
+    {
+      key: "school",
+      label: sw ? "Our School" : "Our School",
+      meta: sw ? "Soma kuhusu shule" : "School profile and identity",
+      icon: ["M12 2 3 7v10c0 5 4 8 9 10 5-2 9-5 9-10V7l-9-5Z", "M9 12h6", "M9 16h6"],
+      onClick: () => onOpenSchool?.(),
+    },
+  ];
+
+  const mobileUtilityLinks = [
+    {
+      key: "gallery",
+      label: sw ? "Gallery" : "Gallery",
+      icon: ["M4 6h16v12H4z", "m8 14 2-2 2 2 4-4 2 2", "M9 10h.01"],
+      onClick: () => setPublicPage("gallery"),
+    },
+    {
+      key: "programmes",
+      label: sw ? "Programmes" : "Programmes",
+      icon: ["M4 19.5A2.5 2.5 0 0 1 6.5 17H20", "M4 4.5A2.5 2.5 0 0 1 6.5 7H20", "M6.5 7A2.5 2.5 0 0 0 4 9.5v10", "M8 11h8", "M8 15h6"],
+      onClick: () => navigateHomeSection(() => scrollTo(aboutSectionRef)),
+    },
+    {
+      key: "privacy",
+      label: sw ? "Privacy" : "Privacy",
+      icon: ["M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7l7-4Z", "M10 12h4", "M12 10v4"],
+      onClick: () => onOpenPrivacy?.(),
+    },
+    {
+      key: "terms",
+      label: sw ? "Terms" : "Terms",
+      icon: ["M7 3h8l4 4v14H7z", "M15 3v4h4", "M9 13h6", "M9 17h6", "M9 9h2"],
+      onClick: () => onOpenTerms?.(),
+    },
+  ];
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = original;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [mobileMenuOpen]);
 
   const newsBars = ["b1", "b2", "b3"];
 
@@ -347,7 +453,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         </button>
         <div className="nav-links">
           {navLinks.map((link) => (
-            <button type="button" key={link.label} onClick={link.onClick}>
+            <button type="button" key={link.key} onClick={link.onClick}>
               {link.label}
             </button>
           ))}
@@ -364,6 +470,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
             type="button"
             className="nav-burger"
             aria-label="Menu"
+            aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen((v) => !v)}
           >
             <span /><span /><span />
@@ -371,22 +478,97 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
         </div>
       </nav>
       {mobileMenuOpen && (
-        <div className="nav-mobile">
-          {navLinks.map((link) => (
-            <button
-              type="button"
-              key={link.label}
-              onClick={() => {
-                setMobileMenuOpen(false);
-                link.onClick();
-              }}
-            >
-              {link.label}
-            </button>
-          ))}
-          <button type="button" className="nav-mobile-login" onClick={() => onOpenLogin?.()}>
-            {t("loginButton")}
-          </button>
+        <div className="nav-mobile-shell" onClick={closeMobileMenu}>
+          <div className="nav-mobile-backdrop" />
+          <aside className="nav-mobile-drawer" role="dialog" aria-modal="true" aria-label={sw ? "Menyu ya tovuti" : "Site menu"} onClick={(e) => e.stopPropagation()}>
+            <div className="nav-mobile-head">
+              <div className="nav-mobile-brand">
+                <img className="nav-mobile-logo" src="/asset/bonde.png" alt={schoolName} />
+                <div>
+                  <div className="nav-mobile-kicker">{sw ? "Academic Portal" : "Academic Portal"}</div>
+                  <div className="nav-mobile-title">{schoolName}</div>
+                  <div className="nav-mobile-subtitle">{authority} · {district}</div>
+                </div>
+              </div>
+              <button type="button" className="nav-mobile-close" aria-label={sw ? "Funga menyu" : "Close menu"} onClick={closeMobileMenu}>×</button>
+            </div>
+
+            <div className="nav-mobile-content">
+              <div className="nav-mobile-cta-row">
+                <button type="button" className="nav-mobile-primary-cta" onClick={() => { closeMobileMenu(); navigateHomeSection(() => scrollTo(searchSectionRef)); }}>
+                  {sw ? "Angalia Matokeo" : "Check Results"}
+                </button>
+                <button type="button" className="nav-mobile-secondary-cta" onClick={() => { closeMobileMenu(); onOpenLogin?.(); }}>
+                  {t("loginButton")}
+                </button>
+              </div>
+
+              <div className="nav-mobile-section">
+                <div className="nav-mobile-section-label">{sw ? "Navigate" : "Navigate"}</div>
+                <div className="nav-mobile-list">
+                  {mobilePrimaryLinks.map((link) => (
+                    <button
+                      type="button"
+                      key={link.key}
+                      className={`nav-mobile-item${currentNavKey === link.key ? " active" : ""}`}
+                      onClick={() => {
+                        closeMobileMenu();
+                        link.onClick();
+                      }}
+                    >
+                      <span className="nav-mobile-item-icon"><MobileDrawerIcon path={link.icon} /></span>
+                      <span className="nav-mobile-item-copy">
+                        <span className="nav-mobile-item-title">{link.label}</span>
+                        <span className="nav-mobile-item-meta">{link.meta}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="nav-mobile-section">
+                <div className="nav-mobile-section-label">{sw ? "More" : "More"}</div>
+                <div className="nav-mobile-grid">
+                  {mobileUtilityLinks.map((link) => (
+                    <button
+                      type="button"
+                      key={link.key}
+                      className="nav-mobile-tile"
+                      onClick={() => {
+                        closeMobileMenu();
+                        link.onClick();
+                      }}
+                    >
+                      <span className="nav-mobile-tile-icon"><MobileDrawerIcon path={link.icon} /></span>
+                      <span>{link.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="nav-mobile-section">
+                <div className="nav-mobile-section-label">{sw ? "Contact" : "Contact"}</div>
+                <div className="nav-mobile-contact-card">
+                  {schoolPhone ? (
+                    <a className="nav-mobile-contact-link" href={`tel:${schoolPhone.replace(/\s+/g, "")}`}>
+                      <span className="nav-mobile-contact-label">{sw ? "Phone" : "Phone"}</span>
+                      <span className="nav-mobile-contact-value">{schoolPhone}</span>
+                    </a>
+                  ) : null}
+                  {schoolEmail ? (
+                    <a className="nav-mobile-contact-link" href={`mailto:${schoolEmail}`}>
+                      <span className="nav-mobile-contact-label">{sw ? "Email" : "Email"}</span>
+                      <span className="nav-mobile-contact-value">{schoolEmail}</span>
+                    </a>
+                  ) : null}
+                  <div className="nav-mobile-contact-link static">
+                    <span className="nav-mobile-contact-label">{sw ? "Location" : "Location"}</span>
+                    <span className="nav-mobile-contact-value">{schoolAddress}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
       )}
 
