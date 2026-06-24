@@ -172,6 +172,15 @@ function navIcon(key) {
           <path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4.8a7 7 0 0 0-1.7-1L14.5 3h-5L9 5.8a7 7 0 0 0-1.7 1L4.9 6l-2 3.5L5 11a7 7 0 0 0 0 2l-2.1 1.5 2 3.5 2.4-.8a7 7 0 0 0 1.7 1l.5 2.8h5l.5-2.8a7 7 0 0 0 1.7-1l2.4.8 2-3.5L18.9 13c.1-.3.1-.7.1-1Z" />
         </SvgIcon>
       );
+    case "content-management":
+      return (
+        <SvgIcon>
+          <rect x="4.5" y="4.5" width="15" height="15" rx="2.8" />
+          <path d="M8 9h8" />
+          <path d="M8 13h5" />
+          <path d="M8 17h8" />
+        </SvgIcon>
+      );
     case "account":
       return (
         <SvgIcon>
@@ -215,7 +224,7 @@ function buildNavSections(navItems, accountLabel, accountSubtitle, t) {
     },
     {
       title: t("systemSection"),
-      items: ["settings", "account"],
+      items: ["settings", "content-management", "account"],
     },
   ];
 
