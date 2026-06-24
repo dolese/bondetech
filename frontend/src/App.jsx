@@ -780,7 +780,13 @@ export default function App() {
   useEffect(() => {
     if (!loggedIn || !canManageUsers || page !== "parents") return;
     let active = true;
-    setParentDirectoryLoading(true);
+    
+    // Only show loading if we don't already have parent entries
+    const needsLoading = parentDirectoryEntries.length === 0;
+    if (needsLoading) {
+      setParentDirectoryLoading(true);
+    }
+    
     Promise.resolve(hydrateAllClassesWithStudents())
       .then((freshClasses) => {
         if (!active) return;
@@ -792,12 +798,12 @@ export default function App() {
         setParentDirectoryEntries(buildParentDirectory(classes));
       })
       .finally(() => {
-        if (active) setParentDirectoryLoading(false);
+        if (active && needsLoading) setParentDirectoryLoading(false);
       });
     return () => {
       active = false;
     };
-  }, [canManageUsers, classes, hydrateAllClassesWithStudents, loggedIn, page]);
+  }, [canManageUsers, hydrateAllClassesWithStudents, loggedIn, page]);
 
   useEffect(() => {
     if (page === "sms" && !canUseSms) {
