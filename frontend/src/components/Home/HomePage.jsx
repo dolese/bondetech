@@ -79,6 +79,14 @@ function MobileDrawerIcon({ path }) {
   );
 }
 
+function MobileChevronIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+
 function createFallbackOverview(t) {
   return {
     stats: {
@@ -236,15 +244,6 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
   const schoolName = schoolSettings.name || "Bonde Secondary School";
   const district = schoolSettings.district || "Muheza";
   const authority = schoolSettings.authority || "PMO-RALG";
-  const schoolEmail = schoolSettings.email || DEFAULT_SCHOOL.email;
-  const schoolAddress = schoolSettings.address || DEFAULT_SCHOOL.address;
-  const schoolPhone =
-    schoolSettings.academicPhone ||
-    schoolSettings.headmasterPhone ||
-    schoolSettings.academicPhones?.[0] ||
-    schoolSettings.headmasterPhones?.[0] ||
-    "";
-
   const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -364,12 +363,13 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
 
   const currentNavKey = publicPage === "news" || publicPage === "gallery" ? publicPage : "home";
 
-  const mobilePrimaryLinks = [
+  const mobileMenuItems = [
     {
       key: "home",
       label: sw ? "Home" : "Home",
       meta: sw ? "Kurasa kuu ya portal" : "Portal overview",
-      icon: "M3 12h18M12 3v18",
+      icon: ["M3 11.5 12 4l9 7.5", "M5 10.5V20h5v-5h4v5h5v-9.5"],
+      active: currentNavKey === "home",
       onClick: () => {
         setPublicPage("home");
         scrollToTop();
@@ -378,50 +378,58 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     {
       key: "results",
       label: sw ? "Check Results" : "Check Results",
-      meta: sw ? "Nenda dawati la matokeo" : "Open the public results desk",
-      icon: "M4 6h16M4 12h16M4 18h10",
+      meta: sw ? "Angalia matokeo ya mitihani" : "View exam results",
+      icon: ["M5 18h14", "M8 16V9", "M12 16v-4", "M16 16V6", "M6 6h2", "M10 9h2", "M14 4h2"],
+      active: false,
       onClick: () => navigateHomeSection(() => scrollTo(searchSectionRef)),
     },
     {
       key: "news",
       label: sw ? "Announcements" : "Announcements",
       meta: sw ? "Habari na taarifa za shule" : "School notices and updates",
-      icon: ["M12 3l8 4v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V7l8-4Z", "M9 12h6", "M9 16h4"],
+      icon: ["M4 12v4", "M4 12a8 8 0 0 1 16 0v4", "M12 16v4", "M8 20h8"],
+      active: currentNavKey === "news",
       onClick: () => setPublicPage("news"),
     },
     {
       key: "school",
       label: sw ? "Our School" : "Our School",
       meta: sw ? "Soma kuhusu shule" : "School profile and identity",
-      icon: ["M12 2 3 7v10c0 5 4 8 9 10 5-2 9-5 9-10V7l-9-5Z", "M9 12h6", "M9 16h6"],
+      icon: ["M4 20h16", "M6 20V9", "M10 20V9", "M14 20V9", "M18 20V9", "M3 9h18", "M12 4 3 9h18L12 4Z"],
+      active: false,
       onClick: () => onOpenSchool?.(),
     },
-  ];
-
-  const mobileUtilityLinks = [
     {
       key: "gallery",
       label: sw ? "Gallery" : "Gallery",
-      icon: ["M4 6h16v12H4z", "m8 14 2-2 2 2 4-4 2 2", "M9 10h.01"],
+      meta: sw ? "Picha na matukio ya shule" : "Photos and moments",
+      icon: ["M4 5h16v14H4z", "m8 13 2.5-2.5L14 14l2.5-2.5L20 15", "M9 9h.01"],
+      active: currentNavKey === "gallery",
       onClick: () => setPublicPage("gallery"),
     },
     {
       key: "programmes",
       label: sw ? "Programmes" : "Programmes",
-      icon: ["M4 19.5A2.5 2.5 0 0 1 6.5 17H20", "M4 4.5A2.5 2.5 0 0 1 6.5 7H20", "M6.5 7A2.5 2.5 0 0 0 4 9.5v10", "M8 11h8", "M8 15h6"],
+      meta: sw ? "Programu na shughuli za shule" : "School programmes and activities",
+      icon: ["M5 5.5A2.5 2.5 0 0 1 7.5 3H19v18H7.5A2.5 2.5 0 0 0 5 23Z", "M5 5.5A2.5 2.5 0 0 0 7.5 8H19", "M9 12h6", "M9 16h6"],
+      active: false,
       onClick: () => navigateHomeSection(() => scrollTo(aboutSectionRef)),
     },
     {
-      key: "privacy",
-      label: sw ? "Privacy" : "Privacy",
-      icon: ["M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7l7-4Z", "M10 12h4", "M12 10v4"],
-      onClick: () => onOpenPrivacy?.(),
+      key: "contact",
+      label: sw ? "Contact Us" : "Contact Us",
+      meta: sw ? "Wasiliana nasi moja kwa moja" : "Get in touch with us",
+      icon: ["M21 16.2v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1A19.3 19.3 0 0 1 3.9 9.8 19.8 19.8 0 0 1 .8 1.2 2 2 0 0 1 2.8-1h3a2 2 0 0 1 2 1.7l.5 3.6a2 2 0 0 1-.6 1.7L6.6 8.4a16 16 0 0 0 9 9l1.4-1.4a2 2 0 0 1 1.7-.6l3.6.5a2 2 0 0 1 1.7 2Z"],
+      active: false,
+      onClick: () => onOpenSchool?.(),
     },
     {
-      key: "terms",
-      label: sw ? "Terms" : "Terms",
-      icon: ["M7 3h8l4 4v14H7z", "M15 3v4h4", "M9 13h6", "M9 17h6", "M9 9h2"],
-      onClick: () => onOpenTerms?.(),
+      key: "login",
+      label: sw ? "Login" : "Login",
+      meta: sw ? "Ingia kwenye akaunti yako" : "Access your account",
+      icon: ["M8 11V8a4 4 0 1 1 8 0v3", "M6 11h12v9H6z", "M12 15v2"],
+      active: false,
+      onClick: () => onOpenLogin?.(),
     },
   ];
 
@@ -482,90 +490,29 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           <div className="nav-mobile-backdrop" />
           <aside className="nav-mobile-drawer" role="dialog" aria-modal="true" aria-label={sw ? "Menyu ya tovuti" : "Site menu"} onClick={(e) => e.stopPropagation()}>
             <div className="nav-mobile-head">
-              <div className="nav-mobile-brand">
-                <img className="nav-mobile-logo" src="/asset/bonde.png" alt={schoolName} />
-                <div>
-                  <div className="nav-mobile-kicker">{sw ? "Academic Portal" : "Academic Portal"}</div>
-                  <div className="nav-mobile-title">{schoolName}</div>
-                  <div className="nav-mobile-subtitle">{authority} · {district}</div>
-                </div>
-              </div>
               <button type="button" className="nav-mobile-close" aria-label={sw ? "Funga menyu" : "Close menu"} onClick={closeMobileMenu}>×</button>
             </div>
 
             <div className="nav-mobile-content">
-              <div className="nav-mobile-cta-row">
-                <button type="button" className="nav-mobile-primary-cta" onClick={() => { closeMobileMenu(); navigateHomeSection(() => scrollTo(searchSectionRef)); }}>
-                  {sw ? "Angalia Matokeo" : "Check Results"}
-                </button>
-                <button type="button" className="nav-mobile-secondary-cta" onClick={() => { closeMobileMenu(); onOpenLogin?.(); }}>
-                  {t("loginButton")}
-                </button>
-              </div>
-
-              <div className="nav-mobile-section">
-                <div className="nav-mobile-section-label">{sw ? "Navigate" : "Navigate"}</div>
-                <div className="nav-mobile-list">
-                  {mobilePrimaryLinks.map((link) => (
-                    <button
-                      type="button"
-                      key={link.key}
-                      className={`nav-mobile-item${currentNavKey === link.key ? " active" : ""}`}
-                      onClick={() => {
-                        closeMobileMenu();
-                        link.onClick();
-                      }}
-                    >
-                      <span className="nav-mobile-item-icon"><MobileDrawerIcon path={link.icon} /></span>
-                      <span className="nav-mobile-item-copy">
-                        <span className="nav-mobile-item-title">{link.label}</span>
-                        <span className="nav-mobile-item-meta">{link.meta}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="nav-mobile-section">
-                <div className="nav-mobile-section-label">{sw ? "More" : "More"}</div>
-                <div className="nav-mobile-grid">
-                  {mobileUtilityLinks.map((link) => (
-                    <button
-                      type="button"
-                      key={link.key}
-                      className="nav-mobile-tile"
-                      onClick={() => {
-                        closeMobileMenu();
-                        link.onClick();
-                      }}
-                    >
-                      <span className="nav-mobile-tile-icon"><MobileDrawerIcon path={link.icon} /></span>
-                      <span>{link.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="nav-mobile-section">
-                <div className="nav-mobile-section-label">{sw ? "Contact" : "Contact"}</div>
-                <div className="nav-mobile-contact-card">
-                  {schoolPhone ? (
-                    <a className="nav-mobile-contact-link" href={`tel:${schoolPhone.replace(/\s+/g, "")}`}>
-                      <span className="nav-mobile-contact-label">{sw ? "Phone" : "Phone"}</span>
-                      <span className="nav-mobile-contact-value">{schoolPhone}</span>
-                    </a>
-                  ) : null}
-                  {schoolEmail ? (
-                    <a className="nav-mobile-contact-link" href={`mailto:${schoolEmail}`}>
-                      <span className="nav-mobile-contact-label">{sw ? "Email" : "Email"}</span>
-                      <span className="nav-mobile-contact-value">{schoolEmail}</span>
-                    </a>
-                  ) : null}
-                  <div className="nav-mobile-contact-link static">
-                    <span className="nav-mobile-contact-label">{sw ? "Location" : "Location"}</span>
-                    <span className="nav-mobile-contact-value">{schoolAddress}</span>
-                  </div>
-                </div>
+              <div className="nav-mobile-list">
+                {mobileMenuItems.map((link) => (
+                  <button
+                    type="button"
+                    key={link.key}
+                    className={`nav-mobile-item${link.active ? " active" : ""}`}
+                    onClick={() => {
+                      closeMobileMenu();
+                      link.onClick();
+                    }}
+                  >
+                    <span className="nav-mobile-item-icon"><MobileDrawerIcon path={link.icon} /></span>
+                    <span className="nav-mobile-item-copy">
+                      <span className="nav-mobile-item-title">{link.label}</span>
+                      <span className="nav-mobile-item-meta">{link.meta}</span>
+                    </span>
+                    <span className="nav-mobile-item-arrow"><MobileChevronIcon /></span>
+                  </button>
+                ))}
               </div>
             </div>
           </aside>
