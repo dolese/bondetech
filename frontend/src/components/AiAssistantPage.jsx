@@ -935,55 +935,27 @@ export function AiAssistantPage({
             ) : null}
 
             <div className="ai-input-box">
-              <div className="ai-input-leading">
-                <div style={{ position: "relative" }}>
-                  <button 
-                    className="ai-input-btn ai-input-btn-plus"
-                    title="Tools"
-                    onClick={() => setToolsMenuOpen(!toolsMenuOpen)}
-                  >
-                    <PlusIcon />
-                  </button>
-                  {toolsMenuOpen && (
-                    <div className="ai-tools-menu open">
-                      <button className="ai-tools-menu-item" onClick={() => documentInputRef.current?.click()}>
-                        <DocumentIcon />
-                        Upload Document
-                      </button>
-                      <button className="ai-tools-menu-item" onClick={() => imageInputRef.current?.click()}>
-                        <ImageIcon />
-                        Upload Image
-                      </button>
-                      <button className="ai-tools-menu-item" onClick={() => cameraInputRef.current?.click()}>
-                        <CameraIcon />
-                        Take Photo
-                      </button>
-                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate("Find a student by Admission Number and summarize the profile, marks, missing subjects, and guardian contact context.\nAdmission Number: ")}>
-                        <UserIcon />
-                        Attach Student
-                      </button>
-                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate(`Analyze the results for ${getClassLabel(selectedClass)}${activeExam ? ` in ${activeExam}` : ""}. Highlight top performers, failed students, incomplete records, and action points.`)}>
-                        <ChartIcon />
-                        Analyze Results
-                      </button>
-                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate(`Draft guardian SMS text for ${getClassLabel(selectedClass)}${activeExam ? ` in ${activeExam}` : ""}. Keep it short, professional, and ready to send.`)}>
-                        <FileTextIcon />
-                        Generate Report SMS
-                      </button>
-                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate(`Create a lesson plan outline for ${getClassLabel(selectedClass)}. Subject: \nTopic: \nLearning objectives: `)}>
-                        <BookOpenIcon />
-                        Create Lesson Plan
-                      </button>
-                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate("Draft a professional school notice for parents/students about: ")}>
-                        <BellIcon />
-                        Create Notice
-                      </button>
-                    </div>
-                  )}
+              <div className="ai-input-head">
+                <div className="ai-input-context">
+                  {getClassLabel(selectedClass)}{activeExam ? ` · ${activeExam}` : ""}
                 </div>
+                <button
+                  type="button"
+                  className="ai-input-corner-btn"
+                  onClick={() => {
+                    if (textareaRef.current) {
+                      textareaRef.current.style.height = "auto";
+                      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 240)}px`;
+                      textareaRef.current.focus();
+                    }
+                  }}
+                  title="Expand writing area"
+                >
+                  ⤢
+                </button>
               </div>
 
-              <div className="ai-input-center">
+              <div className="ai-input-center ai-input-center-card">
                 <textarea
                   ref={textareaRef}
                   value={draft}
@@ -991,23 +963,73 @@ export function AiAssistantPage({
                   onKeyDown={handleKeyDown}
                   placeholder="Ask about students, classes, results, timetables, or guardian follow-up..."
                   className="ai-input-field"
-                  rows={1}
+                  rows={4}
                   disabled={isSending}
                 />
               </div>
 
-              <div className="ai-input-trailing">
-                <button className="ai-input-btn ai-input-btn-ghost" title="Voice input" disabled={isSending}>
-                  <MicIcon />
-                </button>
-                <button
-                  className="ai-input-btn send"
-                  onClick={() => sendMessage(draft)}
-                  disabled={!draft.trim() || isSending}
-                  title="Send message"
-                >
-                  <SendIcon />
-                </button>
+              <div className="ai-input-footer">
+                <div className="ai-input-leading">
+                  <div style={{ position: "relative" }}>
+                    <button 
+                      className="ai-input-btn ai-input-btn-plus"
+                      title="Tools"
+                      onClick={() => setToolsMenuOpen(!toolsMenuOpen)}
+                    >
+                      <PlusIcon />
+                    </button>
+                    {toolsMenuOpen && (
+                      <div className="ai-tools-menu open">
+                        <button className="ai-tools-menu-item" onClick={() => documentInputRef.current?.click()}>
+                          <DocumentIcon />
+                          Upload Document
+                        </button>
+                        <button className="ai-tools-menu-item" onClick={() => imageInputRef.current?.click()}>
+                          <ImageIcon />
+                          Upload Image
+                        </button>
+                        <button className="ai-tools-menu-item" onClick={() => cameraInputRef.current?.click()}>
+                          <CameraIcon />
+                          Take Photo
+                        </button>
+                        <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate("Find a student by Admission Number and summarize the profile, marks, missing subjects, and guardian contact context.\nAdmission Number: ")}>
+                          <UserIcon />
+                          Attach Student
+                        </button>
+                        <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate(`Analyze the results for ${getClassLabel(selectedClass)}${activeExam ? ` in ${activeExam}` : ""}. Highlight top performers, failed students, incomplete records, and action points.`)}>
+                          <ChartIcon />
+                          Analyze Results
+                        </button>
+                        <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate(`Draft guardian SMS text for ${getClassLabel(selectedClass)}${activeExam ? ` in ${activeExam}` : ""}. Keep it short, professional, and ready to send.`)}>
+                          <FileTextIcon />
+                          Generate Report SMS
+                        </button>
+                        <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate(`Create a lesson plan outline for ${getClassLabel(selectedClass)}. Subject: \nTopic: \nLearning objectives: `)}>
+                          <BookOpenIcon />
+                          Create Lesson Plan
+                        </button>
+                        <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate("Draft a professional school notice for parents/students about: ")}>
+                          <BellIcon />
+                          Create Notice
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="ai-input-trailing">
+                  <button className="ai-input-btn ai-input-btn-ghost" title="Voice input" disabled={isSending}>
+                    <MicIcon />
+                  </button>
+                  <button
+                    className="ai-input-btn send"
+                    onClick={() => sendMessage(draft)}
+                    disabled={!draft.trim() || isSending}
+                    title="Send message"
+                  >
+                    <SendIcon />
+                  </button>
+                </div>
               </div>
             </div>
             <div className="ai-disclaimer">
