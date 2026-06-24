@@ -619,7 +619,7 @@ export function ReportCardPrint({
         {[
           ["Jina:", student.name || "-"],
           ["Namba ya Kujiunga:", student.admission_no || student.admissionNo || "-"],
-          ["Namba ya Mtihani:", student.index_no || student.indexNo || "-"],
+          ["Namba ya Mtihani:", student.displayIndexNo || student.index_no || student.indexNo || "-"],
           ["Kidato cha:", classLabel || "-"],
           ["Jinsia:", getGenderLabel(student.sex)],
           ["Muhula:", getTermLabel(schoolInfo.term)],

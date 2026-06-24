@@ -1,5 +1,6 @@
 import { DEFAULT_EXAM_TYPE, getCompositeEntry } from "./constants";
 import { withPositions } from "./grading";
+import { assignFormDisplayIndexNos } from "./resultSheetShared";
 
 export function makeMergedStudentId(classId, studentId) {
   return `${String(classId || "").trim()}::${String(studentId || "").trim()}`;
@@ -20,7 +21,7 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
       String(cls.form || "").trim() === String(baseClass?.form || "").trim(),
   );
 
-  const mergedStudents = relatedClasses.flatMap((cls) =>
+  const mergedStudents = assignFormDisplayIndexNos(relatedClasses.flatMap((cls) =>
     (cls.students || []).map((student) => ({
       ...student,
       id: makeMergedStudentId(cls.id, student.id),
@@ -31,7 +32,7 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
       year: cls.year || "",
       classLabel: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim(),
     })),
-  );
+  ));
 
   const effectiveExam = activeExam || baseClass?.school_info?.exam || DEFAULT_EXAM_TYPE;
   const subjects = Array.from(
@@ -79,11 +80,11 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
     .filter((student) => student.total !== null)
     .sort((left, right) => right.total - left.total);
   const positionMap = new Map(ranked.map((student, index) => [student.id, index + 1]));
-  const computed = rows.map((student) => ({
+  const computed = assignFormDisplayIndexNos(rows.map((student) => ({
     ...student,
     formPosn: positionMap.get(student.id) ?? null,
     posn: positionMap.get(student.id) ?? null,
-  }));
+  })));
 
   return {
     relatedClasses,

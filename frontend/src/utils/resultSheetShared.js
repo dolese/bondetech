@@ -1,5 +1,7 @@
 import { DEFAULT_SCHOOL } from "./constants";
 
+const RESULT_SHEET_CNO_PREFIX = "S6509";
+
 export const RESULT_SHEET_PAGE_SPECS = {
   a3: { width: 420, height: 297, format: "a3", orientation: "landscape" },
   a4: { width: 297, height: 210, format: "a4", orientation: "landscape" },
@@ -28,24 +30,49 @@ function toNumber(value) {
   return Number.isFinite(num) ? num : 0;
 }
 
-function compareByCno(left, right) {
-  const leftCno = String(left?.index_no ?? "").trim();
-  const rightCno = String(right?.index_no ?? "").trim();
-  const numericOnly = /^\d+$/;
-  const leftIsNumeric = numericOnly.test(leftCno);
-  const rightIsNumeric = numericOnly.test(rightCno);
+export function formatSheetCno(index) {
+  return `${RESULT_SHEET_CNO_PREFIX}/${String(index + 1).padStart(4, "0")}`;
+}
 
-  if (leftIsNumeric && rightIsNumeric) {
-    const diff = Number(leftCno) - Number(rightCno);
-    if (diff !== 0) return diff;
-  } else if (leftIsNumeric !== rightIsNumeric) {
-    return leftIsNumeric ? -1 : 1;
-  } else {
-    const diff = leftCno.localeCompare(rightCno, "en", { numeric: true, sensitivity: "base" });
-    if (diff !== 0) return diff;
+export function compareBySheetOrder(left, right) {
+  const leftSexRank = String(left?.sex || "").trim().toUpperCase() === "F" ? 0 : 1;
+  const rightSexRank = String(right?.sex || "").trim().toUpperCase() === "F" ? 0 : 1;
+  if (leftSexRank !== rightSexRank) {
+    return leftSexRank - rightSexRank;
   }
 
-  return String(left?.name || "").localeCompare(String(right?.name || ""), "en");
+  const leftName = String(left?.name || "").trim();
+  const rightName = String(right?.name || "").trim();
+  const nameDiff = leftName.localeCompare(rightName, "en", { sensitivity: "base" });
+  if (nameDiff !== 0) {
+    return nameDiff;
+  }
+
+  const leftAdmission = String(left?.admissionNo ?? left?.admission_no ?? "").trim().toUpperCase();
+  const rightAdmission = String(right?.admissionNo ?? right?.admission_no ?? "").trim().toUpperCase();
+  const admissionDiff = leftAdmission.localeCompare(rightAdmission, "en", { numeric: true, sensitivity: "base" });
+  if (admissionDiff !== 0) {
+    return admissionDiff;
+  }
+
+  const leftCno = String(left?.index_no ?? left?.indexNo ?? "").trim();
+  const rightCno = String(right?.index_no ?? right?.indexNo ?? "").trim();
+  const cnoDiff = leftCno.localeCompare(rightCno, "en", { numeric: true, sensitivity: "base" });
+  if (cnoDiff !== 0) {
+    return cnoDiff;
+  }
+
+  return String(left?.id || "").localeCompare(String(right?.id || ""), "en", { numeric: true, sensitivity: "base" });
+}
+
+export function assignFormDisplayIndexNos(students = []) {
+  return [...(Array.isArray(students) ? students : [])]
+    .filter(Boolean)
+    .sort(compareBySheetOrder)
+    .map((student, index) => ({
+      ...student,
+      displayIndexNo: formatSheetCno(index),
+    }));
 }
 
 function averageOf(values) {
@@ -84,9 +111,7 @@ function summarizeSex(students, status) {
 
 export function buildResultSheetModel(classData, computed) {
   const subjects = classData.subjects ?? [];
-  const students = (computed ?? [])
-    .filter(Boolean)
-    .sort(compareByCno);
+  const students = assignFormDisplayIndexNos(computed ?? []);
   const schoolInfo = { ...DEFAULT_SCHOOL, ...(classData.school_info ?? {}) };
   const classLabel =
     [classData.form, classData.stream].filter(Boolean).join(" ").trim() ||
@@ -262,7 +287,7 @@ export function getDivisionDisplay(student) {
 
 export function getResultSheetBody(model, students = model.students) {
   return students.map((student) => [
-    student.index_no ?? "",
+    student.displayIndexNo ?? student.index_no ?? student.indexNo ?? "",
     student.name ?? "",
     student.sex ?? "",
     ...model.subjects.map((_, index) => {

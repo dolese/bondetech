@@ -917,7 +917,7 @@ export function ReportsPage({
                       </button>
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 10px", fontSize: 11, color: "#64748b" }}>
-                      <span style={{ fontFamily: "monospace" }}>CNO: {student.index_no ?? student.indexNo ?? "-"}</span>
+                      <span style={{ fontFamily: "monospace" }}>CNO: {student.displayIndexNo ?? student.index_no ?? student.indexNo ?? "-"}</span>
                       <span>{t("reportsTotal", "Total")}: <strong>{student.total ?? "-"}</strong></span>
                       <span>{t("analysisAvg", "Avg")}: <strong>{student.avg ?? "-"}</strong></span>
                     </div>
@@ -938,7 +938,7 @@ export function ReportsPage({
                     {present.map((student, index) => (
                       <tr key={student.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
                         <td style={{ padding: "7px 10px", color: "#64748b" }}>{student.posn ?? index + 1}</td>
-                        <td style={{ padding: "7px 10px", fontFamily: "monospace", color: "#475569" }}>{student.index_no ?? student.indexNo ?? ""}</td>
+                        <td style={{ padding: "7px 10px", fontFamily: "monospace", color: "#475569" }}>{student.displayIndexNo ?? student.index_no ?? student.indexNo ?? ""}</td>
                         <td style={{ padding: "7px 10px", fontWeight: 500, color: "#0f172a" }}>{student.name}</td>
                         <td style={{ padding: "7px 10px", color: "#64748b" }}>{student.sex === "F" ? "F" : "M"}</td>
                         <td style={{ padding: "7px 10px", fontWeight: 600, color: "#0f172a" }}>{student.total ?? "-"}</td>

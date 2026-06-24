@@ -607,7 +607,7 @@ export function ResultSheetPreview({
       <tbody>
         {students.map((student, index) => (
           <tr key={student.id} ref={withRefs ? (node) => { rowMeasureRefs.current[index] = node; } : undefined}>
-            <td style={styles.td}>{student.index_no}</td>
+            <td style={styles.td}>{student.displayIndexNo ?? student.index_no ?? student.indexNo ?? ""}</td>
             <td style={{ ...styles.td, textAlign: "left", fontWeight: 500 }}>{student.name}</td>
             <td style={styles.td}>{student.sex}</td>
             {model.subjects.map((_, subjectIndex) => {
