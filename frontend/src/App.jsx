@@ -952,6 +952,7 @@ export default function App() {
     if (page === "exams") return "Exams";
     if (page === "content-management") return "Content Management";
     if (page === "reports") return t("reportCards", "Report Cards");
+    if (page === "results") return t("resultSheets", "Result Sheets");
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
