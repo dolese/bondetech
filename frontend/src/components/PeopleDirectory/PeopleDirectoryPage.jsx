@@ -228,6 +228,7 @@ export function PeopleDirectoryPage({
   title,
   description,
   entries = [],
+  loading = false,
   tone = "teal",
   onOpenStudentProfile,
   onOpenTimetable,
@@ -260,6 +261,7 @@ export function PeopleDirectoryPage({
         };
 
   const isParentDirectory = tone === "amber" && Boolean(onEditEntry || onDeleteEntry);
+  const isLoading = Boolean(loading);
 
   const normalizedEntries = useMemo(
     () =>
@@ -475,28 +477,29 @@ export function PeopleDirectoryPage({
                   setPage(1);
                 }}
                 placeholder="Search parent name, phone or student..."
+                disabled={isLoading}
               />
             </div>
             <div className="dir-parent-filters">
-              <select className="dir-parent-select" value={formFilter} onChange={(event) => { setFormFilter(event.target.value); setPage(1); }}>
+              <select className="dir-parent-select" value={formFilter} onChange={(event) => { setFormFilter(event.target.value); setPage(1); }} disabled={isLoading}>
                 <option value="all">All Forms</option>
                 {formOptions.map((form) => (
                   <option key={form} value={form}>{form}</option>
                 ))}
               </select>
-              <select className="dir-parent-select" value={streamFilter} onChange={(event) => { setStreamFilter(event.target.value); setPage(1); }}>
+              <select className="dir-parent-select" value={streamFilter} onChange={(event) => { setStreamFilter(event.target.value); setPage(1); }} disabled={isLoading}>
                 <option value="all">All Streams</option>
                 {streamOptions.map((stream) => (
                   <option key={stream} value={stream}>{stream}</option>
                 ))}
               </select>
-              <select className="dir-parent-select" value={relationshipFilter} onChange={(event) => { setRelationshipFilter(event.target.value); setPage(1); }}>
+              <select className="dir-parent-select" value={relationshipFilter} onChange={(event) => { setRelationshipFilter(event.target.value); setPage(1); }} disabled={isLoading}>
                 <option value="all">All Relationships</option>
                 {relationshipOptions.map((relationship) => (
                   <option key={relationship} value={relationship}>{relationship}</option>
                 ))}
               </select>
-              <button type="button" className="dir-parent-filter-btn" onClick={resetFilters}>
+              <button type="button" className="dir-parent-filter-btn" onClick={resetFilters} disabled={isLoading}>
                 <FilterIcon /> Reset
               </button>
             </div>
@@ -538,7 +541,14 @@ export function PeopleDirectoryPage({
               </div>
             </div>
 
-            {pageEntries.length ? (
+            {isLoading ? (
+              <div className="dir-empty-state">
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Loading All Forms</div>
+                  <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>Parent records are refreshing from every class so the page no longer depends on the active form.</div>
+                </div>
+              </div>
+            ) : pageEntries.length ? (
               <>
                 {isMobile ? (
                   <div className="dir-parent-mobile-list">

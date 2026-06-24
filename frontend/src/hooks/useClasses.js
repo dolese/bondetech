@@ -268,8 +268,8 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
 
   const hydrateAllClassesWithStudents = useCallback(async () => {
     const classIds = classesRef.current.map((cls) => cls.id).filter(Boolean);
-    if (!classIds.length) return;
-    await refreshClassesWithStudents(classIds);
+    if (!classIds.length) return [];
+    return await refreshClassesWithStudents(classIds);
   }, [refreshClassesWithStudents]);
 
   useEffect(() => {

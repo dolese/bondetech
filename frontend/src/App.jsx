@@ -349,6 +349,8 @@ export default function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [smsDraft, setSmsDraft] = useState(null);
+  const [parentDirectoryEntries, setParentDirectoryEntries] = useState([]);
+  const [parentDirectoryLoading, setParentDirectoryLoading] = useState(false);
   const { isMobile } = useViewport();
   const topBarHeight = isMobile ? 64 : 78;
 
@@ -610,6 +612,12 @@ export default function App() {
   );
   const parentDirectory = useMemo(() => buildParentDirectory(classes), [classes]);
 
+  useEffect(() => {
+    if (page === "parents") return;
+    setParentDirectoryEntries(parentDirectory);
+    setParentDirectoryLoading(false);
+  }, [page, parentDirectory]);
+
   const handleUpdateParentDirectoryEntry = useCallback(async (entry, updates = {}) => {
     const linkedStudents = Array.isArray(entry?.students) ? entry.students : [];
     if (!linkedStudents.length) {
@@ -771,8 +779,25 @@ export default function App() {
 
   useEffect(() => {
     if (!loggedIn || !canManageUsers || page !== "parents") return;
-    Promise.resolve(hydrateAllClassesWithStudents()).catch(() => {});
-  }, [canManageUsers, hydrateAllClassesWithStudents, loggedIn, page]);
+    let active = true;
+    setParentDirectoryLoading(true);
+    Promise.resolve(hydrateAllClassesWithStudents())
+      .then((freshClasses) => {
+        if (!active) return;
+        const source = Array.isArray(freshClasses) && freshClasses.length ? freshClasses : classes;
+        setParentDirectoryEntries(buildParentDirectory(source));
+      })
+      .catch(() => {
+        if (!active) return;
+        setParentDirectoryEntries(buildParentDirectory(classes));
+      })
+      .finally(() => {
+        if (active) setParentDirectoryLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [canManageUsers, classes, hydrateAllClassesWithStudents, loggedIn, page]);
 
   useEffect(() => {
     if (page === "sms" && !canUseSms) {
@@ -1166,7 +1191,8 @@ export default function App() {
             <PeopleDirectoryPage
               title={t("parents")}
               description={t("peopleParentsDescription")}
-              entries={parentDirectory}
+              entries={parentDirectoryEntries}
+              loading={parentDirectoryLoading}
               tone="amber"
               onOpenStudentProfile={handleOpenStudentProfile}
               onEditEntry={handleUpdateParentDirectoryEntry}
