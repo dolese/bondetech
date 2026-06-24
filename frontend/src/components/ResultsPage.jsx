@@ -1,9 +1,23 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnalysisPanel } from "./AnalysisPanel";
 import { ResultSheet } from "./ResultSheet";
 import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
 import { glassPanelStyle, pillStyle } from "../utils/designSystem";
+import { buildFormWorkspace } from "../utils/formClassAggregation";
+
+const FORM_ORDER = ["Form I", "Form II", "Form III", "Form IV"];
+
+function compareForms(left, right) {
+  const leftIndex = FORM_ORDER.indexOf(String(left || "").trim());
+  const rightIndex = FORM_ORDER.indexOf(String(right || "").trim());
+  if (leftIndex !== -1 || rightIndex !== -1) {
+    if (leftIndex === -1) return 1;
+    if (rightIndex === -1) return -1;
+    return leftIndex - rightIndex;
+  }
+  return String(left || "").localeCompare(String(right || ""), undefined, { numeric: true, sensitivity: "base" });
+}
 
 function TabIcon({ children }) {
   return (
@@ -45,8 +59,16 @@ function SheetIcon() {
   );
 }
 
-export function ResultsPage({ classData, computed, onOpenReportCard }) {
+export function ResultsPage({
+  classData,
+  computed,
+  allClasses = [],
+  onOpenReportCard,
+  onHydrateClasses,
+}) {
   const [tab, setTab] = useState("analysis");
+  const [selectedForm, setSelectedForm] = useState(() => String(classData?.form || "").trim());
+  const [isFormLoading, setIsFormLoading] = useState(false);
   const { isMobile } = useViewport();
   const { t } = useI18n();
   const topOffset = isMobile ? 52 : 46;
@@ -61,6 +83,92 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
     { key: "analysis", label: t("resultsTabAnalysis", "Analysis"), icon: <ChartIcon /> },
     { key: "sheet", label: t("resultsTabSheet", "Result Sheet"), icon: <SheetIcon /> },
   ];
+  const targetYear = String(classData?.year || "").trim();
+  const availableForms = useMemo(() => {
+    const forms = Array.from(
+      new Set(
+        (allClasses || [])
+          .filter((cls) => String(cls.year || "").trim() === targetYear)
+          .map((cls) => String(cls.form || "").trim())
+          .filter(Boolean),
+      ),
+    );
+    return forms.sort(compareForms);
+  }, [allClasses, targetYear]);
+
+  useEffect(() => {
+    if (!availableForms.length) {
+      if (selectedForm !== String(classData?.form || "").trim()) {
+        setSelectedForm(String(classData?.form || "").trim());
+      }
+      return;
+    }
+    if (!selectedForm || !availableForms.includes(selectedForm)) {
+      setSelectedForm(
+        availableForms.includes(String(classData?.form || "").trim())
+          ? String(classData?.form || "").trim()
+          : availableForms[0],
+      );
+    }
+  }, [availableForms, classData?.form, selectedForm]);
+
+  const selectedFormClasses = useMemo(
+    () =>
+      (allClasses || []).filter(
+        (cls) =>
+          String(cls.year || "").trim() === targetYear &&
+          String(cls.form || "").trim() === String(selectedForm || "").trim(),
+      ),
+    [allClasses, selectedForm, targetYear],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const hydrateForm = async () => {
+      if (!onHydrateClasses || !selectedFormClasses.length) {
+        setIsFormLoading(false);
+        return;
+      }
+      const needsHydration = selectedFormClasses.filter((cls) => !(cls.students?.length));
+      if (!needsHydration.length) {
+        setIsFormLoading(false);
+        return;
+      }
+      setIsFormLoading(true);
+      try {
+        await onHydrateClasses(needsHydration.map((cls) => cls.id));
+      } catch (error) {
+        console.error("[ResultsPage] Failed to hydrate form workspace", error);
+      } finally {
+        if (!cancelled) setIsFormLoading(false);
+      }
+    };
+
+    hydrateForm();
+    return () => {
+      cancelled = true;
+    };
+  }, [onHydrateClasses, selectedFormClasses]);
+
+  const localFormWorkspace = useMemo(() => {
+    if (!selectedFormClasses.length) return null;
+    const anchorClass = selectedFormClasses[0];
+    return buildFormWorkspace(
+      selectedFormClasses,
+      anchorClass,
+      classData?.school_info?.exam || "",
+    );
+  }, [classData?.school_info?.exam, selectedFormClasses]);
+
+  const activeWorkspace =
+    localFormWorkspace && String(selectedForm || "").trim()
+      ? localFormWorkspace
+      : { classData, computed };
+  const activeClassData = activeWorkspace.classData || classData;
+  const activeComputed = activeWorkspace.computed || computed;
+  const streamCount = selectedFormClasses.length || 1;
+  const totalStudents = activeClassData?.students?.length ?? activeComputed?.length ?? 0;
 
   return (
     <div
@@ -105,20 +213,96 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
                 color: "#102a43",
               }}
             >
-              {classData.form} {classData.year}
+              {activeClassData?.form || classData.form} {activeClassData?.year || classData.year}
             </div>
             <div style={{ marginTop: 4, fontSize: 13, color: "#607086" }}>
-              View class analysis and official result sheets from one class workspace.
+              View form-wide analysis and official result sheets across all streams in one workspace.
             </div>
           </div>
           <div
             style={{
-              display: "flex",
+              display: "grid",
               gap: 8,
-              flexWrap: "wrap",
-              width: isMobile ? "100%" : "auto",
+              width: isMobile ? "100%" : "minmax(280px, auto)",
             }}
           >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "minmax(180px, 220px) auto auto",
+                gap: 8,
+                alignItems: "center",
+              }}
+            >
+              <label
+                style={{
+                  display: "grid",
+                  gap: 5,
+                }}
+              >
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#475569", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  {t("resultsFormContext", "Form Context")}
+                </span>
+                <select
+                  value={selectedForm}
+                  onChange={(event) => setSelectedForm(event.target.value)}
+                  disabled={!availableForms.length}
+                  style={{
+                    minHeight: 42,
+                    borderRadius: 14,
+                    border: "1px solid rgba(148,163,184,0.28)",
+                    background: "rgba(255,255,255,0.92)",
+                    padding: "0 14px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    outline: "none",
+                  }}
+                >
+                  {(availableForms.length ? availableForms : [String(classData?.form || "").trim()].filter(Boolean)).map((form) => (
+                    <option key={form} value={form}>
+                      {[form, targetYear].filter(Boolean).join(" ")}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div
+                style={{
+                  borderRadius: 14,
+                  border: "1px solid rgba(191,219,254,0.6)",
+                  background: "rgba(239,246,255,0.88)",
+                  padding: "10px 12px",
+                  minWidth: isMobile ? "100%" : 120,
+                }}
+              >
+                <div style={{ fontSize: 10, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  {t("resultsActiveStreams", "Active Streams")}
+                </div>
+                <div style={{ marginTop: 3, fontSize: 18, fontWeight: 800, color: "#102a43" }}>{streamCount}</div>
+              </div>
+              <div
+                style={{
+                  borderRadius: 14,
+                  border: "1px solid rgba(191,219,254,0.6)",
+                  background: "rgba(255,255,255,0.92)",
+                  padding: "10px 12px",
+                  minWidth: isMobile ? "100%" : 140,
+                }}
+              >
+                <div style={{ fontSize: 10, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  {t("resultsStudents", "Students")}
+                </div>
+                <div style={{ marginTop: 3, fontSize: 18, fontWeight: 800, color: "#102a43" }}>{totalStudents}</div>
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+                width: "100%",
+              }}
+            >
             {tabs.map((btn) => {
               const active = tab === btn.key;
               return (
@@ -151,6 +335,7 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
                 </button>
               );
             })}
+            </div>
           </div>
         </div>
       </div>
@@ -173,15 +358,34 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
               }
         }
       >
-        {tab === "analysis" && (
-          <AnalysisPanel classData={classData} computed={computed} />
-        )}
-        {tab === "sheet" && (
-          <ResultSheet
-            classData={classData}
-            computed={computed}
-            onOpenReportCard={onOpenReportCard}
-          />
+        {isFormLoading ? (
+          <div
+            style={{
+              margin: isMobile ? 10 : 14,
+              padding: isMobile ? 18 : 22,
+              borderRadius: 20,
+              border: "1px solid rgba(191,219,254,0.55)",
+              background: "rgba(255,255,255,0.9)",
+              color: "#475569",
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            {t("resultsLoadingForm", "Loading the selected form workspace across all streams...")}
+          </div>
+        ) : (
+          <>
+            {tab === "analysis" && (
+              <AnalysisPanel classData={activeClassData} computed={activeComputed} />
+            )}
+            {tab === "sheet" && (
+              <ResultSheet
+                classData={activeClassData}
+                computed={activeComputed}
+                onOpenReportCard={onOpenReportCard}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

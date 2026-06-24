@@ -1306,7 +1306,9 @@ export default function App() {
               <ResultsPage
                 classData={{ ...(activeFormWorkspace.classData || displayActiveClass), school_info: { ...((activeFormWorkspace.classData || displayActiveClass)?.school_info ?? {}), exam: activeExam } }}
                 computed={activeFormWorkspace.computed}
+                allClasses={visibleClasses}
                 onOpenReportCard={onOpenReportCard}
+                onHydrateClasses={refreshClassesWithStudents}
               />
             ) : (
               noClassBlock
