@@ -266,6 +266,29 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     return freshClasses;
   }, []);
 
+  const refreshFormClassesForClassId = useCallback(async (classId) => {
+    const current = classesRef.current.find((cls) => String(cls.id) === String(classId));
+    if (!current) {
+      await refreshClass(classId);
+      return [];
+    }
+    const year = String(current.year || "").trim();
+    const form = String(current.form || "").trim();
+    const relatedIds = classesRef.current
+      .filter(
+        (cls) =>
+          String(cls.year || "").trim() === year &&
+          String(cls.form || "").trim() === form,
+      )
+      .map((cls) => cls.id);
+    if (relatedIds.length <= 1) {
+      await refreshClass(classId);
+      return relatedIds;
+    }
+    await refreshClassesWithStudents(relatedIds);
+    return relatedIds;
+  }, [refreshClass, refreshClassesWithStudents]);
+
   const hydrateAllClassesWithStudents = useCallback(async () => {
     const classIds = classesRef.current.map((cls) => cls.id).filter(Boolean);
     if (!classIds.length) return [];
@@ -457,7 +480,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
           examType: studentData.examType ?? targetClass.school_info?.exam ?? activeExam,
         }),
       );
-      await refreshClass(classId);
+      await refreshFormClassesForClassId(classId);
       if (!opts.silent) {
         showToast?.("Student added");
       }
@@ -497,7 +520,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
             : cls,
         ),
       );
-      await refreshClass(classId);
+      await refreshFormClassesForClassId(classId);
       if (!opts.silent) {
         showToast?.("Student updated");
       }
@@ -518,7 +541,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
     try {
       await API.deleteStudent(classId, studentId);
-      await refreshClass(classId);
+      await refreshFormClassesForClassId(classId);
       if (!opts.silent) {
         showToast?.("Student deleted");
       }
@@ -540,7 +563,10 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
     try {
       const result = await API.moveStudentToClass(sourceClassId, studentId, targetClassId);
-      await Promise.all([refreshClass(sourceClassId), refreshClass(targetClassId)]);
+      await Promise.all([
+        refreshFormClassesForClassId(sourceClassId),
+        refreshFormClassesForClassId(targetClassId),
+      ]);
       if (!opts.silent) {
         showToast?.(
           `${result.studentName || "Student"} moved to ${targetClass.form || targetClass.name || "target class"} ${targetClass.stream || ""}`.trim()
@@ -564,7 +590,10 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
     try {
       const result = await API.promoteStudents(sourceClassId, targetClassId);
-      await Promise.all([refreshClass(sourceClassId), refreshClass(targetClassId)]);
+      await Promise.all([
+        refreshFormClassesForClassId(sourceClassId),
+        refreshFormClassesForClassId(targetClassId),
+      ]);
       if (!opts.silent) {
         showToast?.(
           `Rollover complete: ${result.created || 0} created, ${result.updated || 0} refreshed in ${targetClass.name || targetClass.form || "target class"}`
@@ -599,7 +628,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     try {
       const payload = rows.map((row) => toApiStudent({ ...row, examType: activeExam }));
       const result = await API.bulkImport(activeClass.id, payload, activeExam);
-      await refreshClass(activeClass.id);
+      await refreshFormClassesForClassId(activeClass.id);
       const { created = 0, updated = 0, skipped = 0 } = result ?? {};
       const parts = [];
       if (created > 0) parts.push(`${created} new`);
@@ -615,7 +644,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     if (!activeClass) return;
     try {
       const result = await API.reorderStudentCnos(activeClass.id);
-      await refreshClass(activeClass.id);
+      await refreshFormClassesForClassId(activeClass.id);
       showToast?.(
         `CNO order updated: ${result.femaleCount} female, ${result.maleCount} male, ${result.updated} CNO changed`
       );
@@ -630,7 +659,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     if (!activeClass) return;
     try {
       await API.updateClass(activeClass.id, { schoolInfo: extractClassSchoolInfoOverrides(schoolInfo) });
-      await refreshClass(activeClass.id);
+      await refreshFormClassesForClassId(activeClass.id);
       showToast?.("Class report settings updated");
     } catch (err) {
       showToast?.(err.message, "error");
