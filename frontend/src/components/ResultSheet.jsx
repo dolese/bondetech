@@ -173,7 +173,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
   const styles = {
     panel: {
       width: "100%",
-      overflowY: "visible",
+      overflowY: "auto",
       overflowX: "hidden",
       padding: isMobile ? 10 : 14,
       display: "flex",
@@ -185,7 +185,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       width: "100%",
       maxWidth: "100%",
       overflowX: "hidden",
-      overflowY: "visible",
+      overflowY: "auto",
       paddingBottom: 4,
     },
     actions: {

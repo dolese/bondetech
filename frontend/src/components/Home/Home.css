@@ -81,22 +81,20 @@
 .wa-home .nav-burger span { width: 20px; height: 2px; background: var(--navy); border-radius: 2px; }
 .wa-home .nav-mobile-shell {
   position: fixed; inset: 0; z-index: 140;
-  display: flex; justify-content: flex-end; align-items: flex-start;
-  padding-top: 68px;
+  display: flex; align-items: flex-end; justify-content: center;
 }
 .wa-home .nav-mobile-backdrop {
   position: absolute; inset: 0;
-  background: rgba(15, 23, 42, 0.35);
-  backdrop-filter: blur(3px);
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
 }
 .wa-home .nav-mobile-drawer {
-  position: relative; width: min(85vw, 340px); max-height: calc(100dvh - 80px);
+  position: relative; width: 100%; height: 55vh;
   background: #ffffff;
-  box-shadow: -8px 0 32px rgba(15, 23, 42, 0.15);
+  box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.15);
   display: flex; flex-direction: column;
-  animation: wa-mobile-drawer-in 200ms ease-out;
-  margin: 12px 12px 0 0;
-  border-radius: 16px;
+  animation: wa-mobile-drawer-in 250ms ease-out;
+  border-radius: 20px 20px 0 0;
   overflow: hidden;
 }
 .wa-home .nav-mobile-head {
@@ -211,8 +209,8 @@
 }
 
 @keyframes wa-mobile-drawer-in {
-  from { transform: translateX(20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 /* HERO */

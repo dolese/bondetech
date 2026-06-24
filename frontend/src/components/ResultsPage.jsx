@@ -162,6 +162,8 @@ export function ResultsPage({ classData, computed, onOpenReportCard }) {
                 display: "block",
                 width: "100%",
                 paddingTop: isMobile ? 10 : 14,
+                overflowY: "auto",
+                flex: 1,
               }
             : {
                 flex: 1,
