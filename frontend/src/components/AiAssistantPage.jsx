@@ -5,6 +5,7 @@ import { useI18n } from "../i18n";
 import "./AiAssistantPage.css";
 
 const CHAT_STORAGE_PREFIX = "ai_assistant_chat_v1";
+const CHAT_RECENTS_STORAGE_KEY = "ai_assistant_recent_chats_v1";
 const MAX_DRAFT_CHARS = 4000;
 
 /* ─────────────────────────────────────────────
@@ -241,6 +242,17 @@ function buildConversationStorageKey(classId, examName) {
   return `${CHAT_STORAGE_PREFIX}:${classPart}:${examPart}`;
 }
 
+function getClassLabel(classRecord) {
+  if (!classRecord) return "All Classes";
+  return [classRecord.form, classRecord.stream, classRecord.year].filter(Boolean).join(" ").trim() || "Selected Class";
+}
+
+function buildMessageTitle(messages = []) {
+  const firstUser = (messages || []).find((entry) => entry.role === "user" && String(entry.content || "").trim());
+  if (!firstUser) return "New chat";
+  return String(firstUser.content || "").replace(/\s+/g, " ").trim().slice(0, 56) || "New chat";
+}
+
 function buildInitialMessages(activeClass) {
   const classLabel = activeClass ? `${activeClass.form} ${activeClass.stream} ${activeClass.year}`.trim() : "your accessible classes";
   return [
@@ -389,10 +401,16 @@ export function AiAssistantPage({
   const [dislikedIndex, setDislikedIndex] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
+  const [activeWorkspace, setActiveWorkspace] = useState("chat");
+  const [recentChats, setRecentChats] = useState([]);
+  const [attachments, setAttachments] = useState([]);
   
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
   const fabTimeoutRef = useRef(null);
+  const documentInputRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   const conversationStorageKey = buildConversationStorageKey(selectedClassId, activeExam);
 
@@ -404,9 +422,22 @@ export function AiAssistantPage({
   const classOptions = useMemo(() => {
     return classes.map((c) => ({
       id: c.id,
-      label: `${c.form} ${c.stream} ${c.year}`.trim(),
+      label: getClassLabel(c),
     }));
   }, [classes]);
+
+  const workspacePromptMap = useMemo(() => ({
+    chat: "",
+    study: `Create a concise study guide for ${getClassLabel(selectedClass)}${activeExam ? ` for ${activeExam}` : ""}. Include weak areas, revision priorities, and 5 practice questions.`,
+    math: `Solve this math or marks-calculation problem step by step for ${getClassLabel(selectedClass)}: `,
+    write: `Rewrite and improve this school communication so it sounds professional, clear, and parent-friendly: `,
+    code: "Help me design or debug a school system feature. Here is the requirement: ",
+    explain: "Explain this academic concept in simple steps for secondary school students: ",
+    translate: "Translate this school communication between English and Swahili while keeping the tone professional: ",
+    resources: `List the key academic resources, missing records, and action points for ${getClassLabel(selectedClass)}${activeExam ? ` in ${activeExam}` : ""}.`,
+    history: "",
+    settings: "",
+  }), [activeExam, selectedClass]);
 
   // Load saved conversation
   useEffect(() => {
@@ -416,12 +447,15 @@ export function AiAssistantPage({
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           setMessages(parsed);
+          return;
         }
       }
+      setMessages(buildInitialMessages(selectedClass));
     } catch (e) {
       console.error("Failed to load conversation:", e);
+      setMessages(buildInitialMessages(selectedClass));
     }
-  }, [conversationStorageKey]);
+  }, [conversationStorageKey, selectedClass]);
 
   // Save conversation
   useEffect(() => {
@@ -445,6 +479,47 @@ export function AiAssistantPage({
     }
   }, [draft]);
 
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(CHAT_RECENTS_STORAGE_KEY);
+      const parsed = stored ? JSON.parse(stored) : [];
+      setRecentChats(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setRecentChats([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (!Array.isArray(messages) || messages.length <= 1) return;
+      const nextEntry = {
+        storageKey: conversationStorageKey,
+        title: buildMessageTitle(messages),
+        updatedAt: new Date().toISOString(),
+        classId: selectedClassId || "",
+        classLabel: getClassLabel(selectedClass),
+        exam: activeExam || "",
+        messages: messages.map((entry) => ({
+          role: entry.role,
+          content: entry.content,
+          time: entry.time instanceof Date ? entry.time.toISOString() : entry.time || new Date().toISOString(),
+          meta: entry.meta || null,
+        })),
+      };
+      setRecentChats((current) => {
+        const merged = [nextEntry, ...current.filter((entry) => entry.storageKey !== nextEntry.storageKey)].slice(0, 8);
+        localStorage.setItem(CHAT_RECENTS_STORAGE_KEY, JSON.stringify(merged));
+        return merged;
+      });
+    } catch {
+      // Ignore storage errors and keep chat usable.
+    }
+  }, [activeExam, conversationStorageKey, messages, selectedClass, selectedClassId]);
+
   const sendMessage = async (content) => {
     const text = String(content || draft).trim();
     if (!text || isSending) return;
@@ -454,13 +529,19 @@ export function AiAssistantPage({
       return;
     }
 
+    const attachmentSummary = attachments.length
+      ? `\n\nAttachment context:\n${attachments.map((entry) => `- ${entry.label}: ${entry.name}`).join("\n")}`
+      : "";
+    const payloadText = `${text}${attachmentSummary}`.trim();
+
     const nextMessages = [
       ...messages,
-      { role: "user", content: text, time: new Date() },
+      { role: "user", content: payloadText, time: new Date() },
     ];
 
     setMessages(nextMessages);
     setDraft("");
+    setAttachments([]);
     setError("");
     setIsSending(true);
 
@@ -503,7 +584,18 @@ export function AiAssistantPage({
   function clearConversation() {
     sessionStorage.removeItem(conversationStorageKey);
     setMessages(buildInitialMessages(selectedClass));
+    setAttachments([]);
     setError("");
+    setActiveWorkspace("chat");
+    setRecentChats((current) => {
+      const next = current.filter((entry) => entry.storageKey !== conversationStorageKey);
+      try {
+        localStorage.setItem(CHAT_RECENTS_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
   }
 
   async function copyMessage(content, index) {
@@ -542,6 +634,70 @@ export function AiAssistantPage({
     }
   }
 
+  function focusComposer() {
+    if (textareaRef.current) textareaRef.current.focus();
+  }
+
+  function applyPromptTemplate(template, opts = {}) {
+    const nextText = String(template || "").trim();
+    if (!nextText) return;
+    setDraft((current) => {
+      const existing = String(current || "").trim();
+      return existing ? `${existing}\n${nextText}` : nextText;
+    });
+    setToolsMenuOpen(false);
+    if (isMobile && opts.closeSidebar) setSidebarOpen(false);
+    setTimeout(focusComposer, 0);
+  }
+
+  function handleWorkspaceSelect(workspaceId) {
+    setActiveWorkspace(workspaceId);
+    const prompt = workspacePromptMap[workspaceId];
+    if (prompt) {
+      setDraft(prompt);
+      setTimeout(focusComposer, 0);
+    }
+    if (isMobile) setSidebarOpen(false);
+  }
+
+  function restoreRecentChat(chat) {
+    if (!chat) return;
+    setActiveWorkspace("history");
+    setSelectedClassId(String(chat.classId || ""));
+    setMessages(
+      Array.isArray(chat.messages) && chat.messages.length
+        ? chat.messages.map((entry) => ({
+            ...entry,
+            time: entry.time ? new Date(entry.time) : new Date(),
+          }))
+        : buildInitialMessages(null),
+    );
+    setError("");
+    if (isMobile) setSidebarOpen(false);
+  }
+
+  function addAttachments(fileList, label) {
+    const files = Array.from(fileList || []).filter(Boolean);
+    if (!files.length) return;
+    const prepared = files.map((file) => ({
+      id: `${label}-${file.name}-${file.size}-${file.lastModified}`,
+      name: file.name,
+      label,
+      size: file.size || 0,
+    }));
+    setAttachments((current) => {
+      const byId = new Map(current.map((entry) => [entry.id, entry]));
+      prepared.forEach((entry) => byId.set(entry.id, entry));
+      return Array.from(byId.values()).slice(-6);
+    });
+    setToolsMenuOpen(false);
+    setTimeout(focusComposer, 0);
+  }
+
+  function removeAttachment(id) {
+    setAttachments((current) => current.filter((entry) => entry.id !== id));
+  }
+
   const navItems = [
     { id: "chat", label: "Chat", icon: <ChatIcon /> },
     { id: "study", label: "Study Helper", icon: <BookIcon /> },
@@ -554,16 +710,19 @@ export function AiAssistantPage({
     { id: "history", label: "History", icon: <HistoryIcon /> },
   ];
 
-  const recentChats = [
-    { id: 1, title: "Photosynthesis explanation" },
-    { id: 2, title: "Math homework help" },
-    { id: 3, title: "Essay writing tips" },
-  ];
-
   return (
     <div className="ai-dashboard">
+      {isMobile && sidebarOpen ? (
+        <button
+          type="button"
+          className="ai-sidebar-overlay"
+          aria-label="Close sidebar"
+          onClick={() => setSidebarOpen(false)}
+        />
+      ) : null}
+
       {/* Sidebar */}
-      <aside className={`ai-sidebar ${sidebarOpen ? "" : "hidden"}`}>
+      <aside className={`ai-sidebar ${isMobile ? (sidebarOpen ? "open" : "hidden") : ""}`}>
         <div className="ai-sidebar-header">
           <button className="ai-new-chat-btn" onClick={clearConversation}>
             <PlusIcon />
@@ -589,7 +748,8 @@ export function AiAssistantPage({
           {navItems.map((item) => (
             <button
               key={item.id}
-              className={`ai-nav-item ${item.id === "chat" ? "active" : ""}`}
+              className={`ai-nav-item ${item.id === activeWorkspace ? "active" : ""}`}
+              onClick={() => handleWorkspaceSelect(item.id)}
             >
               <span className="ai-nav-icon">{item.icon}</span>
               {item.label}
@@ -599,15 +759,23 @@ export function AiAssistantPage({
 
         <div className="ai-history-section">
           <div className="ai-history-header">Recent Chats</div>
-          {recentChats.map((chat) => (
-            <button key={chat.id} className="ai-history-item">
-              {chat.title}
+          {recentChats.length ? recentChats.map((chat) => (
+            <button key={chat.storageKey} className="ai-history-item" onClick={() => restoreRecentChat(chat)}>
+              <span className="ai-history-item-title">{chat.title}</span>
+              <span className="ai-history-item-meta">{chat.classLabel}</span>
             </button>
-          ))}
+          )) : (
+            <div className="ai-history-empty">No saved chats yet.</div>
+          )}
         </div>
 
         <div className="ai-sidebar-footer">
-          <button className="ai-settings-btn">
+          <button className="ai-settings-btn" onClick={() => {
+            setActiveWorkspace("settings");
+            setDraft(`Current assistant settings:\n- Class scope: ${getClassLabel(selectedClass)}\n- Exam: ${activeExam || "Default exam"}\n- Response language: ${responseLanguage}\n\nSuggest the best assistant setup for this task: `);
+            if (isMobile) setSidebarOpen(false);
+            setTimeout(focusComposer, 0);
+          }}>
             <span className="ai-nav-icon"><SettingsIcon /></span>
             Settings
           </button>
@@ -719,11 +887,58 @@ export function AiAssistantPage({
 
         <div className="ai-input-area">
           <div className="ai-input-wrapper">
+            <input
+              ref={documentInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls"
+              multiple
+              hidden
+              onChange={(event) => {
+                addAttachments(event.target.files, "Document");
+                event.target.value = "";
+              }}
+            />
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={(event) => {
+                addAttachments(event.target.files, "Image");
+                event.target.value = "";
+              }}
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              hidden
+              onChange={(event) => {
+                addAttachments(event.target.files, "Camera");
+                event.target.value = "";
+              }}
+            />
+
+            {attachments.length ? (
+              <div className="ai-attachment-strip">
+                {attachments.map((entry) => (
+                  <div key={entry.id} className="ai-attachment-chip">
+                    <span>{entry.label}: {entry.name}</span>
+                    <button type="button" onClick={() => removeAttachment(entry.id)} aria-label={`Remove ${entry.name}`}>
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
             <div className="ai-input-box">
-              <div className="ai-input-actions">
+              <div className="ai-input-leading">
                 <div style={{ position: "relative" }}>
                   <button 
-                    className="ai-input-btn" 
+                    className="ai-input-btn ai-input-btn-plus"
                     title="Tools"
                     onClick={() => setToolsMenuOpen(!toolsMenuOpen)}
                   >
@@ -731,56 +946,60 @@ export function AiAssistantPage({
                   </button>
                   {toolsMenuOpen && (
                     <div className="ai-tools-menu open">
-                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                      <button className="ai-tools-menu-item" onClick={() => documentInputRef.current?.click()}>
                         <DocumentIcon />
                         Upload Document
                       </button>
-                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                      <button className="ai-tools-menu-item" onClick={() => imageInputRef.current?.click()}>
                         <ImageIcon />
                         Upload Image
                       </button>
-                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                      <button className="ai-tools-menu-item" onClick={() => cameraInputRef.current?.click()}>
                         <CameraIcon />
                         Take Photo
                       </button>
-                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate("Find a student by Admission Number and summarize the profile, marks, missing subjects, and guardian contact context.\nAdmission Number: ")}>
                         <UserIcon />
                         Attach Student
                       </button>
-                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate(`Analyze the results for ${getClassLabel(selectedClass)}${activeExam ? ` in ${activeExam}` : ""}. Highlight top performers, failed students, incomplete records, and action points.`)}>
                         <ChartIcon />
                         Analyze Results
                       </button>
-                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate(`Draft guardian SMS text for ${getClassLabel(selectedClass)}${activeExam ? ` in ${activeExam}` : ""}. Keep it short, professional, and ready to send.`)}>
                         <FileTextIcon />
                         Generate Report SMS
                       </button>
-                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate(`Create a lesson plan outline for ${getClassLabel(selectedClass)}. Subject: \nTopic: \nLearning objectives: `)}>
                         <BookOpenIcon />
                         Create Lesson Plan
                       </button>
-                      <button className="ai-tools-menu-item" onClick={() => setToolsMenuOpen(false)}>
+                      <button className="ai-tools-menu-item" onClick={() => applyPromptTemplate("Draft a professional school notice for parents/students about: ")}>
                         <BellIcon />
                         Create Notice
                       </button>
                     </div>
                   )}
                 </div>
-                <button className="ai-input-btn" title="Voice input">
+              </div>
+
+              <div className="ai-input-center">
+                <textarea
+                  ref={textareaRef}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask about students, classes, results, timetables, or guardian follow-up..."
+                  className="ai-input-field"
+                  rows={1}
+                  disabled={isSending}
+                />
+              </div>
+
+              <div className="ai-input-trailing">
+                <button className="ai-input-btn ai-input-btn-ghost" title="Voice input" disabled={isSending}>
                   <MicIcon />
                 </button>
-              </div>
-              <textarea
-                ref={textareaRef}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask me anything about your classes, students, or school..."
-                className="ai-input-field"
-                rows={1}
-                disabled={isSending}
-              />
-              <div className="ai-input-actions">
                 <button
                   className="ai-input-btn send"
                   onClick={() => sendMessage(draft)}
@@ -792,7 +1011,8 @@ export function AiAssistantPage({
               </div>
             </div>
             <div className="ai-disclaimer">
-              AI can make mistakes. Please verify important information.
+              <span>{isSending ? "Generating response..." : "Enter to send. Shift + Enter for a new line."}</span>
+              <span>AI can make mistakes. Verify important information.</span>
             </div>
           </div>
         </div>
