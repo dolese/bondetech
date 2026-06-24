@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useViewport } from '../../utils/useViewport';
 import './PeopleDirectory.css';
 
@@ -42,15 +42,60 @@ const CopyIcon = () => (
   </svg>
 );
 
+const MoreIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="5" r="1.4"></circle>
+    <circle cx="12" cy="12" r="1.4"></circle>
+    <circle cx="12" cy="19" r="1.4"></circle>
+  </svg>
+);
+
 export function PersonCard({
   entry,
   palette,
   handleCopy,
   onOpenStudentProfile,
   onOpenTimetable,
+  onEditEntry,
+  onDeleteEntry,
+  canManageEntry = false,
 }) {
   const { isMobile } = useViewport();
   const borderColor = getRoleBorderColor(entry.badge);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [studentsVisible, setStudentsVisible] = useState(false);
+  const studentSectionRef = useRef(null);
+  const actions = useMemo(
+    () =>
+      [
+        onEditEntry ? { key: "edit", label: "Edit Parent", onClick: () => onEditEntry(entry) } : null,
+        entry.students?.length
+          ? {
+              key: "students",
+              label: "View Students",
+              onClick: () => {
+                setStudentsVisible(true);
+                setTimeout(() => studentSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 0);
+              },
+            }
+          : null,
+        onDeleteEntry
+          ? {
+              key: "delete",
+              label: "Delete",
+              destructive: true,
+              onClick: async () => {
+                const confirmed = window.confirm(
+                  `Delete this parent record from ${entry.students?.length || 0} linked student${(entry.students?.length || 0) === 1 ? "" : "s"}?`,
+                );
+                if (!confirmed) return;
+                await onDeleteEntry(entry);
+              },
+            }
+          : null,
+      ].filter(Boolean),
+    [entry, onDeleteEntry, onEditEntry],
+  );
 
   return (
     <div
@@ -79,6 +124,35 @@ export function PersonCard({
             <div style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {entry.name || "Unnamed"}
             </div>
+            {canManageEntry && actions.length ? (
+              <div style={{ position: "relative", flexShrink: 0 }}>
+                <button
+                  type="button"
+                  className="dir-action-btn"
+                  onClick={() => setMenuOpen((current) => !current)}
+                  aria-label="More actions"
+                >
+                  <MoreIcon />
+                </button>
+                {menuOpen ? (
+                  <div className="dir-menu">
+                    {actions.map((action) => (
+                      <button
+                        key={action.key}
+                        type="button"
+                        className={`dir-menu-item${action.destructive ? " destructive" : ""}`}
+                        onClick={async () => {
+                          setMenuOpen(false);
+                          await action.onClick?.();
+                        }}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
           <div style={{ marginTop: 2, fontSize: 13, color: "#64748b", lineHeight: 1.5, display: "flex", alignItems: "center", gap: 8 }}>
             {entry.subtitle || "System Record"}
@@ -185,10 +259,25 @@ export function PersonCard({
       ) : null}
 
       {entry.students?.length ? (
-        <div className="dir-student-list">
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Linked Students ({entry.students.length})
+        <div ref={studentSectionRef} className="dir-student-list">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Linked Students ({entry.students.length})
+            </div>
+            <button
+              type="button"
+              className="dir-mini-btn"
+              onClick={() => setStudentsVisible((current) => !current)}
+            >
+              {studentsVisible ? "Hide" : "View Students"}
+            </button>
           </div>
+          {studentsVisible ? (
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Student records linked to this guardian
+          </div>
+          ) : null}
+          {studentsVisible ? (
           <div style={{ display: "grid", gap: 8 }}>
             {entry.students.map((student) => (
               <div key={student.key} className="dir-student-item">
@@ -221,6 +310,7 @@ export function PersonCard({
               </div>
             ))}
           </div>
+          ) : null}
         </div>
       ) : null}
 

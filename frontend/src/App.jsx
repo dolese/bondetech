@@ -105,6 +105,7 @@ function buildParentDirectory(classes) {
       if (!existing.address && address) existing.address = address;
       existing.students.push({
         key: `${cls.id}-${student.id}`,
+        classId: cls.id,
         studentId: student.id,
         name: student.name || "Unnamed Student",
         indexNo: student.index_no || student.indexNo || "",
@@ -606,6 +607,78 @@ export default function App() {
   );
   const parentDirectory = useMemo(() => buildParentDirectory(classes), [classes]);
 
+  const handleUpdateParentDirectoryEntry = useCallback(async (entry, updates = {}) => {
+    const linkedStudents = Array.isArray(entry?.students) ? entry.students : [];
+    if (!linkedStudents.length) {
+      showToast("No linked students found for this guardian", "error");
+      return { ok: false, error: "No linked students found for this guardian" };
+    }
+
+    const nextName = String(updates.name ?? entry?.name ?? "").trim();
+    const nextPhone = String(updates.phone ?? entry?.phone ?? "").trim();
+    const nextAddress = String(updates.address ?? entry?.address ?? "").trim();
+    if (!nextName && !nextPhone) {
+      showToast("Parent name or phone is required", "error");
+      return { ok: false, error: "Parent name or phone is required" };
+    }
+
+    const results = await Promise.all(
+      linkedStudents.map((student) =>
+        onUpdateStudentInClass?.(
+          student.classId,
+          {
+            id: student.studentId,
+            parentName: nextName,
+            parentPhone: nextPhone,
+            address: nextAddress,
+          },
+          { silent: true },
+        ),
+      ),
+    );
+
+    const failed = results.find((result) => !result?.ok);
+    if (failed) {
+      showToast(failed.error || "Unable to update parent details", "error");
+      return failed;
+    }
+
+    showToast("Parent details updated");
+    return { ok: true };
+  }, [onUpdateStudentInClass, showToast]);
+
+  const handleDeleteParentDirectoryEntry = useCallback(async (entry) => {
+    const linkedStudents = Array.isArray(entry?.students) ? entry.students : [];
+    if (!linkedStudents.length) {
+      showToast("No linked students found for this guardian", "error");
+      return { ok: false, error: "No linked students found for this guardian" };
+    }
+
+    const results = await Promise.all(
+      linkedStudents.map((student) =>
+        onUpdateStudentInClass?.(
+          student.classId,
+          {
+            id: student.studentId,
+            parentName: "",
+            parentPhone: "",
+            address: "",
+          },
+          { silent: true },
+        ),
+      ),
+    );
+
+    const failed = results.find((result) => !result?.ok);
+    if (failed) {
+      showToast(failed.error || "Unable to delete parent record", "error");
+      return failed;
+    }
+
+    showToast("Parent record removed");
+    return { ok: true };
+  }, [onUpdateStudentInClass, showToast]);
+
   const handleLogout = useCallback(() => {
     logoutSession();
     resetClassesState();
@@ -1088,6 +1161,8 @@ export default function App() {
               entries={parentDirectory}
               tone="amber"
               onOpenStudentProfile={handleOpenStudentProfile}
+              onEditEntry={handleUpdateParentDirectoryEntry}
+              onDeleteEntry={handleDeleteParentDirectoryEntry}
             />
           )}
 

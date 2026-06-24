@@ -39,9 +39,14 @@ export function PeopleDirectoryPage({
   tone = "teal",
   onOpenStudentProfile,
   onOpenTimetable,
+  onEditEntry,
+  onDeleteEntry,
 }) {
   const { isMobile } = useViewport();
   const [query, setQuery] = useState("");
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [editForm, setEditForm] = useState({ name: "", phone: "", address: "" });
+  const [saving, setSaving] = useState(false);
 
   const palette =
     tone === "amber"
@@ -70,6 +75,32 @@ export function PeopleDirectoryPage({
   const handleCopy = (text) => {
     if (navigator.clipboard && text) {
       navigator.clipboard.writeText(text).catch(() => {});
+    }
+  };
+
+  const openEdit = (entry) => {
+    setEditingEntry(entry);
+    setEditForm({
+      name: String(entry?.name || "").trim(),
+      phone: String(entry?.phone || "").trim(),
+      address: String(entry?.address || "").trim(),
+    });
+  };
+
+  const closeEdit = () => {
+    if (saving) return;
+    setEditingEntry(null);
+    setEditForm({ name: "", phone: "", address: "" });
+  };
+
+  const submitEdit = async (event) => {
+    event.preventDefault();
+    if (!editingEntry || !onEditEntry || saving) return;
+    setSaving(true);
+    const result = await onEditEntry(editingEntry, editForm);
+    setSaving(false);
+    if (result?.ok) {
+      closeEdit();
     }
   };
 
@@ -153,9 +184,12 @@ export function PeopleDirectoryPage({
                 key={entry.key}
                 entry={entry}
                 palette={palette}
-                handleCopy={handleCopy}
-                onOpenStudentProfile={onOpenStudentProfile}
-                onOpenTimetable={onOpenTimetable}
+              handleCopy={handleCopy}
+              onOpenStudentProfile={onOpenStudentProfile}
+              onOpenTimetable={onOpenTimetable}
+              onEditEntry={onEditEntry ? openEdit : null}
+              onDeleteEntry={onDeleteEntry}
+              canManageEntry={Boolean(onEditEntry || onDeleteEntry)}
               />
             ))}
         </div>
@@ -168,6 +202,64 @@ export function PeopleDirectoryPage({
           </div>
         </div>
       )}
+
+      {editingEntry ? (
+        <div className="dir-modal-backdrop" onClick={closeEdit}>
+          <div className="dir-modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="dir-modal-head">
+              <div>
+                <div className="dir-modal-title">Edit Parent</div>
+                <div className="dir-modal-subtitle">
+                  Update guardian details across {editingEntry.students?.length || 0} linked student
+                  {(editingEntry.students?.length || 0) === 1 ? "" : "s"}.
+                </div>
+              </div>
+              <button type="button" className="dir-action-btn" onClick={closeEdit}>
+                Close
+              </button>
+            </div>
+            <form onSubmit={submitEdit} className="dir-modal-form">
+              <label className="dir-modal-field">
+                <span>Name</span>
+                <input
+                  value={editForm.name}
+                  onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))}
+                  className="dir-search-input"
+                  placeholder="Guardian name"
+                />
+              </label>
+              <label className="dir-modal-field">
+                <span>Phone</span>
+                <input
+                  value={editForm.phone}
+                  onChange={(event) => setEditForm((current) => ({ ...current, phone: event.target.value }))}
+                  className="dir-search-input"
+                  placeholder="Guardian phone"
+                />
+              </label>
+              <label className="dir-modal-field">
+                <span>Address</span>
+                <textarea
+                  value={editForm.address}
+                  onChange={(event) => setEditForm((current) => ({ ...current, address: event.target.value }))}
+                  className="dir-search-input"
+                  placeholder="Address"
+                  rows={3}
+                  style={{ resize: "vertical", minHeight: 90 }}
+                />
+              </label>
+              <div className="dir-modal-actions">
+                <button type="button" className="dir-secondary-btn" onClick={closeEdit} disabled={saving}>
+                  Cancel
+                </button>
+                <button type="submit" className="dir-primary-btn" disabled={saving}>
+                  {saving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
