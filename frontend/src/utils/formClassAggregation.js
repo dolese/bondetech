@@ -26,7 +26,10 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
       id: makeMergedStudentId(cls.id, student.id),
       originalStudentId: student.id,
       classId: cls.id,
+      form: cls.form || "",
       stream: cls.stream || "",
+      year: cls.year || "",
+      classLabel: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim(),
     })),
   );
 
@@ -61,7 +64,15 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
           : {}),
       };
     });
-    return withPositions(computedRows, cls.subjects ?? []);
+    const streamRankedRows = withPositions(computedRows, cls.subjects ?? []);
+    return streamRankedRows.map((student) => ({
+      ...student,
+      form: cls.form || "",
+      year: cls.year || "",
+      classLabel: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim(),
+      streamPosn: student.posn,
+      streamTotalStudents: (cls.students || []).length,
+    }));
   });
 
   const ranked = [...rows]
@@ -70,6 +81,7 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
   const positionMap = new Map(ranked.map((student, index) => [student.id, index + 1]));
   const computed = rows.map((student) => ({
     ...student,
+    formPosn: positionMap.get(student.id) ?? null,
     posn: positionMap.get(student.id) ?? null,
   }));
 

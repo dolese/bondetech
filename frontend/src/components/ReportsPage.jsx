@@ -912,7 +912,7 @@ export function ReportsPage({
                         <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", minWidth: 20 }}>#{student.posn ?? index + 1}</span>
                         <span style={{ fontSize: 13, fontWeight: 500, color: "#0f172a" }}>{student.name}</span>
                       </div>
-                      <button onClick={() => onOpenReportCard(student.id)} style={{ padding: "3px 10px", background: "#0f2d6e", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500 }}>
+                      <button onClick={() => onOpenReportCard(student)} style={{ padding: "3px 10px", background: "#0f2d6e", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500 }}>
                         {t("reportsView", "View")}
                       </button>
                     </div>
@@ -945,7 +945,7 @@ export function ReportsPage({
                         <td style={{ padding: "7px 10px", color: "#475569" }}>{student.avg ?? "-"}</td>
                         <td style={{ padding: "7px 10px", color: "#64748b" }}>{(template === "compact" ? t("reportsTemplateCompact", "Compact") : t("reportsTemplateOfficial", "Official")) + " · A4"}</td>
                         <td style={{ padding: "7px 10px", textAlign: "center" }}>
-                          <button onClick={() => onOpenReportCard(student.id)} style={{ padding: "3px 10px", background: "#0f2d6e", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500 }}>
+                          <button onClick={() => onOpenReportCard(student)} style={{ padding: "3px 10px", background: "#0f2d6e", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500 }}>
                             {t("reportsView", "View")}
                           </button>
                         </td>

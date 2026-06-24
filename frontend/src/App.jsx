@@ -562,18 +562,32 @@ export default function App() {
     refreshClassesWithStudents(needsHydration.map((cls) => cls.id)).catch(() => {});
   }, [displayActiveClass, refreshClassesWithStudents, visibleClasses]);
 
+  const selectedStudentWorkspace = useMemo(() => {
+    if (!selectedStudent?.classId) return activeFormWorkspace;
+    const realClass =
+      visibleClasses.find((cls) => String(cls.id) === String(selectedStudent.classId)) ||
+      displayActiveClass;
+    return buildFormWorkspace(visibleClasses, realClass, activeExam);
+  }, [activeExam, activeFormWorkspace, displayActiveClass, selectedStudent, visibleClasses]);
   const selectedStudentClassData = useMemo(() => {
     if (!selectedStudent?.classId) return displayActiveClass;
-    const realClass = visibleAllComputed.find((cls) => cls.id === selectedStudent.classId) || displayActiveClass;
+    const realClass =
+      visibleAllComputed.find((cls) => String(cls.id) === String(selectedStudent.classId)) ||
+      displayActiveClass;
     return {
       ...realClass,
       rankTotalStudents:
-        activeFormWorkspace.classData?.rankTotalStudents ||
-        activeFormWorkspace.computed?.length ||
+        selectedStudentWorkspace.classData?.rankTotalStudents ||
+        selectedStudentWorkspace.computed?.length ||
         realClass?.students?.length ||
         0,
+      classLabelOverride:
+        selectedStudentWorkspace.classData?.classLabelOverride ||
+        realClass?.form ||
+        realClass?.name ||
+        "",
     };
-  }, [activeFormWorkspace.classData?.rankTotalStudents, activeFormWorkspace.computed, displayActiveClass, selectedStudent, visibleAllComputed]);
+  }, [displayActiveClass, selectedStudent, selectedStudentWorkspace, visibleAllComputed]);
   const teacherPortalSummary = useMemo(
     () => (role === "teacher" ? buildTeacherPortalSummary(visibleClasses, currentUser) : null),
     [currentUser, role, visibleClasses]
@@ -726,10 +740,25 @@ export default function App() {
   const onOpenReportCard = useCallback((studentTarget) => {
     if (!studentTarget) return;
 
+    if (studentTarget && typeof studentTarget === "object") {
+      const classId = String(studentTarget.classId || "").trim();
+      const originalStudentId = String(
+        studentTarget.originalStudentId || studentTarget.id || "",
+      ).trim();
+      const fromClass = classId
+        ? visibleAllComputed
+            .find((cls) => String(cls.id) === classId)
+            ?.computed?.find(
+              (student) => String(student.id || "").trim() === originalStudentId,
+            )
+        : null;
+      setSelectedStudent(fromClass ? { ...fromClass, ...studentTarget } : studentTarget);
+      setModalType("report-card");
+      return;
+    }
+
     const studentId = String(
-      typeof studentTarget === "object"
-        ? studentTarget.id || studentTarget.originalStudentId || ""
-        : studentTarget,
+      studentTarget,
     ).trim();
     if (!studentId) return;
 

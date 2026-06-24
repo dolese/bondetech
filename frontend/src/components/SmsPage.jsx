@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { API } from "../api";
 import { EXAM_TYPES, DEFAULT_EXAM_TYPE, getCompositeEntry } from "../utils/constants";
 import { withPositions } from "../utils/grading";
+import { buildFormWorkspace } from "../utils/formClassAggregation";
 import {
   fieldStyle,
   glassPanelStyle,
@@ -321,6 +322,16 @@ function buildComputedStudentsForExam(cls = {}, examType) {
   return withPositions(students, subjects);
 }
 
+function buildResultsWorkspace(classes = [], cls = null, examType = DEFAULT_EXAM_TYPE) {
+  if (!cls) {
+    return {
+      classData: null,
+      computed: [],
+    };
+  }
+  return buildFormWorkspace(classes, cls, examType);
+}
+
 function buildResultsMessage(student, cls, language = "en") {
   const schoolName = "BONDE SEC";
   const classShort = formatResultsSmsClass(cls.form);
@@ -587,9 +598,15 @@ export function SmsPage({
     }
   }, [mode, resultsExam, resultsExamOptions]);
 
+  const selectedResultsWorkspace = useMemo(
+    () => buildResultsWorkspace(classes, selectedResultsClass, resultsExam),
+    [classes, resultsExam, selectedResultsClass],
+  );
+
   const resultsRecipients = useMemo(() => {
-    if (!selectedResultsClass) return [];
-    const computed = buildComputedStudentsForExam(selectedResultsClass, resultsExam);
+    const workspaceClassData = selectedResultsWorkspace.classData;
+    const computed = selectedResultsWorkspace.computed || [];
+    if (!selectedResultsClass || !workspaceClassData) return [];
     return computed
       .map((student) => {
         const phone = normalizePhone(
@@ -597,20 +614,23 @@ export function SmsPage({
         );
         if (!phone) return null;
         return {
-          id: `${selectedResultsClass.id}-${student.id}`,
+          id: `${student.classId || selectedResultsClass.id}-${student.originalStudentId || student.id}`,
           phone,
           parentName: String(student.parentName || student.parent_name || "").trim() || "Guardian",
           studentName: String(student.name || "").trim() || "Student",
-          classLabel: [selectedResultsClass.form, selectedResultsClass.stream, selectedResultsClass.year]
-            .filter(Boolean)
-            .join(" ")
-            .trim(),
+          classLabel:
+            student.classLabel ||
+            [selectedResultsClass.form, selectedResultsClass.stream, selectedResultsClass.year]
+              .filter(Boolean)
+              .join(" ")
+              .trim(),
+          admissionNo: String(student.admissionNo || student.admission_no || "").trim(),
           student,
-          message: buildResultsMessage(student, selectedResultsClass, resultsLanguage),
+          message: buildResultsMessage(student, workspaceClassData, resultsLanguage),
         };
       })
       .filter(Boolean);
-  }, [resultsExam, resultsLanguage, selectedResultsClass]);
+  }, [resultsLanguage, selectedResultsClass, selectedResultsWorkspace]);
 
   const recipients = mode === "results" ? resultsRecipients : customRecipients;
   const uniquePhones = Array.from(new Set(recipients.map((entry) => entry.phone)));
@@ -725,8 +745,8 @@ export function SmsPage({
                   id: entry.id || `recipient-${index + 1}`,
                   phone: entry.phone,
                   admissionNo: entry.admissionNo || "",
-                  studentId: entry.student?.id || "",
-                  classId: selectedResultsClass?.id || "",
+                  studentId: entry.student?.originalStudentId || entry.student?.id || "",
+                  classId: entry.student?.classId || selectedResultsClass?.id || "",
                   indexNo: entry.student?.index_no || entry.student?.indexNo || "",
                   studentName: entry.studentName,
                   parentName: entry.parentName,
