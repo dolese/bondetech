@@ -941,7 +941,7 @@ export function AiAssistantPage({
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask about students, classes, results, timetables, or guardian follow-up..."
+                  placeholder="Ask about students, results, classes, or SMS..."
                   className="ai-input-field"
                   rows={1}
                   disabled={isSending}

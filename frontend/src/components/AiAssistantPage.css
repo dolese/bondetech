@@ -586,6 +586,10 @@
 
 .ai-input-field::placeholder {
   color: #7c8aa5;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ai-disclaimer {
@@ -782,6 +786,10 @@
     font-size: 15px;
     min-height: 22px;
     max-height: 140px;
+  }
+
+  .ai-input-field::placeholder {
+    font-size: 13px;
   }
 
   .ai-disclaimer {
