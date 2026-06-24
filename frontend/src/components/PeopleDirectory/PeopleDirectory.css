@@ -1,9 +1,12 @@
 /* PeopleDirectory.css */
 .dir-page-container {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 18px;
   display: grid;
+  align-content: start;
   gap: 16px;
   background: linear-gradient(180deg, #eef4fb 0%, #f8fbff 100%);
 }
@@ -245,11 +248,13 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
+  overflow-y: auto;
   z-index: 40;
 }
 
 .dir-modal-card {
   width: min(100%, 520px);
+  max-height: min(90dvh, 760px);
   background: rgba(255,255,255,0.98);
   border-radius: 24px;
   border: 1px solid rgba(226,232,240,0.96);
@@ -257,6 +262,7 @@
   padding: 20px;
   display: grid;
   gap: 18px;
+  overflow-y: auto;
 }
 
 .dir-modal-head {
@@ -683,6 +689,10 @@
 }
 
 @media (max-width: 720px) {
+  .dir-page-container {
+    padding: 14px 12px 28px;
+  }
+
   .dir-parent-toolbar {
     grid-template-columns: 1fr;
   }
@@ -690,5 +700,17 @@
   .dir-parent-table-actions,
   .dir-parent-pagination {
     padding: 16px;
+  }
+
+  .dir-modal-backdrop {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .dir-modal-card {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    border-radius: 20px;
+    padding: 18px 16px;
   }
 }
