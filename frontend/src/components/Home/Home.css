@@ -324,7 +324,7 @@
 .wa-home .pillar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
 .wa-home .pillar {
   background: var(--white); border-radius: var(--radius);
-  padding: 2.25rem 2rem; border: 1px solid var(--border);
+  padding: 2.6rem 2.4rem; border: 1px solid var(--border);
   transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
 }
 .wa-home .pillar:hover {
@@ -333,15 +333,15 @@
   border-color: var(--gold-soft);
 }
 .wa-home .pillar-icon {
-  width: 46px; height: 46px; border-radius: var(--radius-sm);
+  width: 54px; height: 54px; border-radius: var(--radius-sm);
   background: var(--bg); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   color: var(--navy); margin-bottom: 1.25rem;
   transition: color 0.25s, border-color 0.25s, background 0.25s;
 }
 .wa-home .pillar:hover .pillar-icon { color: var(--gold); border-color: var(--gold-soft); background: var(--gold-pill); }
-.wa-home .pillar-title { font-size: 16px; font-weight: 700; color: var(--heading); margin-bottom: 0.6rem; }
-.wa-home .pillar-text { font-size: 14px; color: var(--body); line-height: 1.8; }
+.wa-home .pillar-title { font-size: 18px; font-weight: 700; color: var(--heading); margin-bottom: 0.6rem; }
+.wa-home .pillar-text { font-size: 15.5px; color: var(--body); line-height: 1.8; }
 
 /* STATS BAND */
 .wa-home .stats-band { background: var(--navy); padding: 3.5rem 3rem; }
@@ -382,10 +382,10 @@
 /* EXPLORE — navigable feature cards with a "Learn more" reveal (DoleseTech-style) */
 .wa-home .explore { background: var(--bg); padding: 5rem 3rem; }
 .wa-home .explore-inner { max-width: 1200px; margin: 0 auto; }
-.wa-home .explore-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
+.wa-home .explore-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
 .wa-home .explore-card {
   background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 2rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.7rem;
+  padding: 2.6rem 2.4rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.85rem;
   transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
 }
 .wa-home .explore-card:hover, .wa-home .explore-card:focus-visible {
@@ -393,17 +393,17 @@
   border-color: var(--gold-soft); outline: none;
 }
 .wa-home .explore-icon {
-  width: 46px; height: 46px; border-radius: var(--radius-sm);
+  width: 54px; height: 54px; border-radius: var(--radius-sm);
   background: var(--bg); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center; color: var(--navy);
   transition: color 0.25s, border-color 0.25s, background 0.25s;
 }
 .wa-home .explore-card:hover .explore-icon { color: var(--gold); border-color: var(--gold-soft); background: var(--gold-pill); }
-.wa-home .explore-card-title { font-size: 17px; font-weight: 700; color: var(--heading); }
-.wa-home .explore-card-text { font-size: 14px; color: var(--body); line-height: 1.7; flex: 1; }
+.wa-home .explore-card-title { font-size: 20px; font-weight: 700; color: var(--heading); }
+.wa-home .explore-card-text { font-size: 15.5px; color: var(--body); line-height: 1.75; flex: 1; }
 .wa-home .explore-learn {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 13px; font-weight: 600; color: var(--gold); margin-top: 4px;
+  font-size: 14.5px; font-weight: 600; color: var(--gold); margin-top: 6px;
 }
 .wa-home .explore-learn span[aria-hidden] { transition: transform 0.2s ease; }
 .wa-home .explore-card:hover .explore-learn span[aria-hidden],
@@ -424,10 +424,10 @@
 .wa-home .nc-bar.b1 { background: var(--navy); }
 .wa-home .nc-bar.b2 { background: var(--gold-soft); }
 .wa-home .nc-bar.b3 { background: #7a9cc8; }
-.wa-home .nc-body { padding: 1.75rem; }
-.wa-home .nc-meta { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; }
-.wa-home .nc-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--heading); margin-bottom: 0.7rem; line-height: 1.4; }
-.wa-home .nc-excerpt { font-size: 13.5px; color: var(--body); line-height: 1.75; }
+.wa-home .nc-body { padding: 2.1rem; }
+.wa-home .nc-meta { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; }
+.wa-home .nc-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: var(--heading); margin-bottom: 0.7rem; line-height: 1.4; }
+.wa-home .nc-excerpt { font-size: 15px; color: var(--body); line-height: 1.75; }
 
 /* CTA */
 .wa-home .cta-section { background: var(--bg); padding: 5rem 3rem; }
