@@ -6,6 +6,10 @@ export function makeMergedStudentId(classId, studentId) {
   return `${String(classId || "").trim()}::${String(studentId || "").trim()}`;
 }
 
+function isWorkspaceActiveClass(cls = {}) {
+  return cls && cls.archived !== true;
+}
+
 export function buildFormWorkspace(classes = [], baseClass = null, activeExam = "") {
   if (!baseClass) {
     return {
@@ -17,6 +21,7 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
 
   const relatedClasses = (classes || []).filter(
     (cls) =>
+      isWorkspaceActiveClass(cls) &&
       String(cls.year || "").trim() === String(baseClass?.year || "").trim() &&
       String(cls.form || "").trim() === String(baseClass?.form || "").trim(),
   );
