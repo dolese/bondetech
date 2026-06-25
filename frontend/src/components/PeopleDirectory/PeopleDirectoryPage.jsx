@@ -559,18 +559,25 @@ export function PeopleDirectoryPage({
                             {getInitials(entry.name)}
                           </div>
                           <div className="dir-parent-identity">
-                            <div className="dir-parent-name">{entry.name || "Unnamed guardian"}</div>
-                            <div className="dir-parent-subtitle">{entry.relationship || "Guardian"}</div>
+                            <div className="dir-parent-name" style={{ fontSize: 14 }}>{entry.name || "Unnamed guardian"}</div>
+                            <div className="dir-parent-subtitle" style={{ fontSize: 12, marginTop: 2 }}>
+                              {entry.relationship || "Guardian"} · {entry.students?.length || 0} student{(entry.students?.length || 0) === 1 ? "" : "s"}
+                            </div>
                           </div>
                         </div>
                         <div className="dir-parent-mobile-meta">
                           <span>#{(safePage - 1) * perPage + index + 1}</span>
-                          <span>{entry.phone || "Not set"}</span>
-                          <span>{entry.students?.length || 0} students</span>
+                          <span>{entry.phone || "No phone"}</span>
+                          {entry.phone ? (
+                            <>
+                              <a href={`tel:${entry.phone}`} style={{ color: "#10b981", textDecoration: "none" }}>Call</a>
+                              <a href={`https://wa.me/${String(entry.phone).replace(/[^\d]/g, "")}`} target="_blank" rel="noreferrer" style={{ color: "#22c55e", textDecoration: "none" }}>WhatsApp</a>
+                            </>
+                          ) : null}
                         </div>
                         <div className="dir-parent-mobile-links">
                           <button type="button" className="dir-parent-link-btn" onClick={() => openStudents(entry)}>
-                            View
+                            Students
                           </button>
                           <button type="button" className="dir-parent-link-btn" onClick={() => openEdit(entry)}>
                             Edit

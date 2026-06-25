@@ -373,7 +373,7 @@
 
 .dir-parent-search {
   flex: 1;
-  min-width: 280px;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -787,40 +787,34 @@
 
 .dir-parent-mobile-list {
   display: grid;
-  gap: 14px;
-  padding: 18px;
-  overflow-y: auto;
-  max-height: calc(100vh - 200px);
+  gap: 10px;
+  padding: 14px;
 }
 
 .dir-parent-mobile-card {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 12px;
+  padding: 14px;
   background: #ffffff;
-  display: flex;
-  align-items: center;
+  display: grid;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 .dir-parent-mobile-head {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex: 1;
   min-width: 0;
 }
 
 .dir-parent-mobile-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 6px 14px;
   color: #64748b;
   font-size: 12px;
   font-weight: 600;
-  flex: 1;
-  min-width: 0;
+  padding-left: 54px;
 }
 
 .dir-parent-mobile-links {
@@ -828,6 +822,7 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+  padding-left: 54px;
 }
 
 @media (max-width: 1120px) {
@@ -839,12 +834,21 @@
 
 @media (max-width: 720px) {
   .dir-page-container {
-    padding: 14px 12px 28px;
-    overflow-y: auto;
+    padding: 10px 8px 28px;
+    gap: 10px;
+  }
+
+  .dir-header-card {
+    padding: 16px;
   }
 
   .dir-parent-toolbar {
-    padding: 16px;
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .dir-parent-search {
+    padding: 12px 14px;
   }
 
   .dir-parent-filters {
@@ -852,19 +856,77 @@
     align-items: stretch;
   }
 
+  .dir-parent-select {
+    min-height: 42px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .dir-parent-filter-btn {
+    min-height: 42px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
   .dir-parent-table-header {
-    padding: 16px;
+    padding: 14px;
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+  }
+
+  .dir-parent-table-title h2 {
+    font-size: 17px;
+  }
+
+  .dir-parent-bulk-actions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .dir-parent-export-btn,
+  .dir-parent-sms-btn,
+  .dir-parent-wa-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 10px;
+    font-size: 12px;
   }
 
   .dir-parent-pagination {
-    padding: 16px;
+    padding: 14px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
   }
 
-  .dir-parent-table-card {
-    overflow-y: auto;
-    max-height: calc(100vh - 280px);
+  .dir-parent-pagination-info {
+    text-align: center;
+  }
+
+  .dir-parent-mobile-meta {
+    padding-left: 0;
+  }
+
+  .dir-parent-mobile-links {
+    padding-left: 0;
+    width: 100%;
+  }
+
+  .dir-parent-mobile-links .dir-parent-link-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+
+  .dir-parent-mobile-links .dir-parent-link-danger {
+    border-color: #fecaca;
+    background: #fef2f2;
   }
 
   .dir-modal-backdrop {
