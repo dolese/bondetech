@@ -1702,7 +1702,7 @@ export function AccountPage({
             </div>
 
             {userFormOpen && (
-              <div style={{ ...softGlassStyle, borderRadius: 12, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 12, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
                 <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 14 }}>
                   <TextInput label="Username" value={adminForm.username} onChange={(value) => setAdminForm((prev) => ({ ...prev, username: value }))} required />
                   <TextInput label="Display Name" value={adminForm.displayName} onChange={(value) => setAdminForm((prev) => ({ ...prev, displayName: value }))} />
@@ -1942,7 +1942,7 @@ export function AccountPage({
             {editingUsername ? (() => {
               const edit = editingUsers[editingUsername] || blankManagedUser();
               return (
-                <div style={{ ...softGlassStyle, borderRadius: 12, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
+                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 12, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 600, color: "#102a43" }}>
