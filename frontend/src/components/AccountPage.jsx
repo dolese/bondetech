@@ -68,7 +68,7 @@ function RoleBadge({ role }) {
         padding: "3px 10px",
         borderRadius: 999,
         fontSize: 11,
-        fontWeight: 800,
+        fontWeight: 600,
         letterSpacing: "0.04em",
         background: c.bg,
         color: c.color,
@@ -90,7 +90,7 @@ function StatusBadge({ active }) {
         padding: "3px 10px",
         borderRadius: 999,
         fontSize: 11,
-        fontWeight: 800,
+        fontWeight: 600,
         background: active ? "#dcfce7" : "#fee2e2",
         color: active ? "#15803d" : "#b91c1c",
         border: `1px solid ${active ? "#86efac" : "#fca5a5"}`,
@@ -129,7 +129,7 @@ function TeacherDutyBadge({ active, label }) {
         padding: "3px 9px",
         borderRadius: 999,
         fontSize: 11,
-        fontWeight: 800,
+        fontWeight: 600,
         background: active ? "#e0f2fe" : "#f8fafc",
         color: active ? "#0369a1" : "#94a3b8",
         border: `1px solid ${active ? "#bae6fd" : "#e2e8f0"}`,
@@ -290,16 +290,16 @@ function blankHomepageSlide(index = 0) {
 
 function SummaryTile({ label, value, tone = "blue", helper = "" }) {
   const tones = {
-    blue: { bg: "linear-gradient(180deg,#eff6ff,#f8fbff)", border: "rgba(191,219,254,0.9)", value: "#1d4ed8" },
-    green: { bg: "linear-gradient(180deg,#ecfdf5,#f7fee7)", border: "rgba(134,239,172,0.9)", value: "#15803d" },
-    amber: { bg: "linear-gradient(180deg,#fffbeb,#fff7ed)", border: "rgba(253,230,138,0.9)", value: "#b45309" },
-    slate: { bg: "linear-gradient(180deg,#f8fafc,#ffffff)", border: "rgba(226,232,240,0.95)", value: "#334155" },
+    blue: { bg: "#eff6ff", border: "#e2e8f0", value: "#1d4ed8" },
+    green: { bg: "#ecfdf5", border: "#e2e8f0", value: "#15803d" },
+    amber: { bg: "#fffbeb", border: "#e2e8f0", value: "#b45309" },
+    slate: { bg: "#f8fafc", border: "#e2e8f0", value: "#334155" },
   };
   const currentTone = tones[tone] || tones.blue;
   return (
     <div
       style={{
-        borderRadius: 18,
+        borderRadius: 12,
         border: `1px solid ${currentTone.border}`,
         background: currentTone.bg,
         padding: "14px 16px",
@@ -309,7 +309,7 @@ function SummaryTile({ label, value, tone = "blue", helper = "" }) {
       <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
         {label}
       </div>
-      <div style={{ marginTop: 6, fontSize: 24, fontWeight: 800, color: currentTone.value }}>
+      <div style={{ marginTop: 6, fontSize: 24, fontWeight: 600, color: currentTone.value }}>
         {value}
       </div>
       {helper ? (
@@ -607,20 +607,14 @@ export function AccountPage({
   );
 
   const sectionStyle = {
-    background: "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.62))",
-    borderRadius: 20,
-    border: "1px solid rgba(191,219,254,0.45)",
-    boxShadow: "0 18px 38px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.78)",
-    backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)",
+    background: "#ffffff",
+    borderRadius: 12,
+    border: "1px solid #e2e8f0",
     padding: isMobile ? 18 : 24,
   };
   const softGlassStyle = {
-    background: "rgba(255,255,255,0.58)",
-    border: "1px solid rgba(191,219,254,0.42)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
   };
   const adaptiveFieldGrid = singleColumn
     ? "1fr"
@@ -1235,7 +1229,7 @@ export function AccountPage({
           : isMobile
           ? "max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom))"
           : 24,
-        background: "radial-gradient(circle at top left, rgba(191,219,254,0.32), transparent 24%), radial-gradient(circle at top right, rgba(167,243,208,0.24), transparent 22%), linear-gradient(180deg, #f6f9fd 0%, #edf4fb 100%)",
+        background: "#f8fafc",
         overflowY: "auto",
       }}
     >
@@ -1268,10 +1262,10 @@ export function AccountPage({
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: isXs ? 17 : isMobile ? 20 : 26,
-                fontWeight: 800,
+                fontWeight: 600,
                 color: "#fff",
                 flexShrink: 0,
-                boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
                 letterSpacing: "0.10em",
               }}
             >
@@ -1281,7 +1275,7 @@ export function AccountPage({
               <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.62)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>
                 Account
               </div>
-              <div style={{ fontSize: isXs ? 18 : isMobile ? 22 : 28, fontWeight: 800, color: "#fff", lineHeight: 1.1, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: isXs ? 18 : isMobile ? 22 : 28, fontWeight: 600, color: "#fff", lineHeight: 1.1, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.displayName || user?.username || "School Account"}
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
@@ -1311,7 +1305,7 @@ export function AccountPage({
               borderRadius: 12,
               padding: isXs ? "10px 14px" : "10px 18px",
               fontSize: 13,
-              fontWeight: 800,
+              fontWeight: 600,
               cursor: "pointer",
               flexShrink: 0,
               width: isXs ? "100%" : "auto",
@@ -1328,15 +1322,15 @@ export function AccountPage({
             style={{
               ...sectionStyle,
               border: "1px solid #facc15",
-              background: "linear-gradient(135deg, #fff8db, #fffef5)",
+              background: "#fffbeb",
               display: "grid",
               gap: 8,
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#9a6700", letterSpacing: 1.1, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#9a6700", letterSpacing: 1.1, textTransform: "uppercase" }}>
               {t("passwordResetRequired")}
             </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#6b4f00" }}>
+            <div style={{ fontSize: 20, fontWeight: 600, color: "#6b4f00" }}>
               {t("mustChangePasswordTitle")}
             </div>
             <div style={{ fontSize: 14, color: "#7a5d00", lineHeight: 1.7, maxWidth: 720 }}>
@@ -1358,7 +1352,7 @@ export function AccountPage({
             <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
               Workspace
             </div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43" }}>
+            <div style={{ fontSize: 18, fontWeight: 600, color: "#102a43" }}>
               Account Center
             </div>
             <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
@@ -1377,12 +1371,12 @@ export function AccountPage({
                       justifyContent: "space-between",
                       gap: 12,
                       border: active ? "1px solid rgba(59,130,246,0.35)" : "1px solid rgba(226,232,240,0.9)",
-                      borderRadius: 14,
+                      borderRadius: 10,
                       padding: "12px 14px",
                       fontSize: 13,
-                      fontWeight: 800,
+                      fontWeight: 600,
                       cursor: "pointer",
-                      background: active ? "linear-gradient(135deg,#eff6ff,#f8fbff)" : "rgba(255,255,255,0.68)",
+                      background: active ? "#eff6ff" : "#ffffff",
                       color: active ? "#1d4ed8" : "#334155",
                       textAlign: "left",
                     }}
@@ -1397,7 +1391,7 @@ export function AccountPage({
                           background: tab.badgeDanger ? "#fee2e2" : active ? "#dbeafe" : "#eff6ff",
                           color: tab.badgeDanger ? "#b91c1c" : "#1d4ed8",
                           fontSize: 10,
-                          fontWeight: 800,
+                          fontWeight: 600,
                           display: "inline-flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -1418,7 +1412,7 @@ export function AccountPage({
               <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
                 {activeTabSummary.eyebrow}
               </div>
-              <div style={{ marginTop: 4, fontSize: isMobile ? 22 : 24, fontWeight: 800, color: "#102a43" }}>
+              <div style={{ marginTop: 4, fontSize: isMobile ? 22 : 24, fontWeight: 600, color: "#102a43" }}>
                 {activeTabSummary.title}
               </div>
               <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", lineHeight: 1.7, maxWidth: 780 }}>
@@ -1472,13 +1466,13 @@ export function AccountPage({
                 display: "grid",
                 gap: 8,
                 border: `1px solid ${profileCompletionPercent >= 100 ? "#86efac" : "#fcd34d"}`,
-                background: profileCompletionPercent >= 100 ? "linear-gradient(135deg, #ecfdf3, #f7fee7)" : "linear-gradient(135deg, #fffbeb, #fef9c3)",
+                background: profileCompletionPercent >= 100 ? "#ecfdf5" : "#fffbeb",
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#92400e" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#92400e" }}>
                 Profile completion
               </div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#102a43" }}>
+              <div style={{ fontSize: 20, fontWeight: 600, color: "#102a43" }}>
                 {profileCompletionPercent}% complete
               </div>
               {profileMissingFields.length ? (
@@ -1494,7 +1488,7 @@ export function AccountPage({
 
             <div style={{ ...sectionStyle, display: "grid", gap: 16 }}>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "#102a43", marginBottom: 4 }}>
                   Profile Details
                 </div>
                 <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
@@ -1556,9 +1550,9 @@ export function AccountPage({
                     borderRadius: 10,
                     padding: "10px 18px",
                     fontSize: 13,
-                    fontWeight: 800,
+                    fontWeight: 600,
                     cursor: saving ? "not-allowed" : "pointer",
-                    boxShadow: "0 10px 22px rgba(37,99,235,0.22)",
+                    boxShadow: "0 1px 2px rgba(15,23,42,0.10)",
                     width: isMobile ? "100%" : "auto",
                   }}
                 >
@@ -1569,7 +1563,7 @@ export function AccountPage({
 
             <div style={{ ...sectionStyle, display: "grid", gap: 14, alignContent: "start" }}>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "#102a43", marginBottom: 4 }}>
                   {t("changePassword")}
                 </div>
                 <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
@@ -1612,7 +1606,7 @@ export function AccountPage({
                   borderRadius: 10,
                   padding: "10px 18px",
                   fontSize: 13,
-                  fontWeight: 800,
+                  fontWeight: 600,
                   cursor: passwordSaving ? "not-allowed" : "pointer",
                   width: isMobile ? "100%" : "auto",
                 }}
@@ -1622,7 +1616,7 @@ export function AccountPage({
 
               <div style={{ marginTop: 4, borderTop: "1px solid rgba(148,163,184,0.25)", paddingTop: 12, display: "grid", gap: 10 }}>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#102a43" }}>Security Snapshot</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#102a43" }}>Security Snapshot</div>
                   <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>
                     Recent sign-in attempts for your account.
                   </div>
@@ -1640,7 +1634,7 @@ export function AccountPage({
                         gap: 3,
                       }}
                     >
-                      <div style={{ fontSize: 12, fontWeight: 800, color: "#102a43" }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#102a43" }}>
                         {(log.action || "login").toUpperCase()} · {log.status || "info"}
                       </div>
                       <div style={{ fontSize: 11, color: "#64748b" }}>
@@ -1664,7 +1658,7 @@ export function AccountPage({
                     borderRadius: 10,
                     padding: "10px 14px",
                     fontSize: 12,
-                    fontWeight: 800,
+                    fontWeight: 600,
                     cursor: "pointer",
                     width: isMobile ? "100%" : "auto",
                   }}
@@ -1683,7 +1677,7 @@ export function AccountPage({
           <div style={{ ...sectionStyle, display: "grid", gap: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "#102a43", marginBottom: 4 }}>
                   Manage Users
                 </div>
                 <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, maxWidth: 680 }}>
@@ -1710,9 +1704,9 @@ export function AccountPage({
                   borderRadius: 12,
                   padding: "11px 18px",
                   fontSize: 13,
-                  fontWeight: 800,
+                  fontWeight: 600,
                   cursor: "pointer",
-                  boxShadow: "0 12px 24px rgba(37,99,235,0.2)",
+                  boxShadow: "0 1px 2px rgba(15,23,42,0.10)",
                   minWidth: isMobile ? "100%" : undefined,
                 }}
               >
@@ -1721,7 +1715,7 @@ export function AccountPage({
             </div>
 
             {userFormOpen && (
-              <div style={{ ...softGlassStyle, borderRadius: 16, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
+              <div style={{ ...softGlassStyle, borderRadius: 12, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
                 <div style={{ display: "grid", gridTemplateColumns: adaptiveFieldGrid, gap: 14 }}>
                   <TextInput label="Username" value={adminForm.username} onChange={(value) => setAdminForm((prev) => ({ ...prev, username: value }))} required />
                   <TextInput label="Display Name" value={adminForm.displayName} onChange={(value) => setAdminForm((prev) => ({ ...prev, displayName: value }))} />
@@ -1826,7 +1820,7 @@ export function AccountPage({
                                 <button
                                   type="button"
                                   onClick={() => removeAdminSubjectAssignment(index)}
-                                  style={{ background: "none", border: "none", color: "#b42318", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                                  style={{ background: "none", border: "none", color: "#b42318", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
                                 >
                                   Remove
                                 </button>
@@ -1837,7 +1831,7 @@ export function AccountPage({
                         <button
                           type="button"
                           onClick={addAdminSubjectAssignment}
-                          style={{ background: "none", border: "1px dashed #93c5fd", borderRadius: 10, padding: "10px 12px", color: "#2563eb", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                          style={{ background: "none", border: "1px dashed #93c5fd", borderRadius: 10, padding: "10px 12px", color: "#2563eb", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
                         >
                           Add Subject Assignment
                         </button>
@@ -1861,9 +1855,9 @@ export function AccountPage({
                       borderRadius: 10,
                       padding: "10px 18px",
                       fontSize: 13,
-                      fontWeight: 800,
+                      fontWeight: 600,
                       cursor: adminSaving ? "not-allowed" : "pointer",
-                      boxShadow: "0 8px 18px rgba(37,99,235,0.2)",
+                      boxShadow: "0 1px 2px rgba(15,23,42,0.10)",
                       width: isMobile ? "100%" : "auto",
                     }}
                   >
@@ -1907,11 +1901,11 @@ export function AccountPage({
             >
               {roleSummaryRows.map((row) => (
                 <div key={row.role} style={{ ...softGlassStyle, borderRadius: 12, padding: "10px 12px", display: "grid", gap: 4 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "#102a43", textTransform: "capitalize" }}>{formatUserRole(row.role)}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#102a43", textTransform: "capitalize" }}>{formatUserRole(row.role)}</div>
                   <div style={{ fontSize: 12, color: "#64748b" }}>
                     {row.active} active · {row.inactive} inactive · {row.resetRequired} reset required
                   </div>
-                  <div style={{ fontSize: 19, fontWeight: 800, color: "#0f172a" }}>{row.total}</div>
+                  <div style={{ fontSize: 19, fontWeight: 600, color: "#0f172a" }}>{row.total}</div>
                 </div>
               ))}
             </div>
@@ -1948,7 +1942,7 @@ export function AccountPage({
                       borderRadius: 10,
                       padding: "8px 12px",
                       fontSize: 12,
-                      fontWeight: 800,
+                      fontWeight: 600,
                       cursor: "pointer",
                     }}
                   >
@@ -1961,10 +1955,10 @@ export function AccountPage({
             {editingUsername ? (() => {
               const edit = editingUsers[editingUsername] || blankManagedUser();
               return (
-                <div style={{ ...softGlassStyle, borderRadius: 16, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
+                <div style={{ ...softGlassStyle, borderRadius: 12, padding: isMobile ? 14 : 18, display: "grid", gap: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: "#102a43" }}>
                         Edit @{editingUsername}
                       </div>
                       <div style={{ fontSize: 12, color: "#64748b" }}>
@@ -2060,7 +2054,7 @@ export function AccountPage({
                                   <button
                                     type="button"
                                     onClick={() => removeManagedSubjectAssignment(editingUsername, index)}
-                                    style={{ background: "none", border: "none", color: "#b42318", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                                    style={{ background: "none", border: "none", color: "#b42318", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
                                   >
                                     Remove
                                   </button>
@@ -2071,7 +2065,7 @@ export function AccountPage({
                           <button
                             type="button"
                             onClick={() => addManagedSubjectAssignment(editingUsername)}
-                            style={{ background: "none", border: "1px dashed #93c5fd", borderRadius: 10, padding: "10px 12px", color: "#2563eb", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                            style={{ background: "none", border: "1px dashed #93c5fd", borderRadius: 10, padding: "10px 12px", color: "#2563eb", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
                           >
                             Add Subject Assignment
                           </button>
@@ -2110,7 +2104,7 @@ export function AccountPage({
                         borderRadius: 10,
                         padding: "10px 18px",
                         fontSize: 13,
-                        fontWeight: 800,
+                        fontWeight: 600,
                         cursor: "pointer",
                         width: isMobile ? "100%" : "auto",
                       }}
@@ -2132,7 +2126,7 @@ export function AccountPage({
                     padding: "0 16px",
                     color: "#64748b",
                     fontSize: 11,
-                    fontWeight: 800,
+                    fontWeight: 600,
                     letterSpacing: "0.08em",
                     textTransform: "uppercase",
                   }}
@@ -2154,7 +2148,7 @@ export function AccountPage({
                     key={managedUser.username}
                     style={{
                       ...softGlassStyle,
-                      borderRadius: 16,
+                      borderRadius: 12,
                       padding: isMobile ? 14 : 16,
                       position: "relative",
                     }}
@@ -2182,12 +2176,12 @@ export function AccountPage({
                             width: 40,
                             height: 40,
                             borderRadius: "50%",
-                            background: "linear-gradient(145deg, #1f3c88, #16a3a3)",
+                            background: "#0f2d6e",
                             color: "#fff",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontWeight: 800,
+                            fontWeight: 600,
                             fontSize: 14,
                             flexShrink: 0,
                           }}
@@ -2195,7 +2189,7 @@ export function AccountPage({
                           {initialsFrom(managedUser)}
                         </div>
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "#102a43", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {managedUser.displayName || managedUser.username}
                           </div>
                           <div style={{ fontSize: 12, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -2227,7 +2221,7 @@ export function AccountPage({
                         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                           <StatusBadge active={managedUser.active !== false} />
                           {managedUser.mustChangePassword && (
-                            <span style={{ fontSize: 11, color: "#9a6700", fontWeight: 800 }}>Reset required</span>
+                            <span style={{ fontSize: 11, color: "#9a6700", fontWeight: 600 }}>Reset required</span>
                           )}
                         </div>
                       ) : null}
@@ -2240,7 +2234,7 @@ export function AccountPage({
                             width: 36,
                             height: 36,
                             borderRadius: 10,
-                            border: "1px solid #dbe4f2",
+                            border: "1px solid #e2e8f0",
                             background: "#fff",
                             color: "#475569",
                             cursor: "pointer",
@@ -2282,10 +2276,10 @@ export function AccountPage({
                           top: isMobile ? 54 : 56,
                           right: 14,
                           width: isMobile ? "calc(100% - 28px)" : 290,
-                          borderRadius: 14,
+                          borderRadius: 12,
                           background: "#fff",
-                          border: "1px solid #dbe4f2",
-                          boxShadow: "0 20px 42px rgba(15,23,42,0.14)",
+                          border: "1px solid #e2e8f0",
+                          boxShadow: "0 4px 12px rgba(15,23,42,0.10)",
                           padding: 12,
                           display: "grid",
                           gap: 10,
@@ -2361,8 +2355,8 @@ export function AccountPage({
                     justifyContent: "center",
                     gap: 10,
                     padding: "32px 16px",
-                    border: "1px dashed #d5dfef",
-                    borderRadius: 14,
+                    border: "1px dashed #e2e8f0",
+                    borderRadius: 12,
                     color: "#64748b",
                   }}
                 >
@@ -2386,7 +2380,7 @@ export function AccountPage({
         {activeTab === "activity" && canManageUsers && (
           <div style={{ ...sectionStyle, display: "grid", gap: 18 }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "#102a43", marginBottom: 4 }}>
                 {t("loginActivity")}
               </div>
               <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
@@ -2433,7 +2427,7 @@ export function AccountPage({
                   borderRadius: 10,
                   padding: "8px 12px",
                   fontSize: 12,
-                  fontWeight: 800,
+                  fontWeight: 600,
                   cursor: "pointer",
                 }}
               >
@@ -2482,13 +2476,13 @@ export function AccountPage({
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: isXs ? "45vw" : "none" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#102a43", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: isXs ? "45vw" : "none" }}>
                         {log.username || "Unknown user"}
                       </div>
                       <span
                         style={{
                           fontSize: 11,
-                          fontWeight: 800,
+                          fontWeight: 600,
                           padding: "2px 8px",
                           borderRadius: 999,
                           background: log.status === "success" ? "#dcfce7" : "#fee2e2",
@@ -2511,7 +2505,7 @@ export function AccountPage({
                   </div>
                 </div>
               )) : (
-                <div style={{ fontSize: 13, color: "#64748b", border: "1px dashed #d5dfef", borderRadius: 12, padding: 20, textAlign: "center" }}>
+                <div style={{ fontSize: 13, color: "#64748b", border: "1px dashed #e2e8f0", borderRadius: 12, padding: 20, textAlign: "center" }}>
                   No records match the current filters.
                 </div>
               )}
@@ -2526,7 +2520,7 @@ export function AccountPage({
           <div style={{ ...sectionStyle, display: "grid", gap: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#102a43", marginBottom: 4 }}>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "#102a43", marginBottom: 4 }}>
                   Homepage Content
                 </div>
                 <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, maxWidth: 640 }}>
@@ -2548,7 +2542,7 @@ export function AccountPage({
                 <div style={{ display: "grid", gap: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>Hero Slides</div>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: "#102a43" }}>Hero Slides</div>
                       <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
                         Control the three homepage background slides, titles, and call-to-action buttons.
                       </div>
@@ -2563,7 +2557,7 @@ export function AccountPage({
                         borderRadius: 10,
                         padding: "10px 16px",
                         fontSize: 12,
-                        fontWeight: 800,
+                        fontWeight: 600,
                         cursor: homepageForm.slides.length >= 3 ? "not-allowed" : "pointer",
                       }}
                     >
@@ -2584,7 +2578,7 @@ export function AccountPage({
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "#102a43" }}>
                             Slide {index + 1}
                           </div>
                           <button
@@ -2596,7 +2590,7 @@ export function AccountPage({
                               borderRadius: 10,
                               padding: "8px 14px",
                               fontSize: 12,
-                              fontWeight: 800,
+                              fontWeight: 600,
                               cursor: "pointer",
                             }}
                           >
@@ -2686,7 +2680,7 @@ export function AccountPage({
 
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>Announcements</div>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: "#102a43" }}>Announcements</div>
                       <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
                         These appear in the public Recent Announcements section.
                       </div>
@@ -2700,7 +2694,7 @@ export function AccountPage({
                         borderRadius: 10,
                         padding: "10px 16px",
                         fontSize: 12,
-                        fontWeight: 800,
+                        fontWeight: 600,
                         cursor: "pointer",
                       }}
                     >
@@ -2721,7 +2715,7 @@ export function AccountPage({
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "#102a43" }}>
                             Announcement {index + 1}
                           </div>
                           <button
@@ -2733,7 +2727,7 @@ export function AccountPage({
                               borderRadius: 10,
                               padding: "8px 14px",
                               fontSize: 12,
-                              fontWeight: 800,
+                              fontWeight: 600,
                               cursor: "pointer",
                             }}
                           >
@@ -2779,7 +2773,7 @@ export function AccountPage({
                 <div style={{ display: "grid", gap: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: "#102a43" }}>Portal Highlights</div>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: "#102a43" }}>Portal Highlights</div>
                       <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
                         Customize the highlight cards shown on the public homepage.
                       </div>
@@ -2793,7 +2787,7 @@ export function AccountPage({
                         borderRadius: 10,
                         padding: "10px 16px",
                         fontSize: 12,
-                        fontWeight: 800,
+                        fontWeight: 600,
                         cursor: "pointer",
                       }}
                     >
@@ -2814,7 +2808,7 @@ export function AccountPage({
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "#102a43" }}>
                             Highlight {index + 1}
                           </div>
                           <button
@@ -2826,7 +2820,7 @@ export function AccountPage({
                               borderRadius: 10,
                               padding: "8px 14px",
                               fontSize: 12,
-                              fontWeight: 800,
+                              fontWeight: 600,
                               cursor: "pointer",
                             }}
                           >
@@ -2890,7 +2884,7 @@ export function AccountPage({
                       borderRadius: 10,
                       padding: "10px 18px",
                       fontSize: 13,
-                      fontWeight: 800,
+                      fontWeight: 600,
                       cursor: homepageSaving ? "not-allowed" : "pointer",
                       width: isMobile ? "100%" : "auto",
                     }}

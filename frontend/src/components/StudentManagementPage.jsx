@@ -1030,7 +1030,7 @@ export function StudentManagementPage({
                         <div
                           key={classEntry.classId}
                           style={{
-                            ...softCardStyle({ padding: 14, radius: 22 }),
+                            ...softCardStyle({ padding: 14, radius: 12 }),
                             display: "grid",
                             gap: 10,
                           }}
@@ -1045,23 +1045,19 @@ export function StudentManagementPage({
                                 key={`${classEntry.classId}-${student.id}`}
                                 onClick={() => setSelectedStudentKey(makeStudentKey(student))}
                                 style={{
-                                  borderRadius: 16,
+                                  borderRadius: 12,
                                   border:
                                     makeStudentKey(student) === selectedStudentKey
-                                      ? "1px solid rgba(59,130,246,0.9)"
-                                      : "1px solid rgba(214,226,245,0.92)",
+                                      ? "1px solid #3b82f6"
+                                      : "1px solid #e2e8f0",
                                   background:
                                     makeStudentKey(student) === selectedStudentKey
-                                      ? "rgba(239,246,255,0.96)"
-                                      : "rgba(255,255,255,0.88)",
+                                      ? "#eff6ff"
+                                      : "#ffffff",
                                   padding: "12px 12px 10px",
                                   display: "grid",
                                   gap: 8,
                                   cursor: "pointer",
-                                  boxShadow:
-                                    makeStudentKey(student) === selectedStudentKey
-                                      ? "0 10px 24px rgba(37,99,235,0.10)"
-                                      : "none",
                                 }}
                               >
                                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
@@ -1123,9 +1119,9 @@ export function StudentManagementPage({
             {!groupedStudents.length ? (
               <div
                 style={{
-                  borderRadius: 22,
-                  border: "1px dashed rgba(191,219,254,0.92)",
-                  background: "rgba(255,255,255,0.76)",
+                  borderRadius: 12,
+                  border: "1px dashed #e2e8f0",
+                  background: "#ffffff",
                   padding: "24px 14px",
                   textAlign: "center",
                   color: "#64748b",
@@ -1158,7 +1154,7 @@ export function StudentManagementPage({
               width: "min(880px, 100%)",
               maxHeight: "90vh",
               overflowY: "auto",
-              ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: 26, padding: isMobile ? 16 : 22 }),
+              ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: 12, padding: isMobile ? 16 : 22 }),
               display: "grid",
               gap: 14,
             }}
@@ -1179,7 +1175,7 @@ export function StudentManagementPage({
 
             <div style={{ display: "grid", gridTemplateColumns: fieldGridColumns, gap: 12 }}>
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Class</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Class</span>
                 <select
                   value={form.classGroupKey}
                   onChange={(event) => updateClassGroup(event.target.value)}
@@ -1196,7 +1192,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Stream</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Stream</span>
                 <select
                   value={form.stream}
                   onChange={(event) => updateStream(event.target.value)}
@@ -1212,7 +1208,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Admission Number</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Admission Number</span>
                 <input
                   value={form.admission_no}
                   onChange={(event) => updateField("admission_no", event.target.value)}
@@ -1225,7 +1221,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>CNO</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>CNO</span>
                 <input
                   value={form.index_no}
                   onChange={(event) => updateField("index_no", event.target.value)}
@@ -1235,7 +1231,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Student Name</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Student Name</span>
                 <input
                   value={form.name}
                   onChange={(event) => updateField("name", event.target.value)}
@@ -1245,7 +1241,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Sex</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Sex</span>
                 <select
                   value={form.sex}
                   onChange={(event) => updateField("sex", event.target.value)}
@@ -1257,7 +1253,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Lifecycle Status</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Lifecycle Status</span>
                 <select
                   value={form.enrollmentStatus}
                   onChange={(event) => updateField("enrollmentStatus", event.target.value)}
@@ -1272,7 +1268,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Record Status</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Record Status</span>
                 <select
                   value={form.status}
                   onChange={(event) => updateField("status", event.target.value)}
@@ -1285,7 +1281,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Parent / Guardian</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Parent / Guardian</span>
                 <input
                   value={form.parentName}
                   onChange={(event) => updateField("parentName", event.target.value)}
@@ -1295,7 +1291,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Guardian Phone</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Guardian Phone</span>
                 <input
                   value={form.parentPhone}
                   onChange={(event) => updateField("parentPhone", event.target.value)}
@@ -1307,7 +1303,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Address</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Address</span>
                 <input
                   value={form.address}
                   onChange={(event) => updateField("address", event.target.value)}
@@ -1318,7 +1314,7 @@ export function StudentManagementPage({
             </div>
 
             <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Remarks</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Remarks</span>
               <textarea
                 value={form.remarks}
                 onChange={(event) => updateField("remarks", event.target.value)}
@@ -1330,13 +1326,13 @@ export function StudentManagementPage({
             {optionalSubjectOptions.length ? (
               <div
                 style={{
-                  ...softCardStyle({ padding: 14, radius: 20 }),
+                  ...softCardStyle({ padding: 14, radius: 12 }),
                   display: "grid",
                   gap: 12,
                 }}
               >
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Optional Subjects</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Optional Subjects</div>
                   <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
                     Select only the optional subjects this student actually takes. Compulsory subjects stay available automatically.
                   </div>
@@ -1358,9 +1354,9 @@ export function StudentManagementPage({
                           alignItems: "center",
                           gap: 10,
                           padding: "10px 12px",
-                          borderRadius: 14,
-                          border: checked ? "1px solid #93c5fd" : "1px solid #dbe6fb",
-                          background: checked ? "rgba(219,234,254,0.72)" : "rgba(255,255,255,0.88)",
+                          borderRadius: 10,
+                          border: checked ? "1px solid #93c5fd" : "1px solid #e2e8f0",
+                          background: checked ? "#eff6ff" : "#ffffff",
                           cursor: "pointer",
                         }}
                       >
@@ -1369,7 +1365,7 @@ export function StudentManagementPage({
                           checked={checked}
                           onChange={() => toggleOptionalSubject(subject)}
                         />
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{subject}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{subject}</span>
                       </label>
                     );
                   })}
@@ -1379,7 +1375,7 @@ export function StudentManagementPage({
 
             <div
               style={{
-                ...softCardStyle({ padding: 14, radius: 20 }),
+                ...softCardStyle({ padding: 14, radius: 12 }),
                 display: "grid",
                 gap: 12,
               }}
@@ -1394,7 +1390,7 @@ export function StudentManagementPage({
                 }}
               >
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Tabia na Mwenendo</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Tabia na Mwenendo</div>
                   <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
                     Use A, B, or C only. Blank fields will fall back to the system suggestion on the report card.
                   </div>
@@ -1413,7 +1409,7 @@ export function StudentManagementPage({
               <div style={{ display: "grid", gridTemplateColumns: fieldGridColumns, gap: 12 }}>
                 {CONDUCT_FIELDS.map(([key, label]) => (
                   <label key={key} style={{ display: "grid", gap: 6 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>{label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>{label}</span>
                     <select
                       value={form.conduct[key] || ""}
                       onChange={(event) => updateConductField(key, event.target.value)}
@@ -1435,11 +1431,11 @@ export function StudentManagementPage({
               <div
                 style={{
                   fontSize: 13,
-                  fontWeight: 700,
-                  color: "#8b2500",
-                  background: "rgba(254,226,226,0.9)",
-                  border: "1px solid rgba(248,113,113,0.35)",
-                  borderRadius: 14,
+                  fontWeight: 600,
+                  color: "#dc2626",
+                  background: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  borderRadius: 10,
                   padding: "10px 12px",
                 }}
               >

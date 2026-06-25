@@ -39,7 +39,7 @@ function SummaryTile({ label, value, note, tone = "slate" }) {
   return (
     <div
       style={{
-        ...softCardStyle({ padding: 14, radius: 18 }),
+        ...softCardStyle({ padding: 14, radius: 12 }),
         display: "grid",
         gap: 5,
       }}
@@ -47,7 +47,7 @@ function SummaryTile({ label, value, note, tone = "slate" }) {
       <div
         style={{
           fontSize: 10,
-          fontWeight: 800,
+          fontWeight: 600,
           color: "#64748b",
           textTransform: "uppercase",
           letterSpacing: "0.1em",
@@ -56,7 +56,7 @@ function SummaryTile({ label, value, note, tone = "slate" }) {
         {label}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <div style={{ fontSize: 22, fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>{value}</div>
+        <div style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", lineHeight: 1.1 }}>{value}</div>
         <span style={pillStyle({ tone })}>{tone === "red" ? "Locked" : tone === "teal" ? "Ready" : "Active"}</span>
       </div>
       <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{note}</div>
@@ -472,7 +472,7 @@ export function SettingsPage({
     },
     section: {
       background: "#fff",
-      border: "1px solid #d0dcf8",
+      border: "1px solid #e2e8f0",
       borderRadius: 10,
       padding: isMobile ? 12 : 16,
       display: "flex",
@@ -481,8 +481,8 @@ export function SettingsPage({
     },
     sectionTitle: {
       fontSize: 13,
-      fontWeight: 800,
-      color: "#003366",
+      fontWeight: 600,
+      color: "#0f2d6e",
       marginBottom: 2,
     },
     sectionSub: {
@@ -503,7 +503,7 @@ export function SettingsPage({
     input: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      border: "1px solid #e2e8f0",
       height: 30,
       minWidth: isMobile ? 0 : 120,
       width: isMobile ? "100%" : "auto",
@@ -512,7 +512,7 @@ export function SettingsPage({
     select: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      border: "1px solid #e2e8f0",
       height: 30,
       minWidth: isMobile ? 0 : 120,
       width: isMobile ? "100%" : "auto",
@@ -534,9 +534,9 @@ export function SettingsPage({
       padding: "6px 12px",
       minHeight: 30,
       borderRadius: 8,
-      border: "1px solid #c7d6f5",
-      background: "#f7faff",
-      color: "#0b4f9e",
+      border: "1px solid #e2e8f0",
+      background: "#f8fafc",
+      color: "#1d4ed8",
       fontWeight: 700,
       cursor: "pointer",
       fontSize: 11,
@@ -587,7 +587,7 @@ export function SettingsPage({
     },
     subjectHeaderLabel: {
       fontSize: 10,
-      fontWeight: 800,
+      fontWeight: 600,
       color: "#64748b",
       textTransform: "uppercase",
       letterSpacing: "0.12em",
@@ -597,11 +597,11 @@ export function SettingsPage({
       gridTemplateColumns: isMobile ? "1fr" : "minmax(180px, 1fr) 180px auto",
       alignItems: isMobile ? "stretch" : "center",
       gap: 12,
-      background: "#fbfdff",
-      border: "1px solid #dbe6fb",
+      background: "#ffffff",
+      border: "1px solid #e2e8f0",
       borderRadius: 12,
       padding: isMobile ? "12px" : "10px 12px",
-      boxShadow: "0 8px 18px rgba(15, 23, 42, 0.035)",
+      boxShadow: "none",
     },
     subjectIdentity: {
       display: "grid",
@@ -610,7 +610,7 @@ export function SettingsPage({
     },
     subjectName: {
       fontSize: 14,
-      fontWeight: 800,
+      fontWeight: 600,
       color: "#0f172a",
       letterSpacing: "0.01em",
     },
@@ -626,7 +626,7 @@ export function SettingsPage({
       padding: "4px 8px",
       borderRadius: 999,
       fontSize: 10,
-      fontWeight: 800,
+      fontWeight: 600,
       letterSpacing: "0.06em",
       textTransform: "uppercase",
     },
@@ -660,8 +660,8 @@ export function SettingsPage({
       gap: 6,
       padding: 4,
       borderRadius: 999,
-      background: "#eff5ff",
-      border: "1px solid #d8e4fb",
+      background: "#f1f5f9",
+      border: "1px solid #e2e8f0",
     },
     subjectRemove: {
       display: "inline-flex",
@@ -673,7 +673,7 @@ export function SettingsPage({
       borderRadius: 999,
       padding: "7px 10px",
       fontSize: 11,
-      fontWeight: 800,
+      fontWeight: 600,
       cursor: "pointer",
       whiteSpace: "nowrap",
     },
@@ -683,7 +683,7 @@ export function SettingsPage({
       justifyContent: "center",
       background: "#ffffff",
       color: "#1d4ed8",
-      border: "1px solid #cfdbf7",
+      border: "1px solid #e2e8f0",
       borderRadius: 999,
       width: 30,
       height: 30,
@@ -698,8 +698,8 @@ export function SettingsPage({
       alignItems: "end",
       padding: isMobile ? "12px" : "12px 14px",
       borderRadius: 14,
-      border: "1px dashed #c5d5f5",
-      background: "#f8fbff",
+      border: "1px dashed #e2e8f0",
+      background: "#f8fafc",
     },
     subjectAddField: {
       display: "grid",
@@ -717,16 +717,16 @@ export function SettingsPage({
       height: 34,
       borderRadius: 10,
       border: "none",
-      background: "#003366",
+      background: "#0f2d6e",
       color: "#fff",
-      fontWeight: 800,
+      fontWeight: 600,
       cursor: "pointer",
       fontSize: 12,
     },
     subjectInput: {
       padding: "6px 8px",
       borderRadius: 6,
-      border: "1px solid #d0dcf8",
+      border: "1px solid #e2e8f0",
       height: 30,
       minWidth: isMobile ? 0 : 160,
       width: isMobile ? "100%" : "auto",
@@ -734,7 +734,7 @@ export function SettingsPage({
     },
     deleteBtn: {
       padding: "8px 16px",
-      background: "#8b2500",
+      background: "#dc2626",
       color: "#fff",
       border: "none",
       borderRadius: 7,
@@ -744,7 +744,7 @@ export function SettingsPage({
     },
     errMsg: {
       fontSize: 10,
-      color: "#8b2500",
+      color: "#dc2626",
       fontWeight: 700,
     },
   };
@@ -753,7 +753,7 @@ export function SettingsPage({
     <div style={styles.panel}>
       <div
         style={{
-          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: isMobile ? 24 : 30 }),
+          ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: 12 }),
           display: "grid",
           gap: 14,
         }}
@@ -778,16 +778,16 @@ export function SettingsPage({
           </div>
           <div
             style={{
-              ...softCardStyle({ padding: "14px 16px", radius: 18 }),
+              ...softCardStyle({ padding: "14px 16px", radius: 12 }),
               display: "grid",
               gap: 6,
               minWidth: isMobile ? "100%" : 260,
             }}
           >
-            <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Active Workspace
             </div>
-            <div style={{ fontSize: 18, color: "#0f172a", fontWeight: 900 }}>{classLabel}</div>
+            <div style={{ fontSize: 18, color: "#0f172a", fontWeight: 600 }}>{classLabel}</div>
             <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>
               Use this page for administrative configuration. Daily marks entry stays in the separate Marks Entry workspace.
             </div>
@@ -1398,9 +1398,9 @@ export function SettingsPage({
                 style={{
                   padding: "5px 12px",
                   borderRadius: 999,
-                  border: enabled ? "2px solid #0b4f9e" : "1.5px solid #ccd6f0",
-                  background: enabled ? "#d0e4ff" : "#f4f7ff",
-                  color: enabled ? "#0b4f9e" : "#667",
+                  border: enabled ? "2px solid #1d4ed8" : "1.5px solid #e2e8f0",
+                  background: enabled ? "#dbeafe" : "#f8fafc",
+                  color: enabled ? "#1d4ed8" : "#667",
                   fontWeight: enabled ? 800 : 600,
                   fontSize: 11,
                   cursor: updatingMonthlyExams ? "not-allowed" : "pointer",
@@ -1460,9 +1460,9 @@ export function SettingsPage({
                 display: "grid",
                 gap: 10,
                 padding: "12px 14px",
-                border: "1px solid #dbe6fb",
+                border: "1px solid #e2e8f0",
                 borderRadius: 12,
-                background: "#fbfdff",
+                background: "#ffffff",
               }}
             >
               <div
@@ -1477,7 +1477,7 @@ export function SettingsPage({
                   style={{
                     fontSize: 12,
                     fontWeight: 700,
-                    color: "#003366",
+                    color: "#0f2d6e",
                     minWidth: 120,
                   }}
                 >
@@ -1527,7 +1527,7 @@ export function SettingsPage({
                 )}
               </div>
               <div style={{ display: "grid", gap: 6 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#003366" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#0f2d6e" }}>
                   Subjects excluded from divide-by-2
                 </div>
                 <div style={{ fontSize: 10, color: "#667" }}>
@@ -1551,7 +1551,7 @@ export function SettingsPage({
                           gap: 6,
                           padding: "6px 10px",
                           borderRadius: 999,
-                          border: checked ? "1px solid #0b6b3a" : "1px solid #dbe6fb",
+                          border: checked ? "1px solid #0b6b3a" : "1px solid #e2e8f0",
                           background: checked ? "#eaf7ef" : "#fff",
                           fontSize: 11,
                           fontWeight: 700,
@@ -1607,7 +1607,7 @@ export function SettingsPage({
         <div style={styles.row}>
           {classData.published ? (
             <button
-              style={{ ...styles.saveBtn, background: "#8b2500" }}
+              style={{ ...styles.saveBtn, background: "#dc2626" }}
               disabled={publishing}
               onClick={async () => {
                 setPublishing(true);
@@ -1652,7 +1652,7 @@ export function SettingsPage({
         </div>
         <div style={styles.row}>
           <button
-            style={{ ...styles.saveBtn, background: "#003366" }}
+            style={{ ...styles.saveBtn, background: "#0f2d6e" }}
             onClick={() => onExportBackup?.()}
           >
             ⬇ {t("settingsExportAllData", "Export All Data")}
@@ -1721,7 +1721,7 @@ export function SettingsPage({
               {t("settingsAuditLogSub", "View who updated scores and when.")}
             </div>
           </div>
-          <span style={{ fontSize: 12, color: "#003366" }}>
+          <span style={{ fontSize: 12, color: "#0f2d6e" }}>
             {auditOpen ? `▲ ${t("hide", "Hide")}` : `▼ ${t("show", "Show")}`}
           </span>
         </div>
@@ -1755,7 +1755,7 @@ export function SettingsPage({
                         key={h}
                         style={{
                           padding: "5px 6px",
-                          background: "#003366",
+                          background: "#0f2d6e",
                           color: "#fff",
                           textAlign: "left",
                           fontWeight: 700,
@@ -1828,9 +1828,9 @@ export function SettingsPage({
       </div>
 
       {/* Danger zone */}
-      <div style={{ ...styles.section, borderColor: "#f5c6c6" }}>
+      <div style={{ ...styles.section, borderColor: "#fecaca" }}>
         <div>
-          <div style={{ ...styles.sectionTitle, color: "#8b2500" }}>
+          <div style={{ ...styles.sectionTitle, color: "#dc2626" }}>
             {t("settingsDangerZone", "Danger Zone")}
           </div>
           <div style={styles.sectionSub}>

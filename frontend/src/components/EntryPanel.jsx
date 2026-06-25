@@ -2042,7 +2042,7 @@ export function EntryPanel({
                                   newGrades[si] = { ...newGrades[si], score: v, grade: v != null ? getGrade(v) : null };
                                   setEditData({ ...editData, grades: newGrades });
                                 }}
-                                style={{ width: 40, padding: "2px 4px", borderRadius: 3, border: "1px solid #b0c8f0", fontSize: 11, textAlign: "center" }}
+                                style={{ width: 40, padding: "2px 4px", borderRadius: 3, border: "1px solid #e2e8f0", fontSize: 11, textAlign: "center" }}
                               />
                               {editGrade && (
                                 <span style={gradeBadgeStyle(editGrade)}>{editGrade}</span>
@@ -2097,10 +2097,9 @@ export function EntryPanel({
             return (
               <div key={s.id} style={{
                 background: "#fff",
-                border: "1px solid #e0e8f8",
+                border: "1px solid #e2e8f0",
                 borderRadius: 10,
                 padding: "10px 12px",
-                boxShadow: "0 1px 4px rgba(0,51,102,0.06)",
               }}>
                 {/* Header row */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
