@@ -95,20 +95,11 @@ export function CSVImportModal({ classId, subjects = [], onImport, onClose }) {
       };
     });
 
-    const maxCno = rows.reduce((max, row) => {
-      const match = String(row.index_no ?? "").match(new RegExp(`^${CNO_PREFIX}\\/(\\d+)$`));
-      if (!match) return max;
-      const n = Number(match[1]);
-      return Number.isFinite(n) && n > max ? n : max;
-    }, 0);
-    let next = maxCno + 1;
     const withPreview = rows.map((row) => {
       if (row.index_no && row.index_no.trim()) {
         return { ...row, previewCno: row.index_no.trim() };
       }
-      const previewCno = `${CNO_PREFIX}/${String(next).padStart(4, "0")}`;
-      next += 1;
-      return { ...row, previewCno };
+      return { ...row, previewCno: "Auto after import" };
     });
 
     const validationErrors = [];

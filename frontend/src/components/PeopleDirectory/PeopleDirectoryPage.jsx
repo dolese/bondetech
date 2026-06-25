@@ -248,6 +248,7 @@ export function PeopleDirectoryPage({
   const [relationshipFilter, setRelationshipFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
+  const [viewMode, setViewMode] = useState(tone === "amber" ? "table" : "grouped");
 
   const palette =
     tone === "amber"
@@ -340,6 +341,27 @@ export function PeopleDirectoryPage({
     () => filtered.slice((safePage - 1) * perPage, safePage * perPage),
     [filtered, perPage, safePage],
   );
+  const groupedParentEntries = useMemo(() => {
+    if (!isParentDirectory) return [];
+    const groups = new Map();
+    pageEntries.forEach((entry) => {
+      const labels = Array.from(
+        new Set(
+          (entry.students || [])
+            .map((student) => student.form || String(student.classLabel || "").split(" ").slice(0, 2).join(" "))
+            .filter(Boolean),
+        ),
+      );
+      const groupLabel = labels[0] || "Unassigned Form";
+      if (!groups.has(groupLabel)) {
+        groups.set(groupLabel, []);
+      }
+      groups.get(groupLabel).push(entry);
+    });
+    return Array.from(groups.entries())
+      .sort(([left], [right]) => left.localeCompare(right, "en", { sensitivity: "base", numeric: true }))
+      .map(([label, records]) => ({ label, records }));
+  }, [isParentDirectory, pageEntries]);
 
   const handleCopy = (text) => {
     if (navigator.clipboard && text) {
@@ -387,7 +409,7 @@ export function PeopleDirectoryPage({
     setPage(1);
   };
 
-  const tableMode = isParentDirectory;
+  const tableMode = isParentDirectory && viewMode === "table";
 
   return (
     <div className="dir-page-container">
@@ -397,7 +419,7 @@ export function PeopleDirectoryPage({
             <div className="dir-header-title">{title}</div>
             <div className="dir-header-desc">{description}</div>
           </div>
-          {!tableMode ? (
+          {!isParentDirectory || viewMode === "grouped" ? (
             <div className="dir-header-badge">
               {filtered.length} record{filtered.length === 1 ? "" : "s"}
             </div>
@@ -483,6 +505,25 @@ export function PeopleDirectoryPage({
               />
             </div>
             <div className="dir-parent-filters">
+              <div className="dir-parent-view-toggle" role="tablist" aria-label="Parent directory view">
+                {[
+                  ["grouped", "Grouped"],
+                  ["table", "Table"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`dir-parent-view-btn${viewMode === value ? " active" : ""}`}
+                    onClick={() => {
+                      setViewMode(value);
+                      setPage(1);
+                    }}
+                    disabled={isLoading}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <select className="dir-parent-select" value={formFilter} onChange={(event) => { setFormFilter(event.target.value); setPage(1); }} disabled={isLoading}>
                 <option value="all">All Forms</option>
                 {formOptions.map((form) => (
@@ -552,7 +593,37 @@ export function PeopleDirectoryPage({
               </div>
             ) : pageEntries.length ? (
               <>
-                {isMobile ? (
+                {!tableMode ? (
+                  <div className="dir-parent-grouped">
+                    {groupedParentEntries.map((group) => (
+                      <section key={group.label} className="dir-parent-group">
+                        <div className="dir-parent-group-head">
+                          <div>
+                            <div className="dir-parent-group-title">{group.label}</div>
+                            <div className="dir-parent-group-meta">
+                              {group.records.length} parent{group.records.length === 1 ? "" : "s"} on this page
+                            </div>
+                          </div>
+                        </div>
+                        <div className="dir-person-grid">
+                          {group.records.map((entry) => (
+                            <PersonCard
+                              key={entry.key}
+                              entry={entry}
+                              palette={palette}
+                              handleCopy={handleCopy}
+                              onOpenStudentProfile={onOpenStudentProfile}
+                              onOpenTimetable={onOpenTimetable}
+                              onEditEntry={onEditEntry ? openEdit : null}
+                              onDeleteEntry={onDeleteEntry}
+                              canManageEntry={Boolean(onEditEntry || onDeleteEntry)}
+                            />
+                          ))}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                ) : isMobile ? (
                   <div className="dir-parent-mobile-list">
                     {pageEntries.map((entry, index) => (
                       <div key={entry.key} className="dir-parent-mobile-card">

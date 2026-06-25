@@ -82,6 +82,13 @@ function normalizeAdmissionDraft(value) {
   return raw;
 }
 
+function parseCnoOrderValue(value) {
+  const raw = String(value || "").trim().toUpperCase();
+  const match = raw.match(/\/(\d+)$/);
+  if (match) return Number(match[1]);
+  return Number.MAX_SAFE_INTEGER;
+}
+
 function normalizeStudentName(value) {
   return String(value || "")
     .trim()
@@ -345,8 +352,8 @@ export function EntryPanel({
       return normalizedStream === streamFilter;
     })
     .sort((a, b) => {
-      let aVal = sortBy === "index" ? a.index_no : a[sortBy];
-      let bVal = sortBy === "index" ? b.index_no : b[sortBy];
+      let aVal = sortBy === "index" ? parseCnoOrderValue(a.index_no) : a[sortBy];
+      let bVal = sortBy === "index" ? parseCnoOrderValue(b.index_no) : b[sortBy];
       if (typeof aVal === "string") aVal = aVal.toLowerCase();
       if (typeof bVal === "string") bVal = bVal.toLowerCase();
       return sortAsc ? (aVal > bVal ? 1 : -1) : bVal > aVal ? 1 : -1;
@@ -525,7 +532,7 @@ export function EntryPanel({
     const payload = {
       className: classData.name ?? "",
       subjects,
-      students: classData.students ?? [],
+      students: computed ?? [],
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
