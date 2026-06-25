@@ -112,11 +112,28 @@ function createFallbackOverview(t) {
   };
 }
 
-export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool }) {
+export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool, onDemo }) {
   const { language, t } = useI18n();
   const sw = language === "sw";
   const fallbackOverview = useMemo(() => createFallbackOverview(t), [t]);
   const { isMobile } = useViewport();
+
+  const [demoLoading, setDemoLoading] = useState(false);
+  const handleDemo = async () => {
+    if (!onDemo || demoLoading) return;
+    setDemoLoading(true);
+    try {
+      await onDemo();
+    } catch (err) {
+      // eslint-disable-next-line no-alert
+      window.alert(
+        (sw ? "Imeshindwa kuingia kwenye demo: " : "Could not start the demo: ") +
+          (err?.message || "unknown error"),
+      );
+    } finally {
+      setDemoLoading(false);
+    }
+  };
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [publicPage, setPublicPage] = useState("home");
@@ -547,6 +564,17 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               <button type="button" className="btn-soft" onClick={() => onOpenSchool?.()}>
                 {sw ? "Shule Yetu" : "Our School"}
               </button>
+              {onDemo && (
+                <button
+                  type="button"
+                  className="btn-soft"
+                  onClick={handleDemo}
+                  disabled={demoLoading}
+                  title={sw ? "Jaribu mfumo kwa data ya mfano" : "Explore the portal with sample data"}
+                >
+                  {demoLoading ? (sw ? "Inapakia…" : "Loading…") : (sw ? "Jaribu Demo" : "Try Demo")}
+                </button>
+              )}
             </div>
           </div>
           <div className="hero-stats">

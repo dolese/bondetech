@@ -37,7 +37,7 @@ import { mergeClassSchoolInfo, normalizeSchoolSettings } from "./utils/schoolSet
 import { premiumFontStack } from "./utils/designSystem";
 import { buildFormWorkspace } from "./utils/formClassAggregation";
 
-const CLASS_ACCESS_ROLES = new Set(["admin", "academic", "teacher"]);
+const CLASS_ACCESS_ROLES = new Set(["admin", "academic", "teacher", "demo"]);
 
 function getClassDisplayLabel(cls = {}, { includeYear = true } = {}) {
   const parts = [cls.form, cls.stream].filter(Boolean);

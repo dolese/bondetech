@@ -84,6 +84,7 @@ export function Landing({ onLogin }) {
       onOpenTerms={() => navigateToView("terms")}
       onOpenPrivacy={() => navigateToView("privacy")}
       onOpenSchool={() => navigateToView("our-school")}
+      onDemo={() => onLogin?.({ username: "demo", password: "demo" })}
     />
   );
 }
