@@ -378,6 +378,46 @@
 @media (prefers-reduced-motion: reduce) {
   .wa-home .reveal { opacity: 1; transform: none; transition: none; }
 }
+
+/* EXPLORE — navigable feature cards with a "Learn more" reveal (DoleseTech-style) */
+.wa-home .explore { background: var(--bg); padding: 5rem 3rem; }
+.wa-home .explore-inner { max-width: 1200px; margin: 0 auto; }
+.wa-home .explore-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 2rem; }
+.wa-home .explore-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 2rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.7rem;
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
+}
+.wa-home .explore-card:hover, .wa-home .explore-card:focus-visible {
+  box-shadow: 0 10px 30px rgba(26,43,74,0.12); transform: translateY(-4px);
+  border-color: var(--gold-soft); outline: none;
+}
+.wa-home .explore-icon {
+  width: 46px; height: 46px; border-radius: var(--radius-sm);
+  background: var(--bg); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; color: var(--navy);
+  transition: color 0.25s, border-color 0.25s, background 0.25s;
+}
+.wa-home .explore-card:hover .explore-icon { color: var(--gold); border-color: var(--gold-soft); background: var(--gold-pill); }
+.wa-home .explore-card-title { font-size: 17px; font-weight: 700; color: var(--heading); }
+.wa-home .explore-card-text { font-size: 14px; color: var(--body); line-height: 1.7; flex: 1; }
+.wa-home .explore-learn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: var(--gold); margin-top: 4px;
+  transition: opacity 0.2s;
+}
+.wa-home .news-learn { margin-top: 12px; }
+@media (hover: hover) {
+  .wa-home .explore-learn { opacity: 0; }
+  .wa-home .explore-card:hover .explore-learn,
+  .wa-home .explore-card:focus-visible .explore-learn,
+  .wa-home .news-card:hover .explore-learn,
+  .wa-home .news-card:focus-visible .explore-learn { opacity: 1; }
+}
+@media (max-width: 860px) {
+  .wa-home .explore { padding: 3rem 1.25rem; }
+  .wa-home .explore-grid { grid-template-columns: 1fr; }
+}
 .wa-home .nc-bar { height: 5px; }
 .wa-home .nc-bar.b1 { background: var(--navy); }
 .wa-home .nc-bar.b2 { background: var(--gold-soft); }

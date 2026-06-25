@@ -9,6 +9,7 @@ import { LanguageToggle } from "../LanguageToggle";
 import { HomeIcon } from "./HomeIcons";
 import { NewsPage } from "../NewsPage/NewsPage";
 import { GalleryPage } from "../GalleryPage/GalleryPage";
+import { ProgrammesPage } from "../ProgrammesPage/ProgrammesPage";
 import "./Home.css";
 
 const DEFAULT_HERO_SLIDES = [
@@ -375,10 +376,11 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     { key: "results", label: sw ? "Matokeo" : "Results", onClick: () => navigateHomeSection(() => scrollTo(searchSectionRef)) },
     { key: "news", label: sw ? "Habari" : "News", onClick: () => setPublicPage("news") },
     { key: "gallery", label: sw ? "Picha" : "Gallery", onClick: () => setPublicPage("gallery") },
-    { key: "programmes", label: sw ? "Programu" : "Programmes", onClick: () => navigateHomeSection(() => scrollTo(aboutSectionRef)) },
+    { key: "programmes", label: sw ? "Programu" : "Programmes", onClick: () => setPublicPage("programmes") },
   ];
 
-  const currentNavKey = publicPage === "news" || publicPage === "gallery" ? publicPage : "home";
+  const currentNavKey =
+    publicPage === "news" || publicPage === "gallery" || publicPage === "programmes" ? publicPage : "home";
 
   const mobileMenuItems = [
     {
@@ -429,8 +431,8 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       label: sw ? "Programmes" : "Programmes",
       meta: sw ? "Programu na shughuli za shule" : "School programmes and activities",
       icon: ["M5 5.5A2.5 2.5 0 0 1 7.5 3H19v18H7.5A2.5 2.5 0 0 0 5 23Z", "M5 5.5A2.5 2.5 0 0 0 7.5 8H19", "M9 12h6", "M9 16h6"],
-      active: false,
-      onClick: () => navigateHomeSection(() => scrollTo(aboutSectionRef)),
+      active: currentNavKey === "programmes",
+      onClick: () => setPublicPage("programmes"),
     },
     {
       key: "contact",
@@ -795,13 +797,85 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           </div>
           <div className="news-grid">
             {announcements.slice(0, 3).map((item, index) => (
-              <div className="news-card reveal" key={item.id || index}>
+              <div
+                className="news-card reveal"
+                key={item.id || index}
+                role="button"
+                tabIndex={0}
+                style={{ cursor: "pointer" }}
+                onClick={() => setPublicPage("news")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setPublicPage("news");
+                  }
+                }}
+              >
                 <div className={`nc-bar ${newsBars[index % newsBars.length]}`} />
                 <div className="nc-body">
                   <div className="nc-meta">{formatDateLabel(item.date, language) || (sw ? "Taarifa" : "Notice")}</div>
                   <div className="nc-title">{item.title}</div>
                   <p className="nc-excerpt">{item.description}</p>
+                  <span className="explore-learn news-learn">
+                    {sw ? "Soma zaidi" : "Learn more"} <span aria-hidden="true">→</span>
+                  </span>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* EXPLORE */}
+      <section className="explore">
+        <div className="explore-inner">
+          <div className="section-head">
+            <span className="section-eyebrow">{sw ? "Gundua Zaidi" : "Explore More"}</span>
+            <h2 className="section-title">{sw ? "Maeneo ya Shule" : "Discover Bonde"}</h2>
+          </div>
+          <div className="explore-grid">
+            {[
+              {
+                key: "news",
+                icon: ["M4 12v4", "M4 12a8 8 0 0 1 16 0v4", "M12 16v4", "M8 20h8"],
+                title: sw ? "Habari na Matangazo" : "News & Announcements",
+                desc: sw ? "Taarifa za hivi karibuni, matukio na matangazo ya shule." : "Latest notices, events and school announcements.",
+                onClick: () => setPublicPage("news"),
+              },
+              {
+                key: "gallery",
+                icon: ["M4 5h16v14H4z", "m8 13 2.5-2.5L14 14l2.5-2.5L20 15", "M9 9h.01"],
+                title: sw ? "Picha za Shule" : "Gallery",
+                desc: sw ? "Picha za matukio, michezo na maisha ya shule." : "Photos of events, sports and life at school.",
+                onClick: () => setPublicPage("gallery"),
+              },
+              {
+                key: "programmes",
+                icon: ["M5 5.5A2.5 2.5 0 0 1 7.5 3H19v18H7.5A2.5 2.5 0 0 0 5 23Z", "M5 5.5A2.5 2.5 0 0 0 7.5 8H19", "M9 12h6", "M9 16h6"],
+                title: sw ? "Programu" : "Programmes",
+                desc: sw ? "Masomo, michezo, vilabu na shughuli za ziada." : "Academics, sports, clubs and co-curricular activities.",
+                onClick: () => setPublicPage("programmes"),
+              },
+            ].map((c) => (
+              <div
+                key={c.key}
+                className="explore-card reveal"
+                role="button"
+                tabIndex={0}
+                onClick={c.onClick}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    c.onClick();
+                  }
+                }}
+              >
+                <div className="explore-icon"><MobileDrawerIcon path={c.icon} /></div>
+                <div className="explore-card-title">{c.title}</div>
+                <p className="explore-card-text">{c.desc}</p>
+                <span className="explore-learn">
+                  {sw ? "Soma zaidi" : "Learn more"} <span aria-hidden="true">→</span>
+                </span>
               </div>
             ))}
           </div>
@@ -843,6 +917,13 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
       {publicPage === "gallery" && (
         <div style={{ padding: "3rem 3rem 5rem", maxWidth: "1200px", margin: "0 auto" }}>
           <GalleryPage images={homepageData?.images || []} />
+        </div>
+      )}
+
+      {/* PROGRAMMES PAGE */}
+      {publicPage === "programmes" && (
+        <div style={{ padding: "3rem 3rem 5rem", maxWidth: "1200px", margin: "0 auto" }}>
+          <ProgrammesPage programmes={homepageData?.programmes} />
         </div>
       )}
 
