@@ -93,6 +93,7 @@ export function SettingsPage({
   onUpdateSchool,
   onSaveSchoolSettings,
   onUpdateSubjects,
+  onOpenSubjects,
   onUpdateMonthlyExams,
   onUpdateCompositeConfig,
   onDeleteClass,
@@ -1181,192 +1182,25 @@ export function SettingsPage({
         </div>
       </div>
 
-      {/* Subjects */}
+      {/* Subjects — managed centrally on the Subjects page */}
       <div style={styles.section}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={styles.sectionTitle}>
-              {t("settingsSubjects", "Subjects")}
-            </div>
+            <div style={styles.sectionTitle}>{t("settingsSubjects", "Subjects")}</div>
             <div style={styles.sectionSub}>
-              {t(
-                "settingsSubjectsSub",
-                "Add or remove subjects. Student scores are remapped automatically.",
-              )}
+              Subjects are now managed centrally on the Subjects page — add, rename, remove, set
+              compulsory/optional, assign to forms &amp; streams, and arrange result-sheet column order there.
             </div>
           </div>
           <div style={{ fontSize: 10, color: "#667" }}>
-            {t("settingsSubjectCount", "{count} subjects", {
-              count: subjects.length,
-            })}
+            {t("settingsSubjectCount", "{count} subjects", { count: subjects.length })}
           </div>
         </div>
-        <div style={styles.subjectList}>
-          {!isMobile ? (
-            <div style={styles.subjectTableHeader}>
-              <div style={styles.subjectHeaderLabel}>
-                {t("settingsSubjects", "Subjects")}
-              </div>
-              <div style={styles.subjectHeaderLabel}>
-                {t("settingsSubjectType", "Subject Type")}
-              </div>
-              <div style={{ ...styles.subjectHeaderLabel, textAlign: "right" }}>
-                {t("actions", "Actions")}
-              </div>
-            </div>
-          ) : null}
-          {subjects.length === 0 && (
-            <div style={{ fontSize: 10, color: "#999" }}>
-              {t("settingsNoSubjectsYet", "No subjects yet.")}
-            </div>
-          )}
-          {subjects.map((subj, idx) => (
-            <div key={subj} style={styles.subjectCard}>
-              <div style={styles.subjectIdentity}>
-                <div style={styles.subjectName}>{subj}</div>
-                <div style={styles.subjectBadgeRow}>
-                  <span
-                    style={{
-                      ...styles.subjectBadge,
-                      background:
-                        getSubjectType(subj) === "optional" ? "#fff7ed" : "#edf7ff",
-                      color:
-                        getSubjectType(subj) === "optional" ? "#b45309" : "#0f5fa8",
-                      border: `1px solid ${
-                        getSubjectType(subj) === "optional" ? "#fed7aa" : "#bfdbfe"
-                      }`,
-                    }}
-                  >
-                    {getSubjectType(subj) === "optional"
-                      ? t("optional", "Optional")
-                      : t("compulsory", "Compulsory")}
-                  </span>
-                  <span style={styles.subjectHint}>
-                    {getSubjectType(subj) === "optional"
-                      ? t("settingsOptionalSubjectHint", "Included only when a student takes it.")
-                      : t("settingsCompulsorySubjectHint", "Included in every result and report export.")}
-                  </span>
-                </div>
-              </div>
-              <div style={styles.subjectTypeWrap}>
-                <div style={{ ...styles.subjectTypeLabel, display: isMobile ? "block" : "none" }}>
-                  {t("settingsSubjectType", "Subject Type")}
-                </div>
-                <select
-                  value={getSubjectType(subj)}
-                  onChange={(e) => handleUpdateSubjectType(subj, e.target.value)}
-                  style={styles.select}
-                  disabled={updatingSubjects}
-                  title={t("settingsSubjectType", "Subject Type")}
-                >
-                  {subjectTypeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div style={styles.subjectActions}>
-                <div style={styles.subjectMoveGroup}>
-                  <button
-                    style={styles.subjectArrow}
-                    onClick={() => handleMoveSubject(idx, -1)}
-                    disabled={updatingSubjects || idx === 0}
-                    title={t("settingsMoveUp", "Move up")}
-                    aria-label={t("settingsMoveUp", "Move up")}
-                  >
-                    <TinyIcon>
-                      <path
-                        d="M7 3.25 3.75 6.5h2v4.25h2.5V6.5h2L7 3.25Z"
-                        fill="currentColor"
-                      />
-                    </TinyIcon>
-                  </button>
-                  <button
-                    style={styles.subjectArrow}
-                    onClick={() => handleMoveSubject(idx, 1)}
-                    disabled={updatingSubjects || idx === subjects.length - 1}
-                    title={t("settingsMoveDown", "Move down")}
-                    aria-label={t("settingsMoveDown", "Move down")}
-                  >
-                    <TinyIcon>
-                      <path
-                        d="M7 10.75 10.25 7.5h-2V3.25h-2.5V7.5h-2L7 10.75Z"
-                        fill="currentColor"
-                      />
-                    </TinyIcon>
-                  </button>
-                </div>
-                <button
-                  style={styles.subjectRemove}
-                  onClick={() => handleRemoveSubject(subj)}
-                  disabled={updatingSubjects}
-                  title={`Remove ${subj}`}
-                >
-                  <TinyIcon>
-                    <path
-                      d="M4.75 4.75h.9v5.1h-.9v-5.1Zm3.6 0h.9v5.1h-.9v-5.1Z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="M3 3.85h8v.9H3v-.9Zm1.15-1.6h5.7v.9h-5.7v-.9Zm.5 8.8V3.85h4.7v7.2H4.65Z"
-                      stroke="currentColor"
-                      strokeWidth="0.7"
-                    />
-                  </TinyIcon>
-                  Remove
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={styles.subjectAddRow}>
-          <div style={styles.subjectAddField}>
-            <div style={styles.subjectAddLabel}>
-              {t("settingsAddSubject", "Add Subject")}
-            </div>
-            <input
-              type="text"
-              placeholder={t("settingsAddSubject", "Add subject")}
-              value={subjectInput}
-              onChange={(e) => setSubjectInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAddSubject();
-              }}
-              style={styles.subjectInput}
-            />
-          </div>
-          <div style={styles.subjectAddField}>
-            <div style={styles.subjectAddLabel}>
-              {t("settingsSubjectType", "Subject Type")}
-            </div>
-            <select
-              value={subjectTypeInput}
-              onChange={(e) => setSubjectTypeInput(e.target.value)}
-              style={styles.select}
-            >
-              {subjectTypeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            style={styles.subjectAddBtn}
-            onClick={handleAddSubject}
-            disabled={updatingSubjects || !subjectInput.trim()}
-          >
-            {t("add", "Add")}
+        {onOpenSubjects ? (
+          <button type="button" style={{ ...styles.subtleBtn, marginTop: 12 }} onClick={onOpenSubjects}>
+            {t("settingsManageSubjects", "Manage subjects in Subjects")} →
           </button>
-        </div>
-        {subjectError && <div style={styles.errMsg}>{subjectError}</div>}
+        ) : null}
       </div>
 
       {/* Monthly Exams */}

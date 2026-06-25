@@ -54,7 +54,7 @@ function TypeBadge({ type }) {
   );
 }
 
-function SubjectRow({ entry, expanded, onToggle, onNavigate, canManage, totalClasses, onApplyMissing, onSyncType, busyKey }) {
+function SubjectRow({ entry, expanded, onToggle, onNavigate, canManage, totalClasses, onApplyMissing, onSyncType, onRename, onRemove, busyKey }) {
   const missingCount = Math.max(totalClasses - entry.classes.length, 0);
   const teachingTypeLabel = entry.typeCounts.optional > entry.typeCounts.compulsory ? "optional" : "compulsory";
 
@@ -132,6 +132,18 @@ function SubjectRow({ entry, expanded, onToggle, onNavigate, canManage, totalCla
                     background: teachingTypeLabel === "optional" ? "#fff7ed" : "#fff", color: "#b45309", fontSize: 12, fontWeight: 500, cursor: "pointer",
                   }}>
                     {busyKey === `sync-${entry.key}-optional` ? "Saving..." : "Sync optional"}
+                  </button>
+                  <button type="button" disabled={busyKey === `rename-${entry.key}`} onClick={(e) => { e.stopPropagation(); onRename?.(entry); }} style={{
+                    border: "1px solid #e2e8f0", borderRadius: 6, padding: "5px 10px",
+                    background: "#fff", color: "#334155", fontSize: 12, fontWeight: 500, cursor: "pointer",
+                  }}>
+                    {busyKey === `rename-${entry.key}` ? "Renaming..." : "Rename"}
+                  </button>
+                  <button type="button" disabled={busyKey === `remove-${entry.key}`} onClick={(e) => { e.stopPropagation(); onRemove?.(entry); }} style={{
+                    border: "1px solid #fecaca", borderRadius: 6, padding: "5px 10px",
+                    background: "#fff", color: "#dc2626", fontSize: 12, fontWeight: 500, cursor: "pointer",
+                  }}>
+                    {busyKey === `remove-${entry.key}` ? "Removing..." : "Remove"}
                   </button>
                 </div>
               ) : null}
@@ -278,7 +290,106 @@ function SubjectAssignmentModal({ classes = [], subjectName, subjectType = "comp
   );
 }
 
-export function SubjectsPage({ classes = [], canManage = false, onNavigateToClass, onApplySubjectMaster, onUpdateSubjectAssignments }) {
+function ArrangeColumnsModal({ classes = [], onClose, onSave }) {
+  const sortedClasses = useMemo(
+    () =>
+      [...classes].sort((left, right) => {
+        const fo = CLASS_FORMS.indexOf(left.form) - CLASS_FORMS.indexOf(right.form);
+        return fo !== 0 ? fo : getClassLabel(left).localeCompare(getClassLabel(right), "en");
+      }),
+    [classes],
+  );
+  const [classId, setClassId] = useState(sortedClasses[0]?.id || "");
+  const [order, setOrder] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const activeClass = sortedClasses.find((cls) => cls.id === classId) || null;
+
+  useEffect(() => {
+    const subjects = Array.isArray(activeClass?.subjects) ? activeClass.subjects : [];
+    setOrder(subjects.map((s) => normalizeSubjectName(s)).filter(Boolean));
+  }, [activeClass]);
+
+  const move = (index, delta) => {
+    setOrder((current) => {
+      const next = [...current];
+      const target = index + delta;
+      if (target < 0 || target >= next.length) return current;
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    if (!activeClass) return;
+    setBusy(true);
+    setError("");
+    try {
+      await onSave?.(activeClass.id, order, Array.isArray(activeClass.subject_metadata) ? activeClass.subject_metadata : undefined);
+      onClose?.();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(15,23,42,0.52)", display: "grid", placeItems: "center", padding: 16 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "min(520px, 100%)", maxHeight: "90vh", overflow: "hidden", background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", display: "grid", gridTemplateRows: "auto auto 1fr auto" }}>
+        <div style={{ padding: "16px 18px", borderBottom: "1px solid #e2e8f0" }}>
+          <div style={{ fontSize: 17, fontWeight: 600, color: "#0f172a" }}>Arrange subject columns</div>
+          <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
+            The order here sets the subject column order on this class's result sheet and report cards.
+          </div>
+        </div>
+        <div style={{ padding: "12px 18px", borderBottom: "1px solid #f1f5f9" }}>
+          <select value={classId} onChange={(e) => setClassId(e.target.value)} style={{ ...fieldStyle(), width: "100%", boxSizing: "border-box" }}>
+            {sortedClasses.map((cls) => (
+              <option key={cls.id} value={cls.id}>{getClassLabel(cls)}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ overflow: "auto", padding: 14, background: "#f8fafc", display: "grid", gap: 8 }}>
+          {order.length ? (
+            order.map((subject, index) => (
+              <div key={`${subject}-${index}`} style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 10px" }}>
+                <span style={{ width: 22, textAlign: "right", fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>{index + 1}</span>
+                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{subject}</span>
+                <button type="button" onClick={() => move(index, -1)} disabled={index === 0} style={arrowBtn(index === 0)}>↑</button>
+                <button type="button" onClick={() => move(index, 1)} disabled={index === order.length - 1} style={arrowBtn(index === order.length - 1)}>↓</button>
+              </div>
+            ))
+          ) : (
+            <div style={{ padding: 18, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>This class has no subjects yet.</div>
+          )}
+          {error ? <div style={{ borderRadius: 8, border: "1px solid #fecaca", background: "#fff1f2", color: "#b91c1c", padding: "8px 10px", fontSize: 12 }}>{error}</div> : null}
+        </div>
+        <div style={{ padding: 14, borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", gap: 8 }}>
+          <button type="button" onClick={onClose} disabled={busy} style={{ border: "1px solid #e2e8f0", background: "#fff", color: "#475569", borderRadius: 10, padding: "9px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
+          <button type="button" onClick={handleSave} disabled={busy || !order.length} style={{ border: "none", background: busy ? "#93c5fd" : "#0f2d6e", color: "#fff", borderRadius: 10, padding: "9px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{busy ? "Saving..." : "Save order"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function arrowBtn(disabled) {
+  return {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    border: "1px solid #e2e8f0",
+    background: disabled ? "#f1f5f9" : "#fff",
+    color: disabled ? "#cbd5e1" : "#0f2d6e",
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: disabled ? "not-allowed" : "pointer",
+  };
+}
+
+export function SubjectsPage({ classes = [], canManage = false, onNavigateToClass, onApplySubjectMaster, onUpdateSubjectAssignments, onUpdateClassSubjects }) {
   const { isMobile, isXs } = useViewport();
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -294,6 +405,68 @@ export function SubjectsPage({ classes = [], canManage = false, onNavigateToClas
   const [masterBusy, setMasterBusy] = useState(false);
   const [rowBusyKey, setRowBusyKey] = useState("");
   const [assignmentEditor, setAssignmentEditor] = useState(null);
+  const [assignmentBusy, setAssignmentBusy] = useState(false);
+  const [arrangeOpen, setArrangeOpen] = useState(false);
+
+  const cleanLower = (value) => String(value || "").trim().toLowerCase();
+
+  const classesWithSubject = (entryKey) =>
+    classes.filter((cls) =>
+      (Array.isArray(cls.subjects) ? cls.subjects : []).some((s) => cleanLower(s) === entryKey),
+    );
+
+  const rebuildMetadata = (cls, mapName) =>
+    (Array.isArray(cls.subject_metadata) ? cls.subject_metadata : [])
+      .map((m) => {
+        const name = String(m?.name || m?.subject || "").trim();
+        if (!name) return null;
+        const mapped = mapName(name);
+        return mapped ? { ...m, name: mapped } : null;
+      })
+      .filter(Boolean);
+
+  const handleRenameSubject = async (entry) => {
+    if (!onUpdateClassSubjects) return;
+    // eslint-disable-next-line no-alert
+    const input = window.prompt(`Rename "${entry.name}" across all classes to:`, entry.name);
+    const next = normalizeSubjectName(input || "");
+    if (!next || next.toLowerCase() === entry.name.toLowerCase()) return;
+    setRowBusyKey(`rename-${entry.key}`);
+    setActionError("");
+    try {
+      for (const cls of classesWithSubject(entry.key)) {
+        const subjects = (cls.subjects || []).map((s) => (cleanLower(s) === entry.key ? next : s));
+        const metadata = rebuildMetadata(cls, (name) => (name.toLowerCase() === entry.key ? next : name));
+        await onUpdateClassSubjects(cls.id, subjects, metadata);
+      }
+      setExpandedSubject(null);
+    } catch (error) {
+      setActionError(error.message);
+    } finally {
+      setRowBusyKey("");
+    }
+  };
+
+  const handleRemoveSubject = async (entry) => {
+    if (!onUpdateClassSubjects) return;
+    const affected = classesWithSubject(entry.key);
+    // eslint-disable-next-line no-alert
+    if (!window.confirm(`Remove "${entry.name}" from ${affected.length} class${affected.length === 1 ? "" : "es"}? Existing scores for it will be hidden.`)) return;
+    setRowBusyKey(`remove-${entry.key}`);
+    setActionError("");
+    try {
+      for (const cls of affected) {
+        const subjects = (cls.subjects || []).filter((s) => cleanLower(s) !== entry.key);
+        const metadata = rebuildMetadata(cls, (name) => (name.toLowerCase() === entry.key ? null : name));
+        await onUpdateClassSubjects(cls.id, subjects, metadata);
+      }
+      setExpandedSubject(null);
+    } catch (error) {
+      setActionError(error.message);
+    } finally {
+      setRowBusyKey("");
+    }
+  };
 
   const years = useMemo(() => {
     const values = new Set(classes.map((cls) => String(cls.year || "").trim()).filter(Boolean));
@@ -384,14 +557,21 @@ export function SubjectsPage({ classes = [], canManage = false, onNavigateToClas
     if (!assignmentEditor) return;
     const classIds = classes.map((cls) => cls.id);
     const selected = new Set((Array.isArray(assignedIds) ? assignedIds : []).map((id) => String(id || "").trim()).filter(Boolean));
-    await onUpdateSubjectAssignments?.({
-      classIds,
-      subjectName: assignmentEditor.subjectName,
-      subjectType: assignmentEditor.subjectType,
-      assignments: classIds.map((classId) => ({ classId, assigned: selected.has(classId) })),
-      defaultAssigned: false,
-    });
-    setAssignmentEditor(null);
+    setAssignmentBusy(true);
+    try {
+      await onUpdateSubjectAssignments?.({
+        classIds,
+        subjectName: assignmentEditor.subjectName,
+        subjectType: assignmentEditor.subjectType,
+        assignments: classIds.map((classId) => ({ classId, assigned: selected.has(classId) })),
+        defaultAssigned: false,
+      });
+      setAssignmentEditor(null);
+    } catch (error) {
+      setActionError(error.message);
+    } finally {
+      setAssignmentBusy(false);
+    }
   };
 
   const scopeBtn = (value, label) => {
@@ -416,6 +596,14 @@ export function SubjectsPage({ classes = [], canManage = false, onNavigateToClas
               {stats.total} subjects &middot; {stats.compulsory} compulsory &middot; {stats.optional} optional{stats.mixed ? ` · ${stats.mixed} mixed` : ""}
             </p>
           </div>
+          {canManage ? (
+            <button type="button" onClick={() => setArrangeOpen(true)} style={{
+              border: "1px solid #e2e8f0", borderRadius: 10, padding: "9px 14px", background: "#fff",
+              color: "#0f2d6e", fontSize: 13, fontWeight: 600, cursor: "pointer",
+            }}>
+              Arrange columns
+            </button>
+          ) : null}
         </div>
 
         {canManage ? (
@@ -510,7 +698,7 @@ export function SubjectsPage({ classes = [], canManage = false, onNavigateToClas
 
         {filtered.length === 0 ? (
           <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, background: "#fff", padding: "40px 20px", textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
-            {catalogue.length === 0 ? "No subjects found. Add subjects in class Settings." : "No subjects match your filters."}
+            {catalogue.length === 0 ? "No subjects yet. Use \"Add or roll out a subject\" above to create one." : "No subjects match your filters."}
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
@@ -530,7 +718,7 @@ export function SubjectsPage({ classes = [], canManage = false, onNavigateToClas
                 </thead>
                 <tbody>
                   {filtered.map((entry) => (
-                    <SubjectRow key={entry.key} entry={entry} expanded={expandedSubject === entry.key} onToggle={() => setExpandedSubject((c) => (c === entry.key ? null : entry.key))} onNavigate={canManage ? (payload) => { if (payload?.mode === "manage") openAssignmentEditor(entry); else onNavigateToClass?.(payload); } : onNavigateToClass} canManage={canManage} totalClasses={classes.length} onApplyMissing={handleApplyMissing} onSyncType={handleSyncType} busyKey={rowBusyKey} />
+                    <SubjectRow key={entry.key} entry={entry} expanded={expandedSubject === entry.key} onToggle={() => setExpandedSubject((c) => (c === entry.key ? null : entry.key))} onNavigate={canManage ? (payload) => { if (payload?.mode === "manage") openAssignmentEditor(entry); else onNavigateToClass?.(payload); } : onNavigateToClass} canManage={canManage} totalClasses={classes.length} onApplyMissing={handleApplyMissing} onSyncType={handleSyncType} onRename={handleRenameSubject} onRemove={handleRemoveSubject} busyKey={rowBusyKey} />
                   ))}
                 </tbody>
               </table>
@@ -544,9 +732,19 @@ export function SubjectsPage({ classes = [], canManage = false, onNavigateToClas
             subjectName={assignmentEditor.subjectName}
             subjectType={assignmentEditor.subjectType}
             assignedIds={assignmentEditor.assignedIds}
-            busy={busy}
+            busy={assignmentBusy}
             onClose={() => setAssignmentEditor(null)}
             onSave={saveAssignmentEditor}
+          />
+        ) : null}
+
+        {arrangeOpen ? (
+          <ArrangeColumnsModal
+            classes={classes}
+            onClose={() => setArrangeOpen(false)}
+            onSave={async (classId, orderedSubjects, metadata) => {
+              await onUpdateClassSubjects?.(classId, orderedSubjects, metadata);
+            }}
           />
         ) : null}
 

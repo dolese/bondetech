@@ -682,6 +682,19 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, refreshClass, showToast]);
 
+  // Class-scoped subject update used by the Subjects page (any class, not just
+  // the active one) for reordering columns and editing a class's subject list.
+  const onUpdateClassSubjects = useCallback(async (classId, subjects, subjectMetadata) => {
+    const targetId = String(classId || "").trim();
+    if (!targetId) return;
+    const payload = { subjects: Array.isArray(subjects) ? subjects : [] };
+    if (Array.isArray(subjectMetadata)) {
+      payload.subjectMetadata = subjectMetadata;
+    }
+    await API.updateClass(targetId, payload);
+    await refreshClass(targetId);
+  }, [refreshClass]);
+
   const onUpdateSubjectAssignments = useCallback(async ({
     classIds = [],
     subjectName,
@@ -1110,6 +1123,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onReorderStudentCnos,
     onUpdateSchool,
     onUpdateSubjects,
+    onUpdateClassSubjects,
     onUpdateSubjectAssignments,
     onApplySubjectMaster,
     onUpdateMonthlyExams,

@@ -482,6 +482,7 @@ export default function App() {
     onReorderStudentCnos,
     onUpdateSchool,
     onUpdateSubjects,
+    onUpdateClassSubjects,
     onUpdateSubjectAssignments,
     onApplySubjectMaster,
     onUpdateMonthlyExams,
@@ -1276,6 +1277,7 @@ export default function App() {
               canManage={role === "admin" || role === "academic"}
               onApplySubjectMaster={onApplySubjectMaster}
               onUpdateSubjectAssignments={onUpdateSubjectAssignments}
+              onUpdateClassSubjects={onUpdateClassSubjects}
               onNavigateToClass={(classId) => {
                 setActiveId(classId);
                 setPage("students");
@@ -1377,6 +1379,7 @@ export default function App() {
                 onUpdateSchool={onUpdateSchool}
                 onSaveSchoolSettings={handleSaveSchoolSettings}
                 onUpdateSubjects={onUpdateSubjects}
+                onOpenSubjects={() => { setPage("subjects"); if (isMobile) setSideOpen(false); }}
                 onUpdateMonthlyExams={onUpdateMonthlyExams}
                 onUpdateCompositeConfig={onUpdateCompositeConfig}
                 onDeleteClass={() => setConfirmDel(activeClass.id)}
