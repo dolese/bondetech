@@ -1874,6 +1874,8 @@ export function Dashboard({
                         onViewProfile?.({
                           admissionNo: student.admissionNo || "",
                           indexNo: student.indexNo || "",
+                          classId: student.classId || "",
+                          studentId: student.studentId || "",
                         })
                       }
                       style={{

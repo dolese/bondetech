@@ -190,6 +190,8 @@ function ParentTableRow({
               onOpenStudentProfile({
                 admissionNo: firstStudent.admissionNo || "",
                 indexNo: firstStudent.indexNo || "",
+                classId: firstStudent.classId || "",
+                studentId: firstStudent.studentId || "",
               });
             }}
             disabled={!firstStudent || !onOpenStudentProfile}
@@ -697,6 +699,8 @@ export function PeopleDirectoryPage({
                         onOpenStudentProfile({
                           admissionNo: student.admissionNo || "",
                           indexNo: student.indexNo || "",
+                          classId: student.classId || "",
+                          studentId: student.studentId || "",
                         })
                       }
                     >

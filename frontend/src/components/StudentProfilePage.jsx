@@ -129,11 +129,18 @@ export function StudentProfilePage({
         ? {
             admissionNo: String(studentRef.admissionNo || studentRef.admission_no || "").trim().toUpperCase(),
             indexNo: String(studentRef.indexNo || studentRef.index_no || "").trim(),
+            classId: String(studentRef.classId || "").trim(),
+            studentId: String(studentRef.studentId || studentRef.id || "").trim(),
           }
-        : { admissionNo: "", indexNo: String(indexNo || "").trim() },
+        : { admissionNo: "", indexNo: String(indexNo || "").trim(), classId: "", studentId: "" },
     [indexNo, studentRef]
   );
-  const profileTarget = resolvedStudentRef.admissionNo || resolvedStudentRef.indexNo;
+  const profileTarget =
+    resolvedStudentRef.admissionNo ||
+    resolvedStudentRef.indexNo ||
+    (resolvedStudentRef.classId && resolvedStudentRef.studentId
+      ? `${resolvedStudentRef.classId}:${resolvedStudentRef.studentId}`
+      : "");
 
   useEffect(() => {
     if (!profileTarget) return;

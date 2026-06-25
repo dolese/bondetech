@@ -133,6 +133,8 @@ function normalizeProfileTarget(target) {
     return {
       admissionNo: String(target.admissionNo || target.admission_no || "").trim().toUpperCase(),
       indexNo: String(target.indexNo || target.index_no || "").trim(),
+      classId: String(target.classId || "").trim(),
+      studentId: String(target.studentId || target.id || "").trim(),
     };
   }
   const raw = String(target || "").trim();

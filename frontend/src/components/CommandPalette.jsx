@@ -116,6 +116,8 @@ export function CommandPalette({
           onOpenStudentProfile?.({
             admissionNo: student.admissionNo || "",
             indexNo: student.indexNo || "",
+            classId: student.classId || "",
+            studentId: student.studentId || "",
           }),
       });
     });
