@@ -1218,7 +1218,6 @@ export function AccountPage({
         ]
       : []),
   ];
-  const shellGridColumns = stackedColumns ? "1fr" : "280px minmax(0, 1fr)";
 
   return (
     <div
@@ -1339,112 +1338,100 @@ export function AccountPage({
           </div>
         )}
 
-        {/* ── Tab bar ──────────────────────────────────── */}
-        <div style={{ display: "grid", gridTemplateColumns: shellGridColumns, gap: 18, alignItems: "start" }}>
-          <div
-            style={{
-              ...sectionStyle,
-              display: "grid",
-              gap: 8,
-              padding: isMobile ? 14 : 18,
-            }}
-          >
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
-              Workspace
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "#102a43" }}>
-              Account Center
-            </div>
-            <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
-              Move between your personal profile, user administration, audit activity, and homepage publishing from one organized workspace.
-            </div>
-            <div style={{ display: "grid", gap: 8, marginTop: 4 }}>
-              {tabs.map((tab) => {
-                const active = activeTab === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
+        {/* ── Tab bar (horizontal segmented) ───────────── */}
+        <div
+          style={{
+            ...sectionStyle,
+            padding: isMobile ? 6 : 8,
+            display: "flex",
+            gap: 4,
+            overflowX: "auto",
+          }}
+        >
+          {tabs.map((tab) => {
+            const active = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  border: "none",
+                  borderRadius: 8,
+                  padding: isMobile ? "9px 13px" : "10px 18px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  background: active ? "#0f2d6e" : "transparent",
+                  color: active ? "#ffffff" : "#475569",
+                }}
+              >
+                <span>{tab.label}</span>
+                {tab.badge != null ? (
+                  <span
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      border: active ? "1px solid rgba(59,130,246,0.35)" : "1px solid rgba(226,232,240,0.9)",
-                      borderRadius: 10,
-                      padding: "12px 14px",
-                      fontSize: 13,
+                      minWidth: 20,
+                      height: 20,
+                      borderRadius: 999,
+                      background: active ? "rgba(255,255,255,0.22)" : tab.badgeDanger ? "#fee2e2" : "#eff6ff",
+                      color: active ? "#ffffff" : tab.badgeDanger ? "#b91c1c" : "#1d4ed8",
+                      fontSize: 10,
                       fontWeight: 600,
-                      cursor: "pointer",
-                      background: active ? "#eff6ff" : "#ffffff",
-                      color: active ? "#1d4ed8" : "#334155",
-                      textAlign: "left",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0 6px",
                     }}
                   >
-                    <span>{tab.label}</span>
-                    {tab.badge != null ? (
-                      <span
-                        style={{
-                          minWidth: 22,
-                          height: 22,
-                          borderRadius: 999,
-                          background: tab.badgeDanger ? "#fee2e2" : active ? "#dbeafe" : "#eff6ff",
-                          color: tab.badgeDanger ? "#b91c1c" : "#1d4ed8",
-                          fontSize: 10,
-                          fontWeight: 600,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          padding: "0 6px",
-                        }}
-                      >
-                        {tab.badge}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                    {tab.badge}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
 
-          <div style={{ ...sectionStyle, display: "grid", gap: 14 }}>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
-                {activeTabSummary.eyebrow}
-              </div>
-              <div style={{ marginTop: 4, fontSize: isMobile ? 22 : 24, fontWeight: 600, color: "#102a43" }}>
-                {activeTabSummary.title}
-              </div>
-              <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", lineHeight: 1.7, maxWidth: 780 }}>
-                {activeTabSummary.description}
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: stackedColumns ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))", gap: 12 }}>
-              <SummaryTile
-                label="Profile"
-                value={`${profileCompletionPercent}%`}
-                tone={profileCompletionPercent >= 100 ? "green" : "amber"}
-                helper={profileMissingFields.length ? `${profileMissingFields.length} field(s) need attention` : "Profile complete"}
-              />
-              <SummaryTile
-                label="Managed Users"
-                value={manageableUsers.length}
-                tone="blue"
-                helper={`${activeManagedUsersCount} active accounts`}
-              />
-              <SummaryTile
-                label="Failed Logins"
-                value={failedLogsCount}
-                tone={failedLogsCount ? "amber" : "slate"}
-                helper={failedLogsCount ? "Review recent activity" : "No failed attempts in current log set"}
-              />
-              <SummaryTile
-                label="Homepage Assets"
-                value={homepageContentCount}
-                tone="slate"
-                helper={`${homepageForm.slides?.length || 0} slides, ${homepageForm.announcements?.length || 0} notices`}
-              />
-            </div>
+        {/* ── Stat tiles ───────────────────────────────── */}
+        <div style={{ display: "grid", gridTemplateColumns: stackedColumns ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))", gap: 12 }}>
+          <SummaryTile
+            label="Profile"
+            value={`${profileCompletionPercent}%`}
+            tone={profileCompletionPercent >= 100 ? "green" : "amber"}
+            helper={profileMissingFields.length ? `${profileMissingFields.length} field(s) need attention` : "Profile complete"}
+          />
+          <SummaryTile
+            label="Managed Users"
+            value={manageableUsers.length}
+            tone="blue"
+            helper={`${activeManagedUsersCount} active accounts`}
+          />
+          <SummaryTile
+            label="Failed Logins"
+            value={failedLogsCount}
+            tone={failedLogsCount ? "amber" : "slate"}
+            helper={failedLogsCount ? "Review recent activity" : "No failed attempts in current log set"}
+          />
+          <SummaryTile
+            label="Homepage Assets"
+            value={homepageContentCount}
+            tone="slate"
+            helper={`${homepageForm.slides?.length || 0} slides, ${homepageForm.announcements?.length || 0} notices`}
+          />
+        </div>
+
+        {/* ── Active tab header ─────────────────────────── */}
+        <div style={{ ...sectionStyle, display: "grid", gap: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b", letterSpacing: "0.10em", textTransform: "uppercase" }}>
+            {activeTabSummary.eyebrow}
+          </div>
+          <div style={{ fontSize: isMobile ? 20 : 22, fontWeight: 600, color: "#102a43" }}>
+            {activeTabSummary.title}
+          </div>
+          <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, maxWidth: 780 }}>
+            {activeTabSummary.description}
           </div>
         </div>
 
