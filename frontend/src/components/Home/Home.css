@@ -382,7 +382,7 @@
 /* EXPLORE — navigable feature cards with a "Learn more" reveal (DoleseTech-style) */
 .wa-home .explore { background: var(--bg); padding: 5rem 3rem; }
 .wa-home .explore-inner { max-width: 1200px; margin: 0 auto; }
-.wa-home .explore-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 2rem; }
+.wa-home .explore-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
 .wa-home .explore-card {
   background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 2rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.7rem;
@@ -404,16 +404,18 @@
 .wa-home .explore-learn {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 13px; font-weight: 600; color: var(--gold); margin-top: 4px;
-  transition: opacity 0.2s;
 }
+.wa-home .explore-learn span[aria-hidden] { transition: transform 0.2s ease; }
+.wa-home .explore-card:hover .explore-learn span[aria-hidden],
+.wa-home .news-card:hover .explore-learn span[aria-hidden] { transform: translateX(3px); }
 .wa-home .news-learn { margin-top: 12px; }
-@media (hover: hover) {
-  .wa-home .explore-learn { opacity: 0; }
-  .wa-home .explore-card:hover .explore-learn,
-  .wa-home .explore-card:focus-visible .explore-learn,
-  .wa-home .news-card:hover .explore-learn,
-  .wa-home .news-card:focus-visible .explore-learn { opacity: 1; }
+.wa-home .news-viewall {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer; padding: 6px 0;
+  font-size: 13px; font-weight: 600; color: var(--gold); white-space: nowrap;
 }
+.wa-home .news-viewall span[aria-hidden] { transition: transform 0.2s ease; }
+.wa-home .news-viewall:hover span[aria-hidden] { transform: translateX(3px); }
 @media (max-width: 860px) {
   .wa-home .explore { padding: 3rem 1.25rem; }
   .wa-home .explore-grid { grid-template-columns: 1fr; }

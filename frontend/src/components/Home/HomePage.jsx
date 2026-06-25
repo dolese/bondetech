@@ -492,6 +492,15 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     return () => observer.disconnect();
   }, [publicPage, announcements]);
 
+  // When opening a sub-page (News / Gallery / Programmes), jump to the top so
+  // the page is visible — otherwise the swap happens below the current scroll
+  // position and looks like nothing opened.
+  useEffect(() => {
+    if (publicPage === "news" || publicPage === "gallery" || publicPage === "programmes") {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, [publicPage]);
+
   const newsBars = ["b1", "b2", "b3"];
 
   return (
@@ -794,6 +803,9 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
               <span className="section-eyebrow">{sw ? "Habari za Shule" : "School News"}</span>
               <h2 className="section-title news-title">{sw ? "Maisha Bonde" : "Life at Bonde"}</h2>
             </div>
+            <button type="button" className="news-viewall" onClick={() => setPublicPage("news")}>
+              {sw ? "Tazama zote" : "View all news"} <span aria-hidden="true">→</span>
+            </button>
           </div>
           <div className="news-grid">
             {announcements.slice(0, 3).map((item, index) => (
@@ -835,13 +847,6 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           </div>
           <div className="explore-grid">
             {[
-              {
-                key: "news",
-                icon: ["M4 12v4", "M4 12a8 8 0 0 1 16 0v4", "M12 16v4", "M8 20h8"],
-                title: sw ? "Habari na Matangazo" : "News & Announcements",
-                desc: sw ? "Taarifa za hivi karibuni, matukio na matangazo ya shule." : "Latest notices, events and school announcements.",
-                onClick: () => setPublicPage("news"),
-              },
               {
                 key: "gallery",
                 icon: ["M4 5h16v14H4z", "m8 13 2.5-2.5L14 14l2.5-2.5L20 15", "M9 9h.01"],
