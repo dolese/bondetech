@@ -17,6 +17,7 @@ import { SmsPage } from "./components/SmsPage";
 import { AiAssistantPage } from "./components/AiAssistantPage";
 import { FormsStreamsPage } from "./components/FormsStreamsPage";
 import { SubjectsPage } from "./components/SubjectsPage";
+import { TeachersPage } from "./components/TeachersPage";
 import { ExamsPage } from "./components/ExamsPage";
 import { ContentManagementPage } from "./components/ContentManagementPage/ContentManagementPage";
 import { Splash } from "./components/Splash";
@@ -182,18 +183,33 @@ function buildTeacherDirectory(users, classes) {
         }))
         .sort((left, right) => left.label.localeCompare(right.label, "en"));
 
+      const subjects = Array.from(assignment?.subjects || []).sort((left, right) =>
+        String(left).localeCompare(String(right), "en"),
+      );
+      const classTeacherId = String(user?.teacherAssignments?.classTeacherClassId || "").trim();
+      const classTeacherClass = classTeacherId
+        ? (classes || []).find((cls) => String(cls.id) === classTeacherId)
+        : null;
+
       return {
         key: user.id || user.username,
+        id: user.id || user.username,
         name: user.displayName || user.username || "Teacher",
         username: user.username || "",
         phone: user.phone || "",
         email: user.email || "",
+        role: user.role || "teacher",
+        active: user.active !== false,
         lastSeen: user.lastLoginAt || "",
         badge: user.active === false ? "Inactive" : "Active",
         subtitle:
           user.role === "academic"
             ? "Academic staff account created and managed by admin"
             : "Teacher account created and managed by admin",
+        subjects,
+        periods: assignment?.periods || 0,
+        classCount: classAssignments.length,
+        classTeacherOf: classTeacherClass ? getClassDisplayLabel(classTeacherClass) : "",
         assignments: classAssignments,
         assignmentSummary: assignment
           ? `${assignment.periods} period${assignment.periods === 1 ? "" : "s"} across ${
@@ -1191,11 +1207,10 @@ export default function App() {
           )}
 
           {page === "teachers" && canManageUsers && (
-            <PeopleDirectoryPage
-              title={t("teachers")}
-              description={t("peopleTeachersDescription")}
+            <TeachersPage
               entries={teacherDirectory}
-              tone="teal"
+              canManage={canManageUsers}
+              onManageTeacher={() => { setAccountInitialTab("users"); setPage("account"); }}
               onOpenTimetable={() => setPage("timetable")}
             />
           )}
