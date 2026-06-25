@@ -7,7 +7,11 @@ export function makeMergedStudentId(classId, studentId) {
 }
 
 function isWorkspaceActiveClass(cls = {}) {
-  return cls && cls.archived !== true;
+  return (
+    cls &&
+    cls.archived !== true &&
+    String(cls.streamStatus || cls.stream_status || "active").trim().toLowerCase() !== "inactive"
+  );
 }
 
 function getStudentIdentityKey(student = {}) {

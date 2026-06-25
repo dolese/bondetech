@@ -88,7 +88,12 @@ export function ResultsPage({
     const forms = Array.from(
       new Set(
         (allClasses || [])
-          .filter((cls) => cls.archived !== true && String(cls.year || "").trim() === targetYear)
+          .filter(
+            (cls) =>
+              cls.archived !== true &&
+              String(cls.streamStatus || cls.stream_status || "active").trim().toLowerCase() !== "inactive" &&
+              String(cls.year || "").trim() === targetYear,
+          )
           .map((cls) => String(cls.form || "").trim())
           .filter(Boolean),
       ),
@@ -117,6 +122,7 @@ export function ResultsPage({
       (allClasses || []).filter(
         (cls) =>
           cls.archived !== true &&
+          String(cls.streamStatus || cls.stream_status || "active").trim().toLowerCase() !== "inactive" &&
           String(cls.year || "").trim() === targetYear &&
           String(cls.form || "").trim() === String(selectedForm || "").trim(),
       ),
