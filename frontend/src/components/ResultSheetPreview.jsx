@@ -58,7 +58,7 @@ function SummaryCard({ title, children, style }) {
         style={{
           background: ACCENT,
           color: "#fff",
-          fontWeight: 900,
+          fontWeight: 600,
           fontSize: 10.5,
           textAlign: "center",
           padding: "8px 10px",
@@ -97,7 +97,7 @@ function OverviewMeter({ label, value, detail, color, ringValue, compact = false
             display: "grid",
             placeItems: "center",
             color: "#0f172a",
-            fontWeight: 900,
+            fontWeight: 600,
             fontSize: compact ? 9.5 : 11,
             textAlign: "center",
             lineHeight: 1.15,
@@ -107,8 +107,8 @@ function OverviewMeter({ label, value, detail, color, ringValue, compact = false
         </div>
       </div>
       <div style={{ textAlign: "center", display: "grid", gap: 3 }}>
-        <div style={{ fontSize: compact ? 9.2 : 10.5, fontWeight: 900, color }}>{label}</div>
-        <div style={{ fontSize: compact ? 8.6 : 10, color: "#334155", fontWeight: 700 }}>{detail}</div>
+        <div style={{ fontSize: compact ? 9.2 : 10.5, fontWeight: 600, color }}>{label}</div>
+        <div style={{ fontSize: compact ? 8.6 : 10, color: "#334155", fontWeight: 600 }}>{detail}</div>
       </div>
     </div>
   );
@@ -127,7 +127,7 @@ function IconBadge({ label, tone = "#163f97" }) {
         display: "grid",
         placeItems: "center",
         fontSize: 9,
-        fontWeight: 900,
+        fontWeight: 600,
         lineHeight: 1,
         flex: "0 0 auto",
       }}
@@ -239,7 +239,7 @@ export function ResultSheetPreview({
       minHeight: `${PAGE_HEIGHT_MM}mm`,
       background: "#fff",
       border: `1.6px solid ${ACCENT}`,
-      boxShadow: isPrint ? "none" : "0 10px 30px rgba(0,0,0,0.08)",
+      boxShadow: isPrint ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
       padding: isMobile ? 10 : (isA4 ? 10 : 12),
       boxSizing: "border-box",
       display: "flex",
@@ -273,7 +273,7 @@ export function ResultSheetPreview({
       margin: 0,
       fontSize: isA4 ? 20 : 23,
       lineHeight: 1.1,
-      fontWeight: 900,
+      fontWeight: 600,
       color: ACCENT,
       letterSpacing: 0.3,
       textTransform: "uppercase",
@@ -282,14 +282,14 @@ export function ResultSheetPreview({
     headerLine: {
       margin: 0,
       fontSize: isA4 ? 11.2 : 13,
-      fontWeight: 700,
+      fontWeight: 600,
       color: "#161616",
     },
     sectionTitle: {
       margin: 0,
       textAlign: "center",
       fontSize: 17,
-      fontWeight: 900,
+      fontWeight: 600,
       color: ACCENT,
       letterSpacing: 0.5,
       textTransform: "uppercase",
@@ -326,14 +326,14 @@ export function ResultSheetPreview({
     },
     generatedLabel: {
       fontSize: 9.5,
-      fontWeight: 800,
+      fontWeight: 600,
       letterSpacing: 0.25,
       textTransform: "uppercase",
     },
     generatedValue: {
       marginTop: 5,
       fontSize: 11.5,
-      fontWeight: 800,
+      fontWeight: 600,
     },
     summaryGrid: {
       display: "grid",
@@ -356,7 +356,7 @@ export function ResultSheetPreview({
     subjectBandHeader: {
       background: ACCENT,
       color: "#fff",
-      fontWeight: 900,
+      fontWeight: 600,
       fontSize: 10.5,
       padding: "8px 10px",
       textTransform: "uppercase",
@@ -373,7 +373,7 @@ export function ResultSheetPreview({
       padding: "8px 6px",
       display: "grid",
       gap: 6,
-      background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
+      background: "#fff",
       minWidth: 0,
     },
     subjectTop: {
@@ -384,7 +384,7 @@ export function ResultSheetPreview({
     },
     subjectName: {
       fontSize: 11,
-      fontWeight: 900,
+      fontWeight: 600,
       color: ACCENT,
       textTransform: "uppercase",
     },
@@ -408,14 +408,14 @@ export function ResultSheetPreview({
     },
     statMiniLabel: {
       fontSize: 8.5,
-      fontWeight: 800,
+      fontWeight: 600,
       color: "#64748b",
       textTransform: "uppercase",
     },
     statMiniValue: {
       marginTop: 2,
       fontSize: 14,
-      fontWeight: 900,
+      fontWeight: 600,
       color: "#0f172a",
     },
     tableHeadingRow: {
@@ -428,7 +428,7 @@ export function ResultSheetPreview({
     tableHeadingMeta: {
       fontSize: 10,
       color: "#475569",
-      fontWeight: 700,
+      fontWeight: 600,
     },
     summaryTable: {
       width: "100%",
@@ -446,7 +446,7 @@ export function ResultSheetPreview({
       border: `1px solid ${BORDER}`,
       padding: isA4 ? "3px 4px" : "5px 6px",
       textAlign: "right",
-      fontWeight: 800,
+      fontWeight: 600,
       color: "#111",
       whiteSpace: "nowrap",
     },
@@ -454,14 +454,14 @@ export function ResultSheetPreview({
       border: `1px solid ${BORDER}`,
       padding: isA4 ? "3px 3px" : "5px 4px",
       textAlign: "center",
-      fontWeight: 800,
+      fontWeight: 600,
       color: "#111",
       overflowWrap: "anywhere",
     },
     resultHeading: {
       margin: "4px 0 0",
       fontSize: 17,
-      fontWeight: 900,
+      fontWeight: 600,
       color: ACCENT,
       textTransform: "uppercase",
     },
@@ -480,7 +480,7 @@ export function ResultSheetPreview({
       border: `1px solid ${BORDER}`,
       padding: "5px 3px",
       textAlign: "center",
-      fontWeight: 800,
+      fontWeight: 600,
       whiteSpace: "nowrap",
     },
     td: {
@@ -500,11 +500,11 @@ export function ResultSheetPreview({
       padding: "9px 12px",
       textAlign: "center",
       fontSize: 12,
-      fontWeight: 900,
+      fontWeight: 600,
       color: ACCENT,
       letterSpacing: 0.35,
       textTransform: "uppercase",
-      background: "linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%)",
+      background: "#f8fafc",
     },
     pageFooter: {
       borderTop: `1px solid ${ACCENT}`,
@@ -515,7 +515,7 @@ export function ResultSheetPreview({
       gap: 12,
       fontSize: 10,
       color: "#3b3b3b",
-      fontWeight: 700,
+      fontWeight: 600,
     },
     footerBrand: {
       display: "inline-flex",
@@ -523,7 +523,7 @@ export function ResultSheetPreview({
       justifySelf: "end",
       gap: 8,
       color: ACCENT,
-      fontWeight: 900,
+      fontWeight: 600,
       letterSpacing: 0.25,
       textTransform: "uppercase",
     },
@@ -556,7 +556,7 @@ export function ResultSheetPreview({
       margin: "0 auto",
       paddingTop: 6,
       textAlign: "center",
-      fontWeight: 700,
+      fontWeight: 600,
     },
     dateRow: {
       display: "flex",
@@ -627,7 +627,7 @@ export function ResultSheetPreview({
                   student.resultStatus === "COMPLETE"
                     ? DIVISION_COLORS[student.div] ?? "#111"
                     : STATUS_COLORS[student.resultStatus] ?? "#111",
-                fontWeight: 900,
+                fontWeight: 600,
               }}
             >
               {getDivisionDisplay(student)}
@@ -816,13 +816,13 @@ export function ResultSheetPreview({
     <div style={styles.footerWrap}>
       <div style={styles.keyRow}>
         <strong>KEY:</strong>
-        <span style={{ color: STATUS_COLORS.COMPLETE, fontWeight: 800 }}>COMPLETE</span>
+        <span style={{ color: STATUS_COLORS.COMPLETE, fontWeight: 600 }}>COMPLETE</span>
         <span>(&ge;7 Subjects)</span>
         <span>|</span>
-        <span style={{ color: STATUS_COLORS.INCOMPLETE, fontWeight: 800 }}>INCOMPLETE</span>
+        <span style={{ color: STATUS_COLORS.INCOMPLETE, fontWeight: 600 }}>INCOMPLETE</span>
         <span>(1-6 Subjects)</span>
         <span>|</span>
-        <span style={{ color: STATUS_COLORS.ABSENT, fontWeight: 800 }}>ABSENT</span>
+        <span style={{ color: STATUS_COLORS.ABSENT, fontWeight: 600 }}>ABSENT</span>
         <span>(No Subject)</span>
       </div>
 

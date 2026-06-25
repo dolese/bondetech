@@ -79,7 +79,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
     compact: isMobile,
     dense: isMobile,
     padding: isMobile ? 12 : 16,
-    radius: 22,
+    radius: 12,
   });
 
   const compositeEntry = useMemo(
@@ -202,7 +202,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       background: "rgba(255,255,255,0.92)",
       padding: "0 12px",
       fontSize: 12,
-      fontWeight: 800,
+      fontWeight: 600,
       color: "#163f97",
     },
     compositeNote: {
@@ -212,7 +212,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
       borderRadius: 10,
       padding: "10px 12px",
       fontSize: 12,
-      fontWeight: 700,
+      fontWeight: 600,
     },
   };
 
@@ -238,7 +238,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
             <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>
               Official Result Sheet
             </div>
-            <h2 style={{ margin: "10px 0 0", fontSize: 18, fontWeight: 800, color: "#003366" }}>
+            <h2 style={{ margin: "10px 0 0", fontSize: 18, fontWeight: 600, color: "#003366" }}>
               {classData.form} {classData.year}
             </h2>
             <div style={{ fontSize: 12, color: "#667", marginTop: 6 }}>
@@ -341,7 +341,7 @@ export function ResultSheet({ classData, computed, onOpenReportCard }) {
               border: "none",
               borderRadius: 6,
               cursor: "pointer",
-              fontWeight: 700,
+              fontWeight: 600,
             }}
           >
             View Individual Report Cards

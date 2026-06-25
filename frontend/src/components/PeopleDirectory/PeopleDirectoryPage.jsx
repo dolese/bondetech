@@ -432,7 +432,7 @@ export function PeopleDirectoryPage({
                 {query ? ` for "${query}"` : ""}.
               </div>
               {query ? (
-                <button type="button" className="dir-action-btn" onClick={() => setQuery("")} style={{ padding: "7px 10px", fontSize: 12, fontWeight: 800 }}>
+                <button type="button" className="dir-action-btn" onClick={() => setQuery("")} style={{ padding: "7px 10px", fontSize: 12, fontWeight: 600 }}>
                   Clear Search
                 </button>
               ) : null}
@@ -459,7 +459,7 @@ export function PeopleDirectoryPage({
             <div className="dir-empty-state">
               <EmptyIcon />
               <div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>No Records Found</div>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>No Records Found</div>
                 <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>Try adjusting your search query.</div>
               </div>
             </div>
@@ -544,7 +544,7 @@ export function PeopleDirectoryPage({
             {isLoading ? (
               <div className="dir-empty-state">
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Loading All Forms</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>Loading All Forms</div>
                   <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>Parent records are refreshing from every class so the page no longer depends on the active form.</div>
                 </div>
               </div>
@@ -650,7 +650,7 @@ export function PeopleDirectoryPage({
               <div className="dir-empty-state">
                 <EmptyIcon />
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>No Parents Found</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>No Parents Found</div>
                   <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>Try changing the search or filter values.</div>
                 </div>
               </div>
@@ -677,7 +677,7 @@ export function PeopleDirectoryPage({
               {(studentsEntry.students || []).map((student) => (
                 <div key={student.key} className="dir-student-item">
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>{student.name}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{student.name}</div>
                     <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
                       {[student.admissionNo || student.indexNo || "", student.classLabel].filter(Boolean).join(" • ")}
                     </div>

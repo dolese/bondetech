@@ -68,7 +68,7 @@ export function primaryButtonStyle({ compact = false } = {}) {
     borderRadius: compact ? 8 : 10,
     background: "#1d4ed8",
     color: "#fff",
-    fontWeight: 700,
+    fontWeight: 600,
     fontSize: 13,
     letterSpacing: "0.01em",
     padding: compact ? "10px 14px" : "12px 16px",
@@ -84,7 +84,7 @@ export function secondaryButtonStyle({ compact = false } = {}) {
     borderRadius: compact ? 8 : 10,
     background: "#ffffff",
     color: "#334155",
-    fontWeight: 700,
+    fontWeight: 600,
     fontSize: 13,
     letterSpacing: "0.01em",
     padding: compact ? "10px 14px" : "12px 16px",
@@ -113,7 +113,7 @@ export function pillStyle({ tone = "slate" } = {}) {
     background: active.background,
     color: active.color,
     fontSize: 12,
-    fontWeight: 800,
+    fontWeight: 600,
     letterSpacing: "0.02em",
   };
 }

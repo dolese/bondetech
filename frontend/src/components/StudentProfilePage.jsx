@@ -71,14 +71,14 @@ function ScoreCell({ gradeEntry, isXs }) {
       borderBottom: "1px solid #f4f4f5",
     }}>
       {isAbsent ? (
-        <span style={{ fontSize: isXs ? 10 : 12, fontWeight: 700, color: "#71717a" }}>ABS</span>
+        <span style={{ fontSize: isXs ? 10 : 12, fontWeight: 600, color: "#71717a" }}>ABS</span>
       ) : (
         <>
-          <div style={{ fontSize: isXs ? 12 : 14, fontWeight: 700, color, lineHeight: 1.1 }}>
+          <div style={{ fontSize: isXs ? 12 : 14, fontWeight: 600, color, lineHeight: 1.1 }}>
             {score ?? "—"}
           </div>
           {letter && (
-            <div style={{ fontSize: isXs ? 9 : 10, fontWeight: 800, color, opacity: 0.7, marginTop: 1 }}>
+            <div style={{ fontSize: isXs ? 9 : 10, fontWeight: 600, color, opacity: 0.7, marginTop: 1 }}>
               {letter}
             </div>
           )}
@@ -94,15 +94,15 @@ function StatCard({ label, value, sub, color }) {
     <div style={{
       background: "#ffffff",
       border: "1px solid #e4e4e7",
-      borderRadius: 14,
+      borderRadius: 12,
       padding: "14px 16px",
       display: "grid",
       gap: 4,
     }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {label}
       </div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: color || "#18181b", lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 22, fontWeight: 600, color: color || "#18181b", lineHeight: 1.1 }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: "#71717a", marginTop: 1 }}>{sub}</div>}
     </div>
   );
@@ -214,7 +214,7 @@ export function StudentProfilePage({
     flexDirection: "column",
     gap: 16,
     minHeight: 0,
-    background: "#f9fafb",
+    background: "#f8fafc",
   };
 
   const backBtnStyle = {
@@ -301,12 +301,12 @@ export function StudentProfilePage({
       <div style={{
         background: "#ffffff",
         border: "1px solid #e4e4e7",
-        borderRadius: 16,
+        borderRadius: 12,
         padding: "20px 22px",
       }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: isXs ? 22 : 26, fontWeight: 800, color: "#18181b", lineHeight: 1.2 }}>
+            <div style={{ fontSize: isXs ? 22 : 26, fontWeight: 600, color: "#18181b", lineHeight: 1.2 }}>
               {profile.name || "Unknown Student"}
             </div>
             <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: "4px 14px", fontSize: 13, color: "#71717a" }}>
@@ -330,11 +330,11 @@ export function StudentProfilePage({
               alignItems: "center",
               gap: 5,
               padding: "6px 12px",
-              borderRadius: 999,
+              borderRadius: 6,
               background: trend.color === "#16a34a" ? "#f0fdf4" : trend.color === "#dc2626" ? "#fef2f2" : "#f4f4f5",
               border: `1px solid ${trend.color === "#16a34a" ? "#bbf7d0" : trend.color === "#dc2626" ? "#fecaca" : "#e4e4e7"}`,
               fontSize: 13,
-              fontWeight: 700,
+              fontWeight: 600,
               color: trend.color,
               flexShrink: 0,
             }}>
@@ -373,11 +373,11 @@ export function StudentProfilePage({
       <div style={{
         background: "#ffffff",
         border: "1px solid #e4e4e7",
-        borderRadius: 16,
+        borderRadius: 12,
         overflow: "hidden",
       }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid #f4f4f5" }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#18181b" }}>Results History</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: "#18181b" }}>Results History</div>
           <div style={{ marginTop: 3, fontSize: 12, color: "#a1a1aa" }}>
             Every saved exam record across all classes — subject scores are color-coded by grade.
           </div>
@@ -421,7 +421,7 @@ export function StudentProfilePage({
                   {/* Exam header */}
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "#18181b" }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: "#18181b" }}>
                         {entry.className || [entry.form, entry.stream, entry.year].filter(Boolean).join(" ")}
                       </div>
                       <div style={{ fontSize: 12, color: "#a1a1aa", marginTop: 2 }}>
@@ -442,9 +442,9 @@ export function StudentProfilePage({
                       {computed?.div && (
                         <span style={{
                           padding: "3px 10px",
-                          borderRadius: 999,
+                          borderRadius: 6,
                           fontSize: 12,
-                          fontWeight: 700,
+                          fontWeight: 600,
                           color: "#ffffff",
                           background: DIVISION_COLORS[computed.div] || "#71717a",
                         }}>
@@ -474,7 +474,7 @@ export function StudentProfilePage({
                                 padding: isXs ? "7px 5px" : "8px 8px",
                                 background: si === bestIdx ? "#f0fdf4" : si === worstIdx ? "#fef2f2" : "#fafafa",
                                 color: si === bestIdx ? "#15803d" : si === worstIdx ? "#b91c1c" : "#71717a",
-                                fontWeight: 700,
+                                fontWeight: 600,
                                 fontSize: isXs ? 9 : 11,
                                 textAlign: "center",
                                 borderRight: "1px solid #f4f4f5",
@@ -491,7 +491,7 @@ export function StudentProfilePage({
                               padding: isXs ? "7px 5px" : "8px 8px",
                               background: "#fafafa",
                               color: "#71717a",
-                              fontWeight: 700,
+                              fontWeight: 600,
                               fontSize: isXs ? 9 : 11,
                               textAlign: "center",
                               borderRight: "1px solid #f4f4f5",
@@ -510,16 +510,16 @@ export function StudentProfilePage({
                               isXs={isXs}
                             />
                           ))}
-                          <td style={{ padding: isXs ? "10px 5px" : "10px 8px", textAlign: "center", fontWeight: 700, fontSize: isXs ? 12 : 14, color: "#18181b", borderRight: "1px solid #f4f4f5", borderBottom: "1px solid #f4f4f5" }}>
+                          <td style={{ padding: isXs ? "10px 5px" : "10px 8px", textAlign: "center", fontWeight: 600, fontSize: isXs ? 12 : 14, color: "#18181b", borderRight: "1px solid #f4f4f5", borderBottom: "1px solid #f4f4f5" }}>
                             {computed.total ?? "—"}
                           </td>
-                          <td style={{ padding: isXs ? "10px 5px" : "10px 8px", textAlign: "center", fontWeight: 700, fontSize: isXs ? 12 : 14, color: "#18181b", borderRight: "1px solid #f4f4f5", borderBottom: "1px solid #f4f4f5" }}>
+                          <td style={{ padding: isXs ? "10px 5px" : "10px 8px", textAlign: "center", fontWeight: 600, fontSize: isXs ? 12 : 14, color: "#18181b", borderRight: "1px solid #f4f4f5", borderBottom: "1px solid #f4f4f5" }}>
                             {formatNumber(computed.avg)}
                           </td>
                           <td style={{
                             padding: isXs ? "10px 5px" : "10px 8px",
                             textAlign: "center",
-                            fontWeight: 800,
+                            fontWeight: 600,
                             fontSize: isXs ? 12 : 14,
                             color: computed.div ? (DIVISION_COLORS[computed.div] || "#18181b") : "#a1a1aa",
                             borderBottom: "1px solid #f4f4f5",
@@ -548,11 +548,11 @@ export function StudentProfilePage({
         <div style={{
           background: "#ffffff",
           border: "1px solid #e4e4e7",
-          borderRadius: 16,
+          borderRadius: 12,
           overflow: "hidden",
         }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid #f4f4f5" }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#18181b" }}>Communication History</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: "#18181b" }}>Communication History</div>
             <div style={{ marginTop: 3, fontSize: 12, color: "#a1a1aa" }}>
               Outbound SMS linked to this student's results or guardian contact.
             </div>
@@ -577,7 +577,7 @@ export function StudentProfilePage({
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#18181b" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#18181b" }}>
                       {entry.mode === "results" ? "Results SMS" : "Custom SMS"}
                     </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>

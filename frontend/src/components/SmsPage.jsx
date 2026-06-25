@@ -833,20 +833,20 @@ export function SmsPage({
         padding: 14,
         display: "grid",
         gap: 16,
-        background: "linear-gradient(180deg, #f7fafc 0%, #edf4fb 100%)",
+        background: "#f8fafc",
       }}
     >
       <div style={{ ...glassPanelStyle({ padding: 18, radius: 24 }), display: "grid", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>Communication</div>
-            <div style={{ marginTop: 10, fontSize: 24, fontWeight: 800, color: "#0f172a" }}>SMS Center</div>
+            <div style={{ marginTop: 10, fontSize: 24, fontWeight: 600, color: "#0f172a" }}>SMS Center</div>
             <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", maxWidth: 760, lineHeight: 1.7 }}>
               Prepare shared guardian notices or generate personalized student result SMS automatically from the saved marks in the system.
             </div>
           </div>
           <div style={{ ...softCardStyle({ padding: 12, radius: 18 }), minWidth: 240, display: "grid", gap: 6 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>Gateway status</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>Gateway status</div>
             <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
               {gatewayStatus.loading
                 ? "Checking Beem Africa SMS connection..."
@@ -878,10 +878,10 @@ export function SmsPage({
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
           {stats.map((item) => (
             <div key={item.label} style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 4 }}>
-              <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {item.label}
               </div>
-              <div style={{ fontSize: 24, color: "#0f172a", fontWeight: 800 }}>{item.value}</div>
+              <div style={{ fontSize: 24, color: "#0f172a", fontWeight: 600 }}>{item.value}</div>
             </div>
           ))}
         </div>
@@ -890,7 +890,7 @@ export function SmsPage({
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
         <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14, alignContent: "start" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: "#0f172a" }}>
               {mode === "results" ? "Results Targeting" : "Audience Targeting"}
             </div>
             <span style={pillStyle({ tone: recipientsLoading ? "amber" : "teal" })}>
@@ -902,7 +902,7 @@ export function SmsPage({
           {mode === "results" ? (
             <div style={{ display: "grid", gap: 12 }}>
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Academic Year</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Academic Year</span>
                 <select value={year} onChange={(e) => setYear(e.target.value)} style={fieldStyle()}>
                   <option value="all">All years</option>
                   {years.map((entry) => (
@@ -912,7 +912,7 @@ export function SmsPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Form</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Form</span>
                 <select value={form} onChange={(e) => setForm(e.target.value)} style={fieldStyle()}>
                   <option value="all">All forms</option>
                   {forms.map((entry) => (
@@ -922,7 +922,7 @@ export function SmsPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Class</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Class</span>
                 <select value={classId} onChange={(e) => setClassId(e.target.value)} style={fieldStyle()}>
                   <option value="all">Select class</option>
                   {classOptions.map((entry) => (
@@ -932,7 +932,7 @@ export function SmsPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Exam</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Exam</span>
                 <select value={resultsExam} onChange={(e) => setResultsExam(e.target.value)} style={fieldStyle()}>
                   {resultsExamOptions.map((entry) => (
                     <option key={entry.value} value={entry.value}>{entry.label}</option>
@@ -941,7 +941,7 @@ export function SmsPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Language</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Language</span>
                 <select value={resultsLanguage} onChange={(e) => setResultsLanguage(e.target.value)} style={fieldStyle()}>
                   <option value="en">English</option>
                   <option value="sw">Kiswahili</option>
@@ -951,7 +951,7 @@ export function SmsPage({
           ) : (
             <div style={{ display: "grid", gap: 12 }}>
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>SMS Scope</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>SMS Scope</span>
                 <select value={scope} onChange={(e) => setScope(e.target.value)} style={fieldStyle()}>
                   <option value="all">All Guardians</option>
                   <option value="year">Academic Year</option>
@@ -963,7 +963,7 @@ export function SmsPage({
 
               {(scope === "year" || scope === "form" || scope === "class") && (
                 <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Academic Year</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Academic Year</span>
                   <select value={year} onChange={(e) => setYear(e.target.value)} style={fieldStyle()}>
                     <option value="all">{scope === "year" ? "Select year" : "All years"}</option>
                     {years.map((entry) => (
@@ -975,7 +975,7 @@ export function SmsPage({
 
               {(scope === "form" || scope === "class") && (
                 <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Form</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Form</span>
                   <select value={form} onChange={(e) => setForm(e.target.value)} style={fieldStyle()}>
                     <option value="all">{scope === "form" ? "Select form" : "All forms"}</option>
                     {forms.map((entry) => (
@@ -987,7 +987,7 @@ export function SmsPage({
 
               {scope === "class" && (
                 <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Class</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Class</span>
                   <select value={classId} onChange={(e) => setClassId(e.target.value)} style={fieldStyle()}>
                     <option value="all">Select class</option>
                     {classOptions.map((entry) => (
@@ -999,7 +999,7 @@ export function SmsPage({
 
               {scope === "manual" && (
                 <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Manual Numbers</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Manual Numbers</span>
                   <textarea
                     value={manualNumbers}
                     onChange={(e) => setManualNumbers(normalizeTzPhoneListDraft(e.target.value))}
@@ -1015,7 +1015,7 @@ export function SmsPage({
 
         <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: "#0f172a" }}>
               {mode === "results" ? "Results Message Preview" : "Message Composer"}
             </div>
             {mode === "custom" ? (
@@ -1052,11 +1052,11 @@ export function SmsPage({
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
             <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Sender ID</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Sender ID</span>
               <input value={senderId} onChange={(e) => setSenderId(e.target.value)} placeholder="INFO" style={fieldStyle()} />
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Schedule Time</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Schedule Time</span>
               <input
                 value={scheduleTime}
                 onChange={(e) => setScheduleTime(e.target.value)}
@@ -1066,7 +1066,7 @@ export function SmsPage({
             </label>
             {mode === "custom" ? (
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Template Name</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Template Name</span>
                 <input
                   value={templateLabel}
                   onChange={(e) => setTemplateLabel(e.target.value)}
@@ -1079,7 +1079,7 @@ export function SmsPage({
 
           {mode === "results" ? (
             <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Generated Example</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Generated Example</span>
               <textarea
                 value={previewMessage}
                 readOnly
@@ -1090,7 +1090,7 @@ export function SmsPage({
             </label>
           ) : (
             <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>SMS Message</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>SMS Message</span>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -1131,7 +1131,7 @@ export function SmsPage({
           {sendResult ? (
             <div style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>Latest send summary</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>Latest send summary</div>
                 <div style={{ ...pillStyle({ tone: sendResult.successful ? "teal" : "amber" }) }}>
                   {sendResult.successful ? "Submitted" : "Submitted with warnings"}
                 </div>
@@ -1144,10 +1144,10 @@ export function SmsPage({
                   { label: "Batches", value: sendResult.batchCount ?? 0 },
                 ].map((item) => (
                   <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 14 }) }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.05em" }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.05em" }}>
                       {item.label}
                     </div>
-                    <div style={{ marginTop: 4, fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{item.value}</div>
+                    <div style={{ marginTop: 4, fontSize: 22, fontWeight: 600, color: "#0f172a" }}>{item.value}</div>
                   </div>
                 ))}
               </div>
@@ -1183,7 +1183,7 @@ export function SmsPage({
       <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>Send History</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: "#0f172a" }}>Send History</div>
             <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
               Recent outbound SMS activity recorded from this portal.
             </div>
@@ -1228,7 +1228,7 @@ export function SmsPage({
               <div key={entry.id} style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div style={{ display: "grid", gap: 4 }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>
                       {entry.class_label || entry.scope || "General"}
                     </div>
                     <div style={{ fontSize: 12, color: "#64748b" }}>
@@ -1261,10 +1261,10 @@ export function SmsPage({
                     { label: "Pending", value: entry.pending || 0 },
                   ].map((item) => (
                     <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 14 }) }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.06em" }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.06em" }}>
                         {item.label}
                       </div>
-                      <div style={{ marginTop: 4, fontSize: 20, fontWeight: 800, color: "#0f172a" }}>{item.value}</div>
+                      <div style={{ marginTop: 4, fontSize: 20, fontWeight: 600, color: "#0f172a" }}>{item.value}</div>
                     </div>
                   ))}
                 </div>
@@ -1286,7 +1286,7 @@ export function SmsPage({
                         }}
                       >
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>
                             {delivery.student_name || delivery.guardian_name || delivery.phone}
                           </div>
                           <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
@@ -1327,7 +1327,7 @@ export function SmsPage({
       <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: "#0f172a" }}>
               {mode === "results" ? "Generated Results SMS" : "Recipient Preview"}
             </div>
             <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
@@ -1383,7 +1383,7 @@ export function SmsPage({
               <tbody>
                 {recipients.slice(0, 20).map((entry) => (
                   <tr key={entry.id}>
-                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#0f172a", fontWeight: 700 }}>
+                    <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#0f172a", fontWeight: 600 }}>
                       {entry.phone}
                     </td>
                     <td style={{ padding: "12px", borderBottom: "1px solid rgba(241,245,249,1)", fontSize: 13, color: "#334155" }}>

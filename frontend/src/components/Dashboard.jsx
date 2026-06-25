@@ -17,22 +17,22 @@ const DASHBOARD_KPI_PINNED_KEY = "bonde-dashboard-kpi-pinned";
 
 const TONE_STYLES = {
   info: {
-    background: "linear-gradient(135deg, rgba(37,99,235,0.10), rgba(14,165,233,0.07))",
+    background: "#f8fafc",
     border: "rgba(37,99,235,0.16)",
     chip: "#2563eb",
   },
   success: {
-    background: "linear-gradient(135deg, rgba(5,150,105,0.10), rgba(20,184,166,0.08))",
+    background: "#f8fafc",
     border: "rgba(5,150,105,0.16)",
     chip: "#059669",
   },
   warning: {
-    background: "linear-gradient(135deg, rgba(217,119,6,0.10), rgba(245,158,11,0.08))",
+    background: "#f8fafc",
     border: "rgba(217,119,6,0.18)",
     chip: "#d97706",
   },
   accent: {
-    background: "linear-gradient(135deg, rgba(124,58,237,0.10), rgba(168,85,247,0.08))",
+    background: "#f8fafc",
     border: "rgba(124,58,237,0.16)",
     chip: "#7c3aed",
   },
@@ -375,7 +375,7 @@ function MetricCard({ item, compact, dense, onClick, onPinToggle, onMoveUp, onMo
         ...glassPanelStyle({
           compact,
           dense,
-          radius: dense ? 18 : 24,
+          radius: 12,
           padding: dense ? "12px 12px 11px" : compact ? "15px 15px 13px" : "18px 18px 16px",
         }),
         minHeight: dense ? 104 : compact ? 132 : 162,
@@ -406,10 +406,10 @@ function MetricCard({ item, compact, dense, onClick, onPinToggle, onMoveUp, onMo
             border: "1px solid rgba(148,163,184,0.28)",
             background: pinned ? "rgba(253,224,71,0.25)" : "rgba(255,255,255,0.72)",
             color: pinned ? "#a16207" : "#64748b",
-            borderRadius: 999,
+            borderRadius: 6,
             padding: "2px 7px",
             fontSize: 11,
-            fontWeight: 800,
+            fontWeight: 600,
             cursor: "pointer",
           }}
         >
@@ -426,11 +426,11 @@ function MetricCard({ item, compact, dense, onClick, onPinToggle, onMoveUp, onMo
             border: "1px solid rgba(148,163,184,0.28)",
             background: "rgba(255,255,255,0.72)",
             color: "#64748b",
-            borderRadius: 999,
+            borderRadius: 6,
             width: 24,
             height: 24,
             fontSize: 12,
-            fontWeight: 800,
+            fontWeight: 600,
             cursor: "pointer",
           }}
         >
@@ -447,11 +447,11 @@ function MetricCard({ item, compact, dense, onClick, onPinToggle, onMoveUp, onMo
             border: "1px solid rgba(148,163,184,0.28)",
             background: "rgba(255,255,255,0.72)",
             color: "#64748b",
-            borderRadius: 999,
+            borderRadius: 6,
             width: 24,
             height: 24,
             fontSize: 12,
-            fontWeight: 800,
+            fontWeight: 600,
             cursor: "pointer",
           }}
         >
@@ -467,17 +467,17 @@ function MetricCard({ item, compact, dense, onClick, onPinToggle, onMoveUp, onMo
           placeItems: "center",
           color: item.color,
           background: item.iconBackground,
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.65), 0 14px 24px ${item.shadow}`,
+          boxShadow: "none",
         }}
       >
         {item.icon}
       </div>
       <div>
-        <div style={{ fontSize: dense ? 13 : 14, color: "#334155", fontWeight: 700 }}>{item.label}</div>
-        <div style={{ marginTop: dense ? 5 : 8, fontSize: dense ? 22 : compact ? 28 : 34, lineHeight: 1, fontWeight: 800, color: "#0f172a" }}>
+        <div style={{ fontSize: dense ? 13 : 14, color: "#334155", fontWeight: 600 }}>{item.label}</div>
+        <div style={{ marginTop: dense ? 5 : 8, fontSize: dense ? 22 : compact ? 28 : 34, lineHeight: 1, fontWeight: 600, color: "#0f172a" }}>
           {item.value}
         </div>
-        <div style={{ marginTop: dense ? 5 : 10, fontSize: dense ? 11 : 13, fontWeight: 700, color: item.deltaColor, lineHeight: 1.35 }}>
+        <div style={{ marginTop: dense ? 5 : 10, fontSize: dense ? 11 : 13, fontWeight: 600, color: item.deltaColor, lineHeight: 1.35 }}>
           {item.delta}
         </div>
       </div>
@@ -493,18 +493,18 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false, dense =
       style={{
         ...glassPanelStyle({
           dense,
-          radius: dense ? 16 : 20,
+          radius: 12,
           padding: dense ? "11px 11px 10px" : "14px 14px 12px",
         }),
         background: disabled
-          ? "linear-gradient(135deg, rgba(248,250,252,0.94), rgba(241,245,249,0.84))"
-          : "linear-gradient(135deg, rgba(255,255,255,0.86), rgba(246,250,255,0.72))",
+          ? "#f8fafc"
+          : "#fff",
         display: "grid",
         gap: dense ? 8 : 12,
         justifyItems: "start",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.55 : 1,
-        boxShadow: disabled ? "none" : "0 14px 36px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.88)",
+        boxShadow: disabled ? "none" : "0 1px 3px rgba(15,23,42,0.06)",
         textAlign: "left",
       }}
     >
@@ -521,7 +521,7 @@ function ActionTile({ label, icon, color, bg, onClick, disabled = false, dense =
       >
         {icon}
       </div>
-      <div style={{ fontSize: dense ? 12 : 14, fontWeight: 800, color: "#0f172a", lineHeight: 1.25 }}>{label}</div>
+      <div style={{ fontSize: dense ? 12 : 14, fontWeight: 600, color: "#0f172a", lineHeight: 1.25 }}>{label}</div>
     </button>
   );
 }
@@ -1067,7 +1067,7 @@ export function Dashboard({
           <div
             style={{
               ...glassPanel,
-              borderRadius: 30,
+              borderRadius: 12,
               padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gridTemplateColumns: compact ? "1fr" : "auto 1fr",
@@ -1083,7 +1083,7 @@ export function Dashboard({
                   borderRadius: "50%",
                   background: "linear-gradient(145deg, #dbeafe, #99f6e4)",
                   padding: dense ? 4 : 5,
-                  boxShadow: "0 18px 40px rgba(15,23,42,0.10)",
+                  boxShadow: "0 2px 8px rgba(15,23,42,0.08)",
                 }}
               >
                 <div
@@ -1093,7 +1093,7 @@ export function Dashboard({
                     borderRadius: "50%",
                     background: "linear-gradient(145deg, #1f3c88, #11998e)",
                     color: "#fff",
-                    fontWeight: 800,
+                    fontWeight: 600,
                     fontSize: dense ? 22 : compact ? 28 : 36,
                     display: "grid",
                     placeItems: "center",
@@ -1111,7 +1111,7 @@ export function Dashboard({
                   color: "#fff",
                   display: "grid",
                   placeItems: "center",
-                  boxShadow: "0 16px 30px rgba(15,139,141,0.22)",
+                  boxShadow: "none",
                   marginTop: dense ? -50 : compact ? -64 : -70,
                   marginLeft: dense ? 46 : compact ? 60 : 78,
                 }}
@@ -1124,7 +1124,7 @@ export function Dashboard({
               <div style={{ ...pillStyle({ tone: "amber" }), display: "inline-flex" }}>
                 {isTeacherPortal ? "Teaching Workspace" : "Operations Console"}
               </div>
-              <div style={{ fontSize: dense ? 14 : compact ? 16 : 18, color: "#0f172a", fontWeight: 700, marginTop: dense ? 10 : 12 }}>Welcome back,</div>
+              <div style={{ fontSize: dense ? 14 : compact ? 16 : 18, color: "#0f172a", fontWeight: 600, marginTop: dense ? 10 : 12 }}>Welcome back,</div>
               <div style={{ fontFamily: displayFontStack, fontSize: dense ? 28 : compact ? 34 : 44, lineHeight: 1.04, marginTop: 8, fontWeight: 500, color: "#0f172a", letterSpacing: "-0.01em" }}>
                 {welcomeName}
               </div>
@@ -1155,8 +1155,8 @@ export function Dashboard({
                         ["Teachers", teacherCount.toLocaleString()],
                       ]).map(([label, value]) => (
                     <div key={label} style={{ ...softCardStyle({ padding: 10, radius: 16 }), display: "grid", gap: 2 }}>
-                      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
-                      <div style={{ fontSize: 18, color: "#0f172a", fontWeight: 800 }}>{value}</div>
+                      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
+                      <div style={{ fontSize: 18, color: "#0f172a", fontWeight: 600 }}>{value}</div>
                     </div>
                   ))}
                 </div>
@@ -1191,7 +1191,7 @@ export function Dashboard({
                     gap: 8,
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "#334155", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#334155", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                     Current timetable load
                   </div>
                   <div
@@ -1204,7 +1204,7 @@ export function Dashboard({
                     {teacherScope.classAssignments.slice(0, 4).map((entry) => (
                       <div key={entry.label} style={{ ...softCardStyle({ padding: 12, radius: 16 }), display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>{entry.label}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{entry.label}</div>
                           <div style={{ fontSize: 12, color: "#64748b" }}>Assigned class workspace</div>
                         </div>
                         <span style={pillStyle({ tone: "blue" })}>{entry.periods} periods</span>
@@ -1219,7 +1219,7 @@ export function Dashboard({
           <div
             style={{
               ...glassPanel,
-              borderRadius: 30,
+              borderRadius: 12,
               padding: dense ? 15 : compact ? 18 : 22,
               display: "grid",
               gap: 12,
@@ -1241,8 +1241,8 @@ export function Dashboard({
                   borderBottom: label === "Status" ? "none" : "1px solid rgba(226,232,240,0.9)",
                 }}
               >
-                <div style={{ color: "#475569", fontSize: 15, fontWeight: 700 }}>{label}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#0f172a", fontWeight: 800, textAlign: "right" }}>
+                <div style={{ color: "#475569", fontSize: 15, fontWeight: 600 }}>{label}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#0f172a", fontWeight: 600, textAlign: "right" }}>
                   {meta?.dot && (
                     <span style={{ width: 10, height: 10, borderRadius: "50%", background: meta.dotColor, boxShadow: "0 0 0 5px rgba(34,197,94,0.12)" }} />
                   )}
@@ -1288,14 +1288,14 @@ export function Dashboard({
         <div
           style={{
             ...glassPanel,
-            borderRadius: 26,
+            borderRadius: 12,
             padding: dense ? 12 : 16,
             display: "grid",
             gap: 10,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ fontSize: compact ? 17 : 19, fontWeight: 800, color: "#0f172a" }}>Attention Center</div>
+            <div style={{ fontSize: compact ? 17 : 19, fontWeight: 600, color: "#0f172a" }}>Attention Center</div>
             <div style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
               {[
                 { key: "current", label: "Current Year" },
@@ -1308,12 +1308,12 @@ export function Dashboard({
                   onClick={() => setComparisonPreset(preset.key)}
                   style={{
                     border: "1px solid rgba(148,163,184,0.35)",
-                    background: comparisonPreset === preset.key ? "linear-gradient(135deg, #0f2d6e, #2563eb)" : "rgba(255,255,255,0.72)",
+                    background: comparisonPreset === preset.key ? "#2563eb" : "#fff",
                     color: comparisonPreset === preset.key ? "#fff" : "#334155",
-                    borderRadius: 999,
+                    borderRadius: 6,
                     padding: "6px 10px",
                     fontSize: 11,
-                    fontWeight: 800,
+                    fontWeight: 600,
                     cursor: "pointer",
                   }}
                 >
@@ -1337,7 +1337,7 @@ export function Dashboard({
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>{item.title}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>{item.title}</div>
                     <div style={{ marginTop: 3, fontSize: 12, color: "#64748b" }}>{item.detail}</div>
                   </div>
                   <button
@@ -1349,7 +1349,7 @@ export function Dashboard({
                       background: "#2563eb",
                       color: "#fff",
                       fontSize: 12,
-                      fontWeight: 800,
+                      fontWeight: 600,
                       padding: "8px 10px",
                       cursor: "pointer",
                       whiteSpace: "nowrap",
@@ -1361,7 +1361,7 @@ export function Dashboard({
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: 13, color: "#475569", fontWeight: 700 }}>
+            <div style={{ fontSize: 13, color: "#475569", fontWeight: 600 }}>
               No urgent attention items for this comparison preset.
             </div>
           )}
@@ -1370,7 +1370,7 @@ export function Dashboard({
         <div
           style={{
             ...glassPanel,
-            borderRadius: 30,
+            borderRadius: 12,
             padding: dense ? 14 : compact ? 18 : 22,
           }}
         >
@@ -1385,7 +1385,7 @@ export function Dashboard({
             }}
           >
             <div>
-              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>Results Overview</div>
+              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 600 }}>Results Overview</div>
               <div style={{ marginTop: 5, fontSize: 14, color: "#64748b", fontWeight: 600 }}>
                 {selectedYear ? `${selectedYear} academic year` : "Current academic view"}
               </div>
@@ -1397,7 +1397,7 @@ export function Dashboard({
                 alignSelf: compact ? "stretch" : "center",
                 ...softCardStyle({ padding: "12px 14px", radius: 16 }),
                 fontSize: 14,
-                fontWeight: 800,
+                fontWeight: 600,
                 color: "#0f172a",
               }}
             >
@@ -1434,7 +1434,7 @@ export function Dashboard({
                 {coords.map((point) => (
                   <g key={point.label}>
                     <circle cx={point.x} cy={point.y} r={dense ? "5" : "7"} fill="#fff" stroke="#0f8b8d" strokeWidth={dense ? "3" : "4"} />
-                    <text x={point.x} y={point.y - (dense ? 12 : 18)} textAnchor="middle" fill="#0f172a" fontSize={dense ? "11" : "15"} fontWeight="900">
+                    <text x={point.x} y={point.y - (dense ? 12 : 18)} textAnchor="middle" fill="#0f172a" fontSize={dense ? "11" : "15"} fontWeight="600">
                       {point.value}%
                     </text>
                     <text x={point.x} y="292" textAnchor="middle" fill="#334155" fontSize={dense ? "11" : "16"} fontWeight="700">
@@ -1456,11 +1456,11 @@ export function Dashboard({
           <div
             style={{
               ...glassPanel,
-              borderRadius: 30,
+              borderRadius: 12,
               padding: dense ? 14 : compact ? 18 : 22,
             }}
           >
-            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800, marginBottom: 16 }}>
+            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 600, marginBottom: 16 }}>
               Quick Actions
             </div>
             <div
@@ -1479,17 +1479,17 @@ export function Dashboard({
           <div
             style={{
               ...glassPanel,
-              borderRadius: 30,
+              borderRadius: 12,
               padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gap: dense ? 14 : 18,
             }}
           >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                  <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>
+                  <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 600 }}>
                 Operational Summary
                   </div>
-                  <div style={{ fontSize: 14, color: "#64748b", fontWeight: 700 }}>
+                  <div style={{ fontSize: 14, color: "#64748b", fontWeight: 600 }}>
                 Real-time counts
                   </div>
                 </div>
@@ -1504,8 +1504,8 @@ export function Dashboard({
               >
                 {operationalStats.map(([label, value, color]) => (
                   <div key={label} style={{ ...softCardStyle({ padding: 12, radius: 18 }), display: "grid", gap: 4 }}>
-                    <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
-                    <div style={{ fontSize: 22, color, fontWeight: 950, lineHeight: 1 }}>{value}</div>
+                    <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
+                    <div style={{ fontSize: 22, color, fontWeight: 600, lineHeight: 1 }}>{value}</div>
                   </div>
                 ))}
                 <div
@@ -1518,10 +1518,10 @@ export function Dashboard({
                     gap: 12,
                   }}
                 >
-                  <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                  <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
                     Activity logs / announcements
                   </div>
-                  <div style={{ fontSize: 18, color: "#0f8b8d", fontWeight: 950 }}>{loginEventsCount} / {homepageAnnouncementCount}</div>
+                  <div style={{ fontSize: 18, color: "#0f8b8d", fontWeight: 600 }}>{loginEventsCount} / {homepageAnnouncementCount}</div>
                 </div>
               </div>
             ) : (
@@ -1550,8 +1550,8 @@ export function Dashboard({
                     }}
                     >
                       <div>
-                      <div style={{ fontSize: dense ? 30 : 40, lineHeight: 1, fontWeight: 950, color: "#0f172a" }}>{classCoverage}%</div>
-                        <div style={{ marginTop: 6, fontSize: dense ? 11 : 13, color: "#64748b", fontWeight: 800 }}>Published Coverage</div>
+                      <div style={{ fontSize: dense ? 30 : 40, lineHeight: 1, fontWeight: 600, color: "#0f172a" }}>{classCoverage}%</div>
+                        <div style={{ marginTop: 6, fontSize: dense ? 11 : 13, color: "#64748b", fontWeight: 600 }}>Published Coverage</div>
                       </div>
                     </div>
                   </div>
@@ -1560,13 +1560,13 @@ export function Dashboard({
                 <div style={{ display: "grid", gap: 12 }}>
                   {operationalStats.map(([label, value, color]) => (
                     <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                      <div style={{ fontSize: 15, color: "#334155", fontWeight: 700 }}>{label}</div>
-                      <div style={{ fontSize: 15, color, fontWeight: 800 }}>{value}</div>
+                      <div style={{ fontSize: 15, color: "#334155", fontWeight: 600 }}>{label}</div>
+                      <div style={{ fontSize: 15, color, fontWeight: 600 }}>{value}</div>
                     </div>
                   ))}
                   <div style={{ marginTop: 10, paddingTop: 12, borderTop: "1px solid rgba(226,232,240,0.88)", display: "flex", justifyContent: "space-between", gap: 12 }}>
-                    <div style={{ fontSize: 14, color: "#64748b", fontWeight: 700 }}>Activity logs / announcements</div>
-                  <div style={{ fontSize: 20, color: "#0f8b8d", fontWeight: 950 }}>{loginEventsCount} / {homepageAnnouncementCount}</div>
+                    <div style={{ fontSize: 14, color: "#64748b", fontWeight: 600 }}>Activity logs / announcements</div>
+                  <div style={{ fontSize: 20, color: "#0f8b8d", fontWeight: 600 }}>{loginEventsCount} / {homepageAnnouncementCount}</div>
                   </div>
                 </div>
               </div>
@@ -1584,14 +1584,14 @@ export function Dashboard({
           <div
             style={{
               ...glassPanel,
-              borderRadius: 30,
+              borderRadius: 12,
               padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gap: 14,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>Recent Activities</div>
+              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 600 }}>Recent Activities</div>
               <button
                 onClick={onOpenAccount}
                 style={{
@@ -1599,7 +1599,7 @@ export function Dashboard({
                   background: "transparent",
                   color: "#2563eb",
                   fontSize: 14,
-                  fontWeight: 800,
+                  fontWeight: 600,
                   cursor: "pointer",
                 }}
               >
@@ -1636,14 +1636,14 @@ export function Dashboard({
                         <ActivityIcon />
                       </div>
                       <div>
-                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 800 }}>{item.title}</div>
+                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 600 }}>{item.title}</div>
                         <div style={{ marginTop: 4, fontSize: 13, color: "#64748b", lineHeight: 1.45 }}>{item.subtitle}</div>
                       </div>
-                      {!dense && <div style={{ fontSize: 13, color: "#475569", fontWeight: 700, whiteSpace: "nowrap" }}>
+                      {!dense && <div style={{ fontSize: 13, color: "#475569", fontWeight: 600, whiteSpace: "nowrap" }}>
                         {formatDateTime(item.time)}
                       </div>}
                       {dense && (
-                        <div style={{ gridColumn: "2", fontSize: 11, color: "#64748b", fontWeight: 700 }}>
+                        <div style={{ gridColumn: "2", fontSize: 11, color: "#64748b", fontWeight: 600 }}>
                           {formatDateTime(item.time)}
                         </div>
                       )}
@@ -1659,14 +1659,14 @@ export function Dashboard({
           <div
             style={{
               ...glassPanel,
-              borderRadius: 30,
+              borderRadius: 12,
               padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gap: 14,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>Announcements</div>
+              <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 600 }}>Announcements</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {onOpenHomepageEditor && (
                   <button
@@ -1676,7 +1676,7 @@ export function Dashboard({
                       background: "#ecfdf5",
                       color: "#166534",
                       fontSize: 12,
-                      fontWeight: 800,
+                      fontWeight: 600,
                       cursor: "pointer",
                       borderRadius: 8,
                       padding: "6px 12px",
@@ -1692,7 +1692,7 @@ export function Dashboard({
                     background: "transparent",
                     color: "#2563eb",
                     fontSize: 14,
-                    fontWeight: 800,
+                    fontWeight: 600,
                     cursor: "pointer",
                   }}
                 >
@@ -1702,7 +1702,7 @@ export function Dashboard({
             </div>
 
             {overviewError && (
-              <div style={{ fontSize: 13, color: "#dc2626", fontWeight: 700 }}>{overviewError}</div>
+              <div style={{ fontSize: 13, color: "#dc2626", fontWeight: 600 }}>{overviewError}</div>
             )}
 
             {(overview.announcements || []).slice(0, 3).map((announcement) => {
@@ -1711,22 +1711,22 @@ export function Dashboard({
                 <div
                   key={announcement.id}
                   style={{
-                    borderRadius: 22,
+                    borderRadius: 12,
                     border: `1px solid ${tone.border}`,
                     background: tone.background,
                     padding: dense ? "14px 14px 12px" : "16px 16px 14px",
                   }}
                 >
-                  <div style={{ color: tone.chip, fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <div style={{ color: tone.chip, fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     {announcement.tone || "info"}
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 18, color: "#0f172a", fontWeight: 800, lineHeight: 1.25 }}>
+                  <div style={{ marginTop: 8, fontSize: 18, color: "#0f172a", fontWeight: 600, lineHeight: 1.25 }}>
                     {announcement.title}
                   </div>
                   <div style={{ marginTop: 8, fontSize: 14, color: "#475569", lineHeight: 1.6 }}>
                     {announcement.description}
                   </div>
-                  <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                  <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, color: "#64748b", fontSize: 13, fontWeight: 600 }}>
                     <BellIcon />
                     {formatShortDate(announcement.date)}
                   </div>
@@ -1747,7 +1747,7 @@ export function Dashboard({
           <div
             style={{
               ...glassPanel,
-              borderRadius: 30,
+              borderRadius: 12,
               padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gap: 16,
@@ -1764,7 +1764,7 @@ export function Dashboard({
               }}
             >
               <div style={{ display: "grid", gap: 5 }}>
-                <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>
+                <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 600 }}>
                   Student Lookup
                 </div>
                 <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.55, maxWidth: 520 }}>
@@ -1777,13 +1777,12 @@ export function Dashboard({
                   alignItems: "center",
                   gap: 8,
                   padding: "9px 12px",
-                  borderRadius: 999,
+                  borderRadius: 6,
                   border: "1px solid rgba(148,163,184,0.24)",
                   background: "rgba(255,255,255,0.52)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
                   color: "#0f8b8d",
                   fontSize: 12,
-                  fontWeight: 800,
+                  fontWeight: 600,
                   letterSpacing: "0.02em",
                 }}
               >
@@ -1804,12 +1803,11 @@ export function Dashboard({
                   gridTemplateColumns: "auto 1fr",
                   alignItems: "center",
                   gap: 10,
-                  borderRadius: 18,
-                  border: "1px solid rgba(191,219,254,0.55)",
+                  borderRadius: 12,
+                  border: "1px solid #e2e8f0",
                   padding: dense ? "9px 11px" : "12px 14px",
-                  background: "rgba(255,255,255,0.72)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
-                  backdropFilter: "blur(16px)",
+                  background: "#fff",
+                  boxShadow: "none",
                 }}
               >
                 <div style={{ color: "#64748b" }}>
@@ -1864,7 +1862,7 @@ export function Dashboard({
               </button>
             </div>
 
-            {searchError && <div style={{ fontSize: 13, color: "#dc2626", fontWeight: 700 }}>{searchError}</div>}
+            {searchError && <div style={{ fontSize: 13, color: "#dc2626", fontWeight: 600 }}>{searchError}</div>}
 
             {searchResults ? (
               searchResults.length ? (
@@ -1879,9 +1877,9 @@ export function Dashboard({
                         })
                       }
                       style={{
-                        border: "1px solid rgba(191,219,254,0.5)",
-                        background: "rgba(255,255,255,0.74)",
-                        borderRadius: 20,
+                        border: "1px solid #e2e8f0",
+                        background: "#fff",
+                        borderRadius: 12,
                         padding: "14px 16px",
                   display: "grid",
                   gridTemplateColumns: dense ? "1fr auto" : compact ? "1fr auto" : "minmax(0, 1fr) auto auto",
@@ -1889,11 +1887,11 @@ export function Dashboard({
                   alignItems: "center",
                         textAlign: "left",
                         cursor: "pointer",
-                        boxShadow: "0 12px 30px rgba(15,23,42,0.04)",
+                        boxShadow: "none",
                       }}
                     >
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: dense ? "normal" : "nowrap" }}>
+                        <div style={{ fontSize: 15, color: "#0f172a", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: dense ? "normal" : "nowrap" }}>
                           {student.name}
                         </div>
                         <div style={{ marginTop: 5, fontSize: 13, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: dense ? "normal" : "nowrap", lineHeight: dense ? 1.45 : undefined }}>
@@ -1901,7 +1899,7 @@ export function Dashboard({
                         </div>
                       </div>
                       {!compact && (
-                        <div style={{ fontSize: 13, color: "#2563eb", fontWeight: 800 }}>
+                        <div style={{ fontSize: 13, color: "#2563eb", fontWeight: 600 }}>
                           {student.sex || "N/A"}
                         </div>
                       )}
@@ -1914,7 +1912,7 @@ export function Dashboard({
               ) : (
                 <div
                   style={{
-                    borderRadius: 22,
+                    borderRadius: 12,
                     border: "1px dashed rgba(148,163,184,0.42)",
                     padding: compact ? "18px 16px" : "22px 20px",
                     background: "rgba(255,255,255,0.56)",
@@ -1923,7 +1921,7 @@ export function Dashboard({
                     gap: 6,
                   }}
                 >
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>
                     No matching student found
                   </div>
                   <div style={{ fontSize: 13, lineHeight: 1.6 }}>
@@ -1957,7 +1955,7 @@ export function Dashboard({
                       gap: 6,
                     }}
                   >
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "#102a43" }}>{item.title}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#102a43" }}>{item.title}</div>
                     <div style={{ fontSize: 12, lineHeight: 1.65, color: "#5b6b80" }}>{item.text}</div>
                   </div>
                 ))}
@@ -1968,13 +1966,13 @@ export function Dashboard({
           <div
             style={{
               ...glassPanel,
-              borderRadius: 30,
+              borderRadius: 12,
               padding: dense ? 14 : compact ? 18 : 22,
               display: "grid",
               gap: 14,
             }}
           >
-            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 800 }}>
+            <div style={{ fontSize: compact ? 18 : 20, color: "#0f172a", fontWeight: 600 }}>
               Portal Highlights
             </div>
             <div
@@ -1991,10 +1989,10 @@ export function Dashboard({
                     ...softCardStyle({ padding: "14px 16px", radius: 20 }),
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 800, color: highlight.color || "#2563eb", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: highlight.color || "#2563eb", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                     {highlight.label}
                   </div>
-                  <div style={{ marginTop: 6, fontSize: 24, color: "#0f172a", fontWeight: 950 }}>
+                  <div style={{ marginTop: 6, fontSize: 24, color: "#0f172a", fontWeight: 600 }}>
                     {highlight.value}
                   </div>
                   <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", lineHeight: 1.5 }}>
