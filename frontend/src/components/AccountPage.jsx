@@ -2103,14 +2103,16 @@ export function AccountPage({
               );
             })() : null}
 
-            <div style={{ display: "grid", gap: 10 }}>
+            <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, background: "#ffffff", overflow: "hidden" }}>
               {!isMobile && (
                 <div
                   style={{
                     display: "grid",
                     gridTemplateColumns: "32px minmax(220px, 1.5fr) minmax(120px, 0.9fr) minmax(180px, 1fr) minmax(130px, 0.8fr) 60px",
                     gap: 12,
-                    padding: "0 16px",
+                    padding: "12px 16px",
+                    background: "#f8fafc",
+                    borderBottom: "1px solid #e2e8f0",
                     color: "#64748b",
                     fontSize: 11,
                     fontWeight: 600,
@@ -2134,9 +2136,9 @@ export function AccountPage({
                   <div
                     key={managedUser.username}
                     style={{
-                      ...softGlassStyle,
-                      borderRadius: 12,
-                      padding: isMobile ? 14 : 16,
+                      background: "#ffffff",
+                      borderBottom: "1px solid #f1f5f9",
+                      padding: isMobile ? 14 : "12px 16px",
                       position: "relative",
                     }}
                   >
