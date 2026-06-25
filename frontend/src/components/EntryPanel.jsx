@@ -359,6 +359,12 @@ export function EntryPanel({
       return sortAsc ? (aVal > bVal ? 1 : -1) : bVal > aVal ? 1 : -1;
     });
 
+  // Students whose class has no stream value show up as "Unassigned". Surface a
+  // clear admin prompt so the gap can be fixed in Forms & Streams.
+  const unassignedCount = (computed ?? []).filter(
+    (s) => !String(s.stream || "").trim(),
+  ).length;
+
   const handleEdit = s => {
     setEditId(s.id);
     setEditData({
@@ -1461,6 +1467,31 @@ export function EntryPanel({
           </span>
         </div>
       </div>
+
+      {unassignedCount > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 8,
+            marginTop: 8,
+            padding: "10px 12px",
+            borderRadius: 8,
+            background: "#fffbeb",
+            border: "1px solid #fcd34d",
+            color: "#92400e",
+            fontSize: 12,
+            lineHeight: 1.5,
+          }}
+        >
+          <span style={{ fontWeight: 700 }}>{unassignedCount}</span>
+          <span>
+            student{unassignedCount === 1 ? " is" : "s are"} not assigned to a stream and appear under
+            &ldquo;Unassigned&rdquo;. Their class record is missing a stream value — assign it in
+            Forms &amp; Streams so they group under the correct stream.
+          </span>
+        </div>
+      )}
 
       {!hideSettings && (
         <div

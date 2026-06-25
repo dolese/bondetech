@@ -15,17 +15,17 @@ function isWorkspaceActiveClass(cls = {}) {
 }
 
 function getStudentIdentityKey(student = {}) {
+  // Only the admission number is a permanent, globally-unique identity, so it is
+  // the only safe key for collapsing a student that genuinely appears in more
+  // than one class document.
   const admissionNo = String(student.admissionNo || student.admission_no || "").trim().toUpperCase();
   if (admissionNo) return `admission:${admissionNo}`;
 
-  const indexNo = String(student.indexNo || student.index_no || "").trim().toUpperCase();
-  if (indexNo && !indexNo.startsWith("TMP-")) return `cno:${indexNo}`;
-
-  const name = String(student.name || "").trim().toUpperCase();
-  const sex = String(student.sex || "").trim().toUpperCase();
-  const parentPhone = String(student.parentPhone || student.parent_phone || "").trim();
-  if (name) return `fallback:${name}:${sex}:${parentPhone}`;
-
+  // Without an admission number we must NOT dedupe on CNO or name+sex+phone:
+  // CNOs reset per stream (Stream A and Stream B both start at S6509/0001) and
+  // names can repeat, so those keys collapse distinct students and make whole
+  // streams disappear from Marks Entry. Key by the actual record instead so each
+  // real student is always kept.
   return `record:${String(student.classId || "").trim()}::${String(student.originalStudentId || student.id || "").trim()}`;
 }
 
@@ -74,19 +74,25 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
       String(cls.form || "").trim() === String(baseClass?.form || "").trim(),
   );
 
+  const resolveStream = (cls, student) =>
+    String(cls.stream || student.stream || student.stream_name || "").trim();
+
   const mergedStudents = assignFormDisplayIndexNos(
     dedupeWorkspaceStudents(
       relatedClasses.flatMap((cls) =>
-        (cls.students || []).map((student) => ({
-          ...student,
-          id: makeMergedStudentId(cls.id, student.id),
-          originalStudentId: student.id,
-          classId: cls.id,
-          form: cls.form || "",
-          stream: cls.stream || "",
-          year: cls.year || "",
-          classLabel: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim(),
-        })),
+        (cls.students || []).map((student) => {
+          const stream = resolveStream(cls, student);
+          return {
+            ...student,
+            id: makeMergedStudentId(cls.id, student.id),
+            originalStudentId: student.id,
+            classId: cls.id,
+            form: cls.form || "",
+            stream,
+            year: cls.year || "",
+            classLabel: [cls.form, stream, cls.year].filter(Boolean).join(" ").trim(),
+          };
+        }),
       ),
     ),
   );
@@ -112,7 +118,7 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
         id: makeMergedStudentId(cls.id, student.id),
         originalStudentId: student.id,
         classId: cls.id,
-        stream: cls.stream || "",
+        stream: resolveStream(cls, student),
         scores: currentScores,
         ...(compositeEntry
           ? {
@@ -144,8 +150,11 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
     posn: positionMap.get(student.id) ?? null,
   })));
 
+  const diagnostics = buildWorkspaceDiagnostics(baseClass, relatedClasses, mergedStudents);
+
   return {
     relatedClasses,
+    diagnostics,
     classData: {
       ...baseClass,
       id: `${baseClass?.year || ""}-${baseClass?.form || ""}-all-streams`,
@@ -158,4 +167,47 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
     },
     computed,
   };
+}
+
+// Counts the merged form roster by stream and flags students whose class has no
+// stream value (they surface as "Unassigned" in Marks Entry). Enable verbose
+// per-render logging from the browser console with:
+//   window.__BONDE_DEBUG_WORKSPACE = true
+function buildWorkspaceDiagnostics(baseClass, relatedClasses, mergedStudents) {
+  const streamCounts = {};
+  let unassignedStudentsCount = 0;
+  mergedStudents.forEach((student) => {
+    const stream = String(student.stream || "").trim();
+    if (!stream) {
+      unassignedStudentsCount += 1;
+      return;
+    }
+    streamCounts[stream] = (streamCounts[stream] || 0) + 1;
+  });
+
+  const totalStudentsInForm = relatedClasses.reduce(
+    (sum, cls) => sum + (Array.isArray(cls.students) ? cls.students.length : 0),
+    0,
+  );
+  const unassignedClasses = relatedClasses
+    .filter((cls) => !String(cls.stream || "").trim() && (cls.students || []).length)
+    .map((cls) => ({ classId: cls.id, name: cls.name || "", students: (cls.students || []).length }));
+
+  const diagnostics = {
+    form: String(baseClass?.form || "").trim(),
+    year: String(baseClass?.year || "").trim(),
+    streams: relatedClasses.map((cls) => String(cls.stream || "").trim() || "(blank)"),
+    streamCounts,
+    totalStudentsInForm,
+    returnedStudentsCount: mergedStudents.length,
+    unassignedStudentsCount,
+    unassignedClasses,
+  };
+
+  if (typeof window !== "undefined" && window.__BONDE_DEBUG_WORKSPACE) {
+    // eslint-disable-next-line no-console
+    console.debug("[buildFormWorkspace]", diagnostics);
+  }
+
+  return diagnostics;
 }

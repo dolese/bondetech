@@ -113,6 +113,25 @@ function findClassById(classes = [], classId = "") {
   return classes.find((cls) => cls.id === classId) || null;
 }
 
+// Numeric value of a CNO's trailing sequence (S6509/0007 -> 7). Students without
+// a parseable CNO sort last so the list reads first-CNO to last-CNO.
+function cnoOrderValue(student = {}) {
+  const raw = String(student.index_no || student.indexNo || "").trim().toUpperCase();
+  const match = raw.match(/(\d+)\s*$/);
+  return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+}
+
+// Sort by CNO sequence, then admission number, then name as a stable tiebreak.
+function compareByCno(left, right) {
+  const diff = cnoOrderValue(left) - cnoOrderValue(right);
+  if (diff !== 0) return diff;
+  const leftAdm = String(left.admissionNo || left.admission_no || "").trim().toUpperCase();
+  const rightAdm = String(right.admissionNo || right.admission_no || "").trim().toUpperCase();
+  const admDiff = leftAdm.localeCompare(rightAdm, "en", { numeric: true, sensitivity: "base" });
+  if (admDiff !== 0) return admDiff;
+  return String(left.name || "").localeCompare(String(right.name || ""), "en");
+}
+
 function makeStudentKey(student = {}) {
   return `${student.classId || ""}:${student.id || ""}`;
 }
@@ -298,7 +317,7 @@ export function StudentManagementPage({
           .toLowerCase();
         return haystack.includes(needle);
       })
-      .sort((left, right) => left.name.localeCompare(right.name, "en"));
+      .sort(compareByCno);
   }, [classFilter, formFilter, lifecycleFilter, query, students, yearFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / perPage));
@@ -338,7 +357,7 @@ export function StudentManagementPage({
             classes: Array.from(classesMap.values())
               .map((entry) => ({
                 ...entry,
-                students: [...entry.students].sort((left, right) => left.name.localeCompare(right.name, "en")),
+                students: [...entry.students].sort(compareByCno),
               }))
               .sort((left, right) => left.classLabel.localeCompare(right.classLabel, "en")),
           })),
