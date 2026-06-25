@@ -557,7 +557,7 @@ export function AppSidebar({
             flexDirection: "column",
             minHeight: 0,
             overflow: "hidden",
-            padding: isMobile ? "22px 18px 18px" : "26px 22px 20px",
+            padding: isMobile ? "22px 18px calc(24px + env(safe-area-inset-bottom, 0px))" : "26px 22px 20px",
             boxSizing: "border-box",
           }}
         >
@@ -597,7 +597,16 @@ export function AppSidebar({
             </div>
           </div>
 
-          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: 2, paddingBottom: 8 }}>
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              overflowX: "hidden",
+              paddingRight: 2,
+              paddingBottom: isMobile ? "calc(30px + env(safe-area-inset-bottom, 0px))" : 18,
+            }}
+          >
             <div style={{ display: "grid", gap: 4 }}>
               {renderNavButton({ key: "dashboard", label: t("dashboard"), requiresClass: false })}
             </div>
