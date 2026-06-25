@@ -947,6 +947,7 @@ export default function App() {
     if (page === "account") return t("account");
     if (page === "teachers") return t("teachers");
     if (page === "parents") return t("parents");
+    if (page === "student-management") return "Student Records";
     if (page === "sms") return t("sms", "SMS");
     if (page === "ai-assistant") return t("aiAssistant", "AI Assistant");
     if (page === "forms-streams") return "Forms & Streams";
