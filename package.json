@@ -3,7 +3,10 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "test": "node --test tests/auth.test.js tests/classes.test.js tests/classStudents.test.js tests/formsStreams.test.js tests/phone.test.js tests/smsHistory.test.js tests/studentDirectory.test.js"
+    "test": "node --test tests/auth.test.js tests/classes.test.js tests/classStudents.test.js tests/formsStreams.test.js tests/phone.test.js tests/smsHistory.test.js tests/studentDirectory.test.js",
+    "emulators": "firebase emulators:start --only firestore --project bonde-demo",
+    "seed:demo": "node backend/seed-demo.js",
+    "dev:api": "node backend/dev-emulator.js"
   },
   "dependencies": {
     "firebase-admin": "^12.0.0"
