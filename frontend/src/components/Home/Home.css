@@ -325,15 +325,21 @@
 .wa-home .pillar {
   background: var(--white); border-radius: var(--radius);
   padding: 2.25rem 2rem; border: 1px solid var(--border);
-  transition: box-shadow 0.25s, transform 0.25s;
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
 }
-.wa-home .pillar:hover { box-shadow: 0 8px 28px rgba(26,43,74,0.09); transform: translateY(-3px); }
+.wa-home .pillar:hover {
+  box-shadow: 0 10px 30px rgba(26,43,74,0.12);
+  transform: translateY(-4px);
+  border-color: var(--gold-soft);
+}
 .wa-home .pillar-icon {
   width: 46px; height: 46px; border-radius: var(--radius-sm);
   background: var(--bg); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   color: var(--navy); margin-bottom: 1.25rem;
+  transition: color 0.25s, border-color 0.25s, background 0.25s;
 }
+.wa-home .pillar:hover .pillar-icon { color: var(--gold); border-color: var(--gold-soft); background: var(--gold-pill); }
 .wa-home .pillar-title { font-size: 16px; font-weight: 700; color: var(--heading); margin-bottom: 0.6rem; }
 .wa-home .pillar-text { font-size: 14px; color: var(--body); line-height: 1.8; }
 
@@ -357,9 +363,21 @@
 .wa-home .news-card {
   background: var(--white); border-radius: var(--radius);
   border: 1px solid var(--border); overflow: hidden;
-  transition: box-shadow 0.25s, transform 0.25s;
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
 }
-.wa-home .news-card:hover { box-shadow: 0 8px 28px rgba(26,43,74,0.09); transform: translateY(-3px); }
+.wa-home .news-card:hover { box-shadow: 0 10px 30px rgba(26,43,74,0.12); transform: translateY(-4px); border-color: var(--gold-soft); }
+
+/* SCROLL REVEAL — cards fade up as they enter the viewport (DoleseTech-style) */
+.wa-home .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.wa-home .reveal.is-visible { opacity: 1; transform: translateY(0); }
+.wa-home .reveal:nth-child(2) { transition-delay: 0.06s; }
+.wa-home .reveal:nth-child(3) { transition-delay: 0.12s; }
+.wa-home .reveal:nth-child(4) { transition-delay: 0.18s; }
+.wa-home .reveal:nth-child(5) { transition-delay: 0.24s; }
+.wa-home .reveal:nth-child(6) { transition-delay: 0.30s; }
+@media (prefers-reduced-motion: reduce) {
+  .wa-home .reveal { opacity: 1; transform: none; transition: none; }
+}
 .wa-home .nc-bar { height: 5px; }
 .wa-home .nc-bar.b1 { background: var(--navy); }
 .wa-home .nc-bar.b2 { background: var(--gold-soft); }

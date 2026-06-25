@@ -466,6 +466,30 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
     };
   }, [mobileMenuOpen]);
 
+  // Reveal cards as they scroll into view (DoleseTech-style fade-up).
+  useEffect(() => {
+    if (publicPage !== "home") return undefined;
+    const nodes = Array.from(document.querySelectorAll(".wa-home .reveal"));
+    if (!nodes.length) return undefined;
+    if (typeof IntersectionObserver === "undefined") {
+      nodes.forEach((node) => node.classList.add("is-visible"));
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.1 },
+    );
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [publicPage, announcements]);
+
   const newsBars = ["b1", "b2", "b3"];
 
   return (
@@ -738,7 +762,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           </div>
           <div className="pillar-grid">
             {pillars.map((p) => (
-              <div className="pillar" key={p.title}>
+              <div className="pillar reveal" key={p.title}>
                 <div className="pillar-icon"><HomeIcon name={p.icon} label={p.title} size={22} /></div>
                 <div className="pillar-title">{p.title}</div>
                 <p className="pillar-text">{p.text}</p>
@@ -771,7 +795,7 @@ export function HomePage({ onOpenLogin, onOpenTerms, onOpenPrivacy, onOpenSchool
           </div>
           <div className="news-grid">
             {announcements.slice(0, 3).map((item, index) => (
-              <div className="news-card" key={item.id || index}>
+              <div className="news-card reveal" key={item.id || index}>
                 <div className={`nc-bar ${newsBars[index % newsBars.length]}`} />
                 <div className="nc-body">
                   <div className="nc-meta">{formatDateLabel(item.date, language) || (sw ? "Taarifa" : "Notice")}</div>
