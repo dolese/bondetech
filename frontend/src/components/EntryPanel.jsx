@@ -340,6 +340,7 @@ export function EntryPanel({
       if (!query) return true;
       return (
         String(s.name || "").toLowerCase().includes(query) ||
+        String(s.displayIndexNo || "").toLowerCase().includes(query) ||
         String(s.index_no || "").toLowerCase().includes(query) ||
         String(s.admissionNo || s.admission_no || "").toLowerCase().includes(query) ||
         String(s.status || "").toLowerCase().includes(query)
@@ -352,8 +353,8 @@ export function EntryPanel({
       return normalizedStream === streamFilter;
     })
     .sort((a, b) => {
-      let aVal = sortBy === "index" ? parseCnoOrderValue(a.index_no) : a[sortBy];
-      let bVal = sortBy === "index" ? parseCnoOrderValue(b.index_no) : b[sortBy];
+      let aVal = sortBy === "index" ? parseCnoOrderValue(a.displayIndexNo || a.index_no) : a[sortBy];
+      let bVal = sortBy === "index" ? parseCnoOrderValue(b.displayIndexNo || b.index_no) : b[sortBy];
       if (typeof aVal === "string") aVal = aVal.toLowerCase();
       if (typeof bVal === "string") bVal = bVal.toLowerCase();
       return sortAsc ? (aVal > bVal ? 1 : -1) : bVal > aVal ? 1 : -1;
@@ -1976,7 +1977,7 @@ export function EntryPanel({
                 {filtered.map((s, i) => (
                   <tr key={s.id} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc" }}>
                     <td style={{ padding: "4px 6px", textAlign: "center", border: "1px solid #e2e8f0", fontWeight: 600 }}>
-                      {s.index_no}
+                      {s.displayIndexNo || s.index_no}
                     </td>
                     <td style={{ padding: "4px 6px", textAlign: "left", border: "1px solid #e2e8f0" }}>{s.name}</td>
                     {subjects.map((_, si) => {
@@ -2142,7 +2143,7 @@ export function EntryPanel({
                 {/* Header row */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                    <span style={{ fontFamily: "monospace", fontSize: 10, color: "#888", flexShrink: 0 }}>{s.index_no || "—"}</span>
+                    <span style={{ fontFamily: "monospace", fontSize: 10, color: "#888", flexShrink: 0 }}>{s.displayIndexNo || s.index_no || "—"}</span>
                     <span style={{ fontWeight: 600, fontSize: 13, color: "#0f2d6e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</span>
                     <span style={{
                       fontSize: 9, fontWeight: 600, padding: "1px 5px", borderRadius: 4,
@@ -2304,7 +2305,7 @@ export function EntryPanel({
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {s.index_no}
+                    {s.displayIndexNo || s.index_no}
                   </td>
                   <td
                     style={{
