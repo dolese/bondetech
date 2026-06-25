@@ -578,6 +578,8 @@ export function StudentManagementPage({
     onOpenStudentProfile?.({
       admissionNo: student.admissionNo || student.admission_no || "",
       indexNo: student.index_no || student.indexNo || "",
+      classId: student.classId || "",
+      studentId: student.id || "",
     });
 
   const handlePromotion = async () => {
@@ -624,7 +626,7 @@ export function StudentManagementPage({
         fontFamily: premiumFontStack,
       }}
     >
-      <section
+      {!modalMode && <><section
         style={{
           border: "1px solid #e2e8f0",
           borderRadius: 12,
@@ -1133,33 +1135,39 @@ export function StudentManagementPage({
             ) : null}
           </div>
         )}
-      </section>
+      </section></>}
 
       {modalMode ? (
-        <div
-          onClick={closeModal}
+        <section
           style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(15,23,42,0.52)",
+            border: "1px solid #e2e8f0",
+            borderRadius: 12,
+            background: "#ffffff",
+            padding: isMobile ? 14 : 22,
             display: "grid",
-            placeItems: "center",
-            padding: 16,
-            zIndex: 70,
+            gap: 14,
           }}
         >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            style={{
-              width: "min(880px, 100%)",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              ...glassPanelStyle({ compact: isMobile, dense: isMobile, radius: 12, padding: isMobile ? 16 : 22 }),
-              display: "grid",
-              gap: 14,
-            }}
-          >
             <div>
+              <button
+                type="button"
+                onClick={closeModal}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#64748b",
+                  cursor: "pointer",
+                  marginBottom: 10,
+                }}
+              >
+                ← Back to Students
+              </button>
               <div style={{ display: "inline-flex", ...pillStyle({ tone: modalMode === "edit" ? "blue" : "teal" }) }}>
                 {modalMode === "edit" ? "Update record" : "Create record"}
               </div>
@@ -1468,8 +1476,7 @@ export function StudentManagementPage({
                 {saving ? "Saving..." : modalMode === "edit" ? "Save Changes" : "Add Student"}
               </button>
             </div>
-          </div>
-        </div>
+        </section>
       ) : null}
     </div>
   );
