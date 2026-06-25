@@ -10,6 +10,50 @@ function isWorkspaceActiveClass(cls = {}) {
   return cls && cls.archived !== true;
 }
 
+function getStudentIdentityKey(student = {}) {
+  const admissionNo = String(student.admissionNo || student.admission_no || "").trim().toUpperCase();
+  if (admissionNo) return `admission:${admissionNo}`;
+
+  const indexNo = String(student.indexNo || student.index_no || "").trim().toUpperCase();
+  if (indexNo && !indexNo.startsWith("TMP-")) return `cno:${indexNo}`;
+
+  const name = String(student.name || "").trim().toUpperCase();
+  const sex = String(student.sex || "").trim().toUpperCase();
+  const parentPhone = String(student.parentPhone || student.parent_phone || "").trim();
+  if (name) return `fallback:${name}:${sex}:${parentPhone}`;
+
+  return `record:${String(student.classId || "").trim()}::${String(student.originalStudentId || student.id || "").trim()}`;
+}
+
+function dedupeWorkspaceStudents(students = []) {
+  const seen = new Map();
+  (Array.isArray(students) ? students : []).forEach((student) => {
+    const key = getStudentIdentityKey(student);
+    const existing = seen.get(key);
+    if (!existing) {
+      seen.set(key, student);
+      return;
+    }
+
+    const existingStream = String(existing.stream || "").trim();
+    const nextStream = String(student.stream || "").trim();
+    const existingAdmission = String(existing.admissionNo || existing.admission_no || "").trim();
+    const nextAdmission = String(student.admissionNo || student.admission_no || "").trim();
+    const existingIndex = String(existing.indexNo || existing.index_no || "").trim();
+    const nextIndex = String(student.indexNo || student.index_no || "").trim();
+
+    const shouldReplace =
+      (!existingAdmission && !!nextAdmission) ||
+      (!existingIndex && !!nextIndex) ||
+      (!existingStream && !!nextStream);
+
+    if (shouldReplace) {
+      seen.set(key, student);
+    }
+  });
+  return Array.from(seen.values());
+}
+
 export function buildFormWorkspace(classes = [], baseClass = null, activeExam = "") {
   if (!baseClass) {
     return {
@@ -26,18 +70,22 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
       String(cls.form || "").trim() === String(baseClass?.form || "").trim(),
   );
 
-  const mergedStudents = assignFormDisplayIndexNos(relatedClasses.flatMap((cls) =>
-    (cls.students || []).map((student) => ({
-      ...student,
-      id: makeMergedStudentId(cls.id, student.id),
-      originalStudentId: student.id,
-      classId: cls.id,
-      form: cls.form || "",
-      stream: cls.stream || "",
-      year: cls.year || "",
-      classLabel: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim(),
-    })),
-  ));
+  const mergedStudents = assignFormDisplayIndexNos(
+    dedupeWorkspaceStudents(
+      relatedClasses.flatMap((cls) =>
+        (cls.students || []).map((student) => ({
+          ...student,
+          id: makeMergedStudentId(cls.id, student.id),
+          originalStudentId: student.id,
+          classId: cls.id,
+          form: cls.form || "",
+          stream: cls.stream || "",
+          year: cls.year || "",
+          classLabel: [cls.form, cls.stream, cls.year].filter(Boolean).join(" ").trim(),
+        })),
+      ),
+    ),
+  );
 
   const effectiveExam = activeExam || baseClass?.school_info?.exam || DEFAULT_EXAM_TYPE;
   const subjects = Array.from(
@@ -81,11 +129,12 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
     }));
   });
 
-  const ranked = [...rows]
+  const dedupedRows = dedupeWorkspaceStudents(rows);
+  const ranked = [...dedupedRows]
     .filter((student) => student.total !== null)
     .sort((left, right) => right.total - left.total);
   const positionMap = new Map(ranked.map((student, index) => [student.id, index + 1]));
-  const computed = assignFormDisplayIndexNos(rows.map((student) => ({
+  const computed = assignFormDisplayIndexNos(dedupedRows.map((student) => ({
     ...student,
     formPosn: positionMap.get(student.id) ?? null,
     posn: positionMap.get(student.id) ?? null,
