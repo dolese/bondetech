@@ -63,7 +63,20 @@ function SubjectRow({ entry, expanded, onToggle, onNavigate, canManage, totalCla
       <tr onClick={onToggle} style={{ background: expanded ? "#f8fafc" : "transparent", cursor: "pointer", borderBottom: expanded ? "none" : "1px solid #f1f5f9" }}>
         <td style={{ padding: "10px 14px", fontSize: 13, fontWeight: 600, color: "#0f172a" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 11, color: expanded ? "#0f2d6e" : "#94a3b8", transition: "transform 0.15s", display: "inline-block", transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}>{">"}</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={expanded ? "#0f2d6e" : "#94a3b8"}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ flexShrink: 0, transition: "transform 0.15s", transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+              aria-hidden="true"
+            >
+              <path d="m9 6 6 6-6 6" />
+            </svg>
             {entry.name}
           </span>
         </td>
