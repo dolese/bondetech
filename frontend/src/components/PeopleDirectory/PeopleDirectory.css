@@ -841,46 +841,6 @@
   font-weight: 600;
 }
 
-.dir-parent-mobile-list {
-  display: grid;
-  gap: 10px;
-  padding: 14px;
-}
-
-.dir-parent-mobile-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 14px;
-  background: #ffffff;
-  display: grid;
-  gap: 12px;
-}
-
-.dir-parent-mobile-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.dir-parent-mobile-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 600;
-  padding-left: 54px;
-}
-
-.dir-parent-mobile-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  padding-left: 54px;
-}
-
 @media (max-width: 1120px) {
   .dir-parent-filters {
     grid-template-columns: repeat(2, 1fr);
@@ -958,31 +918,6 @@
 
   .dir-parent-pagination-info {
     text-align: center;
-  }
-
-  .dir-parent-mobile-meta {
-    padding-left: 0;
-  }
-
-  .dir-parent-mobile-links {
-    padding-left: 0;
-    width: 100%;
-  }
-
-  .dir-parent-mobile-links .dir-parent-link-btn {
-    flex: 1;
-    text-align: center;
-    padding: 8px 0;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: #f8fafc;
-  }
-
-  .dir-parent-mobile-links .dir-parent-link-danger {
-    border-color: #fecaca;
-    background: #fef2f2;
   }
 
   .dir-modal-backdrop {
