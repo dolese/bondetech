@@ -6,11 +6,18 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 18px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   background: #f8fafc;
+}
+
+/* Keep each section at its natural height so the page scrolls past tall
+   content instead of letting a scroll-container child (the table card)
+   collapse and clip its rows. */
+.dir-page-container > * {
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .dir-header-card {
