@@ -383,6 +383,56 @@ function buildResultsMessage(student, cls, language = "en") {
     .join("\n");
 }
 
+// GSM-7 basic + extended charsets. Anything outside them forces UCS-2 (Unicode)
+// encoding, which caps a single SMS at 70 chars and 67 per multipart segment
+// (vs 160 / 153 for GSM-7). Extended GSM chars take two characters each.
+const GSM7_BASIC =
+  "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
+const GSM7_EXTENDED = "^{}\\[~]|€";
+
+function computeSmsParts(text) {
+  const str = String(text || "");
+  if (!str) return { segments: 0, encoding: "GSM-7", length: 0, perSegment: 160 };
+
+  let isGsm = true;
+  let gsmLength = 0;
+  for (const ch of str) {
+    if (GSM7_BASIC.includes(ch)) gsmLength += 1;
+    else if (GSM7_EXTENDED.includes(ch)) gsmLength += 2;
+    else {
+      isGsm = false;
+      break;
+    }
+  }
+
+  if (isGsm) {
+    const single = 160;
+    const multi = 153;
+    const segments = gsmLength <= single ? 1 : Math.ceil(gsmLength / multi);
+    return { segments, encoding: "GSM-7", length: gsmLength, perSegment: segments > 1 ? multi : single };
+  }
+
+  // UCS-2: count UTF-16 code units (astral characters take two).
+  const units = Array.from(str).reduce((sum, ch) => sum + (ch.codePointAt(0) > 0xffff ? 2 : 1), 0);
+  const single = 70;
+  const multi = 67;
+  const segments = units <= single ? 1 : Math.ceil(units / multi);
+  return { segments, encoding: "UCS-2", length: units, perSegment: segments > 1 ? multi : single };
+}
+
+function SmsLengthNote({ charCount, smsParts }) {
+  return (
+    <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5 }}>
+      {charCount} char{charCount === 1 ? "" : "s"} · {smsParts.segments} SMS segment{smsParts.segments === 1 ? "" : "s"} · {smsParts.encoding}
+      {smsParts.encoding === "UCS-2"
+        ? " — contains non-GSM characters, so each SMS is limited to 70 (67 when split)."
+        : smsParts.segments > 1
+        ? " — long message, split into multiple SMS."
+        : ""}
+    </div>
+  );
+}
+
 export function SmsPage({
   classes = [],
   showToast,
@@ -410,6 +460,8 @@ export function SmsPage({
   const [historyModeFilter, setHistoryModeFilter] = useState("all");
   const [historyRefreshing, setHistoryRefreshing] = useState(false);
   const [recipientsLoading, setRecipientsLoading] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     setSavedTemplates(loadStoredSmsTemplates());
@@ -632,11 +684,19 @@ export function SmsPage({
       .filter(Boolean);
   }, [resultsLanguage, selectedResultsClass, selectedResultsWorkspace]);
 
+  useEffect(() => {
+    setPreviewIndex(0);
+  }, [mode, selectedResultsClass?.id, resultsExam, resultsLanguage]);
+
   const recipients = mode === "results" ? resultsRecipients : customRecipients;
   const uniquePhones = Array.from(new Set(recipients.map((entry) => entry.phone)));
-  const previewMessage = mode === "results" ? resultsRecipients[0]?.message || "" : message;
+  const safePreviewIndex =
+    mode === "results" ? Math.min(previewIndex, Math.max(resultsRecipients.length - 1, 0)) : 0;
+  const previewRecipient = mode === "results" ? resultsRecipients[safePreviewIndex] || null : null;
+  const previewMessage = mode === "results" ? previewRecipient?.message || "" : message;
   const charCount = previewMessage.length;
-  const smsSegments = charCount === 0 ? 0 : Math.ceil(charCount / 160);
+  const smsParts = computeSmsParts(previewMessage);
+  const smsSegments = smsParts.segments;
   const templateButtons = useMemo(
     () => [...MESSAGE_TEMPLATES, ...savedTemplates],
     [savedTemplates],
@@ -696,7 +756,8 @@ export function SmsPage({
     showToast?.(ok ? "Recipient numbers copied" : "Unable to copy recipient numbers", ok ? "success" : "error");
   };
 
-  const handleSendSms = async () => {
+  // Validate, then open the confirmation dialog instead of sending immediately.
+  const requestSend = () => {
     if (!gatewayStatus.configured) {
       showToast?.("Beem Africa SMS credentials are not configured", "error");
       return;
@@ -709,6 +770,13 @@ export function SmsPage({
       showToast?.("Type the SMS message first", "error");
       return;
     }
+    setConfirmOpen(true);
+  };
+
+  const performSend = async () => {
+    setConfirmOpen(false);
+    if (!gatewayStatus.configured || !recipients.length) return;
+    if (mode === "custom" && !message.trim()) return;
 
     setIsSending(true);
     setSendResult(null);
@@ -1078,8 +1146,41 @@ export function SmsPage({
           </div>
 
           {mode === "results" ? (
-            <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Generated Example</span>
+            <div style={{ display: "grid", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Generated message preview</span>
+                {resultsRecipients.length ? (
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewIndex(Math.max(0, safePreviewIndex - 1))}
+                      disabled={safePreviewIndex <= 0}
+                      style={{ ...secondaryButtonStyle({ compact: true }), opacity: safePreviewIndex <= 0 ? 0.5 : 1 }}
+                    >
+                      ‹ Prev
+                    </button>
+                    <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600, minWidth: 70, textAlign: "center" }}>
+                      {safePreviewIndex + 1} / {resultsRecipients.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewIndex(Math.min(resultsRecipients.length - 1, safePreviewIndex + 1))}
+                      disabled={safePreviewIndex >= resultsRecipients.length - 1}
+                      style={{ ...secondaryButtonStyle({ compact: true }), opacity: safePreviewIndex >= resultsRecipients.length - 1 ? 0.5 : 1 }}
+                    >
+                      Next ›
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+              {previewRecipient ? (
+                <div style={{ fontSize: 12, color: "#0f172a", fontWeight: 600 }}>
+                  {previewRecipient.studentName}
+                  <span style={{ color: "#64748b", fontWeight: 500 }}>
+                    {" "}· {previewRecipient.classLabel} · {previewRecipient.phone}
+                  </span>
+                </div>
+              ) : null}
               <textarea
                 value={previewMessage}
                 readOnly
@@ -1087,7 +1188,8 @@ export function SmsPage({
                 placeholder="Pick a class and exam to generate result messages."
                 style={{ ...fieldStyle({ background: "rgba(248,250,252,0.92)" }), resize: "vertical", minHeight: 170 }}
               />
-            </label>
+              <SmsLengthNote charCount={charCount} smsParts={smsParts} />
+            </div>
           ) : (
             <label style={{ display: "grid", gap: 6 }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>SMS Message</span>
@@ -1098,16 +1200,17 @@ export function SmsPage({
                 placeholder="Type the SMS message to send to selected guardians..."
                 style={{ ...fieldStyle(), resize: "vertical", minHeight: 170 }}
               />
+              <SmsLengthNote charCount={charCount} smsParts={smsParts} />
             </label>
           )}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
-              onClick={handleSendSms}
+              onClick={requestSend}
               disabled={isSending || !gatewayStatus.configured}
               style={{ ...primaryButtonStyle({ compact: false }), opacity: isSending || !gatewayStatus.configured ? 0.6 : 1 }}
             >
-              {isSending ? "Sending..." : mode === "results" ? "Send Results SMS" : "Send with Beem"}
+              {isSending ? "Sending..." : mode === "results" ? "Review & Send Results" : "Review & Send"}
             </button>
             {mode === "custom" ? (
               <button onClick={handleSaveTemplate} style={secondaryButtonStyle({ compact: false })}>
@@ -1407,6 +1510,74 @@ export function SmsPage({
           </div>
         )}
       </div>
+
+      {confirmOpen ? (
+        <div
+          onClick={() => setConfirmOpen(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", display: "grid", placeItems: "center", padding: 16, zIndex: 1000 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "min(560px, 100%)", maxHeight: "90vh", overflowY: "auto", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 20, display: "grid", gap: 14 }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>Confirm SMS send</div>
+              <div style={pillStyle({ tone: mode === "results" ? "amber" : "blue" })}>
+                {mode === "results" ? "Results SMS" : "Custom SMS"}
+              </div>
+            </div>
+            <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
+              {mode === "results"
+                ? "Each student receives their own personalized result message."
+                : "One shared message will be sent to every recipient."}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
+              {[
+                { label: mode === "results" ? "Students" : "Recipients", value: recipients.length },
+                { label: "Unique numbers", value: uniquePhones.length },
+                { label: "Segments / msg", value: smsSegments },
+                {
+                  label: mode === "results" ? "Est. segments" : "Total segments",
+                  value: `${mode === "results" ? "≈" : ""}${smsSegments * recipients.length}`,
+                },
+              ].map((item) => (
+                <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 12 }) }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.05em" }}>
+                    {item.label}
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 20, fontWeight: 600, color: "#0f172a" }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <span style={pillStyle({ tone: smsParts.encoding === "UCS-2" ? "amber" : "slate" })}>{smsParts.encoding}</span>
+              {senderId ? <span style={pillStyle({ tone: "blue" })}>Sender {senderId}</span> : null}
+              {scheduleTime ? <span style={pillStyle({ tone: "amber" })}>Scheduled {scheduleTime}</span> : null}
+            </div>
+            <div style={{ display: "grid", gap: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>
+                {mode === "results" ? `Example message (${previewRecipient?.studentName || "student"})` : "Message"}
+              </span>
+              <div style={{ ...softCardStyle({ padding: 12, radius: 12 }), whiteSpace: "pre-line", fontSize: 12, color: "#334155", maxHeight: 160, overflowY: "auto", lineHeight: 1.6 }}>
+                {previewMessage || "—"}
+              </div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+              <button type="button" onClick={() => setConfirmOpen(false)} style={secondaryButtonStyle({ compact: false })}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={performSend}
+                disabled={isSending}
+                style={{ ...primaryButtonStyle({ compact: false }), opacity: isSending ? 0.6 : 1 }}
+              >
+                {isSending ? "Sending..." : `Confirm & send to ${uniquePhones.length}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
