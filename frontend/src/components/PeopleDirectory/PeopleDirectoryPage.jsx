@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useViewport } from "../../utils/useViewport";
+import { useI18n } from "../../i18n";
 import { StatsCard } from "./StatsCard";
 import { PersonCard } from "./PersonCard";
 import "./PeopleDirectory.css";
@@ -121,20 +122,24 @@ function ParentTableRow({
   onOpenStudents,
   onEditEntry,
   onDeleteEntry,
+  t,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const firstStudent = entry.students?.[0] || null;
   const actions = [
-    onEditEntry ? { key: "edit", label: "Edit Parent", onClick: () => onEditEntry(entry) } : null,
-    entry.students?.length ? { key: "students", label: "View Students", onClick: () => onOpenStudents(entry) } : null,
+    onEditEntry ? { key: "edit", label: t("editParent", "Edit Parent"), onClick: () => onEditEntry(entry) } : null,
+    entry.students?.length ? { key: "students", label: t("viewStudents", "View Students"), onClick: () => onOpenStudents(entry) } : null,
     onDeleteEntry
       ? {
           key: "delete",
-          label: "Delete",
+          label: t("delete", "Delete"),
           destructive: true,
           onClick: async () => {
             const confirmed = window.confirm(
-              `Delete this parent record from ${entry.students?.length || 0} linked student${(entry.students?.length || 0) === 1 ? "" : "s"}?`,
+              t("deleteParentConfirm", "Delete this parent record from {count} linked student{suffix}?", {
+                count: entry.students?.length || 0,
+                suffix: (entry.students?.length || 0) === 1 ? "" : "s",
+              }),
             );
             if (!confirmed) return;
             await onDeleteEntry(entry);
@@ -152,13 +157,13 @@ function ParentTableRow({
             {getInitials(entry.name)}
           </div>
           <div className="dir-parent-identity">
-            <div className="dir-parent-name">{entry.name || "Unnamed guardian"}</div>
-            <div className="dir-parent-subtitle">Guardian</div>
+            <div className="dir-parent-name">{entry.name || t("unnamedGuardian", "Unnamed guardian")}</div>
+            <div className="dir-parent-subtitle">{t("guardian", "Guardian")}</div>
           </div>
         </div>
       </td>
       <td>
-        <div className="dir-parent-phone">{entry.phone || "Not set"}</div>
+        <div className="dir-parent-phone">{entry.phone || t("notSet", "Not set")}</div>
         <div className="dir-parent-phone-actions">
           {entry.phone ? (
             <>
@@ -169,14 +174,14 @@ function ParentTableRow({
         </div>
       </td>
       <td>
-        <span className="dir-parent-badge">{entry.relationship || "Guardian"}</span>
+        <span className="dir-parent-badge">{entry.relationship || t("guardian", "Guardian")}</span>
       </td>
-      <td>{entry.address || "Not set"}</td>
+      <td>{entry.address || t("notSet", "Not set")}</td>
       <td>
         <div className="dir-parent-linked">
           <span className="dir-parent-count">{entry.students?.length || 0}</span>
           <button type="button" className="dir-parent-link-btn" onClick={() => onOpenStudents(entry)}>
-            View
+            {t("view", "View")}
           </button>
         </div>
       </td>
@@ -196,7 +201,7 @@ function ParentTableRow({
             }}
             disabled={!firstStudent || !onOpenStudentProfile}
           >
-            View Profile
+            {t("viewProfile", "View Profile")}
           </button>
           <div className="dir-parent-menu-wrap">
             <button type="button" className="dir-parent-more-btn" onClick={() => setMenuOpen((current) => !current)}>
@@ -238,6 +243,7 @@ export function PeopleDirectoryPage({
   onDeleteEntry,
 }) {
   const { isMobile } = useViewport();
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [editingEntry, setEditingEntry] = useState(null);
   const [studentsEntry, setStudentsEntry] = useState(null);
@@ -270,9 +276,9 @@ export function PeopleDirectoryPage({
     () =>
       entries.map((entry) => ({
         ...entry,
-        relationship: entry.relationship || "Guardian",
+        relationship: entry.relationship || t("guardian", "Guardian"),
       })),
-    [entries],
+    [entries, t],
   );
 
   const formOptions = useMemo(
@@ -300,8 +306,8 @@ export function PeopleDirectoryPage({
   );
 
   const relationshipOptions = useMemo(
-    () => Array.from(new Set(normalizedEntries.map((entry) => entry.relationship || "Guardian"))).sort(),
-    [normalizedEntries],
+    () => Array.from(new Set(normalizedEntries.map((entry) => entry.relationship || t("guardian", "Guardian")))).sort(),
+    [normalizedEntries, t],
   );
 
   const filtered = useMemo(() => {
@@ -435,29 +441,31 @@ export function PeopleDirectoryPage({
               gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
             }}
           >
-            <StatsCard label="Total Records" value={stats.total} note="People currently listed in this directory." />
-            <StatsCard label="Reachable Contacts" value={stats.withContact} note="Entries with a phone number or email saved." />
-            <StatsCard label="Linked Students" value={stats.linkedStudents} note="Student records connected to these people." />
+            <StatsCard label={t("totalRecords", "Total Records")} value={stats.total} note={t("totalRecordsNote", "People currently listed in this directory.")} />
+            <StatsCard label={t("reachableContacts", "Reachable Contacts")} value={stats.withContact} note={t("reachableContactsNote", "Entries with a phone number or email saved.")} />
+            <StatsCard label={t("linkedStudentsLabel", "Linked Students")} value={stats.linkedStudents} note={t("linkedStudentsNote", "Student records connected to these people.")} />
           </div>
 
           <div className="dir-search-card">
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder={`Search ${title.toLowerCase()}...`}
+              placeholder={t("searchDirectory", "Search {title}...", { title: String(title || "").toLowerCase() })}
               className="dir-search-input"
               onFocus={(e) => (e.target.style.borderColor = palette.accent)}
               onBlur={(e) => (e.target.style.borderColor = "rgba(203,213,225,0.95)")}
             />
             <div style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <div style={{ fontSize: 12, color: "#64748b" }}>
-                Showing <strong style={{ color: "#0f172a" }}>{filtered.length}</strong> of{" "}
-                <strong style={{ color: "#0f172a" }}>{entries.length}</strong> records
-                {query ? ` for "${query}"` : ""}.
+                {t("showingRecords", "Showing {filtered} of {total} records{suffix}.", {
+                  filtered: filtered.length,
+                  total: entries.length,
+                  suffix: query ? ` for "${query}"` : "",
+                })}
               </div>
               {query ? (
                 <button type="button" className="dir-action-btn" onClick={() => setQuery("")} style={{ padding: "7px 10px", fontSize: 12, fontWeight: 600 }}>
-                  Clear Search
+                  {t("clearSearch", "Clear Search")}
                 </button>
               ) : null}
             </div>
@@ -483,8 +491,8 @@ export function PeopleDirectoryPage({
             <div className="dir-empty-state">
               <EmptyIcon />
               <div>
-                <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>No Records Found</div>
-                <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>Try adjusting your search query.</div>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>{t("noRecordsFound", "No Records Found")}</div>
+                <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>{t("adjustSearchQuery", "Try adjusting your search query.")}</div>
               </div>
             </div>
           )}
@@ -621,49 +629,6 @@ export function PeopleDirectoryPage({
                           ))}
                         </div>
                       </section>
-                    ))}
-                  </div>
-                ) : isMobile ? (
-                  <div className="dir-parent-mobile-list">
-                    {pageEntries.map((entry, index) => (
-                      <div key={entry.key} className="dir-parent-mobile-card">
-                        <div className="dir-parent-cell-main">
-                          <div className="dir-parent-avatar" style={{ background: getAvatarGradient(entry.name) }}>
-                            {getInitials(entry.name)}
-                          </div>
-                          <div className="dir-parent-identity">
-                            <div className="dir-parent-name" style={{ fontSize: 14 }}>{entry.name || "Unnamed guardian"}</div>
-                            <div className="dir-parent-subtitle" style={{ fontSize: 12, marginTop: 2 }}>
-                              {entry.relationship || "Guardian"} · {entry.students?.length || 0} student{(entry.students?.length || 0) === 1 ? "" : "s"}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="dir-parent-mobile-meta">
-                          <span>#{(safePage - 1) * perPage + index + 1}</span>
-                          <span>{entry.phone || "No phone"}</span>
-                          {entry.phone ? (
-                            <>
-                              <a href={`tel:${entry.phone}`} style={{ color: "#10b981", textDecoration: "none" }}>Call</a>
-                              <a href={`https://wa.me/${String(entry.phone).replace(/[^\d]/g, "")}`} target="_blank" rel="noreferrer" style={{ color: "#22c55e", textDecoration: "none" }}>WhatsApp</a>
-                            </>
-                          ) : null}
-                        </div>
-                        <div className="dir-parent-mobile-links">
-                          <button type="button" className="dir-parent-link-btn" onClick={() => openStudents(entry)}>
-                            Students
-                          </button>
-                          <button type="button" className="dir-parent-link-btn" onClick={() => openEdit(entry)}>
-                            Edit
-                          </button>
-                          <button type="button" className="dir-parent-link-btn dir-parent-link-danger" onClick={async () => {
-                            const confirmed = window.confirm(`Delete this parent record from ${entry.students?.length || 0} linked student${(entry.students?.length || 0) === 1 ? "" : "s"}?`);
-                            if (!confirmed) return;
-                            await onDeleteEntry?.(entry);
-                          }}>
-                            Delete
-                          </button>
-                        </div>
-                      </div>
                     ))}
                   </div>
                 ) : (
