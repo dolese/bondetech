@@ -431,11 +431,11 @@ export default function App() {
   const navItems = [
     ...classNavItems.filter((item) => canViewSettings || item.key !== "settings"),
     ...(canManageStudentsGlobally
-      ? [{ key: "student-management", label: "Student Records", requiresClass: false }]
+      ? [{ key: "student-management", label: t("studentRecords", "Student Records"), requiresClass: false }]
       : []),
-    { key: "forms-streams", label: "Forms & Streams", requiresClass: false },
-    { key: "subjects", label: "Subjects", requiresClass: false },
-    { key: "exams", label: "Exams", requiresClass: false },
+    { key: "forms-streams", label: t("formsStreams", "Forms & Streams"), requiresClass: false },
+    { key: "subjects", label: t("subjectsNav", "Subjects"), requiresClass: false },
+    { key: "exams", label: t("examsNav", "Exams"), requiresClass: false },
     ...(canUseSms
       ? [{ key: "sms", label: t("sms", "SMS"), requiresClass: false }]
       : []),
@@ -449,7 +449,7 @@ export default function App() {
         ]
       : []),
     ...(canViewSettings
-      ? [{ key: "content-management", label: "Content Management", requiresClass: false }]
+      ? [{ key: "content-management", label: t("contentManagement", "Content Management"), requiresClass: false }]
       : []),
   ];
 
@@ -964,13 +964,13 @@ export default function App() {
     if (page === "account") return t("account");
     if (page === "teachers") return t("teachers");
     if (page === "parents") return t("parents");
-    if (page === "student-management") return "Student Records";
+    if (page === "student-management") return t("studentRecords", "Student Records");
     if (page === "sms") return t("sms", "SMS");
     if (page === "ai-assistant") return t("aiAssistant", "AI Assistant");
-    if (page === "forms-streams") return "Forms & Streams";
-    if (page === "subjects") return "Subjects";
-    if (page === "exams") return "Exams";
-    if (page === "content-management") return "Content Management";
+    if (page === "forms-streams") return t("formsStreams", "Forms & Streams");
+    if (page === "subjects") return t("subjectsNav", "Subjects");
+    if (page === "exams") return t("examsNav", "Exams");
+    if (page === "content-management") return t("contentManagement", "Content Management");
     if (page === "reports") return t("reportCards", "Report Cards");
     if (page === "results") return t("resultSheets", "Result Sheets");
     if (!activeClass) return "";

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { API } from "../api";
 import { CLASS_FORMS } from "../hooks/useClasses";
+import { useI18n } from "../i18n";
 import { displayFontStack, premiumFontStack } from "../utils/designSystem";
 import { useViewport } from "../utils/useViewport";
 
@@ -295,6 +296,7 @@ export function FormsStreamsPage({
   onReloadClasses,
 }) {
   const { isMobile, isXs } = useViewport();
+  const { t } = useI18n();
   const years = useMemo(() => {
     const values = new Set(classes.map((item) => String(item.year || "")).filter(Boolean));
     values.add(String(new Date().getFullYear()));
@@ -463,7 +465,7 @@ export function FormsStreamsPage({
       <style>{`@keyframes formsStreamsPulse{0%{background-position:100% 0}100%{background-position:-100% 0}}`}</style>
       <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gap: 20 }}>
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
-          <div><span style={badge("Academic structure", "amber")}>Academic structure</span><h1 style={{ margin: "10px 0 0", fontFamily: displayFontStack, fontSize: isXs ? 27 : 36, fontWeight: 650, color: palette.ink, letterSpacing: "-0.025em" }}>Forms &amp; Streams</h1><p style={{ margin: "7px 0 0", maxWidth: 650, fontSize: 13, color: palette.muted, lineHeight: 1.65 }}>Manage the four school forms, stream capacity, class teachers, and precise student placement from one controlled workspace.</p></div>
+          <div><span style={badge(t("academicStructure", "Academic structure"), "amber")}>{t("academicStructure", "Academic structure")}</span><h1 style={{ margin: "10px 0 0", fontFamily: displayFontStack, fontSize: isXs ? 27 : 36, fontWeight: 650, color: palette.ink, letterSpacing: "-0.025em" }}>{t("formsStreamsTitle", "Forms & Streams")}</h1><p style={{ margin: "7px 0 0", maxWidth: 650, fontSize: 13, color: palette.muted, lineHeight: 1.65 }}>{t("formsStreamsIntro", "Manage the four school forms, stream capacity, class teachers, and precise student placement from one controlled workspace.")}</p></div>
           <select value={selectedYear} onChange={(event) => setSelectedYear(event.target.value)} style={{ ...fieldStyle(), width: 150 }}>{years.map((year) => <option key={year} value={year}>{year}</option>)}</select>
         </header>
 

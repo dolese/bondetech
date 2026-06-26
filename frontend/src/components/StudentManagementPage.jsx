@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useViewport } from "../utils/useViewport";
+import { useI18n } from "../i18n";
 import { CLASS_STREAMS, DEFAULT_CONDUCT } from "../hooks/useClasses";
 import {
   buildSuggestedConductProfile,
@@ -167,6 +168,7 @@ export function StudentManagementPage({
   onPromoteStudents,
 }) {
   const { isMobile } = useViewport();
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [formFilter, setFormFilter] = useState("");
@@ -658,13 +660,13 @@ export function StudentManagementPage({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontFamily: displayFontStack, fontSize: isMobile ? 22 : 26, fontWeight: 500, color: "#0f172a", lineHeight: 1.15 }}>
-              Student Records
+              {t("studentRecordsTitle", "Student Records")}
             </div>
             <div style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>
-              {stats.students} students across {stats.classes} classes
+              {t("studentRecordsSummary", "{students} students across {classes} classes", { students: stats.students, classes: stats.classes })}
             </div>
           </div>
-          <button type="button" onClick={openAddModal} style={primaryButtonStyle()}>+ Add Student</button>
+          <button type="button" onClick={openAddModal} style={primaryButtonStyle()}>+ {t("addStudent", "Add Student")}</button>
         </div>
 
         <div
@@ -678,9 +680,9 @@ export function StudentManagementPage({
           }}
         >
           {[
-            ["Active", stats.active],
-            ["Guardians", stats.guardians],
-            ["Need contact", stats.missingGuardian],
+            [t("activeStudents", "Active"), stats.active],
+            [t("guardiansLabel", "Guardians"), stats.guardians],
+            [t("needContact", "Need contact"), stats.missingGuardian],
           ].map(([label, value]) => (
             <div key={label} style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>{value}</span>
@@ -691,7 +693,7 @@ export function StudentManagementPage({
 
         <details style={{ cursor: "default" }}>
           <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#475569", userSelect: "none" }}>
-            Academic year promotion
+            {t("academicYearPromotion", "Academic year promotion")}
           </summary>
           <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
             <div
@@ -703,21 +705,21 @@ export function StudentManagementPage({
               }}
             >
               <label style={{ display: "grid", gap: 4 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Source</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("source", "Source")}</span>
                 <select value={promotionForm.sourceClassId} onChange={(event) => setPromotionForm((prev) => ({ ...prev, sourceClassId: event.target.value }))} style={fieldStyle()}>
-                  <option value="">Select source class</option>
+                  <option value="">{t("selectSourceClass", "Select source class")}</option>
                   {allClassOptions.map((cls) => <option key={`source-${cls.id}`} value={cls.id}>{cls.label}</option>)}
                 </select>
               </label>
               <label style={{ display: "grid", gap: 4 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Target</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("target", "Target")}</span>
                 <select value={promotionForm.targetClassId} onChange={(event) => setPromotionForm((prev) => ({ ...prev, targetClassId: event.target.value }))} style={fieldStyle()}>
-                  <option value="">Select target class</option>
+                  <option value="">{t("selectTargetClass", "Select target class")}</option>
                   {allClassOptions.filter((cls) => cls.id !== promotionForm.sourceClassId).map((cls) => <option key={`target-${cls.id}`} value={cls.id}>{cls.label}</option>)}
                 </select>
               </label>
               <button type="button" onClick={handlePromotion} disabled={promotionSaving} style={primaryButtonStyle()}>
-                {promotionSaving ? "Running..." : "Promote"}
+                {promotionSaving ? t("running", "Running...") : t("promote", "Promote")}
               </button>
             </div>
             {promotionError ? <div style={{ fontSize: 12, fontWeight: 600, color: "#b42318" }}>{promotionError}</div> : null}
@@ -744,14 +746,14 @@ export function StudentManagementPage({
                 onClick={() => { setQuery(""); setYearFilter(""); setFormFilter(""); setClassFilter(""); setLifecycleFilter(""); }}
                 style={{ background: "none", border: "none", fontSize: 12, color: "#3b82f6", cursor: "pointer", padding: 0 }}
               >
-                Clear
+                {t("clear", "Clear")}
               </button>
             )}
           </div>
           <div style={{ display: "flex", gap: 4 }}>
             {[
-              ["grouped", "Grouped"],
-              ["table", "Table"],
+              ["grouped", t("grouped", "Grouped")],
+              ["table", t("table", "Table")],
             ].map(([value, label]) => {
               const active = viewMode === value;
               return (
@@ -786,23 +788,23 @@ export function StudentManagementPage({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search name, admission no, CNO..."
+            placeholder={t("searchStudentRecords", "Search name, admission no, CNO...")}
             style={fieldStyle()}
           />
           <select value={yearFilter} onChange={(event) => setYearFilter(event.target.value)} style={fieldStyle()}>
-            <option value="">All Years</option>
+            <option value="">{t("allYears", "All Years")}</option>
             {yearOptions.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
           <select value={formFilter} onChange={(event) => setFormFilter(event.target.value)} style={fieldStyle()}>
-            <option value="">All Forms</option>
+            <option value="">{t("allForms", "All Forms")}</option>
             {formOptions.map((formOption) => <option key={formOption} value={formOption}>{formOption}</option>)}
           </select>
           <select value={classFilter} onChange={(event) => setClassFilter(event.target.value)} style={fieldStyle()}>
-            <option value="">All Classes</option>
+            <option value="">{t("allClasses", "All Classes")}</option>
             {classOptions.map((cls) => <option key={cls.id} value={cls.id}>{cls.label}</option>)}
           </select>
           <select value={lifecycleFilter} onChange={(event) => setLifecycleFilter(event.target.value)} style={fieldStyle()}>
-            <option value="">All Statuses</option>
+            <option value="">{t("allStatuses", "All Statuses")}</option>
             {ENROLLMENT_STATUS_OPTIONS.map((entry) => <option key={entry.value} value={entry.value}>{entry.label}</option>)}
           </select>
         </div>
@@ -819,7 +821,7 @@ export function StudentManagementPage({
             <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, minWidth: 1060 }}>
             <thead>
               <tr>
-                {["", "Student", "Admission No.", "Gender", "Class", "Status", "Attendance", "Actions"].map((label) => (
+                {["", t("students", "Student"), t("admissionNumber", "Admission Number"), t("gender", "Gender"), t("classLabel", "Class"), t("status", "Status"), t("attendance", "Attendance"), t("actions", "Actions")].map((label) => (
                   <th
                     key={label}
                     style={{
@@ -880,10 +882,10 @@ export function StudentManagementPage({
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontWeight: 600, color: "#0f172a", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.01em" }}>
-                          {student.name || "Unnamed Student"}
+                          {student.name || t("unnamedStudent", "Unnamed Student")}
                         </div>
                         <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
-                          {student.index_no || student.indexNo || "No CNO"}
+                          {student.index_no || student.indexNo || t("noCno", "No CNO")}
                         </div>
                       </div>
                     </div>
@@ -896,13 +898,13 @@ export function StudentManagementPage({
                       <span style={{ fontSize: 15, color: student.sex === "F" ? "#ec4899" : "#3b82f6" }}>
                         {student.sex === "F" ? "♀" : "♂"}
                       </span>
-                      <span>{student.sex === "F" ? "Female" : student.sex === "M" ? "Male" : "-"}</span>
+                      <span>{student.sex === "F" ? t("female", "Female") : student.sex === "M" ? t("male", "Male") : "-"}</span>
                     </div>
                   </td>
                   <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9", color: "#334155", fontSize: 13 }}>
                     <div style={{ fontWeight: 600 }}>{student.form || "-"}</div>
                     <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>
-                      {student.stream ? `Stream ${student.stream}` : "Unassigned"}
+                      {student.stream ? `${t("streamLabel", "Stream")} ${student.stream}` : t("unorganized", "Unorganized")}
                     </div>
                   </td>
                   <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9" }}>
@@ -914,7 +916,7 @@ export function StudentManagementPage({
                   <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9" }}>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 500, color: student.status === "absent" ? "#dc2626" : "#0d9488", whiteSpace: "nowrap" }}>
                       <span style={{ width: 7, height: 7, borderRadius: "50%", background: student.status === "absent" ? "#ef4444" : "#10b981" }} />
-                      {student.status === "absent" ? "Absent" : student.status === "incomplete" ? "Incomplete" : "Present"}
+                      {student.status === "absent" ? t("absent", "Absent") : student.status === "incomplete" ? t("incomplete", "Incomplete") : t("present", "Present")}
                     </span>
                   </td>
                   <td style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9" }}>
@@ -923,7 +925,7 @@ export function StudentManagementPage({
                         type="button"
                         onClick={() => openProfileForStudent(student)}
                         disabled={!hasId}
-                        title={hasId ? "Open academic profile" : "No admission number or CNO yet"}
+                        title={hasId ? t("openAcademicProfile", "Open academic profile") : t("noAdmissionNoOrCnoYet", "No admission number or CNO yet")}
                         style={{
                           display: "inline-flex", alignItems: "center", gap: 5,
                           padding: "5px 12px", fontSize: 12, fontWeight: 500,
@@ -932,7 +934,7 @@ export function StudentManagementPage({
                           opacity: hasId ? 1 : 0.45, whiteSpace: "nowrap",
                         }}
                       >
-                        <span style={{ fontSize: 13 }}>&#128100;</span> Profile
+                        <span style={{ fontSize: 13 }}>&#128100;</span> {t("studentProfile", "Profile")}
                       </button>
                       <button
                         type="button"
@@ -944,7 +946,7 @@ export function StudentManagementPage({
                           color: "#334155", cursor: "pointer", whiteSpace: "nowrap",
                         }}
                       >
-                        <span style={{ fontSize: 13 }}>&#9998;</span> Edit
+                        <span style={{ fontSize: 13 }}>&#9998;</span> {t("edit", "Edit")}
                       </button>
                       <button
                         type="button"
@@ -959,7 +961,7 @@ export function StudentManagementPage({
                           borderRadius: 6, border: "1px solid #e2e8f0", background: "#ffffff",
                           color: "#64748b", cursor: "pointer",
                         }}
-                        title="More actions"
+                        title={t("moreActions", "More actions")}
                       >
                         &#8942;
                       </button>
@@ -979,7 +981,7 @@ export function StudentManagementPage({
                       fontSize: 14,
                     }}
                   >
-                    No students match the current filters.
+                    {t("noStudentsMatch", "No students match the current filters.")}
                   </td>
                 </tr>
               ) : null}
@@ -1000,7 +1002,11 @@ export function StudentManagementPage({
               }}
             >
               <div>
-                Showing {filteredStudents.length ? (safePage - 1) * perPage + 1 : 0} to {Math.min(safePage * perPage, filteredStudents.length)} of {filteredStudents.length} students
+                {t("showingRangeStudents", "Showing {start} to {end} of {total} students", {
+                  start: filteredStudents.length ? (safePage - 1) * perPage + 1 : 0,
+                  end: Math.min(safePage * perPage, filteredStudents.length),
+                  total: filteredStudents.length,
+                })}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1} style={{ width: 32, height: 32, borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", color: safePage <= 1 ? "#cbd5e1" : "#334155", cursor: safePage <= 1 ? "default" : "pointer", fontSize: 14, display: "grid", placeItems: "center" }}>&lsaquo;</button>
@@ -1022,7 +1028,7 @@ export function StudentManagementPage({
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <select value={perPage} onChange={(event) => setPerPage(Number(event.target.value))} style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #e2e8f0", fontSize: 13, color: "#334155", background: "#fff", cursor: "pointer" }}>
-                  {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n} per page</option>)}
+                  {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{t("perPage", "{count} per page", { count: n })}</option>)}
                 </select>
               </div>
             </div>
@@ -1149,7 +1155,7 @@ export function StudentManagementPage({
                   fontSize: 14,
                 }}
               >
-                No students match the current filters.
+                {t("noStudentsMatch", "No students match the current filters.")}
               </div>
             ) : null}
           </div>
@@ -1185,31 +1191,31 @@ export function StudentManagementPage({
                   marginBottom: 10,
                 }}
               >
-                ← Back to Students
+                ← {t("backToStudents", "Back to Students")}
               </button>
               <div style={{ display: "inline-flex", ...pillStyle({ tone: modalMode === "edit" ? "blue" : "teal" }) }}>
-                {modalMode === "edit" ? "Update record" : "Create record"}
+                {modalMode === "edit" ? t("updateRecord", "Update record") : t("createRecord", "Create record")}
               </div>
               <div style={{ fontSize: 22, fontWeight: 600, color: "#0f172a", marginTop: 10 }}>
-                {modalMode === "edit" ? "Edit Student" : "Add Student"}
+                {modalMode === "edit" ? t("editStudent", "Edit Student") : t("addStudentTitle", "Add Student")}
               </div>
               <div style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>
                 {modalMode === "edit"
-                  ? "Update student profile information without changing the class-based entry page."
-                  : "Create a student record directly into the selected class."}
+                  ? t("editStudentIntro", "Update student profile information without changing the class-based entry page.")
+                  : t("addStudentIntro", "Create a student record directly into the selected class.")}
               </div>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: fieldGridColumns, gap: 12 }}>
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Class</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>{t("classLabel", "Class")}</span>
                 <select
                   value={form.classGroupKey}
                   onChange={(event) => updateClassGroup(event.target.value)}
                   disabled={modalMode === "edit"}
                   style={fieldStyle()}
                 >
-                  <option value="">Select form and year</option>
+                  <option value="">{t("selectFormYear", "Select form and year")}</option>
                   {classGroupOptions.map((cls) => (
                     <option key={cls.key} value={cls.key}>
                       {cls.label}
@@ -1219,13 +1225,13 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Stream</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>{t("streamLabel", "Stream")}</span>
                 <select
                   value={form.stream}
                   onChange={(event) => updateStream(event.target.value)}
                   style={fieldStyle()}
                 >
-                  <option value="">Select stream</option>
+                  <option value="">{t("selectStream", "Select stream")}</option>
                   {(availableStreams.length ? availableStreams : CLASS_STREAMS.map((stream) => ({ stream, classId: "" }))).map((entry) => (
                     <option key={entry.stream} value={entry.stream}>
                       {entry.stream}
@@ -1235,7 +1241,7 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Admission Number</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>{t("admissionNumber", "Admission Number")}</span>
                 <input
                   value={form.admission_no}
                   onChange={(event) => updateField("admission_no", event.target.value)}
@@ -1243,44 +1249,44 @@ export function StudentManagementPage({
                   style={fieldStyle()}
                 />
                 <span style={{ fontSize: 11, color: "#64748b" }}>
-                  Optional for now. If used, keep the permanent format `SCHOOLCODE-YEAR-SEQUENCE`.
+                  {t("optionalForNowAdmission", "Optional for now. If used, keep the permanent format SCHOOLCODE-YEAR-SEQUENCE.")}
                 </span>
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>CNO</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>{t("cnoLabel", "CNO")}</span>
                 <input
                   value={form.index_no}
                   onChange={(event) => updateField("index_no", event.target.value)}
-                  placeholder="Leave blank for auto-assignment"
+                  placeholder={t("leaveBlankAutoAssignment", "Leave blank for auto-assignment")}
                   style={fieldStyle()}
                 />
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Student Name</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>{t("studentName", "Student Name")}</span>
                 <input
                   value={form.name}
                   onChange={(event) => updateField("name", event.target.value)}
-                  placeholder="Full student name"
+                  placeholder={t("fullStudentName", "Full student name")}
                   style={fieldStyle()}
                 />
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Sex</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>{t("gender", "Gender")}</span>
                 <select
                   value={form.sex}
                   onChange={(event) => updateField("sex", event.target.value)}
                   style={fieldStyle()}
                 >
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
+                  <option value="M">{t("male", "Male")}</option>
+                  <option value="F">{t("female", "Female")}</option>
                 </select>
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Lifecycle Status</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>{t("lifecycleStatus", "Lifecycle Status")}</span>
                 <select
                   value={form.enrollmentStatus}
                   onChange={(event) => updateField("enrollmentStatus", event.target.value)}
@@ -1295,15 +1301,15 @@ export function StudentManagementPage({
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Record Status</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>{t("recordStatus", "Record Status")}</span>
                 <select
                   value={form.status}
                   onChange={(event) => updateField("status", event.target.value)}
                   style={fieldStyle()}
                 >
-                  <option value="present">Present</option>
-                  <option value="absent">Absent</option>
-                  <option value="incomplete">Incomplete</option>
+                  <option value="present">{t("present", "Present")}</option>
+                  <option value="absent">{t("absent", "Absent")}</option>
+                  <option value="incomplete">{t("incomplete", "Incomplete")}</option>
                 </select>
               </label>
 

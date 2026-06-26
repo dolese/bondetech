@@ -508,15 +508,15 @@ export function PeopleDirectoryPage({
                   setQuery(event.target.value);
                   setPage(1);
                 }}
-                placeholder="Search parent name, phone or student..."
+                placeholder={t("parentSearchPlaceholder", "Search parent name, phone or student...")}
                 disabled={isLoading}
               />
             </div>
             <div className="dir-parent-filters">
-              <div className="dir-parent-view-toggle" role="tablist" aria-label="Parent directory view">
+              <div className="dir-parent-view-toggle" role="tablist" aria-label={t("parentDirectoryView", "Parent directory view")}>
                 {[
-                  ["grouped", "Grouped"],
-                  ["table", "Table"],
+                  ["grouped", t("grouped", "Grouped")],
+                  ["table", t("table", "Table")],
                 ].map(([value, label]) => (
                   <button
                     key={value}
@@ -533,25 +533,25 @@ export function PeopleDirectoryPage({
                 ))}
               </div>
               <select className="dir-parent-select" value={formFilter} onChange={(event) => { setFormFilter(event.target.value); setPage(1); }} disabled={isLoading}>
-                <option value="all">All Forms</option>
+                <option value="all">{t("allForms", "All Forms")}</option>
                 {formOptions.map((form) => (
                   <option key={form} value={form}>{form}</option>
                 ))}
               </select>
               <select className="dir-parent-select" value={streamFilter} onChange={(event) => { setStreamFilter(event.target.value); setPage(1); }} disabled={isLoading}>
-                <option value="all">All Streams</option>
+                <option value="all">{t("allStreams", "All Streams")}</option>
                 {streamOptions.map((stream) => (
                   <option key={stream} value={stream}>{stream}</option>
                 ))}
               </select>
               <select className="dir-parent-select" value={relationshipFilter} onChange={(event) => { setRelationshipFilter(event.target.value); setPage(1); }} disabled={isLoading}>
-                <option value="all">All Relationships</option>
+                <option value="all">{t("allRelationships", "All Relationships")}</option>
                 {relationshipOptions.map((relationship) => (
                   <option key={relationship} value={relationship}>{relationship}</option>
                 ))}
               </select>
               <button type="button" className="dir-parent-filter-btn" onClick={resetFilters} disabled={isLoading}>
-                <FilterIcon /> Reset
+                <FilterIcon /> {t("resetFilters", "Reset")}
               </button>
             </div>
           </div>
@@ -559,8 +559,8 @@ export function PeopleDirectoryPage({
           <div className="dir-parent-table-card">
             <div className="dir-parent-table-header">
               <div className="dir-parent-table-title">
-                <h2>Parent Directory</h2>
-                <span>{filtered.length} parent{filtered.length === 1 ? "" : "s"}</span>
+                <h2>{t("parentDirectoryTitle", "Parent Directory")}</h2>
+                <span>{t("parentDirectoryCount", "{count} parent{suffix}", { count: filtered.length, suffix: filtered.length === 1 ? "" : "s" })}</span>
               </div>
               <div className="dir-parent-bulk-actions">
                 <button type="button" className="dir-parent-export-btn" onClick={() => exportParentCsv(filtered)}>
@@ -569,7 +569,7 @@ export function PeopleDirectoryPage({
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                   </svg>
-                  Export
+                  {t("parentDirectoryExport", "Export")}
                 </button>
                 <button type="button" className="dir-parent-sms-btn" onClick={() => {
                   const phones = filtered.map((entry) => entry.phone).filter(Boolean).join(", ");
@@ -587,7 +587,7 @@ export function PeopleDirectoryPage({
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M20.5 11.5a8.5 8.5 0 1 1-15.2 5.3L4 21l4.3-1.1a8.5 8.5 0 0 1 12.2-8.4z"></path>
                   </svg>
-                  WhatsApp
+                  {t("whatsapp", "WhatsApp")}
                 </button>
               </div>
             </div>
@@ -595,8 +595,8 @@ export function PeopleDirectoryPage({
             {isLoading ? (
               <div className="dir-empty-state">
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>Loading All Forms</div>
-                  <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>Parent records are refreshing from every class so the page no longer depends on the active form.</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>{t("parentDirectoryLoading", "Loading All Forms")}</div>
+                  <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>{t("parentDirectoryLoadingSub", "Parent records are refreshing from every class so the page no longer depends on the active form.")}</div>
                 </div>
               </div>
             ) : pageEntries.length ? (
@@ -609,7 +609,7 @@ export function PeopleDirectoryPage({
                           <div>
                             <div className="dir-parent-group-title">{group.label}</div>
                             <div className="dir-parent-group-meta">
-                              {group.records.length} parent{group.records.length === 1 ? "" : "s"} on this page
+                              {t("parentGroupMeta", "{count} parent{suffix} on this page", { count: group.records.length, suffix: group.records.length === 1 ? "" : "s" })}
                             </div>
                           </div>
                         </div>
@@ -637,12 +637,12 @@ export function PeopleDirectoryPage({
                       <thead>
                         <tr>
                           <th>#</th>
-                          <th>Parent / Guardian</th>
-                          <th>Phone</th>
-                          <th>Relationship</th>
-                          <th>Location</th>
-                          <th>Linked Students</th>
-                          <th>Actions</th>
+                          <th>{t("parentDirectory", "Parents / Guardians")}</th>
+                          <th>{t("phone", "Phone")}</th>
+                          <th>{t("relationship", "Relationship")}</th>
+                          <th>{t("location", "Location")}</th>
+                          <th>{t("linkedStudentsLabel", "Linked Students")}</th>
+                          <th>{t("actions", "Actions")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -655,6 +655,7 @@ export function PeopleDirectoryPage({
                             onOpenStudents={openStudents}
                             onEditEntry={openEdit}
                             onDeleteEntry={onDeleteEntry}
+                            t={t}
                           />
                         ))}
                       </tbody>
@@ -664,7 +665,11 @@ export function PeopleDirectoryPage({
 
                 <div className="dir-parent-pagination">
                   <div className="dir-parent-pagination-info">
-                    Showing {(safePage - 1) * perPage + 1} to {Math.min(safePage * perPage, filtered.length)} of {filtered.length} parents
+                    {t("showingRangeParents", "Showing {start} to {end} of {total} parents", {
+                      start: (safePage - 1) * perPage + 1,
+                      end: Math.min(safePage * perPage, filtered.length),
+                      total: filtered.length,
+                    })}
                   </div>
                   <div className="dir-parent-pagination-controls">
                     <button type="button" className="dir-parent-page-btn" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={safePage <= 1}>
@@ -685,7 +690,7 @@ export function PeopleDirectoryPage({
                     </button>
                     <select className="dir-parent-per-page" value={perPage} onChange={(event) => { setPerPage(Number(event.target.value)); setPage(1); }}>
                       {[10, 20, 30].map((value) => (
-                        <option key={value} value={value}>{value} / page</option>
+                        <option key={value} value={value}>{t("perPage", "{count} per page", { count: value })}</option>
                       ))}
                     </select>
                   </div>
@@ -695,8 +700,8 @@ export function PeopleDirectoryPage({
               <div className="dir-empty-state">
                 <EmptyIcon />
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>No Parents Found</div>
-                  <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>Try changing the search or filter values.</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: "#0f172a" }}>{t("noParentsFound", "No Parents Found")}</div>
+                  <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>{t("noParentsFoundSub", "Try changing the search or filter values.")}</div>
                 </div>
               </div>
             )}
@@ -709,13 +714,13 @@ export function PeopleDirectoryPage({
           <div className="dir-modal-card" onClick={(event) => event.stopPropagation()}>
             <div className="dir-modal-head">
               <div>
-                <div className="dir-modal-title">{studentsEntry.name || "Guardian"} Students</div>
+                <div className="dir-modal-title">{t("parentStudentsTitle", "{name} Students", { name: studentsEntry.name || t("guardian", "Guardian") })}</div>
                 <div className="dir-modal-subtitle">
-                  Linked students under this parent / guardian record.
+                  {t("parentStudentsSub", "Linked students under this parent / guardian record.")}
                 </div>
               </div>
               <button type="button" className="dir-action-btn" onClick={closeStudents}>
-                Close
+                {t("close", "Close")}
               </button>
             </div>
             <div className="dir-student-list" style={{ paddingTop: 0, borderTop: "none" }}>
@@ -740,7 +745,7 @@ export function PeopleDirectoryPage({
                         })
                       }
                     >
-                      Open Profile
+                      {t("openProfile", "Open Profile")}
                     </button>
                   ) : null}
                 </div>
@@ -755,52 +760,54 @@ export function PeopleDirectoryPage({
           <div className="dir-modal-card" onClick={(event) => event.stopPropagation()}>
             <div className="dir-modal-head">
               <div>
-                <div className="dir-modal-title">Edit Parent</div>
+                <div className="dir-modal-title">{t("editParentTitle", "Edit Parent")}</div>
                 <div className="dir-modal-subtitle">
-                  Update guardian details across {editingEntry.students?.length || 0} linked student
-                  {(editingEntry.students?.length || 0) === 1 ? "" : "s"}.
+                  {t("editParentSub", "Update guardian details across {count} linked student{suffix}.", {
+                    count: editingEntry.students?.length || 0,
+                    suffix: (editingEntry.students?.length || 0) === 1 ? "" : "s",
+                  })}
                 </div>
               </div>
               <button type="button" className="dir-action-btn" onClick={closeEdit}>
-                Close
+                {t("close", "Close")}
               </button>
             </div>
             <form onSubmit={submitEdit} className="dir-modal-form">
               <label className="dir-modal-field">
-                <span>Name</span>
+                <span>{t("nameLabel", "Name")}</span>
                 <input
                   value={editForm.name}
                   onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))}
                   className="dir-search-input"
-                  placeholder="Guardian name"
+                  placeholder={t("guardianName", "Guardian name")}
                 />
               </label>
               <label className="dir-modal-field">
-                <span>Phone</span>
+                <span>{t("phone", "Phone")}</span>
                 <input
                   value={editForm.phone}
                   onChange={(event) => setEditForm((current) => ({ ...current, phone: event.target.value }))}
                   className="dir-search-input"
-                  placeholder="Guardian phone"
+                  placeholder={t("guardianPhone", "Guardian phone")}
                 />
               </label>
               <label className="dir-modal-field">
-                <span>Address</span>
+                <span>{t("address", "Address")}</span>
                 <textarea
                   value={editForm.address}
                   onChange={(event) => setEditForm((current) => ({ ...current, address: event.target.value }))}
                   className="dir-search-input"
-                  placeholder="Address"
+                  placeholder={t("address", "Address")}
                   rows={3}
                   style={{ resize: "vertical", minHeight: 90 }}
                 />
               </label>
               <div className="dir-modal-actions">
                 <button type="button" className="dir-secondary-btn" onClick={closeEdit} disabled={saving}>
-                  Cancel
+                  {t("cancel", "Cancel")}
                 </button>
                 <button type="submit" className="dir-primary-btn" disabled={saving}>
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? t("saving", "Saving...") : t("saveChanges", "Save Changes")}
                 </button>
               </div>
             </form>

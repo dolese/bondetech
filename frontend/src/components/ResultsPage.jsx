@@ -223,7 +223,7 @@ export function ResultsPage({
               {activeClassData?.form || classData.form} {activeClassData?.year || classData.year}
             </div>
             <div style={{ marginTop: 4, fontSize: 13, color: "#607086" }}>
-              View form-wide analysis and official result sheets across all streams in one workspace.
+              {t("resultsWorkspaceIntro", "View form-wide analysis and official result sheets across all streams in one workspace.")}
             </div>
           </div>
           <div
