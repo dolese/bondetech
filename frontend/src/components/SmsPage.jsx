@@ -836,7 +836,7 @@ export function SmsPage({
         background: "#f8fafc",
       }}
     >
-      <div style={{ ...glassPanelStyle({ padding: 18, radius: 24 }), display: "grid", gap: 14 }}>
+      <div style={{ ...glassPanelStyle({ padding: 18, radius: 12 }), display: "grid", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div style={{ ...pillStyle({ tone: "blue" }), display: "inline-flex" }}>Communication</div>
@@ -845,7 +845,7 @@ export function SmsPage({
               Prepare shared guardian notices or generate personalized student result SMS automatically from the saved marks in the system.
             </div>
           </div>
-          <div style={{ ...softCardStyle({ padding: 12, radius: 18 }), minWidth: 240, display: "grid", gap: 6 }}>
+          <div style={{ ...softCardStyle({ padding: 12, radius: 12 }), minWidth: 240, display: "grid", gap: 6 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>Gateway status</div>
             <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
               {gatewayStatus.loading
@@ -877,7 +877,7 @@ export function SmsPage({
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
           {stats.map((item) => (
-            <div key={item.label} style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 4 }}>
+            <div key={item.label} style={{ ...softCardStyle({ padding: 14, radius: 12 }), display: "grid", gap: 4 }}>
               <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {item.label}
               </div>
@@ -888,7 +888,7 @@ export function SmsPage({
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
-        <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14, alignContent: "start" }}>
+        <div style={{ ...glassPanelStyle({ padding: 16, radius: 12 }), display: "grid", gap: 14, alignContent: "start" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
             <div style={{ fontSize: 16, fontWeight: 600, color: "#0f172a" }}>
               {mode === "results" ? "Results Targeting" : "Audience Targeting"}
@@ -1013,7 +1013,7 @@ export function SmsPage({
           )}
         </div>
 
-        <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
+        <div style={{ ...glassPanelStyle({ padding: 16, radius: 12 }), display: "grid", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
             <div style={{ fontSize: 16, fontWeight: 600, color: "#0f172a" }}>
               {mode === "results" ? "Results Message Preview" : "Message Composer"}
@@ -1129,7 +1129,7 @@ export function SmsPage({
           </div>
 
           {sendResult ? (
-            <div style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 8 }}>
+            <div style={{ ...softCardStyle({ padding: 14, radius: 12 }), display: "grid", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>Latest send summary</div>
                 <div style={{ ...pillStyle({ tone: sendResult.successful ? "teal" : "amber" }) }}>
@@ -1143,7 +1143,7 @@ export function SmsPage({
                   { label: "Invalid", value: sendResult.invalid ?? 0 },
                   { label: "Batches", value: sendResult.batchCount ?? 0 },
                 ].map((item) => (
-                  <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 14 }) }}>
+                  <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 12 }) }}>
                     <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.05em" }}>
                       {item.label}
                     </div>
@@ -1180,7 +1180,7 @@ export function SmsPage({
         </div>
       </div>
 
-      <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
+      <div style={{ ...glassPanelStyle({ padding: 16, radius: 12 }), display: "grid", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 600, color: "#0f172a" }}>Send History</div>
@@ -1214,7 +1214,7 @@ export function SmsPage({
         {visibleHistory.length === 0 ? (
           <div
             style={{
-              ...softCardStyle({ padding: 18, radius: 18 }),
+              ...softCardStyle({ padding: 18, radius: 12 }),
               textAlign: "center",
               fontSize: 13,
               color: "#64748b",
@@ -1225,7 +1225,7 @@ export function SmsPage({
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
             {visibleHistory.map((entry) => (
-              <div key={entry.id} style={{ ...softCardStyle({ padding: 14, radius: 18 }), display: "grid", gap: 10 }}>
+              <div key={entry.id} style={{ ...softCardStyle({ padding: 14, radius: 12 }), display: "grid", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div style={{ display: "grid", gap: 4 }}>
                     <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>
@@ -1260,7 +1260,7 @@ export function SmsPage({
                     { label: "Failed", value: entry.failed || 0 },
                     { label: "Pending", value: entry.pending || 0 },
                   ].map((item) => (
-                    <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 14 }) }}>
+                    <div key={item.label} style={{ ...softCardStyle({ padding: 12, radius: 12 }) }}>
                       <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.06em" }}>
                         {item.label}
                       </div>
@@ -1314,7 +1314,7 @@ export function SmsPage({
                 </div>
 
                 {entry.message_preview ? (
-                  <div style={{ ...softCardStyle({ padding: 12, radius: 14 }), fontSize: 12, color: "#334155", whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+                  <div style={{ ...softCardStyle({ padding: 12, radius: 12 }), fontSize: 12, color: "#334155", whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
                     {entry.message_preview}
                   </div>
                 ) : null}
@@ -1324,7 +1324,7 @@ export function SmsPage({
         )}
       </div>
 
-      <div style={{ ...glassPanelStyle({ padding: 16, radius: 24 }), display: "grid", gap: 14 }}>
+      <div style={{ ...glassPanelStyle({ padding: 16, radius: 12 }), display: "grid", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 600, color: "#0f172a" }}>
@@ -1344,7 +1344,7 @@ export function SmsPage({
         {recipients.length === 0 ? (
           <div
             style={{
-              ...softCardStyle({ padding: 20, radius: 18 }),
+              ...softCardStyle({ padding: 20, radius: 12 }),
               textAlign: "center",
               color: "#64748b",
               fontSize: 13,
