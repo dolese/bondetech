@@ -623,6 +623,9 @@
 
 .dir-parent-table-wrap {
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   border-top: 1px solid #e2e8f0;
   border-bottom: 1px solid #e2e8f0;
 }
