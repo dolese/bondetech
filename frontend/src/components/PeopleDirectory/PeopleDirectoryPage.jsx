@@ -433,7 +433,7 @@ export function PeopleDirectoryPage({
         </div>
       </div>
 
-      {!tableMode ? (
+      {!isParentDirectory ? (
         <>
           <div
             className="dir-stats-grid"
