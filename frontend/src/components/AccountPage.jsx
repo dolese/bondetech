@@ -6,6 +6,7 @@ import { useI18n } from "../i18n";
 import { normalizeTzPhoneDraft } from "../utils/phone";
 
 const MANAGEABLE_USER_ROLE_OPTIONS = USER_ROLE_OPTIONS.filter((option) => option.value !== "student");
+const DEFAULT_RESET_PASSWORD = "Bonde@2026";
 
 function generateTemporaryPassword() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#*!";
@@ -810,7 +811,7 @@ export function AccountPage({
   const handleResetManagedPassword = async (username) => {
     const payload = editingUsers[username];
     if (!payload) return;
-    const temporaryPassword = generateTemporaryPassword();
+    const temporaryPassword = DEFAULT_RESET_PASSWORD;
     const teacherAccess = normalizeTeacherAccessPayload(payload);
     const normalizedPayload = {
       ...payload,
@@ -833,7 +834,7 @@ export function AccountPage({
       }));
       setEditingUsername("");
       setActionMenuUser("");
-      setAdminMessage(`Password reset for ${username}. Temporary password: ${temporaryPassword}`);
+      setAdminMessage(`Password reset for ${username}. Default password: ${temporaryPassword}`);
     } catch (err) {
       setAdminError(err.message || `Unable to reset password for ${username}`);
     }
@@ -1174,7 +1175,7 @@ export function AccountPage({
           updateManagedField(username, "active", action === "activate");
         }
         if (action === "reset") {
-          const temporaryPassword = generateTemporaryPassword();
+          const temporaryPassword = DEFAULT_RESET_PASSWORD;
           await onUpdateUser?.(username, {
             ...payload,
             teacherRoles: teacherAccess.teacherRoles,
@@ -1828,7 +1829,7 @@ export function AccountPage({
                 )}
 
                 <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
-                  New and reset accounts now use generated temporary passwords and must change them on next sign-in.
+                  New accounts use generated temporary passwords. Admin password resets now use the default password `Bonde@2026`, and users must change it on next sign-in.
                 </div>
 
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
