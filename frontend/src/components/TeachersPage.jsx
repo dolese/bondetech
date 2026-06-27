@@ -9,6 +9,13 @@ function initialsOf(name = "") {
   return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
+function usernameLabel(username) {
+  const value = String(username || "").trim();
+  if (!value) return "-";
+  if (value.startsWith("@") || value.includes("@")) return value;
+  return `@${value}`;
+}
+
 function StatCard({ label, value, note }) {
   return (
     <div
@@ -93,7 +100,7 @@ function TeacherCard({ teacher, canManage, onManage }) {
           <div style={{ fontSize: 15, fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {teacher.name}
           </div>
-          <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>@{teacher.username || "—"}</div>
+          <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>{usernameLabel(teacher.username)}</div>
         </div>
       </div>
 

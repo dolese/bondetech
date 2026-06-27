@@ -50,6 +50,13 @@ function initialsFrom(user) {
   return source.map((part) => part[0]?.toUpperCase() || "").join("") || "?";
 }
 
+function usernameLabel(username) {
+  const value = String(username || "").trim();
+  if (!value) return "-";
+  if (value.startsWith("@") || value.includes("@")) return value;
+  return `@${value}`;
+}
+
 const ROLE_BADGE_COLORS = {
   admin:   { bg: "#ede9fe", color: "#6d28d9", border: "#c4b5fd" },
   academic:{ bg: "#dcfce7", color: "#166534", border: "#86efac" },
@@ -1281,7 +1288,7 @@ export function AccountPage({
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                 <RoleBadge role={user?.role} />
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
-                  @{user?.username || "-"}
+                  {usernameLabel(user?.username)}
                 </span>
                 {!isXs && user?.lastLoginAt && (
                   <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
@@ -1947,7 +1954,7 @@ export function AccountPage({
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 600, color: "#102a43" }}>
-                        Edit @{editingUsername}
+                        Edit {usernameLabel(editingUsername)}
                       </div>
                       <div style={{ fontSize: 12, color: "#64748b" }}>
                         Update identity, access role, and teaching responsibilities.
@@ -2183,7 +2190,7 @@ export function AccountPage({
                             {managedUser.displayName || managedUser.username}
                           </div>
                           <div style={{ fontSize: 12, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            @{managedUser.username}{managedUser.email ? ` • ${managedUser.email}` : ""}
+                            {usernameLabel(managedUser.username)}{managedUser.email ? ` • ${managedUser.email}` : ""}
                           </div>
                         </div>
                       </div>
