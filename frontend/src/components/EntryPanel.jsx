@@ -1091,7 +1091,8 @@ export function EntryPanel({
                 cursor: editingLocked ? "not-allowed" : "pointer",
                 fontWeight: 600,
                 height: 30,
-                flex: compactLayout ? 1 : "0 0 auto",
+                flex: compactLayout ? "1 1 0" : "0 0 auto",
+                minWidth: compactLayout ? 0 : undefined,
               }}
             >
               {bulkMode ? "Exit Bulk Mode" : "Bulk Scores"}
@@ -1102,10 +1103,30 @@ export function EntryPanel({
                 style={{
                   ...styles.actionBtn,
                   background: showInstructionPanel ? "#dc2626" : "#16a34a",
-                  flex: 1,
+                  flex: "0 1 88px",
+                  minWidth: 76,
+                  justifyContent: "center",
+                  textAlign: "center",
+                  padding: "6px 8px",
                 }}
               >
-                {showInstructionPanel ? "Hide Maagizo" : "Maagizo"}
+                {showInstructionPanel ? "Hide" : "Maagizo"}
+              </button>
+            )}
+            {compactLayout && (
+              <button
+                onClick={() => setSortAsc(!sortAsc)}
+                style={{
+                  ...styles.actionBtn,
+                  background: "#0f2d6e",
+                  flex: "0 1 70px",
+                  minWidth: 58,
+                  justifyContent: "center",
+                  textAlign: "center",
+                  padding: "6px 8px",
+                }}
+              >
+                {sortAsc ? "Asc" : "Desc"}
               </button>
             )}
             {onReorderStudentCnos && (
@@ -1371,11 +1392,32 @@ export function EntryPanel({
                   borderRadius: 5,
                   border: "1px solid #e2e8f0",
                   height: 30,
-                  flexShrink: 0,
+                  flex: compactLayout ? "1 1 30%" : "0 0 auto",
+                  minWidth: compactLayout ? 0 : undefined,
                   fontWeight: 600,
                 }}
               >
                 {formSelectorOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            )}
+            {hasStreamFilter && (
+              <select
+                value={streamFilter}
+                onChange={e => setStreamFilter(e.target.value)}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius: 5,
+                  border: "1px solid #e2e8f0",
+                  height: 30,
+                  flex: compactLayout ? "1 1 30%" : "0 0 auto",
+                  minWidth: compactLayout ? 0 : undefined,
+                }}
+              >
+                {availableStreamFilters.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -1390,7 +1432,8 @@ export function EntryPanel({
                 borderRadius: 5,
                 border: "1px solid #e2e8f0",
                 height: 30,
-                flexShrink: 0,
+                flex: compactLayout ? "1 1 30%" : "0 0 auto",
+                minWidth: compactLayout ? 0 : undefined,
               }}
             >
               <option value="index">Sort: CNO</option>
@@ -1398,25 +1441,6 @@ export function EntryPanel({
               <option value="total">Sort: Total</option>
               <option value="agrd">Sort: Grade</option>
             </select>
-            {hasStreamFilter && (
-              <select
-                value={streamFilter}
-                onChange={e => setStreamFilter(e.target.value)}
-                style={{
-                  padding: "6px 8px",
-                  borderRadius: 5,
-                  border: "1px solid #e2e8f0",
-                  height: 30,
-                  flexShrink: 0,
-                }}
-              >
-                {availableStreamFilters.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            )}
             <button
               onClick={() => setSortAsc(!sortAsc)}
               style={{
@@ -1429,6 +1453,8 @@ export function EntryPanel({
                 fontWeight: 600,
                 height: 30,
                 flexShrink: 0,
+                display: compactLayout ? "none" : "inline-flex",
+                alignItems: "center",
               }}
             >
               {sortAsc ? "Asc" : "Desc"}
