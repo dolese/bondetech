@@ -1059,7 +1059,7 @@ export function EntryPanel({
               Marks Entry
             </div>
             <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
-              {currentClassLabel || "Class"} &middot; Enter marks, manage roster, handle imports.
+              {currentClassLabel || "Class"} &middot; Enter marks, import scores, and review the roster.
             </div>
           </div>
 
@@ -1095,28 +1095,6 @@ export function EntryPanel({
               }}
             >
               {bulkMode ? "Exit Bulk Mode" : "Bulk Scores"}
-            </button>
-            <button
-              onClick={() => {
-                setAddingNew(!addingNew);
-                setDuplicateSaveConfirmed(false);
-                setErrors({});
-              }}
-              title="Add a new student"
-              disabled={editingLocked}
-              style={{
-                padding: "6px 12px",
-                background: editingLocked ? "#94a3b8" : "#16a34a",
-                color: "#fff",
-                border: "none",
-                borderRadius: 5,
-                cursor: editingLocked ? "not-allowed" : "pointer",
-                fontWeight: 600,
-                height: 30,
-                flex: compactLayout ? 1 : "0 0 auto",
-              }}
-            >
-              Add Student
             </button>
             {onReorderStudentCnos && (
               <div style={styles.dropdownWrap}>
@@ -1937,7 +1915,7 @@ export function EntryPanel({
             fontSize: 12,
           }}
         >
-          No students yet. Use "Import CSV" or click "Add Student" to add the first student.
+          No students yet. Import scores for existing students or add students from Student Records.
         </div>
       )}
 
