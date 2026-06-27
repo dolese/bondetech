@@ -1096,6 +1096,18 @@ export function EntryPanel({
             >
               {bulkMode ? "Exit Bulk Mode" : "Bulk Scores"}
             </button>
+            {compactLayout && (
+              <button
+                onClick={() => setShowInstructionPanel((prev) => !prev)}
+                style={{
+                  ...styles.actionBtn,
+                  background: showInstructionPanel ? "#dc2626" : "#16a34a",
+                  flex: 1,
+                }}
+              >
+                {showInstructionPanel ? "Hide Maagizo" : "Maagizo"}
+              </button>
+            )}
             {onReorderStudentCnos && (
               <div style={styles.dropdownWrap}>
                 <button
@@ -1134,17 +1146,19 @@ export function EntryPanel({
             )}
           </div>
 
-          <div style={{ display: "flex", justifyContent: compactLayout ? "flex-start" : "flex-end" }}>
-            <button
-              onClick={() => setShowInstructionPanel((prev) => !prev)}
-              style={{
-                ...styles.actionBtn,
-                background: showInstructionPanel ? "#dc2626" : "#16a34a",
-              }}
-            >
-              {showInstructionPanel ? "Hide Maagizo" : "Maagizo"}
-            </button>
-          </div>
+          {!compactLayout && (
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setShowInstructionPanel((prev) => !prev)}
+                style={{
+                  ...styles.actionBtn,
+                  background: showInstructionPanel ? "#dc2626" : "#16a34a",
+                }}
+              >
+                {showInstructionPanel ? "Hide Maagizo" : "Maagizo"}
+              </button>
+            </div>
+          )}
         </div>
 
         {editingLocked ? (

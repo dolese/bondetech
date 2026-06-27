@@ -909,7 +909,7 @@ export function ReportsPage({
                   <div key={student.id} style={{ border: "1px solid #f1f5f9", borderRadius: 8, padding: "8px 10px" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", minWidth: 20 }}>#{student.posn ?? index + 1}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", minWidth: 34 }}>No. {student.posn ?? index + 1}</span>
                         <span style={{ fontSize: 13, fontWeight: 500, color: "#0f172a" }}>{student.name}</span>
                       </div>
                       <button onClick={() => onOpenReportCard(student)} style={{ padding: "3px 10px", background: "#0f2d6e", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500 }}>
@@ -929,7 +929,7 @@ export function ReportsPage({
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead>
                     <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-                      {["#", "CNO", t("reportsName", "Name"), t("reportsSex", "Sex"), t("reportsTotal", "Total"), t("analysisAvg", "Avg"), t("reportsTemplate", "Template"), t("reportsReportCard", "Report Card")].map((label) => (
+                      {[t("reportsPosition", "Position"), "CNO", t("reportsName", "Name"), t("reportsSex", "Sex"), t("reportsTotal", "Total"), t("analysisAvg", "Avg"), t("reportsTemplate", "Template"), t("reportsReportCard", "Report Card")].map((label) => (
                         <th key={label} style={{ padding: "8px 10px", textAlign: "left", fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{label}</th>
                       ))}
                     </tr>
