@@ -519,7 +519,7 @@ export function EntryPanel({
     const rows = (computed ?? []).map((s) => {
       const scores = subjects.map((_, si) => currentExamExportValue(s.grades?.[si]));
       return [
-        s.index_no ?? "",
+        s.displayIndexNo || s.index_no || "",
         s.name ?? "",
         s.sex ?? "",
         ...scores,
@@ -564,7 +564,7 @@ export function EntryPanel({
         return Number.isFinite(numeric) ? numeric : value;
       });
       return [
-        s.index_no ?? "",
+        s.displayIndexNo || s.index_no || "",
         s.name ?? "",
         s.sex ?? "",
         ...scores,
