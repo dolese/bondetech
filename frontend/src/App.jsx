@@ -973,6 +973,7 @@ export default function App() {
     if (page === "content-management") return t("contentManagement", "Content Management");
     if (page === "reports") return t("reportCards", "Report Cards");
     if (page === "results") return t("resultSheets", "Result Sheets");
+    if (page === "students") return t("marksEntry", "Marks Entry");
     if (!activeClass) return "";
     const parts = [];
     if (activeClass.form) parts.push(activeClass.form);
@@ -1189,6 +1190,7 @@ export default function App() {
                 onUpdateSchool={role === "admin" ? onUpdateSchool : null}
                 activeExam={activeExam}
                 onChangeExam={onChangeExam}
+                onPickClass={(id) => { setActiveId(id); if (isMobile) setSideOpen(false); }}
               />
             ) : (
               noClassBlock

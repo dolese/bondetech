@@ -121,6 +121,9 @@ export function EntryPanel({
   onChangeExam,
   resultsLocked = false,
   streamFilterOptions = null,
+  formSelectorOptions = null,
+  currentForm = "",
+  onSelectForm,
 }) {
   const subjects = classData.subjects ?? [];
   const duplicateWarningMessage =
@@ -1361,11 +1364,32 @@ export function EntryPanel({
                 padding: "6px 8px",
                 borderRadius: 5,
                 border: "1px solid #e2e8f0",
-                flex: 1,
-                minWidth: compactLayout ? 0 : 150,
+                flex: compactLayout ? "1 1 100%" : 1,
+                minWidth: compactLayout ? "100%" : 150,
                 height: 30,
               }}
             />
+            {Array.isArray(formSelectorOptions) && formSelectorOptions.length > 1 && (
+              <select
+                value={currentForm}
+                onChange={e => onSelectForm?.(e.target.value)}
+                title="Switch form"
+                style={{
+                  padding: "6px 8px",
+                  borderRadius: 5,
+                  border: "1px solid #e2e8f0",
+                  height: 30,
+                  flexShrink: 0,
+                  fontWeight: 600,
+                }}
+              >
+                {formSelectorOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            )}
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}

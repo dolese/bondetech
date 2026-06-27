@@ -14,6 +14,7 @@ export function StudentsPage({
   onUpdateSchool,
   activeExam,
   onChangeExam,
+  onPickClass,
 }) {
   const formWorkspace = useMemo(
     () => buildFormWorkspace(classes, classData, activeExam),
@@ -35,6 +36,33 @@ export function StudentsPage({
       { value: "unassigned", label: "Unassigned" },
     ];
   }, [mergedClassData.students]);
+
+  // Form switcher so Marks Entry isn't tied to the sidebar's active form.
+  const formSelectorOptions = useMemo(() => {
+    const map = new Map();
+    classes.forEach((cls) => {
+      const form = String(cls.form || "").trim();
+      const year = String(cls.year || "").trim();
+      if (!form) return;
+      const key = `${form}|${year}`;
+      if (!map.has(key)) {
+        map.set(key, { value: key, label: [form, year].filter(Boolean).join(" "), classId: cls.id });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) =>
+      a.label.localeCompare(b.label, "en", { numeric: true }),
+    );
+  }, [classes]);
+
+  const currentForm = `${String(classData.form || "").trim()}|${String(classData.year || "").trim()}`;
+
+  const handleSelectForm = useCallback(
+    (key) => {
+      const option = formSelectorOptions.find((entry) => entry.value === key);
+      if (option?.classId) onPickClass?.(option.classId);
+    },
+    [formSelectorOptions, onPickClass],
+  );
 
   const handleShowModal = useCallback(
     (type, studentId = null) => {
@@ -98,6 +126,9 @@ export function StudentsPage({
       onChangeExam={onChangeExam}
       resultsLocked={classData.published}
       streamFilterOptions={streamFilterOptions}
+      formSelectorOptions={formSelectorOptions}
+      currentForm={currentForm}
+      onSelectForm={handleSelectForm}
     />
   );
 }
