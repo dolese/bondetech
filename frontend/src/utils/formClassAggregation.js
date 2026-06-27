@@ -107,7 +107,14 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
     const compositeEntry = getCompositeEntry(effectiveExam, cls.composite_config ?? {});
     const computedRows = (cls.students || []).map((student) => {
       const examScores = student.examScores ?? {};
-      const currentScores = Array.isArray(examScores[effectiveExam]) ? examScores[effectiveExam] : student.scores ?? [];
+      // Scores are strictly per-exam. Only the default exam may fall back to the
+      // legacy top-level `scores` (which mirrors the default exam); every other
+      // exam with no saved marks must read blank, never another exam's marks.
+      const currentScores = Array.isArray(examScores[effectiveExam])
+        ? examScores[effectiveExam]
+        : effectiveExam === DEFAULT_EXAM_TYPE
+        ? student.scores ?? []
+        : [];
       const partnerScores = compositeEntry
         ? Array.isArray(examScores[compositeEntry.partnerExam])
           ? examScores[compositeEntry.partnerExam]

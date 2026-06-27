@@ -258,6 +258,15 @@ export function EntryPanel({
     ));
   }, [effectiveExam]);
 
+  // Switching exams must not carry over a half-edited row from the previous
+  // exam. The table itself rebuilds from `computed` (scoped to the new exam);
+  // here we just drop any open inline edit so no stale marks linger.
+  useEffect(() => {
+    setEditId(null);
+    setEditData(null);
+    setErrors({});
+  }, [effectiveExam]);
+
   useEffect(() => {
     if (!bulkMode) return;
     const next = {};

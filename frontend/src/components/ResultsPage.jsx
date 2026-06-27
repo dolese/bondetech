@@ -5,6 +5,7 @@ import { useViewport } from "../utils/useViewport";
 import { useI18n } from "../i18n";
 import { glassPanelStyle, pillStyle } from "../utils/designSystem";
 import { buildFormWorkspace } from "../utils/formClassAggregation";
+import { DEFAULT_EXAM_TYPE, EXAM_TYPES } from "../utils/constants";
 
 const FORM_ORDER = ["Form I", "Form II", "Form III", "Form IV"];
 
@@ -64,6 +65,7 @@ export function ResultsPage({
   computed,
   allClasses = [],
   onOpenReportCard,
+  onChangeExam,
   onHydrateClasses,
 }) {
   const [tab, setTab] = useState("analysis");
@@ -174,6 +176,16 @@ export function ResultsPage({
       : { classData, computed };
   const activeClassData = activeWorkspace.classData || classData;
   const activeComputed = activeWorkspace.computed || computed;
+  const currentExam = classData?.school_info?.exam || DEFAULT_EXAM_TYPE;
+  const examOptions = useMemo(() => {
+    const set = new Set();
+    if (currentExam) set.add(currentExam);
+    EXAM_TYPES.forEach((entry) => set.add(entry.value));
+    (activeClassData?.students ?? []).forEach((student) => {
+      Object.keys(student.examScores ?? {}).forEach((exam) => exam && set.add(exam));
+    });
+    return Array.from(set);
+  }, [activeClassData, currentExam]);
   const streamCount = selectedFormClasses.length || 1;
   const totalStudents = activeClassData?.students?.length ?? activeComputed?.length ?? 0;
 
@@ -270,6 +282,31 @@ export function ResultsPage({
                     <option key={form} value={form}>
                       {[form, targetYear].filter(Boolean).join(" ")}
                     </option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: "grid", gap: 5 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#475569", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  {t("resultsExam", "Exam")}
+                </span>
+                <select
+                  value={currentExam}
+                  onChange={(event) => onChangeExam?.(event.target.value)}
+                  disabled={!onChangeExam}
+                  style={{
+                    minHeight: 42,
+                    borderRadius: 14,
+                    border: "1px solid rgba(148,163,184,0.28)",
+                    background: "rgba(255,255,255,0.92)",
+                    padding: "0 14px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    outline: "none",
+                  }}
+                >
+                  {examOptions.map((exam) => (
+                    <option key={exam} value={exam}>{exam}</option>
                   ))}
                 </select>
               </label>

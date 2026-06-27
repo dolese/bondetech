@@ -112,6 +112,7 @@ export function ReportsPage({
   allClasses = [],
   onOpenReportCard,
   onSelectClass,
+  onChangeExam,
   onHydrateClasses,
 }) {
   const { isMobile, isTablet } = useViewport();
@@ -750,6 +751,19 @@ export function ReportsPage({
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 8 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4, display: "block" }}>
+                {t("reportsExam", "Exam")}
+              </label>
+              <select
+                value={classData.school_info?.exam || DEFAULT_EXAM_TYPE}
+                onChange={(e) => onChangeExam?.(e.target.value)}
+                style={selectStyle}
+                disabled={!onChangeExam}
+              >
+                {examOptions.map((exam) => <option key={exam} value={exam}>{exam}</option>)}
+              </select>
+            </div>
             <div>
               <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4, display: "block" }}>
                 {t("reportsTemplate", "Template")}

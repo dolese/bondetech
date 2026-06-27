@@ -1331,6 +1331,7 @@ export default function App() {
                 computed={activeFormWorkspace.computed}
                 allClasses={visibleClasses}
                 onOpenReportCard={onOpenReportCard}
+                onChangeExam={onChangeExam}
                 onHydrateClasses={refreshClassesWithStudents}
               />
             ) : (
@@ -1361,6 +1362,7 @@ export default function App() {
                 computed={activeFormWorkspace.computed}
                 allClasses={visibleClasses}
                 onOpenReportCard={onOpenReportCard}
+                onChangeExam={onChangeExam}
                 onSelectClass={(id, exam) => {
                   setActiveId(id);
                   setActiveExam(exam || DEFAULT_EXAM_TYPE);
