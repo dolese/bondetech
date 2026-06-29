@@ -47,6 +47,8 @@ function buildFormsPayload(classes, unassigned, year) {
         active: activeStreams.length > 0,
         streamCount: currentStreams.length,
         totalStudents: activeStreams.reduce((sum, stream) => sum + Number(stream.studentCount || 0), 0),
+        maleCount: activeStreams.reduce((sum, stream) => sum + Number(stream.maleCount || 0), 0),
+        femaleCount: activeStreams.reduce((sum, stream) => sum + Number(stream.femaleCount || 0), 0),
         archivedCount: archivedStreams.length,
         archivedStudentCount: archivedStreams.reduce((sum, stream) => sum + Number(stream.studentCount || 0), 0),
         invalidStreamCount: currentStreams.filter((stream) => !/^[A-Z]$/.test(String(stream.stream || ""))).length,
@@ -56,6 +58,24 @@ function buildFormsPayload(classes, unassigned, year) {
     }),
     unassigned,
   };
+}
+
+async function attachGenderCounts(db, classes) {
+  const countsByClass = await Promise.all(
+    classes.map(async (cls) => {
+      const snapshot = await db.collection("classes").doc(cls.id).collection("students").get();
+      let maleCount = 0;
+      let femaleCount = 0;
+      snapshot.docs.forEach((doc) => {
+        const sex = String(doc.data().sex || "").trim().toUpperCase();
+        if (sex === "F" || sex.startsWith("FEMALE")) femaleCount += 1;
+        else if (sex === "M" || sex.startsWith("MALE")) maleCount += 1;
+      });
+      return [cls.id, { maleCount, femaleCount }];
+    }),
+  );
+  const countMap = new Map(countsByClass);
+  return classes.map((cls) => ({ ...cls, ...(countMap.get(cls.id) || { maleCount: 0, femaleCount: 0 }) }));
 }
 
 router.get("/", async (req, res) => {
@@ -70,7 +90,8 @@ router.get("/", async (req, res) => {
       canManageStudents(req.authUser.role) ? listUnassignedStudents(getDb(), { year, form }) : [],
     ]);
     const classes = allClasses.filter((cls) => cls.year === year && (!form || cls.form === form));
-    return res.json(buildFormsPayload(classes, unassigned, year));
+    const classesWithGenderCounts = await attachGenderCounts(getDb(), classes);
+    return res.json(buildFormsPayload(classesWithGenderCounts, unassigned, year));
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

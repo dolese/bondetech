@@ -115,10 +115,28 @@ function EmptyState({ title, body, action = null }) {
   );
 }
 
+function getFormGenderCounts(item = {}) {
+  const streamCounts = (item.streams || []).reduce(
+    (counts, stream) => {
+      if (stream.archived || stream.streamStatus === "inactive") return counts;
+      return {
+        female: counts.female + Number(stream.femaleCount || 0),
+        male: counts.male + Number(stream.maleCount || 0),
+      };
+    },
+    { female: 0, male: 0 },
+  );
+  return {
+    female: Number(item.femaleCount ?? streamCounts.female ?? 0),
+    male: Number(item.maleCount ?? streamCounts.male ?? 0),
+  };
+}
+
 function FormCard({ item, selected, onSelect }) {
   const streamCount = Number(item?.streamCount || 0);
   const students = Number(item?.totalStudents || 0);
   const unassigned = Number(item?.unassignedCount || 0);
+  const genderCounts = getFormGenderCounts(item);
   return (
     <button
       type="button"
@@ -147,6 +165,9 @@ function FormCard({ item, selected, onSelect }) {
         <div>
           <div style={{ fontSize: 20, fontWeight: 600 }}>{students}</div>
           <div style={{ fontSize: 11, opacity: 0.7, fontWeight: 500 }}>Students</div>
+          <div style={{ marginTop: 3, fontSize: 10, opacity: 0.78, fontWeight: 650, whiteSpace: "nowrap" }}>
+            F {genderCounts.female} · M {genderCounts.male}
+          </div>
         </div>
       </div>
       <div style={{ marginTop: 13, fontSize: 12, fontWeight: 500, opacity: 0.82 }}>
@@ -335,6 +356,7 @@ export function FormsStreamsPage({
 
   const formItems = useMemo(() => CLASS_FORMS.map((form) => overview.forms.find((item) => item.form === form) || { form, active: false, streamCount: 0, totalStudents: 0, unassignedCount: 0, streams: [] }), [overview.forms]);
   const selectedFormItem = formItems.find((item) => item.form === selectedForm) || formItems[0];
+  const selectedFormGenderCounts = getFormGenderCounts(selectedFormItem);
   const streams = useMemo(() => [...(selectedFormItem?.streams || [])].sort((a, b) => String(a.stream).localeCompare(String(b.stream))), [selectedFormItem]);
   const currentStreams = useMemo(() => streams.filter((stream) => !stream.archived), [streams]);
   const archivedStreams = useMemo(() => streams.filter((stream) => stream.archived), [streams]);
@@ -474,7 +496,7 @@ export function FormsStreamsPage({
         )}
 
         <section style={{ border: `1px solid ${palette.line}`, borderRadius: 16, background: "#fff", padding: isMobile ? 16 : 22, boxShadow: "0 1px 2px rgba(16,24,40,0.05), 0 6px 20px rgba(16,24,40,0.04)", display: "grid", gap: 17 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}><div><span style={badge(selectedFormItem?.active ? "Active form" : "Inactive form", selectedFormItem?.active ? "green" : "slate")}>{selectedFormItem?.active ? "Active form" : "Inactive form"}</span><h2 style={{ margin: "9px 0 0", fontFamily: displayFontStack, fontSize: 27, fontWeight: 650, color: palette.ink }}>{selectedForm} streams</h2><div style={{ marginTop: 4, fontSize: 12, color: palette.muted }}>{selectedFormItem?.streamCount || 0} streams | {selectedFormItem?.totalStudents || 0} students</div></div>{canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>+ Add Stream</button> : null}</div>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}><div><span style={badge(selectedFormItem?.active ? "Active form" : "Inactive form", selectedFormItem?.active ? "green" : "slate")}>{selectedFormItem?.active ? "Active form" : "Inactive form"}</span><h2 style={{ margin: "9px 0 0", fontFamily: displayFontStack, fontSize: 27, fontWeight: 650, color: palette.ink }}>{selectedForm} streams</h2><div style={{ marginTop: 4, fontSize: 12, color: palette.muted }}>{selectedFormItem?.streamCount || 0} streams | {selectedFormItem?.totalStudents || 0} students | F {selectedFormGenderCounts.female} | M {selectedFormGenderCounts.male}</div></div>{canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>+ Add Stream</button> : null}</div>
           {Number(selectedFormItem?.invalidStreamCount || 0) ? <div style={{ border: "1px solid #f0c36a", borderRadius: 14, padding: "11px 13px", background: palette.amberSoft, color: "#7a4610", fontSize: 12, lineHeight: 1.55 }}><strong>{selectedFormItem.invalidStreamCount} current class needs a stream letter.</strong> Edit the Unlabelled card and assign A-Z before using it as an assignment target.</div> : null}
           {loading ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}><Skeleton height={250} /><Skeleton height={250} /></div> : currentStreams.length ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{currentStreams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} isMobile={isMobile} onOpen={onNavigateToClass} onEdit={openEdit} onToggleStatus={toggleStreamStatus} onDelete={deleteStream} onDeleteLegacy={deleteLegacyStream} />)}</div> : <EmptyState title={`No streams in ${selectedForm}`} body="Create the first stream and define its capacity before assigning students." action={canCreateClasses ? <button type="button" onClick={openCreate} style={buttonStyle({ primary: true })}>Add first stream</button> : null} />}
           {archivedStreams.length ? <details style={{ borderTop: `1px solid ${palette.line}`, paddingTop: 14 }}><summary style={{ cursor: "pointer", color: palette.muted, fontSize: 12, fontWeight: 800 }}>Legacy archived records ({archivedStreams.length})</summary><div style={{ marginTop: 6, fontSize: 12, color: palette.muted, lineHeight: 1.55 }}>These are old history-only records from the previous archive workflow. New stream actions now use permanent delete for empty streams and do not create new archived duplicates.</div><div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(215px,1fr))", gap: 12 }}>{archivedStreams.map((stream) => <StreamCard key={stream.id} stream={stream} canManage={canCreateClasses} isMobile={isMobile} onOpen={onNavigateToClass} onEdit={openEdit} onToggleStatus={toggleStreamStatus} onDelete={deleteStream} onDeleteLegacy={deleteLegacyStream} />)}</div></details> : null}
