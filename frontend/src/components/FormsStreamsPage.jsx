@@ -132,6 +132,67 @@ function getFormGenderCounts(item = {}) {
   };
 }
 
+async function enrichOverviewWithGenderCounts(data) {
+  const forms = Array.isArray(data.forms) ? data.forms : [];
+  const activeStreams = forms
+    .flatMap((item) => (item.streams || []))
+    .filter((stream) => stream?.id && !stream.archived && stream.streamStatus !== "inactive");
+
+  const needsClientCounts = activeStreams.some(
+    (stream) =>
+      Number(stream.studentCount || 0) > 0 &&
+      Number(stream.femaleCount || 0) + Number(stream.maleCount || 0) === 0,
+  );
+  if (!needsClientCounts) {
+    return {
+      forms,
+      unassigned: Array.isArray(data.unassigned) ? data.unassigned : [],
+    };
+  }
+
+  const loaded = await Promise.all(
+    activeStreams.map(async (stream) => {
+      try {
+        const cls = await API.getClass(stream.id);
+        const students = Array.isArray(cls.students) ? cls.students : [];
+        return [
+          stream.id,
+          students.reduce(
+            (counts, student) => {
+              const sex = String(student.sex || "").trim().toUpperCase();
+              if (sex === "F" || sex.startsWith("FEMALE")) counts.female += 1;
+              else if (sex === "M" || sex.startsWith("MALE")) counts.male += 1;
+              return counts;
+            },
+            { female: 0, male: 0 },
+          ),
+        ];
+      } catch {
+        return [stream.id, { female: Number(stream.femaleCount || 0), male: Number(stream.maleCount || 0) }];
+      }
+    }),
+  );
+  const countsByStream = new Map(loaded);
+  const enrichedForms = forms.map((item) => {
+    const streams = (item.streams || []).map((stream) => {
+      const counts = countsByStream.get(stream.id);
+      return counts ? { ...stream, femaleCount: counts.female, maleCount: counts.male } : stream;
+    });
+    const active = streams.filter((stream) => !stream.archived && stream.streamStatus !== "inactive");
+    return {
+      ...item,
+      streams,
+      femaleCount: active.reduce((sum, stream) => sum + Number(stream.femaleCount || 0), 0),
+      maleCount: active.reduce((sum, stream) => sum + Number(stream.maleCount || 0), 0),
+    };
+  });
+
+  return {
+    forms: enrichedForms,
+    unassigned: Array.isArray(data.unassigned) ? data.unassigned : [],
+  };
+}
+
 function FormCard({ item, selected, onSelect }) {
   const streamCount = Number(item?.streamCount || 0);
   const students = Number(item?.totalStudents || 0);
@@ -344,7 +405,7 @@ export function FormsStreamsPage({
     setLoading(true);
     try {
       const data = await API.getFormsStreams({ year: selectedYear });
-      setOverview({ forms: Array.isArray(data.forms) ? data.forms : [], unassigned: Array.isArray(data.unassigned) ? data.unassigned : [] });
+      setOverview(await enrichOverviewWithGenderCounts(data));
     } catch (err) {
       showToast?.(err.message || "Unable to load forms and streams", "error");
     } finally {
