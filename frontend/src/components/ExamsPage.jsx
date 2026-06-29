@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CLASS_FORMS } from "../hooks/useClasses";
 import { displayFontStack, premiumFontStack, fieldStyle } from "../utils/designSystem";
-import { EXAM_TYPES, getMonthlyExamKey } from "../utils/constants";
+import { COMPOSITE_EXAM_CONFIG, EXAM_TYPES, MONTHS, getMonthlyExamKey } from "../utils/constants";
 import { useViewport } from "../utils/useViewport";
 
 const EXAM_META = {
@@ -213,11 +213,208 @@ function ClassRow({ cls, canManage, baseExamOptions, onChangeExam, onNavigate })
   );
 }
 
+function ClassExamConfigPanel({
+  classes,
+  selectedClassId,
+  onSelectClass,
+  canManage,
+  onUpdateClassMonthlyExams,
+  onUpdateClassCompositeConfig,
+  isMobile,
+}) {
+  const selectedClass = classes.find((cls) => cls.id === selectedClassId) || classes[0] || null;
+  const monthlyExams = Array.isArray(selectedClass?.monthly_exams) ? selectedClass.monthly_exams : [];
+  const subjects = Array.isArray(selectedClass?.subjects) ? selectedClass.subjects : [];
+  const [compositeDraft, setCompositeDraft] = useState(selectedClass?.composite_config || {});
+  const [monthlyBusy, setMonthlyBusy] = useState(false);
+  const [compositeBusy, setCompositeBusy] = useState(false);
+  const locked = Boolean(selectedClass?.published);
+
+  useEffect(() => {
+    setCompositeDraft(selectedClass?.composite_config || {});
+  }, [selectedClass?.id, selectedClass?.composite_config]);
+
+  if (!selectedClass) return null;
+
+  const updateMonthly = async (month) => {
+    if (!canManage || locked || monthlyBusy) return;
+    const next = monthlyExams.includes(month)
+      ? monthlyExams.filter((entry) => entry !== month)
+      : [...monthlyExams, month];
+    setMonthlyBusy(true);
+    try {
+      await onUpdateClassMonthlyExams?.(selectedClass.id, MONTHS.filter((entry) => next.includes(entry)));
+    } finally {
+      setMonthlyBusy(false);
+    }
+  };
+
+  const updateCompositePartner = (examKey, partnerExam) => {
+    setCompositeDraft((current) => ({
+      ...current,
+      [examKey]: {
+        ...(current[examKey] || {}),
+        partnerExam,
+      },
+    }));
+  };
+
+  const toggleExcludedSubject = (examKey, subject) => {
+    setCompositeDraft((current) => {
+      const entry = current[examKey] || {};
+      const currentExcluded = Array.isArray(entry.excludedSubjects)
+        ? entry.excludedSubjects
+        : COMPOSITE_EXAM_CONFIG[examKey]?.excludedSubjects || [];
+      const nextExcluded = currentExcluded.includes(subject)
+        ? currentExcluded.filter((item) => item !== subject)
+        : [...currentExcluded, subject];
+      return {
+        ...current,
+        [examKey]: {
+          ...entry,
+          partnerExam: entry.partnerExam || COMPOSITE_EXAM_CONFIG[examKey]?.partnerExam || "",
+          excludedSubjects: nextExcluded,
+        },
+      };
+    });
+  };
+
+  const saveComposite = async () => {
+    if (!canManage || locked || compositeBusy) return;
+    setCompositeBusy(true);
+    try {
+      await onUpdateClassCompositeConfig?.(selectedClass.id, compositeDraft);
+    } finally {
+      setCompositeBusy(false);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, background: "#fff", padding: isMobile ? 14 : 18, display: "grid", gap: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            Exam configuration
+          </div>
+          <h2 style={{ margin: "5px 0 0", fontFamily: displayFontStack, fontSize: 22, fontWeight: 500, color: "#0f172a" }}>
+            Monthly Exams & Composite Exams
+          </h2>
+          <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>
+            Configure exam availability and combination rules here. Marks Entry should only enter scores.
+          </p>
+        </div>
+        <select value={selectedClass.id} onChange={(event) => onSelectClass(event.target.value)} style={{ ...fieldStyle(), minWidth: isMobile ? "100%" : 220 }}>
+          {classes.map((cls) => (
+            <option key={cls.id} value={cls.id}>
+              {getClassLabel(cls)}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {locked ? (
+        <div style={{ border: "1px solid #facc15", background: "#fefce8", color: "#854d0e", borderRadius: 10, padding: "9px 11px", fontSize: 12, fontWeight: 600 }}>
+          This class is published. Unpublish it before changing monthly exams or composite rules.
+        </div>
+      ) : null}
+
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(260px,0.8fr) minmax(360px,1.2fr)", gap: 14 }}>
+        <section style={{ border: "1px solid #edf2f7", borderRadius: 12, padding: 14, display: "grid", gap: 12 }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 15, color: "#0f172a" }}>Monthly Exams</h3>
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>
+              Enabled months appear in the exam picker.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+            {MONTHS.map((month) => {
+              const active = monthlyExams.includes(month);
+              return (
+                <button
+                  key={month}
+                  type="button"
+                  onClick={() => updateMonthly(month)}
+                  disabled={!canManage || locked || monthlyBusy}
+                  style={{
+                    border: active ? "1px solid #1a5276" : "1px solid #e2e8f0",
+                    borderRadius: 999,
+                    padding: "6px 10px",
+                    background: active ? "#eaf4fb" : "#fff",
+                    color: active ? "#1a5276" : "#475569",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: !canManage || locked || monthlyBusy ? "not-allowed" : "pointer",
+                    opacity: monthlyBusy ? 0.65 : 1,
+                  }}
+                >
+                  {month.slice(0, 3)}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 11, color: "#64748b" }}>
+            {monthlyExams.length ? `${monthlyExams.length} enabled: ${monthlyExams.join(", ")}` : "No monthly exams enabled."}
+          </div>
+        </section>
+
+        <section style={{ border: "1px solid #edf2f7", borderRadius: 12, padding: 14, display: "grid", gap: 12 }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 15, color: "#0f172a" }}>Composite Exams</h3>
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>
+              Choose partner exams and subjects excluded from divide-by-2.
+            </p>
+          </div>
+          {Object.keys(COMPOSITE_EXAM_CONFIG).map((examKey) => {
+            const defaultConfig = COMPOSITE_EXAM_CONFIG[examKey];
+            const draft = compositeDraft[examKey] || {};
+            const partnerExam = draft.partnerExam || defaultConfig.partnerExam;
+            const excluded = Array.isArray(draft.excludedSubjects) ? draft.excludedSubjects : defaultConfig.excludedSubjects || [];
+            return (
+              <div key={examKey} style={{ border: "1px solid #f1f5f9", borderRadius: 10, padding: 10, display: "grid", gap: 9 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <strong style={{ minWidth: 112, fontSize: 12, color: "#0f2d6e" }}>{examKey}</strong>
+                  <span style={{ fontSize: 11, color: "#64748b" }}>Partner</span>
+                  <select
+                    value={partnerExam}
+                    onChange={(event) => updateCompositePartner(examKey, event.target.value)}
+                    disabled={!canManage || locked}
+                    style={{ ...fieldStyle(), width: isMobile ? "100%" : 190, padding: "6px 8px", fontSize: 12 }}
+                  >
+                    {EXAM_TYPES.map((exam) => <option key={exam.value} value={exam.value}>{exam.label}</option>)}
+                  </select>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {subjects.map((subject) => {
+                    const checked = excluded.includes(subject);
+                    return (
+                      <label key={`${examKey}-${subject}`} style={{ display: "inline-flex", alignItems: "center", gap: 5, border: checked ? "1px solid #0b6b3a" : "1px solid #e2e8f0", borderRadius: 999, padding: "4px 8px", background: checked ? "#eaf7ef" : "#fff", fontSize: 10, fontWeight: 700, color: checked ? "#0b6b3a" : "#475569" }}>
+                        <input type="checkbox" checked={checked} disabled={!canManage || locked} onChange={() => toggleExcludedSubject(examKey, subject)} />
+                        {subject}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button type="button" onClick={saveComposite} disabled={!canManage || locked || compositeBusy} style={{ border: "none", borderRadius: 8, padding: "8px 14px", background: !canManage || locked || compositeBusy ? "#94a3b8" : "#0f2d6e", color: "#fff", fontSize: 12, fontWeight: 700, cursor: !canManage || locked || compositeBusy ? "not-allowed" : "pointer" }}>
+              {compositeBusy ? "Saving..." : "Save composite rules"}
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
 export function ExamsPage({
   classes = [],
   canManage = false,
   onApplyExamMaster,
   onChangeClassExam,
+  onUpdateClassMonthlyExams,
+  onUpdateClassCompositeConfig,
   onNavigateToClass,
 }) {
   const { isMobile, isXs } = useViewport();
@@ -227,8 +424,16 @@ export function ExamsPage({
   const [masterExam, setMasterExam] = useState(EXAM_TYPES[0]?.value || "");
   const [applyScope, setApplyScope] = useState("all");
   const [selectedClassIds, setSelectedClassIds] = useState([]);
+  const [selectedConfigClassId, setSelectedConfigClassId] = useState("");
   const [masterBusy, setMasterBusy] = useState(false);
   const [actionError, setActionError] = useState("");
+
+  useEffect(() => {
+    if (!classes.length) return;
+    if (!selectedConfigClassId || !classes.some((cls) => cls.id === selectedConfigClassId)) {
+      setSelectedConfigClassId(classes[0].id);
+    }
+  }, [classes, selectedConfigClassId]);
 
   const years = useMemo(() => {
     const values = new Set(classes.map((cls) => cls.year).filter(Boolean));
@@ -366,6 +571,18 @@ export function ExamsPage({
           ))}
         </div>
 
+        {canManage && classes.length ? (
+          <ClassExamConfigPanel
+            classes={classes}
+            selectedClassId={selectedConfigClassId}
+            onSelectClass={setSelectedConfigClassId}
+            canManage={canManage}
+            onUpdateClassMonthlyExams={onUpdateClassMonthlyExams}
+            onUpdateClassCompositeConfig={onUpdateClassCompositeConfig}
+            isMobile={isMobile}
+          />
+        ) : null}
+
         {canManage ? (
           <details style={{ border: "1px solid #e2e8f0", borderRadius: 12, background: "#fff", padding: isMobile ? "14px" : "16px 18px" }}>
             <summary style={{ cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#0f172a", userSelect: "none" }}>
@@ -480,7 +697,7 @@ export function ExamsPage({
 
         {canManage ? (
           <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>
-            Bulk updates skip published classes automatically. Use Settings to manage monthly exam availability.
+            Bulk updates skip published classes automatically. Monthly and composite exam setup is managed here.
           </p>
         ) : null}
       </div>

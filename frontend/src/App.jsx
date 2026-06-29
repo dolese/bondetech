@@ -497,6 +497,8 @@ export default function App() {
     onLoadAuditLog,
     onChangeExam,
     onUpdateCompositeConfig,
+    onUpdateClassMonthlyExams,
+    onUpdateClassCompositeConfig,
     onUpdateTimetable,
     onApplyExamMaster,
     reloadClasses,
@@ -1265,6 +1267,8 @@ export default function App() {
                 await saveExamForClass(cls, exam);
                 if (cls.id === activeId) setActiveExam(exam);
               }}
+              onUpdateClassMonthlyExams={onUpdateClassMonthlyExams}
+              onUpdateClassCompositeConfig={onUpdateClassCompositeConfig}
               onNavigateToClass={(classId) => {
                 setActiveId(classId);
                 setPage("students");

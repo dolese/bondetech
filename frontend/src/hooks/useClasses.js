@@ -816,6 +816,17 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, refreshClass, showToast]);
 
+  const onUpdateClassMonthlyExams = useCallback(async (classId, monthlyExams) => {
+    const targetId = String(classId || "").trim();
+    if (!targetId) return;
+    await API.updateClass(targetId, { monthlyExams });
+    setClasses((prev) =>
+      prev.map((cls) => (cls.id === targetId ? { ...cls, monthly_exams: monthlyExams } : cls))
+    );
+    await refreshClass(targetId);
+    showToast?.("Monthly exams updated");
+  }, [refreshClass, showToast]);
+
   const onUpdateClassMeta = useCallback(async ({ year, form, stream, name }) => {
     if (!activeClass) return;
     try {
@@ -1076,6 +1087,19 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, refreshClass, showToast]);
 
+  const onUpdateClassCompositeConfig = useCallback(async (classId, compositeConfig) => {
+    const targetId = String(classId || "").trim();
+    if (!targetId) return;
+    await API.updateClass(targetId, { compositeConfig });
+    setClasses((prev) =>
+      prev.map((cls) =>
+        cls.id === targetId ? { ...cls, composite_config: compositeConfig } : cls
+      )
+    );
+    await refreshClass(targetId);
+    showToast?.("Composite exam settings updated");
+  }, [refreshClass, showToast]);
+
   const onUpdateTimetable = useCallback(async (timetable) => {
     if (!activeClass) return;
     try {
@@ -1138,6 +1162,8 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onLoadAuditLog,
     onChangeExam,
     onUpdateCompositeConfig,
+    onUpdateClassMonthlyExams,
+    onUpdateClassCompositeConfig,
     onUpdateTimetable,
     onApplyExamMaster,
     reloadClasses,
