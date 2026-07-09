@@ -82,6 +82,86 @@ function dedupeWorkspaceStudents(students = []) {
   return Array.from(seen.values());
 }
 
+const normSubjectKey = (value) => String(value || "").trim().toLowerCase();
+const normNameKey = (value) => String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+const normAdmissionKey = (value) => String(value || "").trim().toUpperCase();
+
+// The union of every stream's subjects for a form, preserving first-seen order
+// and collapsing case/whitespace variants of the same name to one column.
+export function formSubjectUnion(classes = []) {
+  const seen = new Set();
+  const list = [];
+  (Array.isArray(classes) ? classes : []).forEach((cls) => {
+    (Array.isArray(cls.subjects) ? cls.subjects : []).forEach((subject) => {
+      const key = normSubjectKey(subject);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      list.push(String(subject).trim());
+    });
+  });
+  return list;
+}
+
+// Plan a marks import across a whole form: match each imported row to a real
+// student in any stream (by admission number first, then by full name), align
+// its scores to that student's own class subject order, and group the resulting
+// marks-only payload rows by class. Rows that match no student, or match more
+// than one student sharing a name, are reported instead of guessed.
+export function planFormMarksImport({ rows = [], formClasses = [], importSubjects = [] } = {}) {
+  const byAdmission = new Map();
+  const byName = new Map();
+  const push = (map, key, value) => {
+    if (!key) return;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(value);
+  };
+  (Array.isArray(formClasses) ? formClasses : []).forEach((cls) => {
+    (Array.isArray(cls.students) ? cls.students : []).forEach((student) => {
+      push(byAdmission, normAdmissionKey(student.admissionNo || student.admission_no), { student, cls });
+      push(byName, normNameKey(student.name), { student, cls });
+    });
+  });
+
+  const byClass = new Map();
+  const ambiguous = [];
+  const unmatched = [];
+  let matchedCount = 0;
+
+  (Array.isArray(rows) ? rows : []).forEach((row) => {
+    const admission = normAdmissionKey(row.admissionNo || row.admission_no);
+    let candidates = admission ? byAdmission.get(admission) : null;
+    if (!candidates || candidates.length === 0) {
+      candidates = byName.get(normNameKey(row.name)) || null;
+    }
+    const label = String(row.name || row.indexNo || row.admissionNo || "row").trim();
+    if (!candidates || candidates.length === 0) {
+      unmatched.push(label);
+      return;
+    }
+    if (candidates.length > 1) {
+      ambiguous.push(label);
+      return;
+    }
+    const { student, cls } = candidates[0];
+    const scores = remapScoresBySubjectName(
+      importSubjects,
+      Array.isArray(cls.subjects) ? cls.subjects : [],
+      row.scores,
+    );
+    const payloadRow = {
+      indexNo: student.indexNo || student.index_no || "",
+      admissionNo: student.admissionNo || student.admission_no || "",
+      name: student.name || label,
+      scores,
+    };
+    if (!byClass.has(cls.id)) byClass.set(cls.id, []);
+    byClass.get(cls.id).push(payloadRow);
+    matchedCount += 1;
+  });
+
+  return { byClass, ambiguous, unmatched, matchedCount };
+}
+
 export function buildFormWorkspace(classes = [], baseClass = null, activeExam = "") {
   if (!baseClass) {
     return {
