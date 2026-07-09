@@ -644,6 +644,20 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, activeExam, refreshClass, showToast]);
 
+  const onDedupeStudents = useCallback(async (groups) => {
+    if (!activeClass) return { ok: false, error: "No active class" };
+    try {
+      const result = await API.dedupeStudents(activeClass.id, groups);
+      await refreshFormClassesForClassId(activeClass.id);
+      const deleted = result?.deleted || 0;
+      showToast?.(`Removed ${deleted} duplicate student${deleted === 1 ? "" : "s"}`);
+      return { ok: true, result };
+    } catch (err) {
+      showToast?.(err.message, "error");
+      return { ok: false, error: err.message };
+    }
+  }, [activeClass, refreshFormClassesForClassId, showToast]);
+
   const onReorderStudentCnos = useCallback(async () => {
     if (!activeClass) return;
     try {
@@ -1148,6 +1162,7 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     onMoveStudentToClass,
     onPromoteStudents,
     onBulkImport,
+    onDedupeStudents,
     onReorderStudentCnos,
     onUpdateSchool,
     onUpdateSubjects,

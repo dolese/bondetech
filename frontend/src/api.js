@@ -137,6 +137,8 @@ export const API = {
   moveStudentToClass: (cid, studentId, targetClassId) => patch(`/classes/${cid}/students`, { action: "move-stream", studentId, targetClassId }),
   updateStudent:  (cid, sid, data) => put(`/classes/${cid}/students/${sid}`, data),
   deleteStudent:  (cid, sid)    => del(`/classes/${cid}/students/${sid}`),
+  getStudentDuplicates: (cid)   => get(`/classes/${cid}/students/duplicates`),
+  dedupeStudents: (cid, groups) => patch(`/classes/${cid}/students`, { action: "dedupe", groups }),
 
   // Forms, streams, and placement
   getFormsStreams: (opts = {}) => {

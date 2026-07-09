@@ -35,6 +35,8 @@ const {
   reorderStudentsBySexAndRegenerateCnos,
   promoteStudentsToClass,
   moveStudentToClass,
+  findDuplicateStudentGroups,
+  dedupeStudents,
 } = require("../../lib/classStudents");
 
 const requireAuth = async (req, res, next) => {
@@ -216,6 +218,19 @@ router.post("/:id/students/bulk", requireRole(canManageStudents, "You do not hav
   }
 });
 
+router.get(
+  "/:id/students/duplicates",
+  requireRole(canDeleteStudents, "Only administrators and academic staff can review duplicate students"),
+  async (req, res) => {
+    try {
+      const result = await findDuplicateStudentGroups(getDb(), req.params.id);
+      res.json(result);
+    } catch (err) {
+      res.status(/class not found/i.test(err.message) ? 404 : 500).json({ error: err.message });
+    }
+  }
+);
+
 router.patch(
   "/:id/students",
   async (req, res) => {
@@ -242,6 +257,11 @@ router.patch(
           req.body?.studentId,
           req.body?.targetClassId
         );
+      } else if (action === "dedupe") {
+        if (!canDeleteStudents(req.authUser.role)) {
+          return res.status(403).json({ error: "Only administrators and academic staff can remove duplicate students" });
+        }
+        result = await dedupeStudents(getDb(), req.params.id, req.body?.groups);
       } else {
         return res.status(400).json({ error: "Unsupported student action" });
       }

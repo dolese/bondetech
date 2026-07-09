@@ -1,0 +1,326 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { API } from "../api";
+import { premiumFontStack } from "../utils/designSystem";
+import { useViewport } from "../utils/useViewport";
+
+// Reviews duplicate students in a class (grouped by name) and lets an admin
+// remove the extra copies. The newest upload of each student is kept; older
+// copies are removed. Nothing is deleted until the admin confirms.
+
+function CopyLine({ member, kept }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: "wrap",
+        padding: "6px 10px",
+        borderRadius: 8,
+        background: kept ? "#eaf7f2" : "#fff5f5",
+        border: `1px solid ${kept ? "#a7e0cd" : "#f5c2c2"}`,
+        fontSize: 12,
+      }}
+    >
+      <span
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.03em",
+          color: kept ? "#0b6b3a" : "#b42318",
+          background: kept ? "#d1f2e3" : "#fbdcdc",
+          borderRadius: 5,
+          padding: "2px 7px",
+          flexShrink: 0,
+        }}
+      >
+        {kept ? "KEEP" : "REMOVE"}
+      </span>
+      <span style={{ fontWeight: 600, color: "#334155" }}>
+        {member.indexNo || "no CNO"}
+      </span>
+      {member.admissionNo ? (
+        <span style={{ color: "#64748b" }}>· {member.admissionNo}</span>
+      ) : null}
+      <span style={{ color: "#94a3b8" }}>
+        · {member.totalFilled} mark{member.totalFilled === 1 ? "" : "s"}
+        {member.filledExams.length ? ` (${member.filledExams.join(", ")})` : ""}
+      </span>
+    </div>
+  );
+}
+
+export function DedupeStudentsModal({ classId, className = "", onDedupe, onClose }) {
+  const { isMobile } = useViewport();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [report, setReport] = useState(null);
+  const [working, setWorking] = useState(false);
+  // Auto-groups are selected for removal by default; the admin can untick any
+  // group they recognise as genuinely different students sharing a name.
+  const [excluded, setExcluded] = useState(() => new Set());
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await API.getStudentDuplicates(classId);
+      setReport(data);
+    } catch (err) {
+      setError(err.message || "Failed to load duplicates");
+    } finally {
+      setLoading(false);
+    }
+  }, [classId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const autoGroups = useMemo(
+    () => (report?.groups || []).filter((group) => !group.review),
+    [report]
+  );
+  const reviewGroups = useMemo(
+    () => (report?.groups || []).filter((group) => group.review),
+    [report]
+  );
+  const selectedGroups = useMemo(
+    () => autoGroups.filter((group) => !excluded.has(group.keep.id)),
+    [autoGroups, excluded]
+  );
+  const mergeGroups = useMemo(
+    () =>
+      selectedGroups.map((group) => ({
+        keepId: group.keep.id,
+        removeIds: group.remove.map((member) => member.id),
+      })),
+    [selectedGroups]
+  );
+  const removableCount = useMemo(
+    () => selectedGroups.reduce((sum, group) => sum + group.remove.length, 0),
+    [selectedGroups]
+  );
+
+  const toggleGroup = (keepId) => {
+    setExcluded((prev) => {
+      const next = new Set(prev);
+      if (next.has(keepId)) next.delete(keepId);
+      else next.add(keepId);
+      return next;
+    });
+  };
+
+  const handleConfirm = async () => {
+    if (!mergeGroups.length || working) return;
+    setWorking(true);
+    const result = await onDedupe?.(mergeGroups);
+    setWorking(false);
+    if (result?.ok) {
+      onClose?.();
+    } else if (result?.error) {
+      setError(result.error);
+      // Reload so the view reflects whatever state the class is now in.
+      load();
+    }
+  };
+
+  const styles = {
+    overlay: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(15,23,42,0.38)",
+      backdropFilter: "blur(12px)",
+      WebkitBackdropFilter: "blur(12px)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+      fontFamily: premiumFontStack,
+      padding: 12,
+    },
+    modal: {
+      background: "#ffffff",
+      borderRadius: 20,
+      border: "1px solid rgba(226,232,240,0.9)",
+      boxShadow: "0 28px 60px rgba(15,23,42,0.24)",
+      width: "100%",
+      maxWidth: 640,
+      maxHeight: "90vh",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+    },
+    header: {
+      background: "linear-gradient(135deg,#0f2d6e,#1d4ed8)",
+      color: "#fff",
+      padding: isMobile ? "12px 16px" : "16px 22px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    body: {
+      padding: isMobile ? 14 : 20,
+      overflowY: "auto",
+      display: "flex",
+      flexDirection: "column",
+      gap: 12,
+    },
+    footer: {
+      padding: isMobile ? "12px 16px" : "14px 22px",
+      borderTop: "1px solid #eef2f7",
+      display: "flex",
+      justifyContent: "flex-end",
+      gap: 10,
+      background: "#fbfcfe",
+    },
+    cancelBtn: {
+      border: "1px solid #d0d7e2",
+      background: "#fff",
+      color: "#334155",
+      borderRadius: 10,
+      padding: "9px 16px",
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    confirmBtn: (enabled) => ({
+      border: "none",
+      background: enabled ? "#b42318" : "#e4e7ec",
+      color: enabled ? "#fff" : "#98a2b3",
+      borderRadius: 10,
+      padding: "9px 18px",
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: enabled ? "pointer" : "not-allowed",
+    }),
+  };
+
+  return (
+    <div style={styles.overlay} onClick={onClose}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div style={styles.header}>
+          <div>
+            <div style={{ fontSize: isMobile ? 15 : 17, fontWeight: 800 }}>Remove Duplicate Students</div>
+            <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>{className || "Class"}</div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ border: "none", background: "rgba(255,255,255,0.18)", color: "#fff", borderRadius: 8, width: 30, height: 30, fontSize: 18, cursor: "pointer" }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        <div style={styles.body}>
+          {loading ? (
+            <div style={{ padding: "28px 0", textAlign: "center", color: "#64748b", fontSize: 14, fontWeight: 600 }}>
+              Scanning for duplicates…
+            </div>
+          ) : error ? (
+            <div style={{ padding: "14px 16px", borderRadius: 12, background: "#fff5f5", border: "1px solid #f5c2c2", color: "#b42318", fontSize: 13, fontWeight: 600 }}>
+              {error}
+            </div>
+          ) : report && autoGroups.length === 0 && reviewGroups.length === 0 ? (
+            <div style={{ padding: "28px 0", textAlign: "center", color: "#0b6b3a", fontSize: 14, fontWeight: 700 }}>
+              No duplicates found. All {report.totalStudents} students are unique.
+            </div>
+          ) : report ? (
+            <>
+              {autoGroups.length > 0 ? (
+                <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.55 }}>
+                  Found <strong>{autoGroups.length}</strong> student{autoGroups.length === 1 ? "" : "s"} with
+                  duplicate copies. Cleaning up will remove <strong>{removableCount}</strong>{" "}
+                  record{removableCount === 1 ? "" : "s"}, leaving{" "}
+                  <strong>{report.totalStudents - removableCount}</strong> students. The newest upload of
+                  each student is kept, and any marks or details from the other copies are merged into it first
+                  — nothing is lost. Untick any group you recognise as two different students who share a name.
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.55 }}>
+                  No copies can be removed automatically. The groups below share a name but have different
+                  admission numbers, so they may be different students — review them manually.
+                </div>
+              )}
+
+              {autoGroups.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {autoGroups.map((group) => {
+                    const isExcluded = excluded.has(group.keep.id);
+                    return (
+                    <div
+                      key={group.keep.id}
+                      style={{ border: "1px solid #e6ebf2", borderRadius: 12, padding: 12, background: isExcluded ? "#f1f5f9" : "#fbfcfe", opacity: isExcluded ? 0.6 : 1 }}
+                    >
+                      <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={!isExcluded}
+                          onChange={() => toggleGroup(group.keep.id)}
+                          style={{ width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
+                        />
+                        {group.name}
+                        <span style={{ fontWeight: 500, color: "#94a3b8" }}>
+                          ({group.remove.length + 1} copies){isExcluded ? " · kept, not cleaned" : ""}
+                        </span>
+                      </label>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <CopyLine member={group.keep} kept />
+                        {group.remove.map((member) => (
+                          <CopyLine key={member.id} member={member} kept={false} />
+                        ))}
+                      </div>
+                    </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              {reviewGroups.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#92400e", background: "#fff7ed", border: "1px solid #fcd9a8", borderRadius: 8, padding: "8px 12px", lineHeight: 1.5 }}>
+                    ⚠ {reviewGroups.length} name{reviewGroups.length === 1 ? "" : "s"} shared by students with
+                    different admission numbers. These are treated as different people and are NOT removed.
+                    Check them manually and delete individually if any is a true duplicate.
+                  </div>
+                  {reviewGroups.map((group) => (
+                    <div
+                      key={group.keep.id}
+                      style={{ border: "1px solid #fcd9a8", borderRadius: 12, padding: 12, background: "#fffaf3" }}
+                    >
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 8 }}>
+                        {group.name}
+                        <span style={{ fontWeight: 500, color: "#b45309", marginLeft: 6 }}>
+                          (review — {(group.members || []).length} students)
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {(group.members || []).map((member) => (
+                          <CopyLine key={member.id} member={member} kept />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </>
+          ) : null}
+        </div>
+
+        <div style={styles.footer}>
+          <button style={styles.cancelBtn} onClick={onClose} disabled={working}>
+            Cancel
+          </button>
+          <button
+            style={styles.confirmBtn(!loading && removableCount > 0 && !working)}
+            onClick={handleConfirm}
+            disabled={loading || removableCount === 0 || working}
+          >
+            {working ? "Removing…" : removableCount ? `Remove ${removableCount} duplicate${removableCount === 1 ? "" : "s"}` : "Nothing to remove"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
