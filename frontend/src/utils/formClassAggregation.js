@@ -6,6 +6,30 @@ export function makeMergedStudentId(classId, studentId) {
   return `${String(classId || "").trim()}::${String(studentId || "").trim()}`;
 }
 
+// Score arrays are stored positionally against a class's own subject order, but
+// the merged form workspace draws one grid using the UNION of every stream's
+// subjects. Remap a score array from one subject order to another BY NAME so a
+// mark always lands under its real subject column regardless of ordering.
+export function remapScoresBySubjectName(fromSubjects = [], toSubjects = [], scores = []) {
+  const src = Array.isArray(scores) ? scores : [];
+  const from = Array.isArray(fromSubjects) ? fromSubjects : [];
+  const to = Array.isArray(toSubjects) ? toSubjects : [];
+  // If the two subject orders are identical, the array is already aligned.
+  if (
+    from.length === to.length &&
+    from.every((subj, i) => String(subj).trim().toLowerCase() === String(to[i]).trim().toLowerCase())
+  ) {
+    return src;
+  }
+  const indexByName = new Map(
+    from.map((subj, i) => [String(subj || "").trim().toLowerCase(), i]),
+  );
+  return to.map((subj) => {
+    const idx = indexByName.get(String(subj || "").trim().toLowerCase());
+    return idx != null ? src[idx] ?? "" : "";
+  });
+}
+
 function isWorkspaceActiveClass(cls = {}) {
   return (
     cls &&
@@ -105,20 +129,27 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
   );
   const rows = relatedClasses.flatMap((cls) => {
     const compositeEntry = getCompositeEntry(effectiveExam, cls.composite_config ?? {});
+    const clsSubjects = Array.isArray(cls.subjects) ? cls.subjects : [];
     const computedRows = (cls.students || []).map((student) => {
       const examScores = student.examScores ?? {};
       // Scores are strictly per-exam. Only the default exam may fall back to the
       // legacy top-level `scores` (which mirrors the default exam); every other
       // exam with no saved marks must read blank, never another exam's marks.
-      const currentScores = Array.isArray(examScores[effectiveExam])
+      const rawCurrentScores = Array.isArray(examScores[effectiveExam])
         ? examScores[effectiveExam]
         : effectiveExam === DEFAULT_EXAM_TYPE
         ? student.scores ?? []
         : [];
-      const partnerScores = compositeEntry
+      const rawPartnerScores = compositeEntry
         ? Array.isArray(examScores[compositeEntry.partnerExam])
           ? examScores[compositeEntry.partnerExam]
           : []
+        : undefined;
+      // The grid columns use the union `subjects`, so remap this stream's stored
+      // scores (indexed by its own subject order) into the union order by name.
+      const currentScores = remapScoresBySubjectName(clsSubjects, subjects, rawCurrentScores);
+      const partnerScores = compositeEntry
+        ? remapScoresBySubjectName(clsSubjects, subjects, rawPartnerScores)
         : undefined;
       return {
         ...student,
@@ -135,7 +166,8 @@ export function buildFormWorkspace(classes = [], baseClass = null, activeExam = 
           : {}),
       };
     });
-    const streamRankedRows = withPositions(computedRows, cls.subjects ?? []);
+    // Grades are now aligned to the union subject order, so rank against it too.
+    const streamRankedRows = withPositions(computedRows, subjects);
     return streamRankedRows.map((student) => ({
       ...student,
       form: cls.form || "",
