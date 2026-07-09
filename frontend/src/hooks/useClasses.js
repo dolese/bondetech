@@ -5,6 +5,7 @@ import { extractClassSchoolInfoOverrides } from "../utils/schoolSettings";
 import { normalizeClassTimetable } from "../utils/timetable";
 import { withPositions } from "../utils/grading";
 import { normalizeTzPhone } from "../utils/phone";
+import { formSubjectUnion, planFormMarksImport } from "../utils/formClassAggregation";
 
 export const CLASS_FORMS = ["Form I", "Form II", "Form III", "Form IV"];
 export const CLASS_STREAMS = ["A", "B", "C", "D", "E", "F"];
@@ -626,23 +627,63 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
   const onBulkImport = useCallback(async (rows) => {
     if (!activeClass) return;
     try {
-      const payload = rows.map((row) => ({
-        admissionNo: String(row.admissionNo ?? row.admission_no ?? "").trim(),
-        indexNo: String(row.indexNo ?? row.index_no ?? "").trim(),
-        scores: Array.isArray(row.scores) ? row.scores : [],
-      }));
-      const result = await API.bulkImport(activeClass.id, payload, activeExam, { mode: "marks-only" });
+      // Match each imported row to a real student ANYWHERE in the form (all
+      // streams) by admission number then full name, and route its marks to
+      // that student's own stream. This makes an "All Streams" export
+      // re-importable even though CNOs reset per stream. Import subjects use
+      // the union of the form's subjects (what the modal parsed against).
+      const year = String(activeClass.year || "").trim();
+      const form = String(activeClass.form || "").trim();
+      const formClasses = (classesRef.current || []).filter(
+        (cls) =>
+          !cls.archived &&
+          String(cls.streamStatus || cls.stream_status || "active").toLowerCase() !== "inactive" &&
+          String(cls.year || "").trim() === year &&
+          String(cls.form || "").trim() === form,
+      );
+      const importSubjects = formSubjectUnion(formClasses.length ? formClasses : [activeClass]);
+      const plan = planFormMarksImport({ rows, formClasses, importSubjects });
+
+      if (plan.byClass.size === 0) {
+        const reasons = [];
+        if (plan.unmatched.length) reasons.push(`${plan.unmatched.length} name(s) not found`);
+        if (plan.ambiguous.length) reasons.push(`${plan.ambiguous.length} shared by same-name students`);
+        showToast?.(
+          reasons.length
+            ? `No marks updated: ${reasons.join(", ")}. Check the CNO/Name column.`
+            : "No marks to import",
+          "error",
+        );
+        return;
+      }
+
+      let updated = 0;
+      let skipped = 0;
+      let notMatched = 0;
+      for (const [classId, payloadRows] of plan.byClass) {
+        const result = await API.bulkImport(classId, payloadRows, activeExam, { mode: "marks-only" });
+        updated += result?.updated || 0;
+        skipped += result?.skipped || 0;
+        notMatched += result?.unmatched || 0;
+      }
       await refreshFormClassesForClassId(activeClass.id);
-      const { updated = 0, skipped = 0, unmatched = 0 } = result ?? {};
+
       const parts = [];
-      if (updated > 0) parts.push(`${updated} mark rows updated`);
+      if (updated > 0) parts.push(`${updated} student(s) updated`);
       if (skipped > 0) parts.push(`${skipped} unchanged`);
-      if (unmatched > 0) parts.push(`${unmatched} not matched`);
-      showToast?.(parts.length ? `Marks import done: ${parts.join(", ")}` : "No marks changed");
+      const flagged = plan.unmatched.length + plan.ambiguous.length + notMatched;
+      if (flagged > 0) parts.push(`${flagged} not applied`);
+      showToast?.(parts.length ? `Marks import: ${parts.join(", ")}` : "No marks changed");
+      if (plan.ambiguous.length) {
+        showToast?.(
+          `${plan.ambiguous.length} row(s) skipped — more than one student shares that name; edit those manually: ${plan.ambiguous.slice(0, 5).join(", ")}${plan.ambiguous.length > 5 ? "…" : ""}`,
+          "error",
+        );
+      }
     } catch (err) {
       showToast?.(err.message, "error");
     }
-  }, [activeClass, activeExam, refreshClass, showToast]);
+  }, [activeClass, activeExam, refreshFormClassesForClassId, showToast]);
 
   const onDedupeStudents = useCallback(async (groups) => {
     if (!activeClass) return { ok: false, error: "No active class" };

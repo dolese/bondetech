@@ -37,7 +37,7 @@ import { useI18n } from "./i18n";
 import { DEFAULT_EXAM_TYPE, DEFAULT_SCHOOL } from "./utils/constants";
 import { mergeClassSchoolInfo, normalizeSchoolSettings } from "./utils/schoolSettings";
 import { premiumFontStack } from "./utils/designSystem";
-import { buildFormWorkspace } from "./utils/formClassAggregation";
+import { buildFormWorkspace, formSubjectUnion } from "./utils/formClassAggregation";
 
 const CLASS_ACCESS_ROLES = new Set(["admin", "academic", "teacher", "demo"]);
 
@@ -547,6 +547,22 @@ export default function App() {
         : classes,
     [classes, role, teacherScopedClassIds]
   );
+  // Marks imports match students across every stream of a form, so import
+  // modals must parse against the union of the form's subjects (not just the
+  // active stream's), keeping score columns aligned by subject name.
+  const importSubjects = useMemo(() => {
+    if (!activeClass) return [];
+    const year = String(activeClass.year || "").trim();
+    const form = String(activeClass.form || "").trim();
+    const formClasses = classes.filter(
+      (cls) =>
+        !cls.archived &&
+        String(cls.year || "").trim() === year &&
+        String(cls.form || "").trim() === form,
+    );
+    const union = formSubjectUnion(formClasses.length ? formClasses : [activeClass]);
+    return union.length ? union : (activeClass.subjects ?? []);
+  }, [activeClass, classes]);
   const visibleClassesByYear = useMemo(() => {
     const map = {};
     visibleClasses.forEach((cls) => {
@@ -1475,7 +1491,7 @@ export default function App() {
       {modalType === "csv-import" && activeClass && (
         <CSVImportModal
           classId={activeClass.id}
-          subjects={activeClass.subjects ?? []}
+          subjects={importSubjects}
           onImport={onBulkImport}
           onClose={onCloseModal}
         />
@@ -1484,7 +1500,7 @@ export default function App() {
       {modalType === "json-import" && activeClass && (
         <JSONImportModal
           classId={activeClass.id}
-          subjects={activeClass.subjects ?? []}
+          subjects={importSubjects}
           onImport={onBulkImport}
           onClose={onCloseModal}
         />
@@ -1493,7 +1509,7 @@ export default function App() {
       {modalType === "xlsx-import" && activeClass && (
         <XLSXImportModal
           classId={activeClass.id}
-          subjects={activeClass.subjects ?? []}
+          subjects={importSubjects}
           onImport={onBulkImport}
           onClose={onCloseModal}
         />
