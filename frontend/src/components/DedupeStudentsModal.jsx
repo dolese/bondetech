@@ -74,15 +74,28 @@ export function DedupeStudentsModal({ classId, className = "", onDedupe, onClose
     load();
   }, [load]);
 
-  const removeIds = useMemo(() => {
-    if (!report?.groups) return [];
-    return report.groups.flatMap((group) => group.remove.map((member) => member.id));
-  }, [report]);
+  const autoGroups = useMemo(
+    () => (report?.groups || []).filter((group) => !group.review),
+    [report]
+  );
+  const reviewGroups = useMemo(
+    () => (report?.groups || []).filter((group) => group.review),
+    [report]
+  );
+  const mergeGroups = useMemo(
+    () =>
+      autoGroups.map((group) => ({
+        keepId: group.keep.id,
+        removeIds: group.remove.map((member) => member.id),
+      })),
+    [autoGroups]
+  );
+  const removableCount = report?.removableCount || 0;
 
   const handleConfirm = async () => {
-    if (!removeIds.length || working) return;
+    if (!mergeGroups.length || working) return;
     setWorking(true);
-    const result = await onDedupe?.(removeIds);
+    const result = await onDedupe?.(mergeGroups);
     setWorking(false);
     if (result?.ok) {
       onClose?.();
@@ -190,41 +203,79 @@ export function DedupeStudentsModal({ classId, className = "", onDedupe, onClose
             <div style={{ padding: "14px 16px", borderRadius: 12, background: "#fff5f5", border: "1px solid #f5c2c2", color: "#b42318", fontSize: 13, fontWeight: 600 }}>
               {error}
             </div>
-          ) : report && report.removableCount === 0 ? (
+          ) : report && removableCount === 0 && reviewGroups.length === 0 ? (
             <div style={{ padding: "28px 0", textAlign: "center", color: "#0b6b3a", fontSize: 14, fontWeight: 700 }}>
               No duplicates found. All {report.totalStudents} students are unique.
             </div>
           ) : report ? (
             <>
-              <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.55 }}>
-                Found <strong>{report.groupCount}</strong> student{report.groupCount === 1 ? "" : "s"} with
-                duplicate copies. Removing the extras will delete <strong>{report.removableCount}</strong>{" "}
-                record{report.removableCount === 1 ? "" : "s"}, leaving{" "}
-                <strong>{report.totalStudents - report.removableCount}</strong> students.
-                The newest upload of each student is kept.
-              </div>
+              {removableCount > 0 ? (
+                <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.55 }}>
+                  Found <strong>{autoGroups.length}</strong> student{autoGroups.length === 1 ? "" : "s"} with
+                  duplicate copies. Cleaning up will remove <strong>{removableCount}</strong>{" "}
+                  record{removableCount === 1 ? "" : "s"}, leaving{" "}
+                  <strong>{report.totalStudents - removableCount}</strong> students. The newest upload of
+                  each student is kept, and any marks or details from the other copies are merged into it first
+                  — nothing is lost.
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.55 }}>
+                  No copies can be removed automatically. The groups below share a name but have different
+                  admission numbers, so they may be different students — review them manually.
+                </div>
+              )}
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {report.groups.map((group) => (
-                  <div
-                    key={group.keep.id}
-                    style={{ border: "1px solid #e6ebf2", borderRadius: 12, padding: 12, background: "#fbfcfe" }}
-                  >
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 8 }}>
-                      {group.name}
-                      <span style={{ fontWeight: 500, color: "#94a3b8", marginLeft: 6 }}>
-                        ({group.remove.length + 1} copies)
-                      </span>
+              {autoGroups.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {autoGroups.map((group) => (
+                    <div
+                      key={group.keep.id}
+                      style={{ border: "1px solid #e6ebf2", borderRadius: 12, padding: 12, background: "#fbfcfe" }}
+                    >
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 8 }}>
+                        {group.name}
+                        <span style={{ fontWeight: 500, color: "#94a3b8", marginLeft: 6 }}>
+                          ({group.remove.length + 1} copies)
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <CopyLine member={group.keep} kept />
+                        {group.remove.map((member) => (
+                          <CopyLine key={member.id} member={member} kept={false} />
+                        ))}
+                      </div>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <CopyLine member={group.keep} kept />
-                      {group.remove.map((member) => (
-                        <CopyLine key={member.id} member={member} kept={false} />
-                      ))}
-                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {reviewGroups.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#92400e", background: "#fff7ed", border: "1px solid #fcd9a8", borderRadius: 8, padding: "8px 12px", lineHeight: 1.5 }}>
+                    ⚠ {reviewGroups.length} name{reviewGroups.length === 1 ? "" : "s"} shared by students with
+                    different admission numbers. These are treated as different people and are NOT removed.
+                    Check them manually and delete individually if any is a true duplicate.
                   </div>
-                ))}
-              </div>
+                  {reviewGroups.map((group) => (
+                    <div
+                      key={group.keep.id}
+                      style={{ border: "1px solid #fcd9a8", borderRadius: 12, padding: 12, background: "#fffaf3" }}
+                    >
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 8 }}>
+                        {group.name}
+                        <span style={{ fontWeight: 500, color: "#b45309", marginLeft: 6 }}>
+                          (review — {(group.members || []).length} students)
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {(group.members || []).map((member) => (
+                          <CopyLine key={member.id} member={member} kept />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </>
           ) : null}
         </div>
@@ -234,11 +285,11 @@ export function DedupeStudentsModal({ classId, className = "", onDedupe, onClose
             Cancel
           </button>
           <button
-            style={styles.confirmBtn(!loading && removeIds.length > 0 && !working)}
+            style={styles.confirmBtn(!loading && removableCount > 0 && !working)}
             onClick={handleConfirm}
-            disabled={loading || removeIds.length === 0 || working}
+            disabled={loading || removableCount === 0 || working}
           >
-            {working ? "Removing…" : removeIds.length ? `Remove ${removeIds.length} duplicate${removeIds.length === 1 ? "" : "s"}` : "Nothing to remove"}
+            {working ? "Removing…" : removableCount ? `Remove ${removableCount} duplicate${removableCount === 1 ? "" : "s"}` : "Nothing to remove"}
           </button>
         </div>
       </div>

@@ -36,7 +36,7 @@ const {
   promoteStudentsToClass,
   moveStudentToClass,
   findDuplicateStudentGroups,
-  bulkDeleteStudents,
+  dedupeStudents,
 } = require("../../lib/classStudents");
 
 const requireAuth = async (req, res, next) => {
@@ -260,7 +260,7 @@ router.patch(
         if (!canDeleteStudents(req.authUser.role)) {
           return res.status(403).json({ error: "Only administrators and academic staff can remove duplicate students" });
         }
-        result = await bulkDeleteStudents(getDb(), req.params.id, req.body?.studentIds);
+        result = await dedupeStudents(getDb(), req.params.id, req.body?.groups);
       } else {
         return res.status(400).json({ error: "Unsupported student action" });
       }

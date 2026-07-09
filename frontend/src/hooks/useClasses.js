@@ -640,10 +640,10 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
     }
   }, [activeClass, activeExam, refreshClass, showToast]);
 
-  const onDedupeStudents = useCallback(async (studentIds) => {
+  const onDedupeStudents = useCallback(async (groups) => {
     if (!activeClass) return { ok: false, error: "No active class" };
     try {
-      const result = await API.dedupeStudents(activeClass.id, studentIds);
+      const result = await API.dedupeStudents(activeClass.id, groups);
       await refreshFormClassesForClassId(activeClass.id);
       const deleted = result?.deleted || 0;
       showToast?.(`Removed ${deleted} duplicate student${deleted === 1 ? "" : "s"}`);
