@@ -56,6 +56,9 @@ export function DedupeStudentsModal({ classId, className = "", onDedupe, onClose
   const [error, setError] = useState("");
   const [report, setReport] = useState(null);
   const [working, setWorking] = useState(false);
+  // Auto-groups are selected for removal by default; the admin can untick any
+  // group they recognise as genuinely different students sharing a name.
+  const [excluded, setExcluded] = useState(() => new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -82,15 +85,31 @@ export function DedupeStudentsModal({ classId, className = "", onDedupe, onClose
     () => (report?.groups || []).filter((group) => group.review),
     [report]
   );
+  const selectedGroups = useMemo(
+    () => autoGroups.filter((group) => !excluded.has(group.keep.id)),
+    [autoGroups, excluded]
+  );
   const mergeGroups = useMemo(
     () =>
-      autoGroups.map((group) => ({
+      selectedGroups.map((group) => ({
         keepId: group.keep.id,
         removeIds: group.remove.map((member) => member.id),
       })),
-    [autoGroups]
+    [selectedGroups]
   );
-  const removableCount = report?.removableCount || 0;
+  const removableCount = useMemo(
+    () => selectedGroups.reduce((sum, group) => sum + group.remove.length, 0),
+    [selectedGroups]
+  );
+
+  const toggleGroup = (keepId) => {
+    setExcluded((prev) => {
+      const next = new Set(prev);
+      if (next.has(keepId)) next.delete(keepId);
+      else next.add(keepId);
+      return next;
+    });
+  };
 
   const handleConfirm = async () => {
     if (!mergeGroups.length || working) return;
@@ -203,20 +222,20 @@ export function DedupeStudentsModal({ classId, className = "", onDedupe, onClose
             <div style={{ padding: "14px 16px", borderRadius: 12, background: "#fff5f5", border: "1px solid #f5c2c2", color: "#b42318", fontSize: 13, fontWeight: 600 }}>
               {error}
             </div>
-          ) : report && removableCount === 0 && reviewGroups.length === 0 ? (
+          ) : report && autoGroups.length === 0 && reviewGroups.length === 0 ? (
             <div style={{ padding: "28px 0", textAlign: "center", color: "#0b6b3a", fontSize: 14, fontWeight: 700 }}>
               No duplicates found. All {report.totalStudents} students are unique.
             </div>
           ) : report ? (
             <>
-              {removableCount > 0 ? (
+              {autoGroups.length > 0 ? (
                 <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.55 }}>
                   Found <strong>{autoGroups.length}</strong> student{autoGroups.length === 1 ? "" : "s"} with
                   duplicate copies. Cleaning up will remove <strong>{removableCount}</strong>{" "}
                   record{removableCount === 1 ? "" : "s"}, leaving{" "}
                   <strong>{report.totalStudents - removableCount}</strong> students. The newest upload of
                   each student is kept, and any marks or details from the other copies are merged into it first
-                  — nothing is lost.
+                  — nothing is lost. Untick any group you recognise as two different students who share a name.
                 </div>
               ) : (
                 <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.55 }}>
@@ -227,17 +246,25 @@ export function DedupeStudentsModal({ classId, className = "", onDedupe, onClose
 
               {autoGroups.length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {autoGroups.map((group) => (
+                  {autoGroups.map((group) => {
+                    const isExcluded = excluded.has(group.keep.id);
+                    return (
                     <div
                       key={group.keep.id}
-                      style={{ border: "1px solid #e6ebf2", borderRadius: 12, padding: 12, background: "#fbfcfe" }}
+                      style={{ border: "1px solid #e6ebf2", borderRadius: 12, padding: 12, background: isExcluded ? "#f1f5f9" : "#fbfcfe", opacity: isExcluded ? 0.6 : 1 }}
                     >
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 8 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={!isExcluded}
+                          onChange={() => toggleGroup(group.keep.id)}
+                          style={{ width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
+                        />
                         {group.name}
-                        <span style={{ fontWeight: 500, color: "#94a3b8", marginLeft: 6 }}>
-                          ({group.remove.length + 1} copies)
+                        <span style={{ fontWeight: 500, color: "#94a3b8" }}>
+                          ({group.remove.length + 1} copies){isExcluded ? " · kept, not cleaned" : ""}
                         </span>
-                      </div>
+                      </label>
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                         <CopyLine member={group.keep} kept />
                         {group.remove.map((member) => (
@@ -245,7 +272,8 @@ export function DedupeStudentsModal({ classId, className = "", onDedupe, onClose
                         ))}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : null}
 
