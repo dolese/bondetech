@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { EntryPanel } from "./EntryPanel";
-import { buildFormWorkspace } from "../utils/formClassAggregation";
+import { buildFormWorkspace, remapScoresBySubjectName } from "../utils/formClassAggregation";
 
 export function StudentsPage({
   classData,
@@ -86,16 +86,28 @@ export function StudentsPage({
       if (!targetClassId || !originalStudentId) {
         return { ok: false, error: "Student class mapping not found" };
       }
-      return onUpdateStudentInClass?.(
-        targetClassId,
-        {
-          ...studentData,
-          id: originalStudentId,
-        },
-        opts,
-      );
+      // The grid edits scores against the merged UNION subject order, but the
+      // target stream stores them against its own subject order. Remap by name
+      // so an edited mark is written to the correct subject (and not truncated
+      // by the backend's length clamp).
+      let payload = { ...studentData, id: originalStudentId };
+      if (Array.isArray(studentData?.scores)) {
+        const targetClass = classes.find(
+          (cls) => String(cls.id) === targetClassId,
+        );
+        const targetSubjects = targetClass?.subjects ?? mergedClassData.subjects ?? [];
+        payload = {
+          ...payload,
+          scores: remapScoresBySubjectName(
+            mergedClassData.subjects ?? [],
+            targetSubjects,
+            studentData.scores,
+          ),
+        };
+      }
+      return onUpdateStudentInClass?.(targetClassId, payload, opts);
     },
-    [onUpdateStudentInClass],
+    [onUpdateStudentInClass, classes, mergedClassData.subjects],
   );
 
   const handleDeleteStudent = useCallback(
