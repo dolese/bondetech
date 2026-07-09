@@ -31,6 +31,10 @@
       "destination": "/api/index.js?dispatch=class-students-bulk&id=:id"
     },
     {
+      "source": "/api/classes/:id/students/duplicates",
+      "destination": "/api/index.js?dispatch=class-students-duplicates&id=:id"
+    },
+    {
       "source": "/api/classes/:id/students/:sid",
       "destination": "/api/index.js?dispatch=class-student&id=:id&sid=:sid"
     },

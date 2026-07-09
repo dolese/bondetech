@@ -3,6 +3,7 @@ const classById = require("../serverless/classes/[id]/index.js");
 const classAudit = require("../serverless/classes/[id]/audit/index.js");
 const classPublish = require("../serverless/classes/[id]/publish/index.js");
 const classStudentsBulk = require("../serverless/classes/[id]/students/bulk.js");
+const classStudentsDuplicates = require("../serverless/classes/[id]/students/duplicates.js");
 const classStudentsIndex = require("../serverless/classes/[id]/students/index.js");
 const classStudentById = require("../serverless/classes/[id]/students/[sid].js");
 const formsStreamsIndex = require("../serverless/forms-streams/index.js");
@@ -47,6 +48,8 @@ module.exports = async (req, res) => {
         return classStudentsIndex(req, res);
       case "class-students-bulk":
         return classStudentsBulk(req, res);
+      case "class-students-duplicates":
+        return classStudentsDuplicates(req, res);
       case "class-student":
         return classStudentById(req, res);
       case "forms-streams":

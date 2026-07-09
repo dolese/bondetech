@@ -5,6 +5,7 @@ const {
   canManageStudents,
   canReadClassData,
   canManageClasses,
+  canDeleteStudents,
   canAccessClassRecord,
 } = require("../../../../lib/auth");
 const {
@@ -13,6 +14,7 @@ const {
   reorderStudentsBySexAndRegenerateCnos,
   promoteStudentsToClass,
   moveStudentToClass,
+  dedupeStudents,
 } = require("../../../../lib/classStudents");
 const {
   getClassSnapshot,
@@ -96,6 +98,11 @@ module.exports = async (req, res) => {
           return sendJson(res, 403, { error: "You do not have permission to assign students to streams" });
         }
         result = await moveStudentToClass(db, classId, body?.studentId, body?.targetClassId);
+      } else if (action === "dedupe") {
+        if (!canDeleteStudents(currentUser.role)) {
+          return sendJson(res, 403, { error: "Only administrators and academic staff can remove duplicate students" });
+        }
+        result = await dedupeStudents(db, classId, body?.groups);
       } else {
         return sendJson(res, 400, { error: "Unsupported student action" });
       }
