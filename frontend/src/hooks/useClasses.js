@@ -626,15 +626,19 @@ export function useClasses({ loggedIn, showToast, onNavigate, schoolSettings } =
   const onBulkImport = useCallback(async (rows) => {
     if (!activeClass) return;
     try {
-      const payload = rows.map((row) => toApiStudent({ ...row, examType: activeExam }));
-      const result = await API.bulkImport(activeClass.id, payload, activeExam);
+      const payload = rows.map((row) => ({
+        admissionNo: String(row.admissionNo ?? row.admission_no ?? "").trim(),
+        indexNo: String(row.indexNo ?? row.index_no ?? "").trim(),
+        scores: Array.isArray(row.scores) ? row.scores : [],
+      }));
+      const result = await API.bulkImport(activeClass.id, payload, activeExam, { mode: "marks-only" });
       await refreshFormClassesForClassId(activeClass.id);
-      const { created = 0, updated = 0, skipped = 0 } = result ?? {};
+      const { updated = 0, skipped = 0, unmatched = 0 } = result ?? {};
       const parts = [];
-      if (created > 0) parts.push(`${created} new`);
-      if (updated > 0) parts.push(`${updated} updated`);
+      if (updated > 0) parts.push(`${updated} mark rows updated`);
       if (skipped > 0) parts.push(`${skipped} unchanged`);
-      showToast?.(parts.length ? `Import done: ${parts.join(", ")}` : "Nothing to import");
+      if (unmatched > 0) parts.push(`${unmatched} not matched`);
+      showToast?.(parts.length ? `Marks import done: ${parts.join(", ")}` : "No marks changed");
     } catch (err) {
       showToast?.(err.message, "error");
     }

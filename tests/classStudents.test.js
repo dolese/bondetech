@@ -103,6 +103,48 @@ test("bulk import updates an alternate exam without bleeding marks into the defa
   assert.deepEqual(updated.data().exam_scores["April Exam"], [15, 25]);
 });
 
+test("marks-only bulk import updates marks without changing identity or creating students", async () => {
+  const db = createSeedDb();
+
+  const result = await bulkImportStudents(
+    db,
+    "class_1",
+    [
+      {
+        indexNo: "S6509/0001",
+        name: "Wrong Name From Sheet",
+        sex: "F",
+        status: "absent",
+        scores: [19, 29],
+      },
+      {
+        indexNo: "S6509/0999",
+        name: "Should Not Be Created",
+        sex: "F",
+        status: "present",
+        scores: [55, 65],
+      },
+    ],
+    "April Exam",
+    { mode: "marks-only" }
+  );
+
+  assert.equal(result.created, 0);
+  assert.equal(result.updated, 1);
+  assert.equal(result.unmatched, 1);
+
+  const updated = await db.collection("classes").doc("class_1").collection("students").doc("student_1").get();
+  assert.equal(updated.data().name, "Baraka");
+  assert.equal(updated.data().sex, "M");
+  assert.equal(updated.data().status, "present");
+  assert.deepEqual(updated.data().scores, [81, 72]);
+  assert.deepEqual(updated.data().exam_scores[DEFAULT_EXAM_TYPE], [81, 72]);
+  assert.deepEqual(updated.data().exam_scores["April Exam"], [19, 29]);
+
+  const students = await db.collection("classes").doc("class_1").collection("students").get();
+  assert.equal(students.docs.length, 1);
+});
+
 test("updating a guardian phone stores and returns the canonical SMS field", async () => {
   const db = createSeedDb();
 

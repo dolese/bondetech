@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
 import JSZip from "jszip";
-import { validateStudent } from "../utils/validation";
 import { useViewport } from "../utils/useViewport";
 import { API } from "../api";
 import { findImportedSubjectColumn } from "../utils/subjectImport";
@@ -150,6 +149,14 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     return Math.min(100, Math.max(0, n));
   };
 
+  const validateMarksRow = (row) => {
+    const errors = [];
+    if (!row.admissionNo && !row.indexNo) {
+      errors.push("Admission Number or CNO is required for marks update");
+    }
+    return errors;
+  };
+
   const handleFile = async (file) => {
     setParseError("");
     setErrors([]);
@@ -179,9 +186,6 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
     const admissionIdx = hNorm.findIndex((h) => h === "admission_no" || h === "admissionno");
     const cnoIdx = hNorm.findIndex((h) => ["cno", "index_no", "indexno", "candidate_no", "candidateno"].includes(h));
     const nameIdx = hNorm.findIndex(h => h === "name" || h === "student_name" || h === "studentname");
-    const sexIdx = hNorm.findIndex(h => h === "sex" || h === "gender");
-    const statusIdx = hNorm.findIndex(h => h === "status");
-
     // The first row of data in the spreadsheet is row 2 (row 1 is the header).
     const DATA_ROW_OFFSET = 2;
 
@@ -195,19 +199,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
 
     const validRows = [];
     const errs = [];
-    const coercionWarnings = [];
 
     data.forEach((row, i) => {
-      const rawSex = sexIdx >= 0 ? String(row[headers[sexIdx]] ?? "").trim().toUpperCase() : "M";
-      const sexVal = rawSex === "F" ? "F" : "M";
-      if (rawSex && rawSex !== "M" && rawSex !== "F") {
-        coercionWarnings.push(`Row ${i + DATA_ROW_OFFSET}: sex "${rawSex}" defaulted to M`);
-      }
-
-      const rawStatus = statusIdx >= 0 ? String(row[headers[statusIdx]] ?? "").trim().toLowerCase() : "present";
-      const validStatuses = ["present", "absent", "incomplete"];
-      const statusVal = validStatuses.includes(rawStatus) ? rawStatus : "present";
-
       const scores = subjects.map((_, si) => {
         if (subjectCols[si] === -1) return "";
         return parseScore(row[headers[subjectCols[si]]] ?? "");
@@ -217,22 +210,16 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
         admissionNo: admissionIdx >= 0 ? String(row[headers[admissionIdx]] ?? "").trim() : "",
         indexNo: cnoIdx >= 0 ? String(row[headers[cnoIdx]] ?? "").trim() : "",
         name: nameIdx >= 0 ? String(row[headers[nameIdx]] ?? "").trim() : "",
-        sex: sexVal,
-        status: statusVal,
         scores,
       };
 
-      const validation = validateStudent(mapped);
-      if (!validation.valid) {
-        errs.push({ row: i + DATA_ROW_OFFSET, errors: Object.values(validation.errors) });
+      const validationErrors = validateMarksRow(mapped);
+      if (validationErrors.length > 0) {
+        errs.push({ row: i + DATA_ROW_OFFSET, errors: validationErrors });
       } else {
         validRows.push(mapped);
       }
     });
-
-    if (coercionWarnings.length > 0) {
-      setWarnings(prev => [...prev, ...coercionWarnings.slice(0, 5)]);
-    }
 
     setParsed({ students: validRows });
     setPreview(validRows.slice(0, 5));
@@ -290,8 +277,6 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
       const admissionIdx = hNorm.findIndex((h) => h === "admission_no" || h === "admissionno");
       const cnoIdx = hNorm.findIndex((h) => ["cno", "index_no", "indexno", "candidate_no", "candidateno"].includes(h));
       const nameIdx = hNorm.findIndex((h) => h === "name" || h === "student_name" || h === "studentname");
-      const sexIdx = hNorm.findIndex((h) => h === "sex" || h === "gender");
-      const statusIdx = hNorm.findIndex((h) => h === "status");
       const DATA_ROW_OFFSET = 2;
       const subjectCols = subjects.map((subj) => findImportedSubjectColumn(headers, subj));
       const unmappedSubjects = subjects.filter((_, i) => subjectCols[i] === -1);
@@ -301,19 +286,8 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
 
       const validRows = [];
       const errs = [];
-      const coercionWarnings = [];
 
       data.forEach((row, i) => {
-        const rawSex = sexIdx >= 0 ? String(row[headers[sexIdx]] ?? "").trim().toUpperCase() : "M";
-        const sexVal = rawSex === "F" ? "F" : "M";
-        if (rawSex && rawSex !== "M" && rawSex !== "F") {
-          coercionWarnings.push(`Row ${i + DATA_ROW_OFFSET}: sex "${rawSex}" defaulted to M`);
-        }
-
-        const rawStatus = statusIdx >= 0 ? String(row[headers[statusIdx]] ?? "").trim().toLowerCase() : "present";
-        const validStatuses = ["present", "absent", "incomplete"];
-        const statusVal = validStatuses.includes(rawStatus) ? rawStatus : "present";
-
         const scores = subjects.map((_, si) => {
           if (subjectCols[si] === -1) return "";
           return parseScore(row[headers[subjectCols[si]]] ?? "");
@@ -323,22 +297,16 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
           admissionNo: admissionIdx >= 0 ? String(row[headers[admissionIdx]] ?? "").trim() : "",
           indexNo: cnoIdx >= 0 ? String(row[headers[cnoIdx]] ?? "").trim() : "",
           name: nameIdx >= 0 ? String(row[headers[nameIdx]] ?? "").trim() : "",
-          sex: sexVal,
-          status: statusVal,
           scores,
         };
 
-        const validation = validateStudent(mapped);
-        if (!validation.valid) {
-          errs.push({ row: i + DATA_ROW_OFFSET, errors: Object.values(validation.errors) });
+        const validationErrors = validateMarksRow(mapped);
+        if (validationErrors.length > 0) {
+          errs.push({ row: i + DATA_ROW_OFFSET, errors: validationErrors });
         } else {
           validRows.push(mapped);
         }
       });
-
-      if (coercionWarnings.length > 0) {
-        setWarnings((prev) => [...prev, ...coercionWarnings.slice(0, 5)]);
-      }
 
       setParsed({ students: validRows });
       setPreview(validRows.slice(0, 5));
@@ -490,7 +458,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
           <span style={{ fontWeight: 800, fontSize: isMobile ? 13 : 15 }}>
-            📊 Import Students from XLSX
+            Import Marks from XLSX
           </span>
           <button
             style={{ background: "none", border: "none", color: "#fff", fontSize: 22, cursor: "pointer", padding: 0 }}
@@ -502,10 +470,9 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
 
         <div style={styles.body}>
           <div style={{ fontSize: 11, color: "#555" }}>
-            Import students from an Excel (.xlsx) file. The file should contain columns for
-            <strong> CNO</strong>, <strong>Name</strong>, <strong>Sex</strong>, and one column per
-            subject (matching this class's subjects). Additional columns like Total, Grade, etc. are
-            ignored. The first row must be a header row.
+            Import marks from an Excel (.xlsx) file. The file must contain
+            <strong> Admission Number</strong> or <strong>CNO</strong>, plus one column per subject
+            matching this class. Names, sex, status, and other student profile fields are ignored.
           </div>
 
           <div style={styles.section}>
@@ -606,14 +573,14 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
           {parsed && parsed.students.length > 0 && (
             <>
               <div style={styles.infoBox}>
-                ✅ {parsed.students.length} student{parsed.students.length !== 1 ? "s" : ""} ready to
-                import. Showing first {Math.min(5, parsed.students.length)} below.
+                {parsed.students.length} mark row{parsed.students.length !== 1 ? "s" : ""} ready to
+                update. Showing first {Math.min(5, parsed.students.length)} below.
               </div>
               <div style={{ overflowX: "auto" }}>
                 <table style={styles.table}>
                   <thead>
                     <tr>
-                      {["CNO", "Name", "Sex", ...subjects.slice(0, 5)].map((h) => (
+                      {["Admission No.", "CNO", "Name", ...subjects.slice(0, 5)].map((h) => (
                         <th key={h} style={styles.th}>{h}</th>
                       ))}
                       {subjects.length > 5 && <th style={styles.th}>+{subjects.length - 5} more</th>}
@@ -622,9 +589,9 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
                   <tbody>
                     {preview.map((s, i) => (
                       <tr key={i}>
+                        <td style={styles.td}>{s.admissionNo || "—"}</td>
                         <td style={styles.td}>{s.indexNo || "—"}</td>
-                        <td style={{ ...styles.td, textAlign: "left" }}>{s.name}</td>
-                        <td style={styles.td}>{s.sex}</td>
+                        <td style={{ ...styles.td, textAlign: "left" }}>{s.name || "—"}</td>
                         {s.scores.slice(0, 5).map((sc, si) => (
                           <td key={si} style={styles.td}>
                             {sc === "" || sc === null || sc === undefined ? "—" : sc}
@@ -640,7 +607,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
           )}
 
           {parsed && parsed.students.length === 0 && !parseError && (
-            <div style={styles.warnBox}>No valid students found to import.</div>
+            <div style={styles.warnBox}>No valid mark rows found to import.</div>
           )}
 
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", paddingTop: 4 }}>
@@ -656,7 +623,7 @@ export function XLSXImportModal({ classId, subjects = [], onImport, onClose }) {
               onClick={handleImport}
               disabled={!parsed || !parsed.students.length || importing}
             >
-              {importing ? "Importing…" : `Import ${parsed?.students.length ?? 0} Students`}
+              {importing ? "Importing…" : `Update ${parsed?.students.length ?? 0} Mark Rows`}
             </button>
           </div>
         </div>

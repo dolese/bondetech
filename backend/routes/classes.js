@@ -202,7 +202,8 @@ router.post("/:id/students/bulk", requireRole(canManageStudents, "You do not hav
       getDb(),
       req.params.id,
       req.body?.students,
-      req.body?.examType
+      req.body?.examType,
+      { mode: req.body?.mode }
     );
     res.status(201).json(result);
   } catch (err) {
