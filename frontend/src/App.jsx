@@ -12,6 +12,7 @@ import { ReportCardModal } from "./components/ReportCardModal";
 import { CSVImportModal } from "./components/CSVImportModal";
 import { JSONImportModal } from "./components/JSONImportModal";
 import { XLSXImportModal } from "./components/XLSXImportModal";
+import { DedupeStudentsModal } from "./components/DedupeStudentsModal";
 import { StudentManagementPage } from "./components/StudentManagementPage";
 import { SmsPage } from "./components/SmsPage";
 import { AiAssistantPage } from "./components/AiAssistantPage";
@@ -479,6 +480,7 @@ export default function App() {
     onMoveStudentToClass,
     onPromoteStudents,
     onBulkImport,
+    onDedupeStudents,
     onReorderStudentCnos,
     onUpdateSchool,
     onUpdateSubjects,
@@ -1493,6 +1495,15 @@ export default function App() {
           classId={activeClass.id}
           subjects={activeClass.subjects ?? []}
           onImport={onBulkImport}
+          onClose={onCloseModal}
+        />
+      )}
+
+      {modalType === "dedupe-students" && activeClass && (
+        <DedupeStudentsModal
+          classId={activeClass.id}
+          className={[activeClass.form, activeClass.stream, activeClass.year].filter(Boolean).join(" ")}
+          onDedupe={onDedupeStudents}
           onClose={onCloseModal}
         />
       )}

@@ -712,6 +712,9 @@ export function EntryPanel({
     { label: "Import CSV", onClick: () => onShowModal("csv-import") },
     { label: "Import JSON", onClick: () => onShowModal("json-import") },
     { label: "Import XLSX", onClick: () => onShowModal("xlsx-import") },
+    ...(canDeleteStudents
+      ? [{ label: "Remove Duplicates", onClick: () => onShowModal("dedupe-students"), danger: true }]
+      : []),
   ];
 
   const exportActions = [
@@ -1341,7 +1344,7 @@ export function EntryPanel({
                         setShowImportMenu(false);
                         action.onClick();
                       }}
-                      style={styles.dropdownItem}
+                      style={action.danger ? { ...styles.dropdownItem, color: "#b42318", fontWeight: 700 } : styles.dropdownItem}
                     >
                       {action.label}
                     </button>
